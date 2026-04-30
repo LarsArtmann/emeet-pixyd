@@ -709,7 +709,7 @@ func TestParseHIDResponseUnknownInterface(t *testing.T) {
 	}
 
 	if resp.Tracking != pixy.StateIdle {
-		t.Errorf("expected idle tracking for unknown interface, got %s", resp.Tracking)
+		t.Errorf("Tracking = %q, want idle", resp.Tracking)
 	}
 }
 

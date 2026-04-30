@@ -49,7 +49,7 @@ func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
 		t.Fatalf("expected 4 bytes, got %d", len(frame))
 	}
 	if frame[0] != 0xFF || frame[1] != 0xD8 {
-		t.Errorf("missing SOI marker")
+		t.Errorf("missing SOI")
 	}
 	if frame[2] != 0xFF || frame[3] != 0xD9 {
 		t.Errorf("missing EOI marker")
