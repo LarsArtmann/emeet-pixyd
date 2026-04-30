@@ -97,7 +97,12 @@ func assertResponseContains(t *testing.T, resp *http.Response, substr, label str
 
 func post(t *testing.T, url, contentType string, body io.Reader) *http.Response {
 	t.Helper()
-	resp, err := http.Post(url, contentType, body)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, body)
+	if err != nil {
+		t.Fatalf("new POST request: %v", err)
+	}
+	req.Header.Set("Content-Type", contentType)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("POST %s: %v", url, err)
 	}
@@ -106,7 +111,11 @@ func post(t *testing.T, url, contentType string, body io.Reader) *http.Response 
 
 func get(t *testing.T, url string) *http.Response {
 	t.Helper()
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		t.Fatalf("new GET request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET %s: %v", url, err)
 	}
@@ -137,9 +146,27 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 			)
 
 			if method == "GET" {
-				resp, err = http.Get(serverURL + ep)
+				req, reqErr := http.NewRequestWithContext(
+					context.Background(),
+					http.MethodGet,
+					serverURL+ep,
+					nil,
+				)
+				if reqErr != nil {
+					t.Fatalf("new GET request: %v", reqErr)
+				}
+				resp, err = http.DefaultClient.Do(req)
 			} else {
-				resp, err = http.Post(serverURL+ep, "", nil)
+				req, reqErr := http.NewRequestWithContext(
+					context.Background(),
+					http.MethodPost,
+					serverURL+ep,
+					nil,
+				)
+				if reqErr != nil {
+					t.Fatalf("new POST request: %v", reqErr)
+				}
+				resp, err = http.DefaultClient.Do(req)
 			}
 
 			if err != nil {
@@ -333,13 +360,15 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
-	post(t, server.URL+"/api/auto", "", nil)
+	resp := post(t, server.URL+"/api/auto", "", nil)
+	defer resp.Body.Close() //nolint:errcheck
 	daemon.mu.Lock()
 	if daemon.state.AutoMode {
 		t.Fatal("first toggle should turn auto off")
 	}
 	daemon.mu.Unlock()
-	post(t, server.URL+"/api/auto", "", nil)
+	resp2 := post(t, server.URL+"/api/auto", "", nil)
+	defer resp2.Body.Close() //nolint:errcheck
 	daemon.mu.Lock()
 	if !daemon.state.AutoMode {
 		t.Fatal("second toggle should turn auto back on")

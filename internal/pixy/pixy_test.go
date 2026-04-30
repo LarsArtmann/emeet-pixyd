@@ -310,7 +310,8 @@ func TestSendCommand_EndToEnd(t *testing.T) {
 	tmpDir := t.TempDir()
 	socketPath := tmpDir + "/test.sock"
 
-	listener, err := net.Listen("unix", socketPath)
+	var lc net.ListenConfig
+	listener, err := lc.Listen(context.Background(), "unix", socketPath)
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
 	}
