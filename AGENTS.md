@@ -121,9 +121,12 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 - Standard `testing` package only (no testify)
 - **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withAudio()`, `withInCall()` options
-- `testDaemonNoDevice(camera)` and `testDaemonWithDevice(camera)` are convenience wrappers
+- `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
+- `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
+- `assertPtrEqual[T]` generic helper for optional field comparison in tests
 - Fake sysfs trees for device probing tests (`createFakeVideo4linux`, `createFakeHidraw`)
+- `newTestWebServer` returns `*httptest.Server` only (unparam fix)
 - `t.Parallel()` used consistently
 - Fuzz tests: `handlers_fuzz_test.go`, `hid_fuzz_test.go`
 - Integration tests: `integration_test.go` (web server + socket command tests)
@@ -147,7 +150,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
 - **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
 - **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
-- **Remaining lint issues**: The linter reports ~165 issues. The bulk are `exhaustruct` (partial struct initialization is idiomatic Go), `cyclop` (complexity in `handleCommand`, `handleStream`, `Run`), `paralleltest` (test-only), `contextcheck` (templ library limitation), and `errcheck` (test-only). These are acceptable for now — reducing complexity would require restructuring core logic.
+- **Remaining lint issues (~106)**: The bulk are `exhaustruct` (38, partial struct init is idiomatic Go), `paralleltest` (50, missing `t.Parallel()`), `contextcheck` (10, templ false positives), `noctx` (6, test helpers), `gochecknoglobals` (1, sync.Once for Prometheus). These are false positives from linters that can't be suppressed via `exclude-rules` when using `linters.enable`. Config uses `linters.enable` with all linters + `gosec.excludes` for hardware daemon patterns. Real issues (goconst, unparam, cyclop, funlen) have been fixed inline.
 
 ---
 

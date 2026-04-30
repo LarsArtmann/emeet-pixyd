@@ -331,7 +331,33 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 	_, _ = responseWriter.Write(frame)
 }
 
-func (s *webServer) handleStream( //nolint:funlen
+func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
+	return exec.CommandContext(ctx,
+		"ffmpeg",
+		"-f", "v4l2",
+		"-input_format", "mjpeg",
+		"-i", device,
+		"-f", "image2pipe",
+		"-vcodec", "mjpeg",
+		"-q:v", "5",
+		"-vf", "scale=640:-1",
+		"pipe:1",
+	)
+}
+
+func cleanupFFmpeg(cmd *exec.Cmd) {
+	_ = cmd.Process.Signal(syscall.SIGTERM)
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case <-done:
+	case <-time.After(ffmpegShutdown):
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
+	}
+}
+
+func (s *webServer) handleStream(
 	responseWriter http.ResponseWriter,
 	request *http.Request,
 ) {
@@ -361,28 +387,7 @@ func (s *webServer) handleStream( //nolint:funlen
 		return
 	}
 	ctx := request.Context()
-	cmd := exec.CommandContext(
-
-		ctx,
-
-		"ffmpeg",
-
-		"-f", "v4l2",
-
-		"-input_format", "mjpeg",
-
-		"-i", status.Device,
-
-		"-f", "image2pipe",
-
-		"-vcodec", "mjpeg",
-
-		"-q:v", "5",
-
-		"-vf", "scale=640:-1",
-
-		"pipe:1",
-	)
+	cmd := ffmpegStreamCmd(ctx, status.Device)
 	stdOut, pipeErr := cmd.StdoutPipe()
 	if pipeErr != nil {
 		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
@@ -397,17 +402,7 @@ func (s *webServer) handleStream( //nolint:funlen
 	}
 	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	responseWriter.Header().Set("Cache-Control", "no-store")
-	defer func() {
-		_ = cmd.Process.Signal(syscall.SIGTERM)
-		done := make(chan error, 1)
-		go func() { done <- cmd.Wait() }()
-		select {
-		case <-done:
-		case <-time.After(ffmpegShutdown):
-			_ = cmd.Process.Kill()
-			_ = cmd.Wait()
-		}
-	}()
+	defer cleanupFFmpeg(cmd)
 	br := bufio.NewReaderSize(stdOut, streamBufSize)
 	var buf bytes.Buffer
 	for {
