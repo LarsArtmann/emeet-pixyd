@@ -101,10 +101,7 @@ func (d *Daemon) setDeviceState(
 
 	d.mu.Lock()
 	setter(d)
-
-	if saveErr := d.saveState(); saveErr != nil {
-		slog.Error("failed to save state", "error", saveErr)
-	}
+	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 
 	return nil
@@ -257,10 +254,7 @@ func (d *Daemon) syncState(ctx context.Context) string {
 	d.lastSyncedAt = time.Now()
 
 	if changed {
-		if saveErr := d.saveState(); saveErr != nil {
-			slog.Error("failed to save synced state", "error", saveErr)
-		}
-
+		d.saveStateOrLog("failed to save synced state")
 		d.mu.Unlock()
 
 		return "synced (state updated from camera)"
@@ -525,18 +519,14 @@ func (d *Daemon) Run() {
 			if sig == syscall.SIGHUP {
 				slog.Info("received SIGHUP, saving state")
 				d.mu.Lock()
-				if saveErr := d.saveState(); saveErr != nil {
-					slog.Error("failed to save state on SIGHUP", "error", saveErr)
-				}
+				d.saveStateOrLog("failed to save state on SIGHUP")
 				d.mu.Unlock()
 				continue
 			}
 			sdNotify("STOPPING=1")
 			slog.Info("shutting down")
 			d.mu.Lock()
-			if saveErr := d.saveState(); saveErr != nil {
-				slog.Error("failed to save state on shutdown", "error", saveErr)
-			}
+			d.saveStateOrLog("failed to save state on shutdown")
 			d.mu.Unlock()
 			cancel()
 			_ = os.Remove(d.config.SocketPath())

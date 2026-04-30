@@ -221,6 +221,15 @@ func actionToast(command string) (string, string) {
 	}
 }
 
+func applyResponseToStatus(resp string, status *webStatus, toast string) {
+	if strings.HasPrefix(resp, "error:") {
+		status.Error = resp
+	} else {
+		status.Toast = toast
+		status.ToastType = toastTypeInfo
+	}
+}
+
 func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	mode := request.FormValue("mode")
@@ -231,12 +240,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	resp := s.daemon.handleCommand(request.Context(), cmd)
 	slog.Debug("web audio", "cmd", cmd, "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	if strings.HasPrefix(resp, "error:") {
-		status.Error = resp
-	} else {
-		status.Toast = "Audio mode changed"
-		status.ToastType = toastTypeInfo
-	}
+	applyResponseToStatus(resp, &status, "Audio mode changed")
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
 }
 
@@ -530,12 +534,7 @@ func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request
 	resp := s.daemon.handleCommand(request.Context(), cmdToggleAuto)
 	slog.Debug("web auto toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	if strings.HasPrefix(resp, "error:") {
-		status.Error = resp
-	} else {
-		status.Toast = "Auto mode toggled"
-		status.ToastType = toastTypeInfo
-	}
+	applyResponseToStatus(resp, &status, "Auto mode toggled")
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
 }
 

@@ -65,3 +65,11 @@ func (d *Daemon) saveState() error {
 
 	return nil
 }
+
+// saveStateOrLog calls saveState and logs any error with the given message.
+// Caller must hold d.mu.
+func (d *Daemon) saveStateOrLog(msg string) {
+	if err := d.saveState(); err != nil {
+		slog.Error(msg, "error", err)
+	}
+}

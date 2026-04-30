@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"strconv"
 	"strings"
 
@@ -203,10 +202,7 @@ func (d *Daemon) handleAutoCommand(cmd string) string {
 
 	d.mu.Lock()
 	d.state.AutoMode = mode
-
-	if saveErr := d.saveState(); saveErr != nil {
-		slog.Error("failed to save state", "error", saveErr)
-	}
+	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 
 	if mode {

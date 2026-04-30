@@ -86,6 +86,39 @@ func TestAudioMode_Next_CyclesThrough(t *testing.T) {
 	}
 }
 
+func assertParseAudioMode(t *testing.T, input string, want AudioMode) {
+	t.Helper()
+	got, err := ParseAudioMode(input)
+	if err != nil {
+		t.Errorf("ParseAudioMode(%q) unexpected error: %v", input, err)
+	}
+	if got != want {
+		t.Errorf("ParseAudioMode(%q) = %v, want %v", input, got, want)
+	}
+}
+
+func assertParseCameraState(t *testing.T, input string, want CameraState) {
+	t.Helper()
+	got, err := ParseCameraState(input)
+	if err != nil {
+		t.Errorf("ParseCameraState(%q) unexpected error: %v", input, err)
+	}
+	if got != want {
+		t.Errorf("ParseCameraState(%q) = %v, want %v", input, got, want)
+	}
+}
+
+func expectParseCameraStateError(t *testing.T, input string) {
+	t.Helper()
+	_, err := ParseCameraState(input)
+	if err == nil {
+		t.Errorf("ParseCameraState(%q) expected error, got nil", input)
+	}
+	if !errors.Is(err, ErrInvalidCameraState) {
+		t.Errorf("ParseCameraState(%q) error = %v, want ErrInvalidCameraState", input, err)
+	}
+}
+
 func TestParseAudioMode(t *testing.T) {
 	t.Parallel()
 
@@ -104,8 +137,8 @@ func TestParseAudioMode(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		got, err := ParseAudioMode(tc.input)
 		if tc.wantErr {
+			_, err := ParseAudioMode(tc.input)
 			if err == nil {
 				t.Errorf("ParseAudioMode(%q) expected error, got nil", tc.input)
 			}
@@ -117,13 +150,7 @@ func TestParseAudioMode(t *testing.T) {
 			continue
 		}
 
-		if err != nil {
-			t.Errorf("ParseAudioMode(%q) unexpected error: %v", tc.input, err)
-		}
-
-		if got != tc.want {
-			t.Errorf("ParseAudioMode(%q) = %v, want %v", tc.input, got, tc.want)
-		}
+		assertParseAudioMode(t, tc.input, tc.want)
 	}
 }
 
@@ -163,30 +190,11 @@ func TestParseCameraState(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		got, err := ParseCameraState(tc.input)
 		if tc.wantErr {
-			if err == nil {
-				t.Errorf("ParseCameraState(%q) expected error, got nil", tc.input)
-			}
-
-			if !errors.Is(err, ErrInvalidCameraState) {
-				t.Errorf(
-					"ParseCameraState(%q) error = %v, want ErrInvalidCameraState",
-					tc.input,
-					err,
-				)
-			}
-
+			expectParseCameraStateError(t, tc.input)
 			continue
 		}
-
-		if err != nil {
-			t.Errorf("ParseCameraState(%q) unexpected error: %v", tc.input, err)
-		}
-
-		if got != tc.want {
-			t.Errorf("ParseCameraState(%q) = %v, want %v", tc.input, got, tc.want)
-		}
+		assertParseCameraState(t, tc.input, tc.want)
 	}
 }
 

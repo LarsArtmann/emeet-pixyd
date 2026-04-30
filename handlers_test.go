@@ -343,7 +343,7 @@ func TestCachingFS(t *testing.T) {
 	t.Parallel()
 
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok")) //nolint:errcheck
 	})
 	cfs := cachingFS{handler: inner}
 

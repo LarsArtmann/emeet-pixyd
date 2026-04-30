@@ -244,22 +244,16 @@ func queryHIDState[T any](
 
 	resp, err := hidSendRecv(ctx, hidrawDev, payload)
 	if err != nil {
-		var zero T
-
-		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, err)
+		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, err)
 	}
 
 	if resp == nil {
-		var zero T
-
-		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, errNoHIDResponse)
+		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, errNoHIDResponse)
 	}
 
 	parsed := parseHIDResponse(resp)
 	if !parsed.Got {
-		var zero T
-
-		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, errUnrecognizedHID)
+		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, errUnrecognizedHID)
 	}
 
 	return extract(parsed), nil
