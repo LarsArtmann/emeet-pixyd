@@ -684,7 +684,7 @@ func shortSocketDir(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("create short temp dir: %v", err)
 	}
-	t.Cleanup(func() { _ = os.RemoveAll(dir) }) //nolint:errcheck
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
 	return dir
 }
 

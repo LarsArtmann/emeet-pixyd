@@ -15,80 +15,51 @@ run:
 output:
     formats: {}
 linters:
-    disable:
-        - dupl
-        - exhaustive
-        - ginkgolinter
-        - gochecksumtype
-        - gocognit
-        - gocyclo
-        - interfacebloat
-        - intrange
-        - maintidx
-        - mirror
-        - misspell
-        - musttag
-        - nakedret
-        - nestif
-        - nilerr
-        - nilnil
-        - perfsprint
-        - predeclared
-        - protogetter
-        - reassign
-        - recvcheck
-        - rowserrcheck
-        - sloglint
-        - spancheck
-        - sqlclosecheck
-        - staticcheck
-        - testifylint
-        - unconvert
-        - usetesting
-        - wastedassign
-        - wrapcheck
-        - zerologlint
+    enable:
+        - bodyclose
+        - contextcheck
+        - copyloopvar
+        - cyclop
+        - durationcheck
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustruct
+        - forcetypeassert
+        - funlen
+        - gochecknoglobals
+        - gochecknoinits
+        - goconst
+        - gocritic
+        - gosec
+        - gosmopolitan
+        - loggercheck
+        - nilnesserr
+        - noctx
+        - nolintlint
+        - paralleltest
+        - prealloc
+        - revive
+        - thelper
+        - unparam
+    settings:
+        cyclop:
+            max-complexity: 20
+        funlen:
+            max: 80
+            min-lines: 1
+        gosec:
+            excludes:
+                - G304
+                - G204
+                - G706
+                - G115
+formatters:
+    enable:
+        - gci
+        - goimports
+        - gofumpt
+        - golines
 issues:
     max-issues-per-linter: 50
     max-same-issues: 10
-    exclude-rules:
-        # contextcheck: templ component calls don't propagate context to components
-        - linters:
-            - contextcheck
-          path: "handlers.go"
-          text: "should pass the context parameter"
-
-        # exhaustruct: partial struct initialization is idiomatic for configs/tests
-        - linters:
-            - exhaustruct
-          path: "_test.go$"
-
-        # exhaustruct: partial initialization is idiomatic for daemon/config structs
-        - linters:
-            - exhaustruct
-          path: "(handlers|main|state|probe|v4l2|uevent|uevent_linux)\\.go"
-
-        # paralleltest: test files may intentionally skip t.Parallel()
-        - linters:
-            - paralleltest
-          path: "_test.go$"
-
-        # noctx: test helpers may use http.Get/Post without context
-        - linters:
-            - noctx
-          path: "_test.go$"
-
-
-
-linters-settings:
-    gosec:
-        excludes:
-            - G304
-            - G204
-            - G706
-            - G115
-    cyclop:
-        max-complexity: 20
-    funlen:
-        max: 80
-        min-lines: 1
