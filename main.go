@@ -17,8 +17,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	"github.com/coreos/go-systemd/v22/daemon"
 )
 
 const (
@@ -191,7 +191,13 @@ func (d *Daemon) loadState() {
 	var loaded pixy.State
 
 	if jsonErr := json.Unmarshal(data, &loaded); jsonErr != nil {
-		slog.Warn("failed to parse state file, using defaults", "path", d.config.StateFile(), "error", jsonErr)
+		slog.Warn(
+			"failed to parse state file, using defaults",
+			"path",
+			d.config.StateFile(),
+			"error",
+			jsonErr,
+		)
 
 		return
 	}
@@ -231,7 +237,11 @@ func (d *Daemon) saveState() error {
 
 type stateSetter func(d *Daemon)
 
-func (d *Daemon) setDeviceState(ctx context.Context, configBytes, commitBytes []byte, setter stateSetter) error {
+func (d *Daemon) setDeviceState(
+	ctx context.Context,
+	configBytes, commitBytes []byte,
+	setter stateSetter,
+) error {
 	d.mu.RLock()
 	hidrawDev := d.hidrawDev
 	d.mu.RUnlock()
@@ -448,7 +458,11 @@ func sdNotify(state string) {
 	}
 }
 
-func (d *Daemon) handleCallStart(ctx context.Context, camera pixy.CameraState, audio pixy.AudioMode) {
+func (d *Daemon) handleCallStart(
+	ctx context.Context,
+	camera pixy.CameraState,
+	audio pixy.AudioMode,
+) {
 	d.mu.Lock()
 	d.state.InCall = true
 	d.mu.Unlock()

@@ -40,7 +40,11 @@ func FuzzExtractJPEGFrame(f *testing.F) {
 		}
 
 		if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
-			t.Errorf("frame must end with JPEG EOI, got %02X %02X", frame[len(frame)-2], frame[len(frame)-1])
+			t.Errorf(
+				"frame must end with JPEG EOI, got %02X %02X",
+				frame[len(frame)-2],
+				frame[len(frame)-1],
+			)
 		}
 	})
 }

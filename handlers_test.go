@@ -286,7 +286,10 @@ func TestSecurityMiddleware(t *testing.T) {
 		{"Referrer-Policy", "no-referrer"},
 		{"X-Content-Type-Options", "nosniff"},
 		{"X-Frame-Options", "DENY"},
-		{"Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"},
+		{
+			"Content-Security-Policy",
+			"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+		},
 	}
 	for _, h := range headers {
 		got := rec.Header().Get(h.key)

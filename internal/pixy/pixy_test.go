@@ -170,7 +170,11 @@ func TestParseCameraState(t *testing.T) {
 			}
 
 			if !errors.Is(err, ErrInvalidCameraState) {
-				t.Errorf("ParseCameraState(%q) error = %v, want ErrInvalidCameraState", tc.input, err)
+				t.Errorf(
+					"ParseCameraState(%q) error = %v, want ErrInvalidCameraState",
+					tc.input,
+					err,
+				)
 			}
 
 			continue
@@ -226,7 +230,11 @@ func TestDefaultConfig(t *testing.T) {
 	}
 
 	if c.DebounceCount != DefaultDebounceCount {
-		t.Errorf("DefaultConfig().DebounceCount = %v, want %v", c.DebounceCount, DefaultDebounceCount)
+		t.Errorf(
+			"DefaultConfig().DebounceCount = %v, want %v",
+			c.DebounceCount,
+			DefaultDebounceCount,
+		)
 	}
 
 	if c.WebAddr != DefaultWebAddr {

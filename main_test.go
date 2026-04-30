@@ -48,7 +48,11 @@ func newTestDaemonWithAudio(
 			InCall:   false,
 			AutoMode: true,
 		},
-		config:        pixy.Config{StateDir: "/tmp", PollInterval: 2 * time.Second, DebounceCount: 3},
+		config: pixy.Config{
+			StateDir:      "/tmp",
+			PollInterval:  2 * time.Second,
+			DebounceCount: 3,
+		},
 		videoDev:      videoDev,
 		hidrawDev:     hidrawDev,
 		debounceInUse: 0,
@@ -662,7 +666,12 @@ type parseTestCase[T comparable] struct {
 	wantErr  bool
 }
 
-func runParseTests[T comparable](t *testing.T, name string, parse func(string) (T, error), tests []parseTestCase[T]) {
+func runParseTests[T comparable](
+	t *testing.T,
+	name string,
+	parse func(string) (T, error),
+	tests []parseTestCase[T],
+) {
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
 			got, err := parse(tc.input)

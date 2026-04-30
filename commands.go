@@ -112,7 +112,11 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	}
 }
 
-func (d *Daemon) handleTrackingCommand(ctx context.Context, state pixy.CameraState, label string) string {
+func (d *Daemon) handleTrackingCommand(
+	ctx context.Context,
+	state pixy.CameraState,
+	label string,
+) string {
 	if err := d.setTracking(ctx, state); err != nil {
 		return fmt.Sprintf("error: %s: %v", label, err)
 	}
@@ -238,7 +242,12 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 		return fmt.Sprintf("error: %s: device not found", axis)
 	}
 
-	if v4l2Err := v4l2Set(ctx, videoDev, axis+"_absolute", strconv.Itoa(val*multiplier)); v4l2Err != nil {
+	if v4l2Err := v4l2Set(
+		ctx,
+		videoDev,
+		axis+"_absolute",
+		strconv.Itoa(val*multiplier),
+	); v4l2Err != nil {
 		return fmt.Sprintf("error: %s: %v", axis, v4l2Err)
 	}
 
