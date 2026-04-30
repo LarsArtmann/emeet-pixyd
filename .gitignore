@@ -2,7 +2,6 @@ coverage.out
 /result
 *.tmp
 .direnv/
-.envrc
 # Dependencies
 node_modules/
 # Test coverage
