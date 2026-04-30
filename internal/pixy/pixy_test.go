@@ -8,6 +8,22 @@ import (
 	"time"
 )
 
+func assertValid(t *testing.T, input any, want bool, typeName string) {
+	t.Helper()
+	var got bool
+	switch v := input.(type) {
+	case CameraState:
+		got = v.Valid()
+	case AudioMode:
+		got = v.Valid()
+	default:
+		t.Fatalf("unsupported type for assertValid: %T", input)
+	}
+	if got != want {
+		t.Errorf("%s(%q).Valid() = %v, want %v", typeName, input, got, want)
+	}
+}
+
 func TestCameraState_Valid(t *testing.T) {
 	t.Parallel()
 
@@ -25,9 +41,7 @@ func TestCameraState_Valid(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		if got := tc.input.Valid(); got != tc.want {
-			t.Errorf("CameraState(%q).Valid() = %v, want %v", tc.input, got, tc.want)
-		}
+		assertValid(t, tc.input, tc.want, "CameraState")
 	}
 }
 
@@ -47,9 +61,7 @@ func TestAudioMode_Valid(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		if got := tc.input.Valid(); got != tc.want {
-			t.Errorf("AudioMode(%q).Valid() = %v, want %v", tc.input, got, tc.want)
-		}
+		assertValid(t, tc.input, tc.want, "AudioMode")
 	}
 }
 

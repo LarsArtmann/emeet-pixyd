@@ -123,6 +123,13 @@ func assertParsedField(t *testing.T, parsed map[string]string, field string) {
 	}
 }
 
+func assertTrackingIdle(t *testing.T, tracking pixy.CameraState) {
+	t.Helper()
+	if tracking != pixy.StateIdle {
+		t.Errorf("Tracking = %q, want idle", tracking)
+	}
+}
+
 func testDaemonNoDevice() *Daemon {
 	return newTestDaemon(pixy.StatePrivacy, "", "")
 }
@@ -708,9 +715,7 @@ func TestParseHIDResponseUnknownInterface(t *testing.T) {
 		t.Error("expected Got=true for valid-length response with unknown interface")
 	}
 
-	if resp.Tracking != pixy.StateIdle {
-		t.Errorf("Tracking = %q, want idle", resp.Tracking)
-	}
+	assertTrackingIdle(t, resp.Tracking)
 }
 
 func TestDefaultStateValues(t *testing.T) {

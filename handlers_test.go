@@ -34,6 +34,28 @@ func assertJPEGBytes(t *testing.T, frame, expected []byte) {
 	}
 }
 
+func assertJPEGMarkers(t *testing.T, frame []byte) {
+	t.Helper()
+	if frame[0] != 0xFF || frame[1] != 0xD8 {
+		t.Errorf("missing SOI")
+	}
+	if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
+		t.Errorf("missing EOI")
+	}
+}
+
+func runRequestIDMiddleware(t *testing.T, req *http.Request) string {
+	t.Helper()
+	var capturedID string
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		capturedID = w.Header().Get("X-Request-ID")
+	})
+	h := requestIDMiddleware(inner)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return capturedID
+}
+
 func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
 	t.Parallel()
 
@@ -48,12 +70,7 @@ func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
 	if len(frame) != 4 {
 		t.Fatalf("expected 4 bytes, got %d", len(frame))
 	}
-	if frame[0] != 0xFF || frame[1] != 0xD8 {
-		t.Errorf("missing SOI")
-	}
-	if frame[2] != 0xFF || frame[3] != 0xD9 {
-		t.Errorf("missing EOI marker")
-	}
+	assertJPEGMarkers(t, frame)
 }
 
 func TestExtractJPEGFrame_FrameWithPayload(t *testing.T) {
@@ -151,12 +168,7 @@ func TestExtractJPEGFrame_FFInsidePayload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if frame[0] != 0xFF || frame[1] != 0xD8 {
-		t.Errorf("missing SOI")
-	}
-	if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
-		t.Errorf("missing EOI")
-	}
+	assertJPEGMarkers(t, frame)
 }
 
 func TestExtractJPEGFrame_BufferReset(t *testing.T) {
@@ -313,15 +325,8 @@ func TestSecurityMiddleware(t *testing.T) {
 func TestRequestIDMiddleware_Generated(t *testing.T) {
 	t.Parallel()
 
-	var capturedID string
-	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		capturedID = w.Header().Get("X-Request-ID")
-	})
-	handler := requestIDMiddleware(inner)
-
 	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
+	capturedID := runRequestIDMiddleware(t, req)
 
 	if capturedID == "" {
 		t.Error("X-Request-ID should be generated when not provided")
@@ -334,16 +339,9 @@ func TestRequestIDMiddleware_Generated(t *testing.T) {
 func TestRequestIDMiddleware_Passthrough(t *testing.T) {
 	t.Parallel()
 
-	var capturedID string
-	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		capturedID = w.Header().Get("X-Request-ID")
-	})
-	handler := requestIDMiddleware(inner)
-
 	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
 	req.Header.Set("X-Request-ID", "abcd1234")
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
+	capturedID := runRequestIDMiddleware(t, req)
 
 	if capturedID != "abcd1234" {
 		t.Errorf("X-Request-ID = %q, want %q", capturedID, "abcd1234")

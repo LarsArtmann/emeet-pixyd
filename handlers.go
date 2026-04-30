@@ -19,8 +19,11 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 const (
@@ -50,46 +53,62 @@ const (
 var staticFS embed.FS
 
 var (
-	metricInCall = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "emeet_pixyd_in_call",
-		Help: "Whether the camera is currently in a call (1=yes, 0=no)",
-	})
-	metricAutoMode = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "emeet_pixyd_auto_mode",
-		Help: "Whether auto-management mode is enabled (1=yes, 0=no)",
-	})
-	metricCameraState = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "emeet_pixyd_camera_state",
-		Help: "Current camera state as a gauge per state label (1=active)",
-	}, []string{"state"})
+	promExporter      *prometheus.Exporter
+	metricInCall      metric.Float64Gauge
+	metricAutoMode    metric.Float64Gauge
+	metricCameraState metric.Float64Gauge
 )
 
 var metricsOnce sync.Once
 
 func registerMetrics() {
 	metricsOnce.Do(func() {
-		prometheus.MustRegister(metricInCall)
-		prometheus.MustRegister(metricAutoMode)
-		prometheus.MustRegister(metricCameraState)
+		var err error
+		promExporter, err = prometheus.New(
+			prometheus.WithoutScopeInfo(),
+			prometheus.WithoutTargetInfo(),
+		)
+		if err != nil {
+			slog.Error("failed to create OTel Prometheus exporter", "error", err)
+			return
+		}
+		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
+		meter := mp.Meter("emeet-pixyd")
+		if metricInCall, err = meter.Float64Gauge("emeet_pixyd_in_call",
+			metric.WithDescription("Whether the camera is currently in a call (1=yes, 0=no)"),
+		); err != nil {
+			slog.Error("failed to create in_call gauge", "error", err)
+		}
+		if metricAutoMode, err = meter.Float64Gauge("emeet_pixyd_auto_mode",
+			metric.WithDescription("Whether auto-management mode is enabled (1=yes, 0=no)"),
+		); err != nil {
+			slog.Error("failed to create auto_mode gauge", "error", err)
+		}
+		if metricCameraState, err = meter.Float64Gauge("emeet_pixyd_camera_state",
+			metric.WithDescription("Current camera state as a gauge per state label (1=active)"),
+		); err != nil {
+			slog.Error("failed to create camera_state gauge", "error", err)
+		}
 	})
 }
 
 func updateMetrics(state pixy.State) {
+	ctx := context.Background()
 	if state.InCall {
-		metricInCall.Set(1)
+		metricInCall.Record(ctx, 1)
 	} else {
-		metricInCall.Set(0)
+		metricInCall.Record(ctx, 0)
 	}
 	if state.AutoMode {
-		metricAutoMode.Set(1)
+		metricAutoMode.Record(ctx, 1)
 	} else {
-		metricAutoMode.Set(0)
+		metricAutoMode.Record(ctx, 0)
 	}
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		if state.Camera == s {
-			metricCameraState.WithLabelValues(string(s)).Set(1)
+			metricCameraState.Record(ctx, 1, metric.WithAttributes(attribute.String("state", string(s))))
 		} else {
-			metricCameraState.WithLabelValues(string(s)).Set(0)
+			metricCameraState.Record(ctx, 0, metric.WithAttributes(attribute.String("state", string(s))))
 		}
 	}
 }

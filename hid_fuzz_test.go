@@ -52,9 +52,7 @@ func FuzzParseHIDResponse(f *testing.F) {
 			if resp.Got {
 				t.Error("Got should be false for short data")
 			}
-			if resp.Tracking != pixy.StateIdle {
-				t.Errorf("Tracking = %q, want idle", resp.Tracking)
-			}
+			assertTrackingIdle(t, resp.Tracking)
 			if resp.Audio != pixy.AudioNC {
 				t.Errorf("Audio = %q, want nc", resp.Audio)
 			}
