@@ -1,0 +1,232 @@
+package main
+
+import "fmt"
+
+type webStatus struct {
+	Camera     string
+	Audio      string
+	Gesture    bool
+	Pan        int
+	Tilt       int
+	Zoom       int
+	InCall     bool
+	Auto       bool
+	Online     bool
+	Device     string
+	Error      string
+	LastSynced string
+	Toast      string
+	ToastType  string
+}
+
+templ page(s webStatus) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>EMEET PIXY — { s.Camera }</title>
+			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F7;</text></svg>"/>
+			<link rel="stylesheet" href="/static/style.css"/>
+			<script src="/static/htmx-2.0.8.min.js"></script>
+			<script src="/static/app.js"></script>
+		</head>
+		<body>
+			<main class="container">
+				<header>
+					<h1>EMEET PIXY</h1>
+					if s.Online {
+						<span class="header-badge" style="background:rgba(63,185,80,0.15);color:var(--green)">Online</span>
+					} else {
+						<span class="header-badge" style="background:rgba(248,81,73,0.15);color:var(--red)">Offline</span>
+					}
+				</header>
+				<div class="grid">
+					<div>
+						<div class="card">
+							<div class="card-title">Preview</div>
+							<div class="preview-container" id="preview">
+								if s.Online && s.Device != "" {
+									<div class="preview-live-dot"></div>
+									<img src="/api/stream" id="preview-img" alt="Live camera feed" aria-label="Live camera preview"/>
+									<div id="preview-fallback" class="preview-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column">
+										<div class="icon">&#x1F4F7;</div>
+										<div>Camera in use or unavailable</div>
+									</div>
+								} else {
+									<div class="preview-placeholder">
+										<div class="icon">&#x1F4F7;</div>
+										<div>Camera offline</div>
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+					@statusPanel(s)
+				</div>
+			</main>
+			<div id="toast-container"></div>
+		</body>
+	</html>
+}
+
+templ ptzSlider(label, axis string, min, max, value int, unit string) {
+	<div class="slider-row" id={ "ptz-" + axis }>
+		<span class="slider-label">{ label }</span>
+		<input
+			type="range"
+			class="ptz-slider"
+			id={ "slider-" + axis }
+			min={ fmt.Sprintf("%d", min) }
+			max={ fmt.Sprintf("%d", max) }
+			value={ fmt.Sprintf("%d", value) }
+			hx-post={ "/api/ptz/" + axis }
+			hx-target={ "#ptz-" + axis }
+			hx-swap="outerHTML"
+			hx-trigger="input changed delay:300ms, change"
+		/>
+		<span class="slider-value" id={ "val-" + axis }>{ fmt.Sprintf("%d%s", value, unit) }</span>
+	</div>
+}
+
+templ toastOOB(msg, toastType string) {
+	<div id="toast-container" hx-swap-oob="innerHTML">
+		if msg != "" {
+			<div class={ "toast toast-" + toastType + " show" }>{ msg }</div>
+		}
+	</div>
+}
+
+templ statusPanel(s webStatus) {
+	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body, load" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
+		if s.Error != "" {
+			<div class="error-banner">{ s.Error }</div>
+		}
+		<div class="card" style="margin-bottom:1rem">
+			<div class="card-title">Camera</div>
+			<div class={ "state-indicator", "state-" + s.Camera }>
+				<span class="state-dot"></span>
+				<span>{ s.Camera }</span>
+			</div>
+			<div class="btn-group">
+				<button
+					class={ "btn", "btn-green", templ.KV("btn-active", s.Camera == "tracking") }
+					hx-post="/api/track"
+					hx-target="#status-panel"
+					aria-label="Enable tracking"
+					if !s.Online { disabled="" }
+				>
+					Track<span class="kbd">T</span>
+				</button>
+				<button
+					class={ "btn", "btn-yellow", templ.KV("btn-active", s.Camera == "idle") }
+					hx-post="/api/idle"
+					hx-target="#status-panel"
+					aria-label="Set idle"
+					if !s.Online { disabled="" }
+				>
+					Idle<span class="kbd">I</span>
+				</button>
+				<button
+					class={ "btn", "btn-red", templ.KV("btn-active", s.Camera == "privacy") }
+					hx-post="/api/privacy"
+					hx-target="#status-panel"
+					aria-label="Enable privacy"
+					if !s.Online { disabled="" }
+				>
+					Privacy<span class="kbd">P</span>
+				</button>
+			</div>
+		</div>
+		<div class="card" style="margin-bottom:1rem">
+			<div class="card-title">Audio Mode</div>
+			<div class={ "audio-indicator", "audio-" + s.Audio }>
+				<span class="audio-dot"></span>
+				<span>{ s.Audio }</span>
+			</div>
+			<div class="btn-group">
+				<button
+					class={ "btn", "btn-green", templ.KV("btn-active", s.Audio == "nc") }
+					hx-post="/api/audio"
+					hx-vals='{"mode":"nc"}'
+					hx-target="#status-panel"
+					aria-label="Noise cancel"
+					if !s.Online { disabled="" }
+				>
+					Noise Cancel
+				</button>
+				<button
+					class={ "btn", "btn-yellow", templ.KV("btn-active", s.Audio == "live") }
+					hx-post="/api/audio"
+					hx-vals='{"mode":"live"}'
+					hx-target="#status-panel"
+					aria-label="Live audio"
+					if !s.Online { disabled="" }
+				>
+					Live
+				</button>
+				<button
+					class={ "btn", templ.KV("btn-active", s.Audio == "original") }
+					hx-post="/api/audio"
+					hx-vals='{"mode":"org"}'
+					hx-target="#status-panel"
+					aria-label="Original audio"
+					if !s.Online { disabled="" }
+				>
+					Original
+				</button>
+			</div>
+		</div>
+		<div class="card" style="margin-bottom:1rem">
+			<div class="card-title">Settings</div>
+			<div class="toggle-row">
+				<span class="toggle-label" id="gesture-label">Gesture Control</span>
+				<button
+					class={ "toggle", templ.KV("on", s.Gesture) }
+					hx-post="/api/gesture"
+					hx-target="#status-panel"
+					aria-labelledby="gesture-label"
+					role="switch"
+					aria-checked={ fmt.Sprintf("%t", s.Gesture) }
+					if !s.Online { disabled="" }
+				></button>
+			</div>
+			<div class="toggle-row">
+				<span class="toggle-label" id="auto-label">Auto Mode</span>
+				<button
+					class={ "toggle", templ.KV("on", s.Auto) }
+					hx-post="/api/auto"
+					hx-target="#status-panel"
+					aria-labelledby="auto-label"
+					role="switch"
+					aria-checked={ fmt.Sprintf("%t", s.Auto) }
+				></button>
+			</div>
+			if s.InCall {
+				<div class="meta" style="margin-top:0.5rem">
+					<span style="color:var(--green)">&#x25CF; In call</span>
+				</div>
+			}
+		</div>
+		if s.Online {
+			<div class="card" style="margin-bottom:1rem">
+				<div class="card-title">PTZ</div>
+				@ptzSlider("Pan", "pan", -170, 170, s.Pan, "&#176;")
+				@ptzSlider("Tilt", "tilt", -30, 30, s.Tilt, "&#176;")
+				@ptzSlider("Zoom", "zoom", 100, 400, s.Zoom, "x")
+				<div class="spacer"></div>
+				<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
+			</div>
+		}
+		<div class="card">
+			<div class="footer-actions">
+				<button class="btn" hx-post="/api/sync" hx-target="#status-panel" aria-label="Sync state">&#x21BB; Sync</button>
+				<button class="btn" hx-post="/api/probe" hx-target="#status-panel" aria-label="Probe devices">&#x1F50D; Probe</button>
+			</div>
+			if s.LastSynced != "" {
+				<div class="last-synced">Last synced: { s.LastSynced }</div>
+			}
+		</div>
+	</div>
+	@toastOOB(s.Toast, s.ToastType)
+}
