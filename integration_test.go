@@ -131,19 +131,8 @@ func sendSC(t *testing.T, socketPath, cmd string) string {
 	return resp
 }
 
-func assertSocketCommandsHavePrefix(
-	t *testing.T,
-	socketPath string,
-	commands []string,
-	expectedPrefix string,
-) {
-	t.Helper()
-	for _, cmd := range commands {
-
-		resp := sendSC(t, socketPath, cmd)
-
-		assertSocketResponsePrefix(t, resp, expectedPrefix, "socket response")
-	}
+func daemonHasDevices(d *Daemon) bool {
+	return d.videoDev != "" || d.hidrawDev != ""
 }
 
 func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoints []string) {
@@ -803,7 +792,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			daemon, cfg := startSocketDaemon(t)
 
-			if daemon.videoDev != "" || daemon.hidrawDev != "" {
+			if daemonHasDevices(daemon) {
 				t.Skip("device connected")
 			}
 
@@ -826,7 +815,7 @@ func TestSocket_AudioValidModes(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			daemon, cfg := startSocketDaemon(t)
 
-			if daemon.videoDev != "" || daemon.hidrawDev != "" {
+			if daemonHasDevices(daemon) {
 				t.Skip("device connected, audio would succeed")
 			}
 
@@ -836,47 +825,36 @@ func TestSocket_AudioValidModes(t *testing.T) {
 	}
 }
 
-func TestSocket_PanTiltZoomNoDevice(t *testing.T) {
+func TestSocket_PanTiltZoom(t *testing.T) {
 	daemon, cfg := startSocketDaemon(t)
 	if daemon.videoDev != "" {
 		t.Skip("device connected")
 	}
-	assertSocketCommandsHavePrefix(
 
-		t,
-
-		cfg.SocketPath(),
-
-		[]string{"pan 10", "tilt -5", "zoom 200"},
-
-		"error:",
-	)
-}
-
-func TestSocket_PanTiltZoomMissingValue(t *testing.T) {
-	_, cfg := startSocketDaemon(t)
-	for _, cmd := range []string{"pan", "tilt", "zoom"} {
-
-		resp := sendSC(t, cfg.SocketPath(), cmd)
-
-		if !strings.HasPrefix(resp, "usage:") {
-			t.Errorf("expected usage for '%s' without value, got: %s", cmd, resp)
-		}
+	for _, tc := range []struct {
+		name    string
+		cmd     string
+		wantErr bool
+	}{
+		{"pan with value", "pan 10", true},
+		{"tilt with value", "tilt -5", true},
+		{"zoom with value", "zoom 200", true},
+		{"pan missing value", "pan", false},
+		{"tilt missing value", "tilt", false},
+		{"zoom missing value", "zoom", false},
+		{"pan invalid value", "pan abc", true},
+		{"tilt invalid value", "tilt !", true},
+		{"zoom invalid value", "zoom x", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resp := sendSC(t, cfg.SocketPath(), tc.cmd)
+			if tc.wantErr {
+				assertSocketResponsePrefix(t, resp, "error:", "socket response")
+			} else if !strings.HasPrefix(resp, "usage:") {
+				t.Errorf("expected usage for %q, got: %s", tc.cmd, resp)
+			}
+		})
 	}
-}
-
-func TestSocket_PanTiltZoomInvalidValue(t *testing.T) {
-	_, cfg := startSocketDaemon(t)
-	assertSocketCommandsHavePrefix(
-
-		t,
-
-		cfg.SocketPath(),
-
-		[]string{"pan abc", "tilt !", "zoom x"},
-
-		"error:",
-	)
 }
 
 func TestSocket_TogglePrivacy(t *testing.T) {

@@ -1073,30 +1073,28 @@ func TestProbeHidraw_NoUeventFile(t *testing.T) {
 func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 	t.Parallel()
 
-	// Given a daemon with no PIXY video device
-	d := newTestDaemon(pixy.StatePrivacy, "", "")
+	for _, tc := range []struct {
+		name          string
+		initialCamera pixy.CameraState
+	}{
+		{"from non-offline state", pixy.StatePrivacy},
+		{"from offline state", pixy.StateOffline},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// When probing (real sysfs — PIXY may or may not be connected)
-	d.probeDevices()
+			d := newTestDaemon(tc.initialCamera, "", "")
+			d.probeDevices()
 
-	// Then if no video device is found, state goes offline
-	if d.videoDev == "" && d.state.Camera != pixy.StateOffline {
-		t.Errorf("expected offline when no video device, got %s", d.state.Camera)
-	}
-}
-
-func TestProbeDevices_RecoversFromOffline(t *testing.T) {
-	t.Parallel()
-
-	// Given a daemon in offline state
-	d := newTestDaemon(pixy.StateOffline, "", "")
-
-	// When probing (may or may not find device)
-	d.probeDevices()
-
-	// Then if a video device is found, state is recovered from offline
-	if d.videoDev != "" && d.state.Camera == pixy.StateOffline {
-		t.Error("expected camera state to recover from offline when device found")
+			hasDev := d.videoDev != ""
+			isOffline := d.state.Camera == pixy.StateOffline
+			if hasDev && isOffline {
+				t.Error("camera should not be offline when video device is found")
+			}
+			if !hasDev && !isOffline {
+				t.Errorf("expected offline when no video device, got %s", d.state.Camera)
+			}
+		})
 	}
 }
 

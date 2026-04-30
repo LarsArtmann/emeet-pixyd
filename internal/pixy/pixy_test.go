@@ -8,19 +8,21 @@ import (
 	"time"
 )
 
-func assertValid(t *testing.T, input any, want bool, typeName string) {
+func runValidTests[T any](
+	t *testing.T,
+	tests []struct {
+		input T
+		want  bool
+	},
+	typeName string,
+	valid func(T) bool,
+) {
 	t.Helper()
-	var got bool
-	switch v := input.(type) {
-	case CameraState:
-		got = v.Valid()
-	case AudioMode:
-		got = v.Valid()
-	default:
-		t.Fatalf("unsupported type for assertValid: %T", input)
-	}
-	if got != want {
-		t.Errorf("%s(%q).Valid() = %v, want %v", typeName, input, got, want)
+	for _, tc := range tests {
+		got := valid(tc.input)
+		if got != tc.want {
+			t.Errorf("%s(%v).Valid() = %v, want %v", typeName, tc.input, got, tc.want)
+		}
 	}
 }
 
@@ -40,9 +42,7 @@ func TestCameraState_Valid(t *testing.T) {
 		{CameraState("IDLE"), false},
 	}
 
-	for _, tc := range tests {
-		assertValid(t, tc.input, tc.want, "CameraState")
-	}
+	runValidTests(t, tests, "CameraState", func(v CameraState) bool { return v.Valid() })
 }
 
 func TestAudioMode_Valid(t *testing.T) {
@@ -60,9 +60,7 @@ func TestAudioMode_Valid(t *testing.T) {
 		{AudioMode("NC"), false},
 	}
 
-	for _, tc := range tests {
-		assertValid(t, tc.input, tc.want, "AudioMode")
-	}
+	runValidTests(t, tests, "AudioMode", func(v AudioMode) bool { return v.Valid() })
 }
 
 func TestAudioMode_Next(t *testing.T) {
