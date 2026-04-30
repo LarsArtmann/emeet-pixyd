@@ -18,6 +18,10 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+        env:
+          GOWORK: off
 
       - name: Test
         run: go test -race -count=1 ./...
+        env:
+          GOWORK: off
