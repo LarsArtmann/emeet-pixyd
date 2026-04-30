@@ -32,10 +32,6 @@ func testConfig(dir string) pixy.Config {
 
 type testDaemonOption func(*Daemon)
 
-func withAudio(audio pixy.AudioMode) testDaemonOption {
-	return func(d *Daemon) { d.state.Audio = audio }
-}
-
 func withInCall(inCall bool) testDaemonOption {
 	return func(d *Daemon) { d.state.InCall = inCall }
 }
