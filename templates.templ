@@ -97,7 +97,9 @@ templ statusPanel(s webStatus) {
 					hx-post="/api/track"
 					hx-target="#status-panel"
 					aria-label="Enable tracking"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Track<span class="kbd">T</span>
 				</button>
@@ -106,7 +108,9 @@ templ statusPanel(s webStatus) {
 					hx-post="/api/idle"
 					hx-target="#status-panel"
 					aria-label="Set idle"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Idle<span class="kbd">I</span>
 				</button>
@@ -115,7 +119,9 @@ templ statusPanel(s webStatus) {
 					hx-post="/api/privacy"
 					hx-target="#status-panel"
 					aria-label="Enable privacy"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Privacy<span class="kbd">P</span>
 				</button>
@@ -134,7 +140,9 @@ templ statusPanel(s webStatus) {
 					hx-vals='{"mode":"nc"}'
 					hx-target="#status-panel"
 					aria-label="Noise cancel"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Noise Cancel
 				</button>
@@ -144,7 +152,9 @@ templ statusPanel(s webStatus) {
 					hx-vals='{"mode":"live"}'
 					hx-target="#status-panel"
 					aria-label="Live audio"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Live
 				</button>
@@ -154,7 +164,9 @@ templ statusPanel(s webStatus) {
 					hx-vals='{"mode":"org"}'
 					hx-target="#status-panel"
 					aria-label="Original audio"
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				>
 					Original
 				</button>
@@ -171,7 +183,9 @@ templ statusPanel(s webStatus) {
 					aria-labelledby="gesture-label"
 					role="switch"
 					aria-checked={ fmt.Sprintf("%t", s.Gesture) }
-					if !s.Online { disabled="" }
+					if !s.Online {
+						disabled=""
+					}
 				></button>
 			</div>
 			<div class="toggle-row">

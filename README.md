@@ -50,13 +50,13 @@ static/           Frontend assets (JS, CSS, htmx)
 
 Defaults via `pixy.DefaultConfig()`. Configurable via the `Config` struct:
 
-| Field | Default | Purpose |
-|-------|---------|---------|
-| `PollInterval` | 2s | Call detection polling |
-| `DebounceCount` | 3 | Confirmations before state change |
-| `StateDir` | `/run/emeet-pixyd` | Runtime state + socket location |
-| `WebAddr` | `127.0.0.1:8090` | Web UI listen address |
-| `SocketPath` | `{StateDir}/control.sock` | Unix domain socket |
+| Field           | Default                   | Purpose                           |
+| --------------- | ------------------------- | --------------------------------- |
+| `PollInterval`  | 2s                        | Call detection polling            |
+| `DebounceCount` | 3                         | Confirmations before state change |
+| `StateDir`      | `/run/emeet-pixyd`        | Runtime state + socket location   |
+| `WebAddr`       | `127.0.0.1:8090`          | Web UI listen address             |
+| `SocketPath`    | `{StateDir}/control.sock` | Unix domain socket                |
 
 ## Development
 

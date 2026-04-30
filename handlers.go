@@ -202,7 +202,7 @@ func actionToast(command string) (string, string) {
 	switch command {
 	case "track":
 		return "Tracking enabled", toastTypeSuccess
-	case "idle":
+	case cmdIdle:
 		return "Camera idle", toastTypeSuccess
 	case cmdPrivacy:
 		return "Privacy mode on", toastTypeSuccess
@@ -331,7 +331,10 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 	_, _ = responseWriter.Write(frame)
 }
 
-func (s *webServer) handleStream(responseWriter http.ResponseWriter, request *http.Request) {
+func (s *webServer) handleStream( //nolint:funlen
+	responseWriter http.ResponseWriter,
+	request *http.Request,
+) {
 	select {
 	case s.daemon.streamSema <- struct{}{}:
 	default:
@@ -575,7 +578,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
 	mux.HandleFunc("POST /api/track", server.action("track"))
-	mux.HandleFunc("POST /api/idle", server.action("idle"))
+	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))
 	mux.HandleFunc("POST /api/toggle-privacy", server.action("toggle-privacy"))
 	mux.HandleFunc("POST /api/audio", server.handleAudio)

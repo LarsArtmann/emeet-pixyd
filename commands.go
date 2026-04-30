@@ -24,6 +24,7 @@ const (
 	respDeviceNotFound = "device not found"
 
 	cmdGestureOn     = "gesture-on"
+	cmdIdle          = "idle"
 	cmdAutoOn        = "auto-on"
 	cmdPrivacy       = string(pixy.StatePrivacy)
 	cmdToggleGesture = "toggle-gesture"
@@ -47,8 +48,8 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case "track":
 		return d.handleTrackingCommand(ctx, pixy.StateTracking, "track")
 
-	case "idle":
-		return d.handleTrackingCommand(ctx, pixy.StateIdle, "idle")
+	case cmdIdle:
+		return d.handleTrackingCommand(ctx, pixy.StateIdle, cmdIdle)
 
 	case cmdPrivacy:
 		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdPrivacy)

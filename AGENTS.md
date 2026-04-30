@@ -57,24 +57,24 @@ main() → NewDaemon() → Run()
 
 ### File Responsibilities
 
-| File | Purpose |
-|---|---|
-| `main.go` | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server |
-| `commands.go` | Command routing for both Unix socket and CLI (`handleCommand` switch) |
-| `handlers.go` | HTTP handlers, web UI, Prometheus metrics, MJPEG streaming, security middleware |
-| `hid.go` | HID bidirectional communication over hidraw — config writes + response parsing |
-| `v4l2.go` | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess |
-| `process.go` | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
-| `uevent.go` | Netlink uevent listener for device hotplug |
-| `uevent_linux.go` | Low-level `unix.Socket` call for netlink |
-| `auto.go` | Auto-manage loop, call start/end handling, debounce logic |
-| `state.go` | State persistence (JSON load/save, atomic write) |
-| `probe.go` | Device probing (sysfs walks for video4linux + hidraw) |
-| `web_types.go` | `webStatus` struct shared between handlers and templates |
-| `templates.templ` | HTML templates (compiled via `templ generate`) |
-| `internal/pixy/` | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand` |
-| `static/` | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed` |
-| `*_test.go` | Tests use `newTestDaemon()` with functional options (`withAudio`, `withInCall`) |
+| File              | Purpose                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| `main.go`         | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server           |
+| `commands.go`     | Command routing for both Unix socket and CLI (`handleCommand` switch)                      |
+| `handlers.go`     | HTTP handlers, web UI, Prometheus metrics, MJPEG streaming, security middleware            |
+| `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing             |
+| `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                       |
+| `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
+| `uevent.go`       | Netlink uevent listener for device hotplug                                                 |
+| `uevent_linux.go` | Low-level `unix.Socket` call for netlink                                                   |
+| `auto.go`         | Auto-manage loop, call start/end handling, debounce logic                                  |
+| `state.go`        | State persistence (JSON load/save, atomic write)                                           |
+| `probe.go`        | Device probing (sysfs walks for video4linux + hidraw)                                      |
+| `web_types.go`    | `webStatus` struct shared between handlers and templates                                   |
+| `templates.templ` | HTML templates (compiled via `templ generate`)                                             |
+| `internal/pixy/`  | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`      |
+| `static/`         | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                      |
+| `*_test.go`       | Tests use `newTestDaemon()` with functional options (`withAudio`, `withInCall`)            |
 
 ### Key Interactions
 
@@ -154,6 +154,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ## NixOS Module
 
 `modules/nixos.nix` provides:
+
 - `hardware.emeet-pixy.enable` option
 - udev rules for PIXY hidraw + video4linux access
 - systemd user service (runs after pipewire + graphical-session)

@@ -123,8 +123,8 @@ func assertParsedField(t *testing.T, parsed map[string]string, field string) {
 	}
 }
 
-func testDaemonNoDevice(camera pixy.CameraState) *Daemon {
-	return newTestDaemon(camera, "", "")
+func testDaemonNoDevice() *Daemon {
+	return newTestDaemon(pixy.StatePrivacy, "", "")
 }
 
 func testDaemonWithDevice(camera pixy.CameraState) *Daemon {
@@ -134,7 +134,7 @@ func testDaemonWithDevice(camera pixy.CameraState) *Daemon {
 func TestStateDefaults(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice(pixy.StatePrivacy)
+	d := testDaemonNoDevice()
 	assertCameraState(t, d, pixy.StatePrivacy)
 
 	if d.state.Audio != pixy.AudioNC {
@@ -222,7 +222,7 @@ func TestStateFileCorrupt(t *testing.T) {
 		t.Fatalf("write corrupt file: %v", err)
 	}
 
-	d := testDaemonNoDevice(pixy.StatePrivacy)
+	d := testDaemonNoDevice()
 	d.config = cfg
 	d.loadState()
 
@@ -235,7 +235,7 @@ func TestStateFileMissing(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig("/nonexistent")
-	d := testDaemonNoDevice(pixy.StatePrivacy)
+	d := testDaemonNoDevice()
 	d.config = cfg
 	d.loadState()
 
@@ -245,7 +245,7 @@ func TestStateFileMissing(t *testing.T) {
 func TestHandleCommandStatus(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice(pixy.StatePrivacy)
+	d := testDaemonNoDevice()
 
 	result := d.handleCommand(context.Background(), "status")
 	assertStatusPrefix(t, result, "camera=offline", "offline status")

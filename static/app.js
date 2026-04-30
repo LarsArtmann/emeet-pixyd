@@ -38,8 +38,7 @@
   function showToast(msg, type) {
     type = type || "success";
     var container = document.getElementById("toast-container");
-    container.innerHTML =
-      '<div class="toast toast-' + type + ' show">' + msg + "</div>";
+    container.innerHTML = '<div class="toast toast-' + type + ' show">' + msg + "</div>";
     setTimeout(function () {
       var el = container.querySelector(".toast");
       if (el) {
@@ -109,9 +108,7 @@
         showOfflineBanner();
       }
       showToast(
-        consecutiveErrors >= 3
-          ? "Connection lost \u2014 retrying"
-          : "Request failed",
+        consecutiveErrors >= 3 ? "Connection lost \u2014 retrying" : "Request failed",
         "error",
       );
       return;
@@ -130,8 +127,7 @@
 
   document.addEventListener("htmx:responseError", function (e) {
     var panel = document.getElementById("status-panel");
-    if (!panel || panel.querySelector(".error-banner:not(.offline-banner)"))
-      return;
+    if (!panel || panel.querySelector(".error-banner:not(.offline-banner)")) return;
     var banner = document.createElement("div");
     banner.className = "error-banner";
     banner.textContent = "Connection error \u2014 will retry automatically";

@@ -12,8 +12,27 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )
+
+func requireMetric(t *testing.T, name string, m any, want float64) {
+	t.Helper()
+	c, ok := m.(prometheus.Collector)
+	if !ok {
+		t.Fatalf("%s: unexpected type %T", name, m)
+	}
+	if v := testutil.ToFloat64(c); v != want {
+		t.Errorf("%s = %v, want %v", name, v, want)
+	}
+}
+
+func assertJPEGBytes(t *testing.T, frame, expected []byte) {
+	t.Helper()
+	if string(frame) != string(expected) {
+		t.Errorf("expected %x, got %x", expected, frame)
+	}
+}
 
 func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
 	t.Parallel()
@@ -48,9 +67,7 @@ func TestExtractJPEGFrame_FrameWithPayload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if string(frame) != string(data) {
-		t.Errorf("expected %x, got %x", data, frame)
-	}
+	assertJPEGBytes(t, frame, data)
 }
 
 func TestExtractJPEGFrame_GarbageBeforeSOI(t *testing.T) {
@@ -66,9 +83,7 @@ func TestExtractJPEGFrame_GarbageBeforeSOI(t *testing.T) {
 	}
 
 	expected := []byte{0xFF, 0xD8, 0xAA, 0xFF, 0xD9}
-	if string(frame) != string(expected) {
-		t.Errorf("expected %x, got %x", expected, frame)
-	}
+	assertJPEGBytes(t, frame, expected)
 }
 
 func TestExtractJPEGFrame_DoubleFFBeforeD8(t *testing.T) {
@@ -84,9 +99,7 @@ func TestExtractJPEGFrame_DoubleFFBeforeD8(t *testing.T) {
 	}
 
 	expected := []byte{0xFF, 0xD8, 0x42, 0xFF, 0xD9}
-	if string(frame) != string(expected) {
-		t.Errorf("expected %x, got %x", expected, frame)
-	}
+	assertJPEGBytes(t, frame, expected)
 }
 
 func TestExtractJPEGFrame_EmptyInput(t *testing.T) {
@@ -157,9 +170,7 @@ func TestExtractJPEGFrame_BufferReset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(frame) != 4 {
-		t.Fatalf("expected 4 bytes, got %d", len(frame))
-	}
+	assertJPEGBytes(t, frame, data)
 }
 
 func TestExtractJPEGFrame_FFThenEOF(t *testing.T) {
@@ -371,12 +382,8 @@ func TestUpdateMetrics(t *testing.T) {
 
 	updateMetrics(state)
 
-	if v := testutil.ToFloat64(metricInCall); v != 1 {
-		t.Errorf("metricInCall = %v, want 1", v)
-	}
-	if v := testutil.ToFloat64(metricAutoMode); v != 0 {
-		t.Errorf("metricAutoMode = %v, want 0", v)
-	}
+	requireMetric(t, "metricInCall", metricInCall, 1)
+	requireMetric(t, "metricAutoMode", metricAutoMode, 0)
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		want := 0.0
 		if state.Camera == s {
@@ -393,10 +400,6 @@ func TestUpdateMetrics(t *testing.T) {
 		AutoMode: true,
 	})
 
-	if v := testutil.ToFloat64(metricInCall); v != 0 {
-		t.Errorf("metricInCall after reset = %v, want 0", v)
-	}
-	if v := testutil.ToFloat64(metricAutoMode); v != 1 {
-		t.Errorf("metricAutoMode after reset = %v, want 1", v)
-	}
+	requireMetric(t, "metricInCall after reset", metricInCall, 0)
+	requireMetric(t, "metricAutoMode after reset", metricAutoMode, 1)
 }
