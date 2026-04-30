@@ -12,19 +12,53 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/testutil"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-func requireMetric(t *testing.T, name string, m any, want float64) {
+func requireGaugeValue(t *testing.T, name string, want float64, attrs ...attribute.KeyValue) {
 	t.Helper()
-	c, ok := m.(prometheus.Collector)
-	if !ok {
-		t.Fatalf("%s: unexpected type %T", name, m)
+	registerMetrics()
+
+	var rm metricdata.ResourceMetrics
+	if err := promExporter.Collect(context.Background(), &rm); err != nil {
+		t.Fatalf("collect metrics: %v", err)
 	}
-	if v := testutil.ToFloat64(c); v != want {
-		t.Errorf("%s = %v, want %v", name, v, want)
+
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name != name {
+				continue
+			}
+			gauge, ok := m.Data.(metricdata.Gauge[float64])
+			if !ok {
+				t.Fatalf("%s: not a float64 gauge", name)
+			}
+			for _, dp := range gauge.DataPoints {
+				if matchAttrs(dp.Attributes, attrs) {
+					if dp.Value != want {
+						t.Errorf("%s = %v, want %v", name, dp.Value, want)
+					}
+					return
+				}
+			}
+		}
 	}
+
+	t.Errorf("gauge %s with attrs %v not found", name, attrs)
+}
+
+func matchAttrs(set attribute.Set, wanted []attribute.KeyValue) bool {
+	if len(wanted) == 0 {
+		return set.Len() == 0
+	}
+	for _, w := range wanted {
+		v, ok := set.Value(w.Key)
+		if !ok || v.AsString() != w.Value.AsString() {
+			return false
+		}
+	}
+	return true
 }
 
 func assertJPEGBytes(t *testing.T, frame, expected []byte) {
@@ -32,28 +66,6 @@ func assertJPEGBytes(t *testing.T, frame, expected []byte) {
 	if string(frame) != string(expected) {
 		t.Errorf("expected %x, got %x", expected, frame)
 	}
-}
-
-func assertJPEGMarkers(t *testing.T, frame []byte) {
-	t.Helper()
-	if frame[0] != 0xFF || frame[1] != 0xD8 {
-		t.Errorf("missing SOI")
-	}
-	if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
-		t.Errorf("missing EOI")
-	}
-}
-
-func runRequestIDMiddleware(t *testing.T, req *http.Request) string {
-	t.Helper()
-	var capturedID string
-	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		capturedID = w.Header().Get("X-Request-ID")
-	})
-	h := requestIDMiddleware(inner)
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, req)
-	return capturedID
 }
 
 func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
@@ -322,6 +334,28 @@ func TestSecurityMiddleware(t *testing.T) {
 	}
 }
 
+func assertJPEGMarkers(t *testing.T, frame []byte) {
+	t.Helper()
+	if frame[0] != 0xFF || frame[1] != 0xD8 {
+		t.Errorf("missing SOI")
+	}
+	if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
+		t.Errorf("missing EOI")
+	}
+}
+
+func runRequestIDMiddleware(t *testing.T, req *http.Request) string {
+	t.Helper()
+	var capturedID string
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		capturedID = w.Header().Get("X-Request-ID")
+	})
+	h := requestIDMiddleware(inner)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return capturedID
+}
+
 func TestRequestIDMiddleware_Generated(t *testing.T) {
 	t.Parallel()
 
@@ -371,6 +405,8 @@ func TestCachingFS(t *testing.T) {
 }
 
 func TestUpdateMetrics(t *testing.T) {
+	registerMetrics()
+
 	state := pixy.State{
 		Camera:   pixy.StateTracking,
 		Audio:    pixy.AudioNC,
@@ -380,16 +416,14 @@ func TestUpdateMetrics(t *testing.T) {
 
 	updateMetrics(state)
 
-	requireMetric(t, "metricInCall", metricInCall, 1)
-	requireMetric(t, "metricAutoMode", metricAutoMode, 0)
+	requireGaugeValue(t, "emeet_pixyd_in_call", 1)
+	requireGaugeValue(t, "emeet_pixyd_auto_mode", 0)
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		want := 0.0
 		if state.Camera == s {
 			want = 1.0
 		}
-		if v := testutil.ToFloat64(metricCameraState.WithLabelValues(string(s))); v != want {
-			t.Errorf("camera_state{state=%q} = %v, want %v", s, v, want)
-		}
+		requireGaugeValue(t, "emeet_pixyd_camera_state", want, attribute.String("state", string(s)))
 	}
 
 	updateMetrics(pixy.State{
@@ -398,6 +432,6 @@ func TestUpdateMetrics(t *testing.T) {
 		AutoMode: true,
 	})
 
-	requireMetric(t, "metricInCall after reset", metricInCall, 0)
-	requireMetric(t, "metricAutoMode after reset", metricAutoMode, 1)
+	requireGaugeValue(t, "emeet_pixyd_in_call", 0)
+	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)
 }

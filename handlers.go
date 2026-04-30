@@ -105,10 +105,11 @@ func updateMetrics(state pixy.State) {
 		metricAutoMode.Record(ctx, 0)
 	}
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
+		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
 		if state.Camera == s {
-			metricCameraState.Record(ctx, 1, metric.WithAttributes(attribute.String("state", string(s))))
+			metricCameraState.Record(ctx, 1, stateAttr)
 		} else {
-			metricCameraState.Record(ctx, 0, metric.WithAttributes(attribute.String("state", string(s))))
+			metricCameraState.Record(ctx, 0, stateAttr)
 		}
 	}
 }
