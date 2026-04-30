@@ -245,13 +245,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 }
 
 func clampInt(v, lo, hi int) int {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
+	return max(lo, min(hi, v))
 }
 
 func ptzLimits(axis string) (int, int) {
