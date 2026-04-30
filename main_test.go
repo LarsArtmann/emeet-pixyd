@@ -646,6 +646,7 @@ func runParseTests[T comparable](
 	parse func(string) (T, error),
 	tests []parseTestCase[T],
 ) {
+	t.Helper()
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
 			got, err := parse(tc.input)

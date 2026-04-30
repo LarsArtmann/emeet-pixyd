@@ -122,6 +122,15 @@ func postAndClose(t *testing.T, url, contentType string, body io.Reader) {
 	resp.Body.Close() //nolint:errcheck
 }
 
+func sendSC(t *testing.T, socketPath, cmd string) string {
+	t.Helper()
+	resp, err := pixy.SendCommand(context.Background(), socketPath, cmd)
+	if err != nil {
+		t.Fatalf("%s: %v", cmd, err)
+	}
+	return resp
+}
+
 func assertSocketCommandsHavePrefix(
 	t *testing.T,
 	socketPath string,
@@ -131,10 +140,7 @@ func assertSocketCommandsHavePrefix(
 	t.Helper()
 	for _, cmd := range commands {
 
-		resp, err := pixy.SendCommand(context.Background(), socketPath, cmd)
-		if err != nil {
-			t.Fatalf("%s: %v", cmd, err)
-		}
+		resp := sendSC(t, socketPath, cmd)
 
 		assertSocketResponsePrefix(t, resp, expectedPrefix, "socket response")
 	}
@@ -725,26 +731,17 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 
 func TestSocket_StatusCommand(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "status")
-	if err != nil {
-		t.Fatalf("status: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "status")
 	assertSocketResponseHasPrefixes(t, resp, []string{"camera=", "audio=", "auto=", "device="})
 }
 
 func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "auto-off")
-	if err != nil {
-		t.Fatalf("auto-off: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "auto-off")
 	if resp != "auto mode off" {
 		t.Errorf("expected 'auto mode off', got: %s", resp)
 	}
-	resp2, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "auto-on")
-	if err != nil {
-		t.Fatalf("auto-on: %v", err)
-	}
+	resp2 := sendSC(t, cfg.SocketPath(), "auto-on")
 	if resp2 != "auto mode on" {
 		t.Errorf("expected 'auto mode on', got: %s", resp2)
 	}
@@ -752,10 +749,7 @@ func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 
 func TestSocket_ProbeCommand(t *testing.T) {
 	daemon, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "probe")
-	if err != nil {
-		t.Fatalf("probe: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "probe")
 	if daemon.videoDev != "" {
 		if !strings.HasPrefix(resp, "device found:") {
 			t.Errorf("expected 'device found: ...', got: %s", resp)
@@ -769,19 +763,13 @@ func TestSocket_ProbeCommand(t *testing.T) {
 
 func TestSocket_WaybarCommand(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "waybar")
-	if err != nil {
-		t.Fatalf("waybar: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "waybar")
 	assertSocketResponseHasPrefixes(t, resp, []string{`"text"`, `"tooltip"`, `"class"`})
 }
 
 func TestSocket_DeviceCommand(t *testing.T) {
 	daemon, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "device")
-	if err != nil {
-		t.Fatalf("device: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "device")
 	if daemon.videoDev != "" {
 		if resp != daemon.videoDev {
 			t.Errorf("expected %s, got: %s", daemon.videoDev, resp)
@@ -795,19 +783,13 @@ func TestSocket_DeviceCommand(t *testing.T) {
 
 func TestSocket_UnknownCommand(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "foobar")
-	if err != nil {
-		t.Fatalf("foobar: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "foobar")
 	assertSocketResponsePrefix(t, resp, "unknown command:", "socket response")
 }
 
 func TestSocket_StatusViaCommandReturnsStatus(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "status")
-	if err != nil {
-		t.Fatalf("status command: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "status")
 	assertSocketResponseContains(t, resp, "camera=", "socket response")
 }
 
@@ -837,11 +819,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 				t.Skip("device connected")
 			}
 
-			resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), tc.cmd)
-			if err != nil {
-				t.Fatalf("%s: %v", tc.cmd, err)
-			}
-
+			resp := sendSC(t, cfg.SocketPath(), tc.cmd)
 			assertSocketResponsePrefix(t, resp, "error:", "socket response")
 		})
 	}
@@ -849,10 +827,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 
 func TestSocket_AudioInvalidMode(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "audio badmode")
-	if err != nil {
-		t.Fatalf("audio badmode: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "audio badmode")
 	if resp != "usage: audio [nc|live|org]" {
 		t.Errorf("expected usage message, got: %s", resp)
 	}
@@ -867,11 +842,7 @@ func TestSocket_AudioValidModes(t *testing.T) {
 				t.Skip("device connected, audio would succeed")
 			}
 
-			resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "audio "+mode)
-			if err != nil {
-				t.Fatalf("audio %s: %v", mode, err)
-			}
-
+			resp := sendSC(t, cfg.SocketPath(), "audio "+mode)
 			assertSocketResponsePrefix(t, resp, "error:", "audio requires device")
 		})
 	}
@@ -898,10 +869,7 @@ func TestSocket_PanTiltZoomMissingValue(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
 	for _, cmd := range []string{"pan", "tilt", "zoom"} {
 
-		resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), cmd)
-		if err != nil {
-			t.Fatalf("%s: %v", cmd, err)
-		}
+		resp := sendSC(t, cfg.SocketPath(), cmd)
 
 		if !strings.HasPrefix(resp, "usage:") {
 			t.Errorf("expected usage for '%s' without value, got: %s", cmd, resp)
@@ -925,10 +893,7 @@ func TestSocket_PanTiltZoomInvalidValue(t *testing.T) {
 
 func TestSocket_TogglePrivacy(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), "toggle-privacy")
-	if err != nil {
-		t.Fatalf("toggle-privacy: %v", err)
-	}
+	resp := sendSC(t, cfg.SocketPath(), "toggle-privacy")
 	if !strings.Contains(resp, "privacy") && !strings.Contains(resp, "tracking") {
 		t.Errorf("expected privacy/tracking response, got: %s", resp)
 	}

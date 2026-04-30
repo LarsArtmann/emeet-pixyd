@@ -165,22 +165,21 @@ func hidSendRecv(ctx context.Context, hidrawDev string, report []byte) ([]byte, 
 	}
 }
 
-func parseHIDResponse(data []byte) hidResponse {
-	if len(data) < hidMinLen {
-		return hidResponse{
-			Tracking: pixy.StateIdle,
-			Audio:    pixy.AudioNC,
-			Gesture:  false,
-			Got:      false,
-		}
-	}
-
-	resp := hidResponse{
+func newHIDResponse(got bool) hidResponse {
+	return hidResponse{
 		Tracking: pixy.StateIdle,
 		Audio:    pixy.AudioNC,
 		Gesture:  false,
-		Got:      true,
+		Got:      got,
 	}
+}
+
+func parseHIDResponse(data []byte) hidResponse {
+	if len(data) < hidMinLen {
+		return newHIDResponse(false)
+	}
+
+	resp := newHIDResponse(true)
 
 	slog.Debug("HID response", "hex", hex.EncodeToString(data[:min(len(data), hidDebugLen)]))
 
