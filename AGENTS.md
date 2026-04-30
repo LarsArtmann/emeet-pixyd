@@ -18,8 +18,10 @@ GOWORK=off go test -race -count=1 ./...  # CI runs this
 GOWORK=off go test ./...                 # without race detector
 GOWORK=off go test -run TestName ./...   # single test
 
-# Lint
-golangci-lint run                   # uses .golangci.yml config
+# Lint (IMPORTANT: use GOWORK=off)
+GOWORK=off golangci-lint run --timeout 2m ./...  # CI runs this
+GOWORK=off golangci-lint run ./...              # without timeout
+GOWORK=off golangci-lint run handlers.go        # single file
 
 # Generate templ templates
 templ generate                      # required after editing templates.templ
@@ -34,7 +36,7 @@ emeet-pixyd status                  # send command via unix socket
 
 ### CI
 
-GitHub Actions: `go vet ./...` then `go test -race -count=1 ./...` on ubuntu-latest.
+GitHub Actions: `go vet ./...`, `golangci-lint run --timeout 2m`, then `go test -race -count=1 ./...` on ubuntu-latest. All steps use `GOWORK: off`.
 
 ---
 
@@ -141,6 +143,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **WebAddr default**: `127.0.0.1:8090` (localhost only, not `:8090`)
 - **StateDir default**: `/run/emeet-pixyd` (tmpfiles.d rule in NixOS module creates this)
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
+- **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
+- **Remaining lint issues**: The linter reports ~165 issues. The bulk are `exhaustruct` (partial struct initialization is idiomatic Go), `cyclop` (complexity in `handleCommand`, `handleStream`, `Run`), `paralleltest` (test-only), `contextcheck` (templ library limitation), and `errcheck` (test-only). These are acceptable for now — reducing complexity would require restructuring core logic.
 
 ---
 
