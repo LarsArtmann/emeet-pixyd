@@ -520,12 +520,7 @@ func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, requ
 	resp := s.daemon.handleCommand(request.Context(), cmdToggleGesture)
 	slog.Debug("web gesture toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	if strings.HasPrefix(resp, "error:") {
-		status.Error = resp
-	} else {
-		status.Toast = "Gesture toggled"
-		status.ToastType = "info"
-	}
+	applyResponseToStatus(resp, &status, "Gesture toggled")
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
 }
 
