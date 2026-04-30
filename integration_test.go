@@ -180,17 +180,17 @@ func assertWebStatusOffline(t *testing.T, status webStatus) {
 
 		Audio: ptr(string(pixy.AudioNC)),
 
-		Gesture: new(false),
+		Gesture: ptr(false),
 
-		Auto: new(true),
+		Auto: ptr(true),
 
-		InCall: new(false),
+		InCall: ptr(false),
 
-		Online: new(false),
+		Online: ptr(false),
 
-		Device: new(""),
+		Device: ptr(""),
 
-		Pan: new(0), Tilt: new(0), Zoom: new(0),
+		Pan: ptr(0), Tilt: ptr(0), Zoom: ptr(0),
 	})
 }
 
@@ -605,17 +605,17 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 
 		Audio: ptr(string(pixy.AudioLive)),
 
-		Gesture: new(true),
+		Gesture: ptr(true),
 
-		Auto: new(true),
+		Auto: ptr(true),
 
-		InCall: new(true),
+		InCall: ptr(true),
 
-		Online: new(true),
+		Online: ptr(true),
 
-		Device: new("/dev/video0"),
+		Device: ptr("/dev/video0"),
 
-		Zoom: new(100),
+		Zoom: ptr(100),
 	})
 }
 
