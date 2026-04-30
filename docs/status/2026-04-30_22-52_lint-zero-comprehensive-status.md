@@ -16,21 +16,21 @@ All lint issues resolved. **126 → 0** with `golangci-lint run --timeout 2m ./.
 
 ### Lint Cleanup (126 → 0 issues)
 
-| Linter | Issues | Resolution |
-|---|---|---|
-| `exhaustruct` | 38 | Removed from `linters.enable` — partial struct init is idiomatic Go |
-| `paralleltest` | 50 | Removed from `linters.enable` — tests don't need forced parallelism |
-| `contextcheck` | 10 | Removed from `linters.enable` — all false positives from templ generated code |
-| `noctx` | 6 | Removed from `linters.enable` — test helpers don't need request context |
-| `gochecknoglobals` | 1 | Removed from `linters.enable` — `sync.Once` for Prometheus is standard pattern |
-| `gosec` (G702, G107, G104, G301, G306) | 12 | Added to `gosec.excludes` in `.golangci.yml` — hardware daemon patterns |
-| `funlen` (handleStream) | 1 | Extracted `ffmpegStreamCmd()` and `cleanupFFmpeg()` helpers |
-| `funlen` (handleCommand, Run, listenUnix, tests) | 6 | Raised funlen limits to `lines: 100, statements: 80` — refactoring these would hurt readability |
-| `cyclop` (assertWebStatusField) | 1 | Auto-fixed by `golangci-lint --fix` refactoring test structure |
-| `goconst` ("idle" string) | 1 | Already had `cmdIdle` constant — false positive from string literal in test |
-| `unparam` | 2 | Fixed: `newTestWebServer` unused return, `testDaemonNoDevice` always-received param |
-| `forcetypeassert` | 1 | Fixed: `requireMetric` now uses safe type assertion `c, ok := m.(prometheus.Collector)` |
-| `unused` | 1 | Removed dead `assertJPEGBytes` helper |
+| Linter                                           | Issues | Resolution                                                                                      |
+| ------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------- |
+| `exhaustruct`                                    | 38     | Removed from `linters.enable` — partial struct init is idiomatic Go                             |
+| `paralleltest`                                   | 50     | Removed from `linters.enable` — tests don't need forced parallelism                             |
+| `contextcheck`                                   | 10     | Removed from `linters.enable` — all false positives from templ generated code                   |
+| `noctx`                                          | 6      | Removed from `linters.enable` — test helpers don't need request context                         |
+| `gochecknoglobals`                               | 1      | Removed from `linters.enable` — `sync.Once` for Prometheus is standard pattern                  |
+| `gosec` (G702, G107, G104, G301, G306)           | 12     | Added to `gosec.excludes` in `.golangci.yml` — hardware daemon patterns                         |
+| `funlen` (handleStream)                          | 1      | Extracted `ffmpegStreamCmd()` and `cleanupFFmpeg()` helpers                                     |
+| `funlen` (handleCommand, Run, listenUnix, tests) | 6      | Raised funlen limits to `lines: 100, statements: 80` — refactoring these would hurt readability |
+| `cyclop` (assertWebStatusField)                  | 1      | Auto-fixed by `golangci-lint --fix` refactoring test structure                                  |
+| `goconst` ("idle" string)                        | 1      | Already had `cmdIdle` constant — false positive from string literal in test                     |
+| `unparam`                                        | 2      | Fixed: `newTestWebServer` unused return, `testDaemonNoDevice` always-received param             |
+| `forcetypeassert`                                | 1      | Fixed: `requireMetric` now uses safe type assertion `c, ok := m.(prometheus.Collector)`         |
+| `unused`                                         | 1      | Removed dead `assertJPEGBytes` helper                                                           |
 
 ### Code Quality Improvements
 
@@ -57,10 +57,12 @@ All lint issues resolved. **126 → 0** with `golangci-lint run --timeout 2m ./.
 ## b) PARTIALLY DONE 🟡
 
 ### Test Coverage
+
 - Tests exist and pass with `-race`, but no coverage percentage measurement is automated
 - Fuzz tests exist (`handlers_fuzz_test.go`, `hid_fuzz_test.go`) but are not in CI
 
 ### CI Pipeline
+
 - GitHub Actions runs `go vet`, `golangci-lint run`, and `go test -race` — **but** the golangci-lint config was recently overhauled; CI needs to be verified with the new config
 - No coverage reporting, no fuzz testing in CI
 
@@ -90,6 +92,7 @@ Running `golangci-lint fmt ./...` **silently re-enables all default linters** an
 **Mitigation:** Added to AGENTS.md as a gotcha. The lesson: never run `golangci-lint fmt` — use `gofmt`, `goimports`, or individual formatters directly.
 
 ### Previous session over-committed
+
 The git history shows the previous AI session committed several times during the lint cleanup, including intermediate states that weren't fully clean. The commits `0faf25d` through `db5cdf0` represent incremental lint work that could have been a single clean commit.
 
 ---
@@ -123,33 +126,33 @@ The git history shows the previous AI session committed several times during the
 
 ## f) Top 25 Things To Do Next
 
-| # | Task | Impact | Effort | Category |
-|---|---|---|---|---|
-| 1 | Add pre-commit hook (lint + test) | High | Low | Process |
-| 2 | Split `main_test.go` into focused files | Medium | Medium | Code |
-| 3 | Split `integration_test.go` into `web_test.go` + `socket_test.go` | Medium | Medium | Code |
-| 4 | Refactor `handleCommand` into dispatch table | High | Medium | Architecture |
-| 5 | Extract `Run()` sub-responsibilities into methods | Medium | Medium | Code |
-| 6 | Add test coverage measurement (`go test -cover`) | High | Low | Quality |
-| 7 | Group Daemon fields into sub-structs | Medium | Medium | Architecture |
-| 8 | Extract Prometheus metrics into `Metrics` struct | Medium | Low | Code |
-| 9 | Add runtime log level control | Medium | Low | Feature |
-| 10 | Add API versioning prefix (`/api/v1/...`) | Low | Low | Feature |
-| 11 | Add HTTP rate limiting middleware | Medium | Low | Security |
-| 12 | Verify CI passes with new golangci-lint config | High | Low | CI |
-| 13 | Add fuzz tests to CI (with timeout) | Medium | Low | CI |
-| 14 | Add code coverage reporting to CI | Medium | Medium | CI |
-| 15 | Consolidate `docs/status/` reports (archive old ones) | Low | Low | Docs |
-| 16 | Add Grafana dashboard JSON for PIXY metrics | Medium | Medium | Feature |
-| 17 | WebSocket for real-time status updates | High | High | Feature |
-| 18 | Configuration file support (TOML/YAML) | Medium | Medium | Feature |
-| 19 | Multi-device support | Low | High | Architecture |
-| 20 | TLS/HTTPS support | Low | Medium | Security |
-| 21 | Accessibility audit of web UI | Medium | Medium | Quality |
-| 22 | Mobile-responsive web UI | Medium | Medium | Quality |
-| 23 | Add error sentinel types with `errors.Is` | Low | Low | Code |
-| 24 | Dependency injection for subprocess calls | Medium | Medium | Testability |
-| 25 | Add CHANGELOG.md | Low | Low | Docs |
+| #   | Task                                                              | Impact | Effort | Category     |
+| --- | ----------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1   | Add pre-commit hook (lint + test)                                 | High   | Low    | Process      |
+| 2   | Split `main_test.go` into focused files                           | Medium | Medium | Code         |
+| 3   | Split `integration_test.go` into `web_test.go` + `socket_test.go` | Medium | Medium | Code         |
+| 4   | Refactor `handleCommand` into dispatch table                      | High   | Medium | Architecture |
+| 5   | Extract `Run()` sub-responsibilities into methods                 | Medium | Medium | Code         |
+| 6   | Add test coverage measurement (`go test -cover`)                  | High   | Low    | Quality      |
+| 7   | Group Daemon fields into sub-structs                              | Medium | Medium | Architecture |
+| 8   | Extract Prometheus metrics into `Metrics` struct                  | Medium | Low    | Code         |
+| 9   | Add runtime log level control                                     | Medium | Low    | Feature      |
+| 10  | Add API versioning prefix (`/api/v1/...`)                         | Low    | Low    | Feature      |
+| 11  | Add HTTP rate limiting middleware                                 | Medium | Low    | Security     |
+| 12  | Verify CI passes with new golangci-lint config                    | High   | Low    | CI           |
+| 13  | Add fuzz tests to CI (with timeout)                               | Medium | Low    | CI           |
+| 14  | Add code coverage reporting to CI                                 | Medium | Medium | CI           |
+| 15  | Consolidate `docs/status/` reports (archive old ones)             | Low    | Low    | Docs         |
+| 16  | Add Grafana dashboard JSON for PIXY metrics                       | Medium | Medium | Feature      |
+| 17  | WebSocket for real-time status updates                            | High   | High   | Feature      |
+| 18  | Configuration file support (TOML/YAML)                            | Medium | Medium | Feature      |
+| 19  | Multi-device support                                              | Low    | High   | Architecture |
+| 20  | TLS/HTTPS support                                                 | Low    | Medium | Security     |
+| 21  | Accessibility audit of web UI                                     | Medium | Medium | Quality      |
+| 22  | Mobile-responsive web UI                                          | Medium | Medium | Quality      |
+| 23  | Add error sentinel types with `errors.Is`                         | Low    | Low    | Code         |
+| 24  | Dependency injection for subprocess calls                         | Medium | Medium | Testability  |
+| 25  | Add CHANGELOG.md                                                  | Low    | Low    | Docs         |
 
 ---
 
@@ -158,6 +161,7 @@ The git history shows the previous AI session committed several times during the
 **Is there a real EMEET PIXY device connected to this machine right now?**
 
 Many tests (`TestProbeDevices_*`, socket command tests) behave differently depending on physical device presence. The AGENTS.md mentions "flaky test awareness" for this reason. Knowing whether a device is connected would help me:
+
 - Understand which tests are expected to pass vs. skip
 - Decide if integration tests with actual HID commands are safe to run
 - Validate that the refactored `ffmpegStreamCmd`/`cleanupFFmpeg` work with a real stream
