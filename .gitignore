@@ -3,3 +3,13 @@ coverage.out
 *.tmp
 .direnv/
 .envrc
+# Dependencies
+node_modules/
+# Test coverage
+/coverage
+# Build artifacts
+/emeet-pixyd
+# Copy/paste detection report
+/report/jscpd-report.json
+# Add pattern for Templ generated files
+*_templ.go
