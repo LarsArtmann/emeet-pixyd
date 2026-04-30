@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -19,11 +18,6 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
-)
-
-const (
-	pixyVendorID  = "328f"
-	pixyProductID = "00c0"
 )
 
 type Daemon struct {
@@ -69,117 +63,6 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.probeDevices()
 
 	return d, nil
-}
-
-func probeVideo4linux(sysfsPath string) string {
-	entries, err := os.ReadDir(sysfsPath)
-	if err != nil {
-		return ""
-	}
-
-	for _, entry := range entries {
-		name := entry.Name()
-
-		videoPath := fmt.Sprintf("/dev/%s", name)
-
-		indexFile := fmt.Sprintf("%s/%s/index", sysfsPath, name)
-		indexData, iErr := os.ReadFile(indexFile)
-		if iErr == nil && strings.TrimSpace(string(indexData)) != "0" {
-			continue
-		}
-
-		vendorFile := fmt.Sprintf("%s/%s/device/id/vendor", sysfsPath, name)
-		productFile := fmt.Sprintf("%s/%s/device/id/product", sysfsPath, name)
-
-		vendorData, vErr := os.ReadFile(vendorFile)
-		if vErr != nil {
-			continue
-		}
-
-		productData, pErr := os.ReadFile(productFile)
-		if pErr != nil {
-			continue
-		}
-
-		vendor := strings.TrimSpace(string(vendorData))
-		product := strings.TrimSpace(string(productData))
-
-		if vendor == pixyVendorID && product == pixyProductID {
-			return videoPath
-		}
-	}
-
-	return ""
-}
-
-func hasPixyVendorProduct(ueventData []byte) bool {
-	for line := range strings.SplitSeq(string(ueventData), "\n") {
-		hidID, ok := strings.CutPrefix(line, "HID_ID=")
-		if !ok {
-			continue
-		}
-
-		parts := strings.Split(hidID, ":")
-		if len(parts) != 3 {
-			return false
-		}
-
-		vendor, vErr := strconv.ParseInt(parts[1], 16, 0)
-		product, pErr := strconv.ParseInt(parts[2], 16, 0)
-		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
-		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
-
-		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
-			vendor == expectedVendor && product == expectedProduct
-	}
-
-	return false
-}
-
-func probeHidraw(sysfsPath string) string {
-	entries, err := os.ReadDir(sysfsPath)
-	if err != nil {
-		return ""
-	}
-
-	for _, entry := range entries {
-		name := entry.Name()
-
-		hidrawPath := fmt.Sprintf("/dev/%s", name)
-
-		ueventFile := fmt.Sprintf("%s/%s/device/uevent", sysfsPath, name)
-
-		ueventData, uErr := os.ReadFile(ueventFile)
-		if uErr != nil {
-			continue
-		}
-
-		for line := range strings.SplitSeq(string(ueventData), "\n") {
-			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-				if (strings.Contains(hidName, "EMEET") || strings.Contains(hidName, "Pixy") ||
-					strings.Contains(hidName, "PIXY")) && hasPixyVendorProduct(ueventData) {
-					return hidrawPath
-				}
-			}
-		}
-	}
-
-	return ""
-}
-
-func (d *Daemon) probeDevices() {
-	d.videoDev = probeVideo4linux("/sys/class/video4linux")
-	d.hidrawDev = probeHidraw("/sys/class/hidraw")
-
-	if d.videoDev != "" && d.hidrawDev != "" {
-		slog.Info("found PIXY device", "video", d.videoDev, "hidraw", d.hidrawDev)
-
-		if d.state.Camera == pixy.StateOffline {
-			d.state.Camera = pixy.StatePrivacy
-		}
-	} else {
-		d.state.Camera = pixy.StateOffline
-	}
 }
 
 func (d *Daemon) loadState() {
