@@ -54,16 +54,17 @@ Defaults via `pixy.DefaultConfig()`. Configurable via the `Config` struct:
 |-------|---------|---------|
 | `PollInterval` | 2s | Call detection polling |
 | `DebounceCount` | 3 | Confirmations before state change |
-| `StateDir` | `~/.local/state/emeet-pixyd` | Persistent state location |
-| `WebAddr` | `:8090` | Web UI listen address |
-| `SocketPath` | `{StateDir}/emeet-pixyd.sock` | Unix domain socket |
+| `StateDir` | `/run/emeet-pixyd` | Runtime state + socket location |
+| `WebAddr` | `127.0.0.1:8090` | Web UI listen address |
+| `SocketPath` | `{StateDir}/control.sock` | Unix domain socket |
 
 ## Development
 
 ```bash
-just build        # Build daemon
-just test         # Run tests (unit + integration)
-just lint         # Run golangci-lint
+nix develop          # Enter dev shell (go, golangci-lint, templ)
+nix build            # Build the daemon
+go test -race ./...  # Run tests
+templ generate        # Regenerate HTML templates
 ```
 
 ## Nix
