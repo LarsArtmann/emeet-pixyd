@@ -61,7 +61,7 @@ main() → NewDaemon() → Run()
 | ----------------- | ------------------------------------------------------------------------------------------ |
 | `main.go`         | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server           |
 | `commands.go`     | Command routing for both Unix socket and CLI (`handleCommand` switch)                      |
-| `handlers.go`     | HTTP handlers, web UI, Prometheus metrics, MJPEG streaming, security middleware            |
+| `handlers.go`     | HTTP handlers, web UI, OTel/Prometheus metrics, MJPEG streaming, security middleware       |
 | `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing             |
 | `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                       |
 | `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
@@ -116,6 +116,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - `CameraState` and `AudioMode` are string-based types with `Valid()` and `String()` methods
 - `ParseAudioMode("org")` maps to `AudioOriginal` (value `"original"`) — the CLI shorthand differs from the stored value
 - Generic `queryHIDState[T]` in `hid.go` for type-safe HID queries
+- Metrics use OpenTelemetry SDK (`go.opentelemetry.io/otel/exporters/prometheus`) with `promhttp.Handler()` for the `/metrics` endpoint. `prometheus/client_golang` kept only for `promhttp`.
 
 ### Testing
 
@@ -125,6 +126,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
 - `assertPtrEqual[T]` generic helper for optional field comparison in tests
+- `requireGaugeValue(t, name, want, attrs...)` asserts OTel gauge values via `promExporter.Collect()` + `metricdata.Gauge[float64]` matching
+- `matchAttrs(set, wanted)` checks attribute set contains wanted key-values using `attribute.Set.Value()`
 - Fake sysfs trees for device probing tests (`createFakeVideo4linux`, `createFakeHidraw`)
 - `newTestWebServer` returns `*httptest.Server` only (unparam fix)
 - `t.Parallel()` used consistently
@@ -148,7 +151,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
 - **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
-- **Lint is clean (0 issues)**: Linters that produced only false positives for this codebase (exhaustruct, paralleltest, contextcheck, noctx, gochecknoglobals) have been removed from `.golangci.yml` `linters.enable`. Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706). Code-level fixes include extracted helpers (`ffmpegStreamCmd`, `cleanupFFmpeg`, `newHIDResponse`, `sendSC`) and `requireMetric` with safe type assertion.
+- **Lint is clean (0 issues)**: Linters that produced only false positives for this codebase (exhaustruct, paralleltest, contextcheck, noctx, gochecknoglobals) have been removed from `.golangci.yml` `linters.enable`. Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706). Code-level fixes include extracted helpers (`ffmpegStreamCmd`, `cleanupFFmpeg`, `newHIDResponse`, `sendSC`).
+- **OTel metrics migration**: Replaced `prometheus/client_golang/prometheus` direct usage with `go.opentelemetry.io/otel/exporters/prometheus`. Metrics (`metricInCall`, `metricAutoMode`, `metricCameraState`) are now `metric.Float64Gauge` instruments created via OTel MeterProvider. `promhttp.Handler()` still serves the `/metrics` endpoint. Test assertions use `promExporter.Collect()` with `metricdata.Gauge[float64]` instead of `testutil.ToFloat64()`.
 - **`golangci-lint fmt` auto-migrates config**: Running `golangci-lint fmt` re-enables all default linters and reformats `.golangci.yml`. Avoid running it; use `gofmt` or `goimports` directly instead.
 - **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
 - **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
