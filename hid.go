@@ -236,24 +236,24 @@ func queryHIDState[T any](
 	payload []byte,
 	extract func(hidResponse) T,
 ) (T, error) {
-	if hidrawDev == "" {
-		var zero T
+	var zero T
 
+	if hidrawDev == "" {
 		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, pixy.ErrHIDDeviceNotAvailable)
 	}
 
 	resp, err := hidSendRecv(ctx, hidrawDev, payload)
 	if err != nil {
-		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, err)
+		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, err)
 	}
 
 	if resp == nil {
-		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, errNoHIDResponse)
+		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, errNoHIDResponse)
 	}
 
 	parsed := parseHIDResponse(resp)
 	if !parsed.Got {
-		return *new(T), fmt.Errorf("queryHIDState %s: %w", hidrawDev, errUnrecognizedHID)
+		return zero, fmt.Errorf("queryHIDState %s: %w", hidrawDev, errUnrecognizedHID)
 	}
 
 	return extract(parsed), nil
