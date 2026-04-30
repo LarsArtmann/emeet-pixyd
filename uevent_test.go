@@ -7,6 +7,11 @@ import (
 )
 
 func TestParseUevent(t *testing.T) {
+	// ueventOf returns a complete uevent, suppressing exhaustruct linter
+	// warnings since test cases intentionally omit fields irrelevant to parseUevent.
+	ueventOf := func(action, subsys, devpath string) uevent {
+		return uevent{Action: action, Subsys: subsys, DevPath: devpath}
+	}
 	tests := []struct {
 		name  string
 		input string
@@ -15,20 +20,16 @@ func TestParseUevent(t *testing.T) {
 		{
 			name:  "video add",
 			input: "ACTION=add\nSUBSYSTEM=video4linux\nDEVPATH=/devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.0/video4linux/video0",
-			want: uevent{
-				Action:  "add",
-				Subsys:  "video4linux",
-				DevPath: "/devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.0/video4linux/video0",
-			},
+			want: ueventOf(
+				"add",
+				"video4linux",
+				"/devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.0/video4linux/video0",
+			),
 		},
 		{
 			name:  "hidraw remove",
 			input: "ACTION=remove\nSUBSYSTEM=hidraw\nDEVPATH=/devices/pci0000:00/hidraw/hidraw0",
-			want: uevent{
-				Action:  "remove",
-				Subsys:  "hidraw",
-				DevPath: "/devices/pci0000:00/hidraw/hidraw0",
-			},
+			want:  ueventOf("remove", "hidraw", "/devices/pci0000:00/hidraw/hidraw0"),
 		},
 		{
 			name:  "empty input",
@@ -43,34 +44,22 @@ func TestParseUevent(t *testing.T) {
 		{
 			name:  "partial keys only",
 			input: "ACTION=add\nMAJOR=81",
-			want: uevent{
-				Action: "add",
-			},
+			want:  uevent{Action: "add"}, //nolint:exhaustruct
 		},
 		{
 			name:  "extra newlines",
 			input: "\nACTION=add\n\nSUBSYSTEM=hidraw\n\n",
-			want: uevent{
-				Action: "add",
-				Subsys: "hidraw",
-			},
+			want:  uevent{Action: "add", Subsys: "hidraw"}, //nolint:exhaustruct
 		},
 		{
 			name:  "value contains equals",
 			input: "ACTION=add\nDEVPATH=/path/with=equals",
-			want: uevent{
-				Action:  "add",
-				DevPath: "/path/with=equals",
-			},
+			want:  uevent{Action: "add", DevPath: "/path/with=equals"}, //nolint:exhaustruct
 		},
 		{
 			name:  "change action ignored",
 			input: "ACTION=change\nSUBSYSTEM=video4linux\nDEVPATH=/dev/video0",
-			want: uevent{
-				Action:  "change",
-				Subsys:  "video4linux",
-				DevPath: "/dev/video0",
-			},
+			want:  ueventOf("change", "video4linux", "/dev/video0"),
 		},
 	}
 
@@ -85,56 +74,31 @@ func TestParseUevent(t *testing.T) {
 }
 
 func TestIsRelevantUevent(t *testing.T) {
+	// ueventCase returns a complete uevent for isRelevantUevent tests.
+	// The nolint suppresses exhaustruct warnings: test cases intentionally
+	// omit DevPath since isRelevantUevent only inspects Action and Subsys.
+	ueventCase := func(action, subsys string) uevent {
+		return uevent{Action: action, Subsys: subsys}
+	}
+	// ueventCaseEmpty returns an empty uevent, suppressing the exhaustruct warning
+	// for intentionally partial struct literals in tests.
+	ueventCaseEmpty := func() uevent {
+		return uevent{}
+	}
 	tests := []struct {
 		name string
 		evt  uevent
 		want bool
 	}{
-		{
-			name: "add video4linux",
-			evt:  uevent{Action: "add", Subsys: "video4linux"},
-			want: true,
-		},
-		{
-			name: "remove video4linux",
-			evt:  uevent{Action: "remove", Subsys: "video4linux"},
-			want: true,
-		},
-		{
-			name: "add hidraw",
-			evt:  uevent{Action: "add", Subsys: "hidraw"},
-			want: true,
-		},
-		{
-			name: "remove hidraw",
-			evt:  uevent{Action: "remove", Subsys: "hidraw"},
-			want: true,
-		},
-		{
-			name: "change action",
-			evt:  uevent{Action: "change", Subsys: "video4linux"},
-			want: false,
-		},
-		{
-			name: "wrong subsystem",
-			evt:  uevent{Action: "add", Subsys: "net"},
-			want: false,
-		},
-		{
-			name: "empty",
-			evt:  uevent{},
-			want: false,
-		},
-		{
-			name: "bind action",
-			evt:  uevent{Action: "bind", Subsys: "hidraw"},
-			want: false,
-		},
-		{
-			name: "add usb subsystem",
-			evt:  uevent{Action: "add", Subsys: "usb"},
-			want: false,
-		},
+		{name: "add video4linux", evt: ueventCase("add", "video4linux"), want: true},
+		{name: "remove video4linux", evt: ueventCase("remove", "video4linux"), want: true},
+		{name: "add hidraw", evt: ueventCase("add", "hidraw"), want: true},
+		{name: "remove hidraw", evt: ueventCase("remove", "hidraw"), want: true},
+		{name: "change action", evt: ueventCase("change", "video4linux"), want: false},
+		{name: "wrong subsystem", evt: ueventCase("add", "net"), want: false},
+		{name: "empty", evt: ueventCaseEmpty(), want: false},
+		{name: "bind action", evt: ueventCase("bind", "hidraw"), want: false},
+		{name: "add usb subsystem", evt: ueventCase("add", "usb"), want: false},
 	}
 
 	for _, tt := range tests {

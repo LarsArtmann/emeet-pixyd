@@ -885,17 +885,25 @@ func TestProbeVideo4linux_NonPIXYSources(t *testing.T) {
 		name    string
 		devices []fakeVideoDev
 	}{
-		{"NoPIXY", []fakeVideoDev{{name: "video1", vendor: "1511", product: "402d", index: "0"}}},
 		{
-			"WrongVendorProduct",
+			"NoPIXY",
 			[]fakeVideoDev{
 				{
-					name:    "video0",
-					vendor:  "1234",
-					product: "5678",
+					name:    "video1",
+					vendor:  "1511",
+					product: "402d",
 					index:   "0",
 				},
 			},
+		},
+		{
+			"WrongVendorProduct",
+			append([]fakeVideoDev{}, fakeVideoDev{
+				name:    "video0",
+				vendor:  "1234",
+				product: "5678",
+				index:   "0",
+			}),
 		},
 		{"EmptyDir", nil},
 	}

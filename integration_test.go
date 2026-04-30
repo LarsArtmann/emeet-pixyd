@@ -113,15 +113,6 @@ func get(t *testing.T, url string) *http.Response {
 	return resp
 }
 
-func postAndClose(t *testing.T, url, contentType string, body io.Reader) {
-	t.Helper()
-	resp, err := http.Post(url, contentType, body)
-	if err != nil {
-		t.Fatalf("POST %s: %v", url, err)
-	}
-	resp.Body.Close() //nolint:errcheck
-}
-
 func sendSC(t *testing.T, socketPath, cmd string) string {
 	t.Helper()
 	resp, err := pixy.SendCommand(context.Background(), socketPath, cmd)
@@ -342,13 +333,13 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
-	postAndClose(t, server.URL+"/api/auto", "", nil)
+	post(t, server.URL+"/api/auto", "", nil)
 	daemon.mu.Lock()
 	if daemon.state.AutoMode {
 		t.Fatal("first toggle should turn auto off")
 	}
 	daemon.mu.Unlock()
-	postAndClose(t, server.URL+"/api/auto", "", nil)
+	post(t, server.URL+"/api/auto", "", nil)
 	daemon.mu.Lock()
 	if !daemon.state.AutoMode {
 		t.Fatal("second toggle should turn auto back on")
