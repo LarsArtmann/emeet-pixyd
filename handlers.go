@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -63,10 +64,14 @@ var (
 	}, []string{"state"})
 )
 
-func init() {
-	prometheus.MustRegister(metricInCall)
-	prometheus.MustRegister(metricAutoMode)
-	prometheus.MustRegister(metricCameraState)
+var metricsOnce sync.Once
+
+func registerMetrics() {
+	metricsOnce.Do(func() {
+		prometheus.MustRegister(metricInCall)
+		prometheus.MustRegister(metricAutoMode)
+		prometheus.MustRegister(metricCameraState)
+	})
 }
 
 func updateMetrics(state pixy.State) {

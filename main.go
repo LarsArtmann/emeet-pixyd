@@ -59,6 +59,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		hidrawDev:  "",
 		streamSema: make(chan struct{}, 1),
 	}
+	registerMetrics()
 	d.loadState()
 	d.probeDevices()
 
