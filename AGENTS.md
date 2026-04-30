@@ -13,10 +13,10 @@ Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`
 nix build                          # production build (preferred)
 go build -o emeet-pixyd .          # manual build (needs `templ generate` first for template changes)
 
-# Test
-go test -race -count=1 ./...       # CI runs this exact command
-go test ./...                       # without race detector (faster)
-go test -run TestName ./...         # single test
+# Test (IMPORTANT: use GOWORK=off if a parent go.work exists)
+GOWORK=off go test -race -count=1 ./...  # CI runs this
+GOWORK=off go test ./...                 # without race detector
+GOWORK=off go test -run TestName ./...   # single test
 
 # Lint
 golangci-lint run                   # uses .golangci.yml config
@@ -57,7 +57,7 @@ main() → NewDaemon() → Run()
 
 | File | Purpose |
 |---|---|
-| `main.go` | `Daemon` struct, lifecycle, device probing, state persistence, call management, auto-manage loop |
+| `main.go` | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server |
 | `commands.go` | Command routing for both Unix socket and CLI (`handleCommand` switch) |
 | `handlers.go` | HTTP handlers, web UI, Prometheus metrics, MJPEG streaming, security middleware |
 | `hid.go` | HID bidirectional communication over hidraw — config writes + response parsing |
@@ -65,9 +65,14 @@ main() → NewDaemon() → Run()
 | `process.go` | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
 | `uevent.go` | Netlink uevent listener for device hotplug |
 | `uevent_linux.go` | Low-level `unix.Socket` call for netlink |
-| `templates.templ` | HTML templates (compiled via `templ generate`) — defines `webStatus` struct and all UI |
+| `auto.go` | Auto-manage loop, call start/end handling, debounce logic |
+| `state.go` | State persistence (JSON load/save, atomic write) |
+| `probe.go` | Device probing (sysfs walks for video4linux + hidraw) |
+| `web_types.go` | `webStatus` struct shared between handlers and templates |
+| `templates.templ` | HTML templates (compiled via `templ generate`) |
 | `internal/pixy/` | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand` |
 | `static/` | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed` |
+| `*_test.go` | Tests use `newTestDaemon()` with functional options (`withAudio`, `withInCall`) |
 
 ### Key Interactions
 
@@ -113,18 +118,22 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ### Testing
 
 - Standard `testing` package only (no testify)
-- Tests construct `Daemon` structs directly (no DI framework)
+- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withAudio()`, `withInCall()` options
+- `testDaemonNoDevice(camera)` and `testDaemonWithDevice(camera)` are convenience wrappers
+- `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - Fake sysfs trees for device probing tests (`createFakeVideo4linux`, `createFakeHidraw`)
 - `t.Parallel()` used consistently
-- Fuzz tests exist: `handlers_fuzz_test.go`, `hid_fuzz_test.go`
-- Integration test: `integration_test.go` (tests CLI ↔ daemon via socket)
+- Fuzz tests: `handlers_fuzz_test.go`, `hid_fuzz_test.go`
+- Integration tests: `integration_test.go` (web server + socket command tests)
 
 ---
 
 ## Gotchas
 
+- **GOWORK=off required**: Parent directory has a `go.work` that doesn't include this project. Always use `GOWORK=off` for `go build`/`go test`. CI is configured with `GOWORK: off` env var.
 - **Audio mode shorthand**: CLI accepts `"org"` but the stored/displayed value is `"original"`. `ParseAudioMode` maps both.
 - **PTZ units**: V4L2 uses 1/3600-degree units internally (`v4l2DegreesPerUnit = 3600`). The daemon presents user-facing degrees but multiplies before sending to `v4l2-ctl`. Zoom is not multiplied.
+- **`webStatus` struct lives in `web_types.go`**, not in `templates.templ` (was moved out for cleaner separation).
 - **Generated file**: `templates.templ` must be compiled with `templ generate` before `go build`. The generated `_templ.go` file is gitignored.
 - **Build tags**: All `.go` files in the root use `//go:build linux`. Tests that test Linux-specific code naturally require a Linux host.
 - **`flaky` test awareness**: Some tests probe real sysfs (e.g., `TestProbeDevices_SetsStateToOfflineWhenNoVideo`), so they may pass or fail depending on whether a PIXY is physically connected. These tests handle both outcomes gracefully.
