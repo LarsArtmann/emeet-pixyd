@@ -35,9 +35,9 @@ const (
 	zoomMin = 100
 	zoomMax = 400
 
-	staticCacheMaxAge  = 7 * 24 * time.Hour
-	ffmpegShutdownSecs = 2 * time.Second
-	streamBufSize      = 64 * 1024
+	staticCacheMaxAge = 7 * 24 * time.Hour
+	ffmpegShutdown    = 2 * time.Second
+	streamBufSize     = 64 * 1024
 
 	toastTypeSuccess = "success"
 	toastTypeInfo    = "info"
@@ -207,9 +207,9 @@ func actionToast(command string) (string, string) {
 		return "State synced", toastTypeSuccess
 	case "probe":
 		return "Probed devices", toastTypeSuccess
-	case "toggle-gesture":
+	case cmdToggleGesture:
 		return "Gesture toggled", toastTypeInfo
-	case "toggle-auto":
+	case cmdToggleAuto:
 		return "Auto mode toggled", toastTypeInfo
 	default:
 		return "", ""
@@ -312,7 +312,7 @@ func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, 
 	return status, true
 }
 
-func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, request *http.Request) {
+func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
 	s.daemon.lastFrame.RLock()
 	frame := s.daemon.lastFrame.data
 	s.daemon.lastFrame.RUnlock()
@@ -397,7 +397,7 @@ func (s *webServer) handleStream(responseWriter http.ResponseWriter, request *ht
 		go func() { done <- cmd.Wait() }()
 		select {
 		case <-done:
-		case <-time.After(ffmpegShutdownSecs):
+		case <-time.After(ffmpegShutdown):
 			_ = cmd.Process.Kill()
 			_ = cmd.Wait()
 		}
@@ -477,11 +477,12 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 				if nextErr != nil {
 					return nil, fmt.Errorf("read soi next: %w", nextErr)
 				}
-				if next == 0xD8 {
+				switch next {
+				case 0xD8:
 					buf.Reset()
 					buf.Write([]byte{0xFF, 0xD8})
 					soiFound = true
-				} else if next == 0xFF {
+				case 0xFF:
 					_ = br.UnreadByte()
 				}
 			}
@@ -507,7 +508,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	resp := s.daemon.handleCommand(request.Context(), "toggle-gesture")
+	resp := s.daemon.handleCommand(request.Context(), cmdToggleGesture)
 	slog.Debug("web gesture toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
 	if strings.HasPrefix(resp, "error:") {
@@ -521,7 +522,7 @@ func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, requ
 
 func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	resp := s.daemon.handleCommand(request.Context(), "toggle-auto")
+	resp := s.daemon.handleCommand(request.Context(), cmdToggleAuto)
 	slog.Debug("web auto toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
 	if strings.HasPrefix(resp, "error:") {

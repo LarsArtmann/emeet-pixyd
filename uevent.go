@@ -63,7 +63,7 @@ func (d *Daemon) listenUevents(ch chan<- struct{}) {
 
 		return
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	buf := make([]byte, 4096)
 	for {

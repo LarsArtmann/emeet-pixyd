@@ -40,7 +40,11 @@ func withInCall(inCall bool) testDaemonOption {
 	return func(d *Daemon) { d.state.InCall = inCall }
 }
 
-func newTestDaemon(camera pixy.CameraState, videoDev, hidrawDev string, opts ...testDaemonOption) *Daemon {
+func newTestDaemon(
+	camera pixy.CameraState,
+	videoDev, hidrawDev string,
+	opts ...testDaemonOption,
+) *Daemon {
 	d := &Daemon{
 		mu: sync.RWMutex{},
 		state: pixy.State{

@@ -26,7 +26,7 @@ func probeVideo4linux(sysfsPath string) string {
 	for _, entry := range entries {
 		name := entry.Name()
 
-		videoPath := fmt.Sprintf("/dev/%s", name)
+		videoPath := "/dev/" + name
 
 		indexFile := fmt.Sprintf("%s/%s/index", sysfsPath, name)
 		indexData, iErr := os.ReadFile(indexFile)
@@ -91,7 +91,7 @@ func probeHidraw(sysfsPath string) string {
 	for _, entry := range entries {
 		name := entry.Name()
 
-		hidrawPath := fmt.Sprintf("/dev/%s", name)
+		hidrawPath := "/dev/" + name
 
 		ueventFile := fmt.Sprintf("%s/%s/device/uevent", sysfsPath, name)
 

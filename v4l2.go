@@ -35,7 +35,9 @@ func v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 }
 
 func v4l2SetMultiple(ctx context.Context, dev string, controls map[string]string) error {
-	args := []string{"-d", dev}
+	args := make([]string, 2, 2+len(controls))
+	args[0] = "-d"
+	args[1] = dev
 	for ctrl, value := range controls {
 		args = append(args, "--set-ctrl="+ctrl+"="+value)
 	}

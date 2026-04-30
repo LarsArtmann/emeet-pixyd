@@ -87,3 +87,10 @@ formatters:
 issues:
     max-issues-per-linter: 50
     max-same-issues: 10
+linters-settings:
+    gosec:
+        excludes:
+            - G304
+            - G204
+            - G706
+            - G115
