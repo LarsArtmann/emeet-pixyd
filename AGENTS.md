@@ -144,6 +144,9 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **StateDir default**: `/run/emeet-pixyd` (tmpfiles.d rule in NixOS module creates this)
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
 - **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
+- **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
+- **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
+- **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
 - **Remaining lint issues**: The linter reports ~165 issues. The bulk are `exhaustruct` (partial struct initialization is idiomatic Go), `cyclop` (complexity in `handleCommand`, `handleStream`, `Run`), `paralleltest` (test-only), `contextcheck` (templ library limitation), and `errcheck` (test-only). These are acceptable for now — reducing complexity would require restructuring core logic.
 
 ---
