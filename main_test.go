@@ -30,20 +30,22 @@ func testConfig(dir string) pixy.Config {
 	}
 }
 
-func newTestDaemon(camera pixy.CameraState, videoDev, hidrawDev string) *Daemon {
-	return newTestDaemonWithAudio(camera, pixy.AudioNC, videoDev, hidrawDev)
+type testDaemonOption func(*Daemon)
+
+func withAudio(audio pixy.AudioMode) testDaemonOption {
+	return func(d *Daemon) { d.state.Audio = audio }
 }
 
-func newTestDaemonWithAudio(
-	camera pixy.CameraState,
-	audio pixy.AudioMode,
-	videoDev, hidrawDev string,
-) *Daemon {
-	return &Daemon{
+func withInCall(inCall bool) testDaemonOption {
+	return func(d *Daemon) { d.state.InCall = inCall }
+}
+
+func newTestDaemon(camera pixy.CameraState, videoDev, hidrawDev string, opts ...testDaemonOption) *Daemon {
+	d := &Daemon{
 		mu: sync.RWMutex{},
 		state: pixy.State{
 			Camera:   camera,
-			Audio:    audio,
+			Audio:    pixy.AudioNC,
 			Gesture:  false,
 			InCall:   false,
 			AutoMode: true,
@@ -59,6 +61,10 @@ func newTestDaemonWithAudio(
 		debounceIdle:  0,
 		streamSema:    make(chan struct{}, 1),
 	}
+	for _, opt := range opts {
+		opt(d)
+	}
+	return d
 }
 
 func assertCameraState(t *testing.T, d *Daemon, expected pixy.CameraState) {
@@ -117,30 +123,12 @@ func assertParsedField(t *testing.T, parsed map[string]string, field string) {
 	}
 }
 
-func testDaemonBase(camera pixy.CameraState, videoDev, hidrawDev string) *Daemon {
-	return &Daemon{
-		mu: sync.RWMutex{},
-		state: pixy.State{
-			Camera:   camera,
-			Audio:    pixy.AudioNC,
-			Gesture:  false,
-			InCall:   false,
-			AutoMode: true,
-		},
-		config:        testConfig("/tmp"),
-		videoDev:      videoDev,
-		hidrawDev:     hidrawDev,
-		debounceInUse: 0,
-		debounceIdle:  0,
-	}
-}
-
 func testDaemonNoDevice(camera pixy.CameraState) *Daemon {
-	return testDaemonBase(camera, "", "")
+	return newTestDaemon(camera, "", "")
 }
 
 func testDaemonWithDevice(camera pixy.CameraState) *Daemon {
-	return testDaemonBase(camera, testVideoDev, testHIDDev)
+	return newTestDaemon(camera, testVideoDev, testHIDDev)
 }
 
 func TestStateDefaults(t *testing.T) {
@@ -302,7 +290,7 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 func TestHandleCommandAudioInvalid(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemonWithAudio(pixy.StatePrivacy, pixy.AudioNC, testVideoDev, "/dev/hidraw0")
+	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "audio xyz")
 	if result != respAudioUsage {
@@ -328,21 +316,7 @@ func TestHandleCommandDeviceRequired(t *testing.T) {
 }
 
 func testDaemonWithState(camera pixy.CameraState, inCall bool) *Daemon {
-	return &Daemon{
-		mu:     sync.RWMutex{},
-		config: testConfig("/tmp"),
-		state: pixy.State{
-			Camera:   camera,
-			Audio:    pixy.AudioNC,
-			Gesture:  false,
-			InCall:   inCall,
-			AutoMode: true,
-		},
-		videoDev:      "",
-		hidrawDev:     "",
-		debounceInUse: 0,
-		debounceIdle:  0,
-	}
+	return newTestDaemon(camera, "", "", withInCall(inCall))
 }
 
 func TestWaybarOutput(t *testing.T) {
@@ -516,7 +490,7 @@ func TestTypeValidation(t *testing.T) {
 func TestHandleCommandAudioCycleNoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemonWithAudio(pixy.StatePrivacy, pixy.AudioNC, "", "")
+	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	result := d.handleCommand(context.Background(), "audio")
 	assertErrorPrefix(t, result)
