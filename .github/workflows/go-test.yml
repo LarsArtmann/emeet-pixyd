@@ -21,6 +21,14 @@ jobs:
         env:
           GOWORK: off
 
+      - name: Lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: latest
+          args: --timeout 2m
+        env:
+          GOWORK: off
+
       - name: Test
         run: go test -race -count=1 ./...
         env:
