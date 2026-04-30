@@ -14,40 +14,40 @@ import (
 // Default paths, intervals, and permission bits for the daemon.
 const (
 	// DefaultStateDir is the runtime state directory for socket and state file.
-	DefaultStateDir      = "/run/emeet-pixyd"
+	DefaultStateDir = "/run/emeet-pixyd"
 	// DefaultPollInterval is how often the auto-manager checks camera usage.
-	DefaultPollInterval  = 2 * time.Second
+	DefaultPollInterval = 2 * time.Second
 	// DefaultDebounceCount is the number of consecutive polls before triggering a state change.
 	DefaultDebounceCount = 3
 	// DefaultWebAddr is the default listen address for the web UI.
-	DefaultWebAddr       = "127.0.0.1:8090"
+	DefaultWebAddr = "127.0.0.1:8090"
 
 	// DefaultSocketTimeout is the connect timeout for the Unix control socket client.
 	DefaultSocketTimeout = 2 * time.Second
 	// DefaultWriteTimeout is the I/O timeout for the Unix control socket client.
-	DefaultWriteTimeout  = 2 * time.Second
+	DefaultWriteTimeout = 2 * time.Second
 	// SocketBufSize is the read buffer size for the Unix control socket.
-	SocketBufSize        = 256
+	SocketBufSize = 256
 	// ConnBufSize is the read buffer size for the Unix control socket client.
-	ConnBufSize          = 4096
+	ConnBufSize = 4096
 
 	// PermissionStateDir is the os.FileMode for the state directory.
-	PermissionStateDir  = 0o750
+	PermissionStateDir = 0o750
 	// PermissionStateFile is the os.FileMode for the state JSON file.
 	PermissionStateFile = 0o600
 	// PermissionSocket is the os.FileMode for the Unix control socket.
-	PermissionSocket    = 0o600
+	PermissionSocket = 0o600
 )
 
 var (
 	// ErrInvalidAudioMode is returned when parsing an unknown audio mode string.
-	ErrInvalidAudioMode      = errors.New("invalid audio mode")
+	ErrInvalidAudioMode = errors.New("invalid audio mode")
 	// ErrInvalidCameraState is returned when parsing an unknown camera state string.
-	ErrInvalidCameraState    = errors.New("invalid camera state")
+	ErrInvalidCameraState = errors.New("invalid camera state")
 	// ErrHIDDeviceNotAvailable is returned when the HIDRAW device path is empty.
 	ErrHIDDeviceNotAvailable = errors.New("PIXY HID device not available")
 	// ErrPIXYNotConnected is returned when the V4L2 device path is empty.
-	ErrPIXYNotConnected      = errors.New("PIXY not connected")
+	ErrPIXYNotConnected = errors.New("PIXY not connected")
 )
 
 // CameraState represents the current operating mode of the PIXY camera.
@@ -56,13 +56,13 @@ type CameraState string
 // Camera operating states.
 const (
 	// StateIdle means the camera is powered on but not actively tracking.
-	StateIdle     CameraState = "idle"
+	StateIdle CameraState = "idle"
 	// StateTracking means the camera is actively tracking faces.
 	StateTracking CameraState = "tracking"
 	// StatePrivacy means the camera lens is physically blocked.
-	StatePrivacy  CameraState = "privacy"
+	StatePrivacy CameraState = "privacy"
 	// StateOffline means no PIXY device is detected.
-	StateOffline  CameraState = "offline"
+	StateOffline CameraState = "offline"
 )
 
 func (s CameraState) String() string { return string(s) }
@@ -83,9 +83,9 @@ type AudioMode string
 // Audio noise-cancellation modes.
 const (
 	// AudioNC enables noise cancellation (default for calls).
-	AudioNC       AudioMode = "nc"
+	AudioNC AudioMode = "nc"
 	// AudioLive is optimized for live / streaming audio.
-	AudioLive     AudioMode = "live"
+	AudioLive AudioMode = "live"
 	// AudioOriginal passes through raw microphone audio without processing.
 	AudioOriginal AudioMode = "original"
 )
@@ -187,13 +187,13 @@ func DefaultConfig() Config {
 // Config validation sentinel errors.
 var (
 	// ErrStateDirEmpty is returned when Config.StateDir is empty.
-	ErrStateDirEmpty     = errors.New("state directory must not be empty")
+	ErrStateDirEmpty = errors.New("state directory must not be empty")
 	// ErrPollIntervalZero is returned when Config.PollInterval is not positive.
-	ErrPollIntervalZero  = errors.New("poll interval must be positive")
+	ErrPollIntervalZero = errors.New("poll interval must be positive")
 	// ErrDebounceCountZero is returned when Config.DebounceCount is not positive.
 	ErrDebounceCountZero = errors.New("debounce count must be positive")
 	// ErrWebAddrEmpty is returned when Config.WebAddr is empty.
-	ErrWebAddrEmpty      = errors.New("web address must not be empty")
+	ErrWebAddrEmpty = errors.New("web address must not be empty")
 )
 
 // Validate checks that all required config fields are set and sane.
