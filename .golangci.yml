@@ -78,23 +78,7 @@ issues:
             - noctx
           path: "_test.go$"
 
-        # errcheck: resp.Body.Close() in test cleanup — errors are harmless
-        - linters:
-            - errcheck
-          path: "_test.go$"
-          text: 'Error return value of.*resp\.Body\.Close'
 
-        # errcheck: os.RemoveAll in test cleanup — errors are harmless
-        - linters:
-            - errcheck
-          path: "_test.go$"
-          text: 'Error return value of.*os\.RemoveAll'
-
-        # errcheck: w.Write in test handler — errors are harmless
-        - linters:
-            - errcheck
-          path: "_test.go$"
-          text: 'Error return value of.*w\.Write'
 
 linters-settings:
     gosec:
