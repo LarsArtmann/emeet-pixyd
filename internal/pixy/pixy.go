@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -183,6 +185,40 @@ func DefaultConfig() Config {
 		DebounceCount: DefaultDebounceCount,
 		WebAddr:       DefaultWebAddr,
 	}
+}
+
+// ConfigFromEnv returns a Config with defaults overridden by environment variables.
+// Recognized variables: EMEET_PIXYD_STATE_DIR, EMEET_PIXYD_WEB_ADDR,
+// EMEET_PIXYD_POLL_INTERVAL (Go duration), EMEET_PIXYD_DEBOUNCE_COUNT (int),
+// EMEET_PIXYD_DEBUG (bool).
+func ConfigFromEnv() Config {
+	cfg := DefaultConfig()
+
+	if v := os.Getenv("EMEET_PIXYD_STATE_DIR"); v != "" {
+		cfg.StateDir = v
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_WEB_ADDR"); v != "" {
+		cfg.WebAddr = v
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_POLL_INTERVAL"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			cfg.PollInterval = d
+		}
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_DEBOUNCE_COUNT"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			cfg.DebounceCount = n
+		}
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_DEBUG"); v != "" {
+		cfg.Debug = strings.EqualFold(v, "true") || v == "1"
+	}
+
+	return cfg
 }
 
 // Config validation sentinel errors.

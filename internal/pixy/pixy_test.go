@@ -396,3 +396,88 @@ func TestConfigValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigFromEnv_DefaultsWhenUnset(t *testing.T) {
+	cfg := ConfigFromEnv()
+	def := DefaultConfig()
+
+	if cfg != def {
+		t.Errorf("ConfigFromEnv() with no env vars = %+v, want %+v", cfg, def)
+	}
+}
+
+func TestConfigFromEnv_OverridesFromEnv(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_STATE_DIR", "/tmp/custom-state")
+	t.Setenv("EMEET_PIXYD_WEB_ADDR", "0.0.0.0:9999")
+	t.Setenv("EMEET_PIXYD_POLL_INTERVAL", "5s")
+	t.Setenv("EMEET_PIXYD_DEBOUNCE_COUNT", "7")
+	t.Setenv("EMEET_PIXYD_DEBUG", "true")
+
+	cfg := ConfigFromEnv()
+
+	if cfg.StateDir != "/tmp/custom-state" {
+		t.Errorf("StateDir = %q, want %q", cfg.StateDir, "/tmp/custom-state")
+	}
+
+	if cfg.WebAddr != "0.0.0.0:9999" {
+		t.Errorf("WebAddr = %q, want %q", cfg.WebAddr, "0.0.0.0:9999")
+	}
+
+	if cfg.PollInterval != 5*time.Second {
+		t.Errorf("PollInterval = %v, want %v", cfg.PollInterval, 5*time.Second)
+	}
+
+	if cfg.DebounceCount != 7 {
+		t.Errorf("DebounceCount = %d, want 7", cfg.DebounceCount)
+	}
+
+	if !cfg.Debug {
+		t.Error("Debug = false, want true")
+	}
+}
+
+func TestConfigFromEnv_DebugAcceptsOne(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_DEBUG", "1")
+
+	cfg := ConfigFromEnv()
+
+	if !cfg.Debug {
+		t.Error("Debug = false, want true for '1'")
+	}
+}
+
+func TestConfigFromEnv_IgnoresInvalidValues(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_POLL_INTERVAL", "not-a-duration")
+	t.Setenv("EMEET_PIXYD_DEBOUNCE_COUNT", "not-a-number")
+
+	cfg := ConfigFromEnv()
+	def := DefaultConfig()
+
+	if cfg.PollInterval != def.PollInterval {
+		t.Errorf(
+			"PollInterval = %v, want default %v (invalid env ignored)",
+			cfg.PollInterval, def.PollInterval,
+		)
+	}
+
+	if cfg.DebounceCount != def.DebounceCount {
+		t.Errorf(
+			"DebounceCount = %d, want default %d (invalid env ignored)",
+			cfg.DebounceCount, def.DebounceCount,
+		)
+	}
+}
+
+func TestConfigFromEnv_PartialOverride(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_STATE_DIR", "/custom")
+
+	cfg := ConfigFromEnv()
+
+	if cfg.StateDir != "/custom" {
+		t.Errorf("StateDir = %q, want %q", cfg.StateDir, "/custom")
+	}
+
+	if cfg.WebAddr != DefaultWebAddr {
+		t.Errorf("WebAddr = %q, want default %q", cfg.WebAddr, DefaultWebAddr)
+	}
+}

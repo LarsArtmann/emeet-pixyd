@@ -565,7 +565,7 @@ func exitWithDaemonError(err error) {
 }
 
 func main() {
-	cfg := pixy.DefaultConfig()
+	cfg := pixy.ConfigFromEnv()
 
 	if len(os.Args) > 1 {
 		cmd := strings.Join(os.Args[1:], " ")

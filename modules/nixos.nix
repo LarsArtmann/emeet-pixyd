@@ -63,12 +63,16 @@ in {
       partOf = ["graphical-session.target"];
       wantedBy = ["graphical-session.target"];
 
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
-        Restart = "on-failure";
-        RestartSec = "3";
-      };
+      serviceConfig =
+        {
+          Type = "simple";
+          ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
+          Restart = "on-failure";
+          RestartSec = "3";
+        }
+        // lib.optionalAttrs cfg.debug {
+          Environment = "EMEET_PIXYD_DEBUG=true";
+        };
 
       path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify];
     };
