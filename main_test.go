@@ -27,6 +27,7 @@ func testConfig(dir string) pixy.Config {
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
+		WebAddr:       "127.0.0.1:0",
 	}
 }
 
@@ -54,6 +55,7 @@ func newTestDaemon(
 			StateDir:      "/tmp",
 			PollInterval:  2 * time.Second,
 			DebounceCount: 3,
+			WebAddr:       "127.0.0.1:0",
 		},
 		videoDev:      videoDev,
 		hidrawDev:     hidrawDev,
