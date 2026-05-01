@@ -17,6 +17,12 @@ const (
 	pixyProductID = "00c0"
 )
 
+func isPixyName(name string) bool {
+	return strings.Contains(name, "EMEET") ||
+		strings.Contains(name, "Pixy") ||
+		strings.Contains(name, "PIXY")
+}
+
 func probeVideo4linux(sysfsPath string) string {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
@@ -102,8 +108,7 @@ func probeHidraw(sysfsPath string) string {
 
 		for line := range strings.SplitSeq(string(ueventData), "\n") {
 			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-				if (strings.Contains(hidName, "EMEET") || strings.Contains(hidName, "Pixy") ||
-					strings.Contains(hidName, "PIXY")) && hasPixyVendorProduct(ueventData) {
+				if isPixyName(hidName) && hasPixyVendorProduct(ueventData) {
 					return hidrawPath
 				}
 			}

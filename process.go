@@ -113,8 +113,7 @@ func findPixySource(ctx context.Context) (string, error) {
 	}
 
 	for line := range strings.SplitSeq(string(out), "\n") {
-		if strings.Contains(line, "EMEET") || strings.Contains(line, "Pixy") ||
-			strings.Contains(line, "PIXY") {
+		if isPixyName(line) {
 			for field := range strings.FieldsSeq(line) {
 				field = strings.TrimSuffix(field, ".")
 
