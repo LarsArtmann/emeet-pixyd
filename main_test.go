@@ -57,11 +57,15 @@ func newTestDaemon(
 			DebounceCount: 3,
 			WebAddr:       "127.0.0.1:0",
 		},
-		videoDev:      videoDev,
-		hidrawDev:     hidrawDev,
-		debounceInUse: 0,
-		debounceIdle:  0,
-		streamSema:    make(chan struct{}, 1),
+		videoDev:        videoDev,
+		hidrawDev:       hidrawDev,
+		debounceInUse:   0,
+		debounceIdle:    0,
+		streamSema:      make(chan struct{}, 1),
+		isCameraInUseFn: func(string) bool { return false },
+		findSourceFn:    func(context.Context) (string, error) { return "", nil },
+		setSourceFn:     func(context.Context, string) {},
+		notifyFn:        func(context.Context, string, string) {},
 	}
 	for _, opt := range opts {
 		opt(d)

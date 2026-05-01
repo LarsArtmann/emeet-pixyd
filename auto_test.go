@@ -87,7 +87,6 @@ func TestAutoManage_InUseNotEnoughDebounce(t *testing.T) {
 
 func TestAutoManage_UpdatesMetrics(t *testing.T) {
 	t.Parallel()
-	registerMetrics()
 	d := testAutoDaemon()
 	d.autoManage(context.Background())
 }
@@ -104,9 +103,13 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 			DebounceCount: 3,
 			WebAddr:       "127.0.0.1:0",
 		},
-		videoDev:   testVideoDev,
-		hidrawDev:  testHIDDev,
-		streamSema: make(chan struct{}, 1),
+		videoDev:        testVideoDev,
+		hidrawDev:       testHIDDev,
+		streamSema:      make(chan struct{}, 1),
+		isCameraInUseFn: func(string) bool { return false },
+		findSourceFn:    func(context.Context) (string, error) { return "", nil },
+		setSourceFn:     func(context.Context, string) {},
+		notifyFn:        func(context.Context, string, string) {},
 	}
 	d.autoManage(context.Background())
 }

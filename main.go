@@ -44,6 +44,11 @@ type Daemon struct {
 	}
 
 	streamSema chan struct{}
+
+	isCameraInUseFn func(videoDev string) bool
+	findSourceFn    func(ctx context.Context) (string, error)
+	setSourceFn     func(ctx context.Context, sourceID string)
+	notifyFn        func(ctx context.Context, title, body string)
 }
 
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
@@ -52,14 +57,17 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	}
 
 	d := &Daemon{
-		mu:         sync.RWMutex{},
-		config:     cfg,
-		state:      pixy.DefaultState(),
-		videoDev:   "",
-		hidrawDev:  "",
-		streamSema: make(chan struct{}, 1),
+		mu:              sync.RWMutex{},
+		config:          cfg,
+		state:           pixy.DefaultState(),
+		videoDev:        "",
+		hidrawDev:       "",
+		streamSema:      make(chan struct{}, 1),
+		isCameraInUseFn: isCameraInUse,
+		findSourceFn:    findPixySource,
+		setSourceFn:     setDefaultSource,
+		notifyFn:        notify,
 	}
-	registerMetrics()
 	d.loadState()
 	d.probeDevices()
 

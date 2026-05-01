@@ -18,20 +18,14 @@ linters:
     enable:
         - bodyclose
         - durationcheck
-        - copyloopvar
-        - cyclop
         - dupl
-        - durationcheck
         - errchkjson
         - errname
         - errorlint
         - exhaustive
-        - errname
         - forcetypeassert
         - funlen
         - ginkgolinter
-        - gochecksumtype
-        - gochecknoinits
         - gochecksumtype
         - gocognit
         - goconst
@@ -53,7 +47,6 @@ linters:
         - nilnil
         - noctx
         - nolintlint
-        - nilnil
         - perfsprint
         - prealloc
         - predeclared

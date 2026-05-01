@@ -33,13 +33,13 @@ func (d *Daemon) handleCallStart(
 		}
 	}
 
-	src, srcErr := findPixySource(ctx)
+	src, srcErr := d.findSourceFn(ctx)
 	if srcErr == nil {
-		setDefaultSource(ctx, src)
+		d.setSourceFn(ctx, src)
 		slog.Info("set PipeWire default source to PIXY", "id", src)
 	}
 
-	notify(ctx, "EMEET PIXY", "Camera activated — tracking enabled")
+	d.notifyFn(ctx, "EMEET PIXY", "Camera activated — tracking enabled")
 }
 
 func (d *Daemon) handleCallEnd(ctx context.Context) {
@@ -52,7 +52,7 @@ func (d *Daemon) handleCallEnd(ctx context.Context) {
 		slog.Error("failed to enter privacy mode", "error", privacyErr)
 	}
 
-	notify(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")
+	d.notifyFn(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")
 }
 
 func (d *Daemon) autoManage(ctx context.Context) {
@@ -79,7 +79,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		return
 	}
 
-	inUse := isCameraInUse(videoDev)
+	inUse := d.isCameraInUseFn(videoDev)
 
 	d.mu.Lock()
 	if inUse {

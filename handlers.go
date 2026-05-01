@@ -62,6 +62,10 @@ var (
 
 var metricsOnce sync.Once
 
+func init() {
+	registerMetrics()
+}
+
 func registerMetrics() {
 	metricsOnce.Do(func() {
 		var err error
