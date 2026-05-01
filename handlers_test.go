@@ -411,7 +411,7 @@ func TestUpdateMetrics(t *testing.T) {
 		Camera:   pixy.StateTracking,
 		Audio:    pixy.AudioNC,
 		InCall:   true,
-		AutoMode: false,
+		AutoMode: pixy.AutoOff,
 	}
 
 	updateMetrics(state)
@@ -429,7 +429,7 @@ func TestUpdateMetrics(t *testing.T) {
 	updateMetrics(pixy.State{
 		Camera:   pixy.StatePrivacy,
 		InCall:   false,
-		AutoMode: true,
+		AutoMode: pixy.AutoFull,
 	})
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 0)

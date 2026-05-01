@@ -49,7 +49,7 @@ func newTestDaemon(
 			Audio:    pixy.AudioNC,
 			Gesture:  false,
 			InCall:   false,
-			AutoMode: true,
+			AutoMode: pixy.AutoFull,
 		},
 		config: pixy.Config{
 			StateDir:      "/tmp",
@@ -105,7 +105,7 @@ func assertStatusPrefix(t *testing.T, result, prefix, msg string) {
 	}
 }
 
-func assertAutoMode(t *testing.T, d *Daemon, expected bool) {
+func assertAutoMode(t *testing.T, d *Daemon, expected pixy.AutoMode) {
 	t.Helper()
 
 	if d.state.AutoMode != expected {
@@ -154,7 +154,7 @@ func TestStateDefaults(t *testing.T) {
 		t.Errorf("expected default audio to be nc, got %s", d.state.Audio)
 	}
 
-	assertAutoMode(t, d, true)
+	assertAutoMode(t, d, pixy.AutoFull)
 
 	if d.state.InCall != false {
 		t.Error("expected in_call to be false by default")
@@ -174,7 +174,7 @@ func TestStateSaveLoad(t *testing.T) {
 			Audio:    pixy.AudioLive,
 			Gesture:  true,
 			InCall:   true,
-			AutoMode: false,
+			AutoMode: pixy.AutoOff,
 		},
 		videoDev:      "",
 		hidrawDev:     "",
@@ -195,7 +195,7 @@ func TestStateSaveLoad(t *testing.T) {
 			Audio:    pixy.AudioNC,
 			Gesture:  false,
 			InCall:   false,
-			AutoMode: true,
+			AutoMode: pixy.AutoFull,
 		},
 		videoDev:      "",
 		hidrawDev:     "",
@@ -220,7 +220,7 @@ func TestStateSaveLoad(t *testing.T) {
 		t.Error("expected in_call=true")
 	}
 
-	if d2.state.AutoMode != false {
+	if d2.state.AutoMode != pixy.AutoOff {
 		t.Error("expected auto_mode=false")
 	}
 }
@@ -288,16 +288,16 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 		t.Errorf("expected 'auto mode off', got: %s", result)
 	}
 
-	if d.state.AutoMode != false {
+	if d.state.AutoMode != pixy.AutoOff {
 		t.Error("expected auto mode to be false")
 	}
 
 	result = d.handleCommand(context.Background(), "auto-on")
-	if result != respAutoModeOn {
-		t.Errorf("expected 'auto mode on', got: %s", result)
+	if result != "auto mode: full" {
+		t.Errorf("expected 'auto mode: full', got: %s", result)
 	}
 
-	assertAutoMode(t, d, true)
+	assertAutoMode(t, d, pixy.AutoFull)
 }
 
 func TestHandleCommandAudioInvalid(t *testing.T) {
@@ -744,7 +744,7 @@ func TestDefaultStateValues(t *testing.T) {
 		t.Error("expected default inCall=false")
 	}
 
-	if s.AutoMode != true {
+	if s.AutoMode != pixy.AutoFull {
 		t.Error("expected default autoMode=true")
 	}
 }

@@ -196,7 +196,7 @@ templ statusPanel(s webStatus) {
 					hx-target="#status-panel"
 					aria-labelledby="auto-label"
 					role="switch"
-					aria-checked={ fmt.Sprintf("%t", s.Auto) }
+					aria-checked={ fmt.Sprintf("%t", s.Auto != "off") }
 				></button>
 			</div>
 			if s.InCall {

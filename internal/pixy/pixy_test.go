@@ -229,8 +229,8 @@ func TestDefaultState(t *testing.T) {
 		t.Error("DefaultState().InCall = true, want false")
 	}
 
-	if !s.AutoMode {
-		t.Error("DefaultState().AutoMode = false, want true")
+	if s.AutoMode != AutoFull {
+		t.Errorf("DefaultState().AutoMode = %q, want %q", s.AutoMode, AutoFull)
 	}
 }
 
@@ -487,8 +487,8 @@ func TestDefaultConfig_NewFields(t *testing.T) {
 
 	c := DefaultConfig()
 
-	if !c.AutoMode {
-		t.Error("DefaultConfig().AutoMode = false, want true")
+	if c.AutoMode != AutoFull {
+		t.Errorf("DefaultConfig().AutoMode = %q, want %q", c.AutoMode, AutoFull)
 	}
 
 	if c.DefaultAudio != AudioNC {
@@ -502,8 +502,8 @@ func TestConfigFromEnv_AutoAndAudio(t *testing.T) {
 
 	cfg := ConfigFromEnv()
 
-	if cfg.AutoMode {
-		t.Error("AutoMode = true, want false")
+	if cfg.AutoMode != AutoOff {
+		t.Errorf("AutoMode = %q, want %q", cfg.AutoMode, AutoOff)
 	}
 
 	if cfg.DefaultAudio != AudioLive {

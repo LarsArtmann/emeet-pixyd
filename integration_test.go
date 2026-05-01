@@ -174,7 +174,7 @@ func assertWebStatusOffline(t *testing.T, status webStatus) {
 
 		Gesture: new(false),
 
-		Auto: new(true),
+		Auto: ptr(string(pixy.AutoFull)),
 
 		InCall: new(false),
 
@@ -190,7 +190,7 @@ type webStatusCheck struct {
 	Camera  *string
 	Audio   *string
 	Gesture *bool
-	Auto    *bool
+	Auto    *string
 	InCall  *bool
 	Online  *bool
 	Device  *string
@@ -321,15 +321,15 @@ func TestWeb_AutoToggleOff(t *testing.T) {
 	daemon.mu.Lock()
 	isAuto := daemon.state.AutoMode
 	daemon.mu.Unlock()
-	if isAuto {
-		t.Error("expected auto=false after toggle from true")
+	if !isAuto.IsOff() {
+		t.Errorf("expected auto=off after toggle, got %q", isAuto)
 	}
 }
 
 func TestWeb_AutoToggleOn(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
-	daemon.state.AutoMode = false
+	daemon.state.AutoMode = pixy.AutoOff
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/auto", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
@@ -337,8 +337,8 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 	daemon.mu.Lock()
 	isAuto := daemon.state.AutoMode
 	daemon.mu.Unlock()
-	if !isAuto {
-		t.Error("expected auto=true after toggle from false")
+	if isAuto.IsOff() {
+		t.Errorf("expected auto!=off after toggle, got %q", isAuto)
 	}
 }
 
@@ -349,14 +349,14 @@ func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	resp := post(t, server.URL+"/api/auto", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
 	daemon.mu.Lock()
-	if daemon.state.AutoMode {
+	if !daemon.state.AutoMode.IsOff() {
 		t.Fatal("first toggle should turn auto off")
 	}
 	daemon.mu.Unlock()
 	resp2 := post(t, server.URL+"/api/auto", "", nil)
 	defer resp2.Body.Close() //nolint:errcheck
 	daemon.mu.Lock()
-	if !daemon.state.AutoMode {
+	if daemon.state.AutoMode.IsOff() {
 		t.Fatal("second toggle should turn auto back on")
 	}
 	daemon.mu.Unlock()
@@ -626,7 +626,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 
 		Gesture: new(true),
 
-		Auto: new(true),
+		Auto: ptr(string(pixy.AutoFull)),
 
 		InCall: new(true),
 
@@ -757,12 +757,12 @@ func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "auto-off")
-	if resp != "auto mode off" {
-		t.Errorf("expected 'auto mode off', got: %s", resp)
+	if resp != "auto mode: off" {
+		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
 	resp2 := sendSC(t, cfg.SocketPath(), "auto-on")
-	if resp2 != "auto mode on" {
-		t.Errorf("expected 'auto mode on', got: %s", resp2)
+	if resp2 != "auto mode: full" {
+		t.Errorf("expected 'auto mode: full', got: %s", resp2)
 	}
 }
 

@@ -311,7 +311,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 			0,
 			0,
 			boolStr(inCall, "yes", "no"),
-			boolStr(autoMode, "on", "off"),
+			autoMode,
 		)
 	}
 
@@ -326,7 +326,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 		ptz.Tilt,
 		ptz.Zoom,
 		boolStr(inCall, "yes", "no"),
-		boolStr(autoMode, "on", "off"),
+		autoMode,
 		videoDev,
 	)
 }
@@ -369,7 +369,7 @@ func (d *Daemon) waybarOutput() string {
 	tooltip := fmt.Sprintf("EMEET PIXY: %s", camera)
 	tooltip += fmt.Sprintf("\nAudio: %s", audio)
 
-	tooltip += fmt.Sprintf("\nAuto: %t", autoMode)
+	tooltip += fmt.Sprintf("\nAuto: %s", autoMode)
 	if inCall {
 		tooltip += "\nIn call: yes"
 	}

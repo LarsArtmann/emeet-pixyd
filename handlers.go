@@ -104,10 +104,10 @@ func updateMetrics(state pixy.State) {
 	} else {
 		metricInCall.Record(ctx, 0)
 	}
-	if state.AutoMode {
-		metricAutoMode.Record(ctx, 1)
-	} else {
+	if state.AutoMode.IsOff() {
 		metricAutoMode.Record(ctx, 0)
+	} else {
+		metricAutoMode.Record(ctx, 1)
 	}
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
@@ -150,7 +150,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Tilt:       0,
 		Zoom:       0,
 		InCall:     s.daemon.state.InCall,
-		Auto:       s.daemon.state.AutoMode,
+		Auto:       string(s.daemon.state.AutoMode),
 		Online:     s.daemon.videoDev != "",
 		Device:     s.daemon.videoDev,
 		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),

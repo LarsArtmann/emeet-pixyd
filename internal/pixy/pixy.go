@@ -132,6 +132,81 @@ func ParseAudioMode(rawInput string) (AudioMode, error) {
 	}
 }
 
+// AutoMode represents the automatic camera management strategy.
+type AutoMode string
+
+// Auto-management modes.
+const (
+	// AutoOff disables all automatic management.
+	AutoOff AutoMode = "off"
+	// AutoFull enables tracking + noise cancellation on call start, privacy on call end.
+	AutoFull AutoMode = "full"
+	// AutoTrackingOnly enables face tracking on call start, privacy on call end.
+	AutoTrackingOnly AutoMode = "tracking-only"
+	// AutoPrivacyOnly enables privacy mode on call end, but does not activate tracking on call start.
+	AutoPrivacyOnly AutoMode = "privacy-only"
+)
+
+func (m AutoMode) String() string { return string(m) }
+
+// Valid reports whether the auto mode is one of the known values.
+func (m AutoMode) Valid() bool {
+	switch m {
+	case AutoOff, AutoFull, AutoTrackingOnly, AutoPrivacyOnly:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsOff reports whether auto-management is completely disabled.
+func (m AutoMode) IsOff() bool { return m == AutoOff }
+
+// ActivatesTracking reports whether this mode activates face tracking on call start.
+func (m AutoMode) ActivatesTracking() bool {
+	return m == AutoFull || m == AutoTrackingOnly
+}
+
+// ActivatesAudio reports whether this mode activates noise cancellation on call start.
+func (m AutoMode) ActivatesAudio() bool {
+	return m == AutoFull
+}
+
+// ActivatesPrivacy reports whether this mode switches to privacy on call end.
+func (m AutoMode) ActivatesPrivacy() bool {
+	return m == AutoFull || m == AutoTrackingOnly || m == AutoPrivacyOnly
+}
+
+// SwitchesSource reports whether this mode switches PipeWire source on call start.
+func (m AutoMode) SwitchesSource() bool {
+	return m == AutoFull
+}
+
+// ParseAutoMode maps a string to an AutoMode. Accepts both the enum values
+// ("off", "full", "tracking-only", "privacy-only") and legacy booleans
+// ("true"/"1" → full, "false"/"0" → off).
+func ParseAutoMode(rawInput string) (AutoMode, error) {
+	switch strings.ToLower(strings.TrimSpace(rawInput)) {
+	case "off":
+		return AutoOff, nil
+	case "full":
+		return AutoFull, nil
+	case "tracking-only":
+		return AutoTrackingOnly, nil
+	case "privacy-only":
+		return AutoPrivacyOnly, nil
+	case "true", "1":
+		return AutoFull, nil
+	case "false", "0":
+		return AutoOff, nil
+	default:
+		return AutoOff, fmt.Errorf(
+			"invalid auto mode: %q (valid: off, full, tracking-only, privacy-only)",
+			rawInput,
+		)
+	}
+}
+
 // ParseCameraState maps a string to a CameraState.
 func ParseCameraState(rawInput string) (CameraState, error) {
 	switch rawInput {
@@ -154,7 +229,7 @@ type State struct {
 	Audio    AudioMode   `json:"audio"`
 	Gesture  bool        `json:"gesture"`
 	InCall   bool        `json:"inCall"`
-	AutoMode bool        `json:"autoMode"`
+	AutoMode AutoMode    `json:"autoMode"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
@@ -164,7 +239,7 @@ func DefaultState() State {
 		Audio:    AudioNC,
 		Gesture:  false,
 		InCall:   false,
-		AutoMode: true,
+		AutoMode: AutoFull,
 	}
 }
 
@@ -176,7 +251,7 @@ type Config struct {
 	DebounceCount int
 	WebAddr       string
 	Debug         bool
-	AutoMode      bool
+	AutoMode      AutoMode
 	DefaultAudio  AudioMode
 }
 
@@ -187,7 +262,7 @@ func DefaultConfig() Config {
 		PollInterval:  DefaultPollInterval,
 		DebounceCount: DefaultDebounceCount,
 		WebAddr:       DefaultWebAddr,
-		AutoMode:      true,
+		AutoMode:      AutoFull,
 		DefaultAudio:  AudioNC,
 	}
 }
@@ -225,7 +300,9 @@ func ConfigFromEnv() Config {
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_AUTO"); v != "" {
-		cfg.AutoMode = strings.EqualFold(v, "true") || v == "1"
+		if m, err := ParseAutoMode(v); err == nil {
+			cfg.AutoMode = m
+		}
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_DEFAULT_AUDIO"); v != "" {

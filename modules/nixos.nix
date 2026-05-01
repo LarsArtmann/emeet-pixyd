@@ -20,12 +20,14 @@ in {
     };
 
     auto = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
+      type = lib.types.enum ["off" "full" "tracking-only" "privacy-only"];
+      default = "full";
       description = ''
-        Enable auto-management: automatically activate tracking and noise
-        cancellation when a video call is detected, and switch to privacy
-        mode when the call ends.
+        Automatic camera management strategy:
+          off            — no automatic actions
+          full           — tracking + noise cancellation + PipeWire source on call start, privacy on call end
+          tracking-only  — face tracking on call start, privacy on call end (no audio/source switching)
+          privacy-only   — privacy mode on call end (no call-start activation)
       '';
     };
 
@@ -69,10 +71,7 @@ in {
         let
           envVars =
             {
-              EMEET_PIXYD_AUTO =
-                if cfg.auto
-                then "true"
-                else "false";
+              EMEET_PIXYD_AUTO = cfg.auto;
               EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
             }
             // lib.optionalAttrs cfg.debug {

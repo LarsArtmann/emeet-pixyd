@@ -10,7 +10,7 @@ type webStatus struct {
 	Tilt       int
 	Zoom       int
 	InCall     bool
-	Auto       bool
+	Auto       string
 	Online     bool
 	Device     string
 	Error      string

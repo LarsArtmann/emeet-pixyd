@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	respAutoModeOff    = "auto mode off"
-	respAutoModeOn     = "auto mode on"
+	respAutoModeOff    = "auto mode: off"
 	respAudioUsage     = "usage: audio [nc|live|org]"
+	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
 	respDeviceNotFound = "device not found"
 
 	cmdGestureOn     = "gesture-on"
@@ -68,8 +68,8 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case "center":
 		return d.handleCenterCommand(ctx)
 
-	case cmdAutoOn, "auto-off", cmdToggleAuto:
-		return d.handleAutoCommand(parts[0])
+	case cmdAutoOn, "auto-off", cmdToggleAuto, "auto":
+		return d.handleAutoCommand(parts)
 
 	case "waybar":
 		return d.waybarOutput()
@@ -182,17 +182,38 @@ func (d *Daemon) handleCenterCommand(ctx context.Context) string {
 	return "centered"
 }
 
-func (d *Daemon) handleAutoCommand(cmd string) string {
-	var mode bool
+func (d *Daemon) handleAutoCommand(parts []string) string {
+	if len(parts) >= minCmdParts {
+		mode, parseErr := pixy.ParseAutoMode(parts[1])
+		if parseErr != nil {
+			return respAutoUsage
+		}
+
+		d.mu.Lock()
+		d.state.AutoMode = mode
+		d.saveStateOrLog("failed to save state")
+		d.mu.Unlock()
+
+		return "auto mode: " + mode.String()
+	}
+
+	cmd := parts[0]
+	var mode pixy.AutoMode
 	switch cmd {
 	case cmdAutoOn:
-		mode = true
+		mode = pixy.AutoFull
 	case "auto-off":
-		mode = false
+		mode = pixy.AutoOff
 	case "toggle-auto":
 		d.mu.RLock()
-		mode = !d.state.AutoMode
+		if d.state.AutoMode.IsOff() {
+			mode = pixy.AutoFull
+		} else {
+			mode = pixy.AutoOff
+		}
 		d.mu.RUnlock()
+	default:
+		mode = pixy.AutoFull
 	}
 
 	d.mu.Lock()
@@ -200,11 +221,11 @@ func (d *Daemon) handleAutoCommand(cmd string) string {
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 
-	if mode {
-		return respAutoModeOn
+	if mode.IsOff() {
+		return respAutoModeOff
 	}
 
-	return respAutoModeOff
+	return "auto mode: " + mode.String()
 }
 
 func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
