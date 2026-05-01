@@ -4,17 +4,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
-)
-
-var (
-	errAudioSourceNotFound = errors.New("PIXY audio source not found")
-	errInvalidValue        = errors.New("invalid value")
 )
 
 const (
@@ -223,7 +217,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 	lo, hi := ptzLimits(axis)
 	val, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return fmt.Sprintf("error: %s: %v", axis, errInvalidValue)
+		return fmt.Sprintf("error: %s: %v", axis, ErrInvalidValue)
 	}
 
 	val = clampInt(val, lo, hi)

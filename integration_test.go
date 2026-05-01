@@ -271,6 +271,7 @@ func assertSocketResponseHasPrefixes(t *testing.T, resp string, prefixes []strin
 // ---------- Index page ----------
 
 func TestWeb_IndexReturnsHTML(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/")
@@ -283,6 +284,7 @@ func TestWeb_IndexReturnsHTML(t *testing.T) {
 }
 
 func TestWeb_IndexShowsOfflineWhenNoDevice(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/")
@@ -293,6 +295,7 @@ func TestWeb_IndexShowsOfflineWhenNoDevice(t *testing.T) {
 }
 
 func TestWeb_IndexShowsOnlineWithDevice(t *testing.T) {
+	t.Parallel()
 	daemon := newDaemonWithDevice(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/")
@@ -305,6 +308,7 @@ func TestWeb_IndexShowsOnlineWithDevice(t *testing.T) {
 // ---------- Status panel (HTMX partial) ----------
 
 func TestWeb_PanelReturnsHTMLFragment(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/panel")
@@ -317,6 +321,7 @@ func TestWeb_PanelReturnsHTMLFragment(t *testing.T) {
 }
 
 func TestWeb_PanelReflectsDaemonState(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/panel")
@@ -329,6 +334,7 @@ func TestWeb_PanelReflectsDaemonState(t *testing.T) {
 // ---------- Auto toggle ----------
 
 func TestWeb_AutoToggleOff(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/auto", "", nil)
@@ -343,6 +349,7 @@ func TestWeb_AutoToggleOff(t *testing.T) {
 }
 
 func TestWeb_AutoToggleOn(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	daemon.state.AutoMode = false
 	server := newTestWebServer(t, daemon)
@@ -358,6 +365,7 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 }
 
 func TestWeb_AutoToggleRoundTrip(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/auto", "", nil)
@@ -379,6 +387,7 @@ func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 // ---------- Gesture toggle ----------
 
 func TestWeb_GestureToggleEndpoint(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/gesture", "", nil)
@@ -387,6 +396,7 @@ func TestWeb_GestureToggleEndpoint(t *testing.T) {
 }
 
 func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/gesture", "", nil)
@@ -397,8 +407,10 @@ func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
 // ---------- Audio endpoint ----------
 
 func TestWeb_AudioWithValidModes(t *testing.T) {
+	t.Parallel()
 	for _, mode := range []string{"nc", "live", "org"} {
 		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
 			daemon := newIntegrationDaemon(t)
 
 			server := newTestWebServer(t, daemon)
@@ -422,6 +434,7 @@ func TestWeb_AudioWithValidModes(t *testing.T) {
 }
 
 func TestWeb_AudioInvalidMode(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(
@@ -440,6 +453,7 @@ func TestWeb_AudioInvalidMode(t *testing.T) {
 }
 
 func TestWeb_AudioNoModeParam(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/audio", "", nil)
@@ -461,14 +475,17 @@ func testPTZEndpoint(t *testing.T, path, body string, expectedStatus int) {
 func TestWeb_PTZMissingAxis(
 	t *testing.T,
 ) {
+	t.Parallel()
 	testPTZEndpoint(t, "/api/ptz/", "", http.StatusBadRequest)
 }
 
 func TestWeb_PTZMissingValue(t *testing.T) {
+	t.Parallel()
 	testPTZEndpoint(t, "/api/ptz/pan", "", http.StatusBadRequest)
 }
 
 func TestWeb_PTZWithAxisAndValue(t *testing.T) {
+	t.Parallel()
 	testPTZEndpoint(t, "/api/ptz/pan", "value=10", http.StatusOK)
 }
 
@@ -483,23 +500,35 @@ func testWebEndpointReturnsOK(t *testing.T, endpoint string) {
 	assertStatusCode(t, resp, http.StatusOK)
 }
 
-func TestWeb_TrackEndpointNoDevice(t *testing.T) { testWebEndpointReturnsOK(t, "/api/track") }
+func TestWeb_TrackEndpointNoDevice(t *testing.T) {
+	t.Parallel()
+	testWebEndpointReturnsOK(t, "/api/track")
+}
 
-func TestWeb_IdleEndpointNoDevice(t *testing.T) { testWebEndpointReturnsOK(t, "/api/idle") }
+func TestWeb_IdleEndpointNoDevice(t *testing.T) {
+	t.Parallel()
+	testWebEndpointReturnsOK(t, "/api/idle")
+}
 
 func TestWeb_PrivacyEndpointNoDevice(t *testing.T) {
+	t.Parallel()
 	testWebEndpointReturnsOK(t, "/api/privacy")
 }
 
 func TestWeb_TogglePrivacyEndpointNoDevice(t *testing.T) {
+	t.Parallel()
 	testWebEndpointReturnsOK(t, "/api/toggle-privacy")
 }
 
-func TestWeb_CenterEndpointNoDevice(t *testing.T) { testWebEndpointReturnsOK(t, "/api/center") }
+func TestWeb_CenterEndpointNoDevice(t *testing.T) {
+	t.Parallel()
+	testWebEndpointReturnsOK(t, "/api/center")
+}
 
 // ---------- Probe/Sync ----------
 
 func TestWeb_ProbeEndpoint(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/probe", "", nil)
@@ -509,6 +538,7 @@ func TestWeb_ProbeEndpoint(t *testing.T) {
 }
 
 func TestWeb_SyncEndpointNoDevice(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := post(t, server.URL+"/api/sync", "", nil)
@@ -538,11 +568,15 @@ func TestWeb_SnapshotNoDevice(t *testing.T) {
 	assertResponseContains(t, resp, "no frame available", "503 body")
 }
 
-func TestWeb_StreamNoDevice(t *testing.T) { testGETEndpoint503(t, "/api/stream") }
+func TestWeb_StreamNoDevice(t *testing.T) {
+	t.Parallel()
+	testGETEndpoint503(t, "/api/stream")
+}
 
 // ---------- Method enforcement ----------
 
 func TestWeb_POSTEndpointsRejectGET(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	endpoints := []string{
@@ -570,6 +604,7 @@ func TestWeb_POSTEndpointsRejectGET(t *testing.T) {
 }
 
 func TestWeb_GETEndpointsRejectPOST(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	endpoints := []string{"/", "/panel", "/api/snapshot", "/api/stream"}
@@ -579,6 +614,7 @@ func TestWeb_GETEndpointsRejectPOST(t *testing.T) {
 // ---------- 404 for unknown routes ----------
 
 func TestWeb_UnknownRouteReturns404(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 	resp := get(t, server.URL+"/api/nonexistent")
@@ -589,6 +625,7 @@ func TestWeb_UnknownRouteReturns404(t *testing.T) {
 // ---------- webStatus mapping ----------
 
 func TestWeb_WebStatusOfflineNoDevice(t *testing.T) {
+	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	webSrv := &webServer{daemon: daemon}
 	status := webSrv.getWebStatus()
@@ -596,6 +633,7 @@ func TestWeb_WebStatusOfflineNoDevice(t *testing.T) {
 }
 
 func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
+	t.Parallel()
 	daemon := newDaemonWithDevice(t)
 	daemon.state.Camera = pixy.StateTracking
 	daemon.state.Audio = pixy.AudioLive
@@ -623,6 +661,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 }
 
 func TestWeb_WebStatusAllCameraStates(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		camera pixy.CameraState
 	}{
@@ -636,6 +675,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(string(tc.camera), func(t *testing.T) {
+			t.Parallel()
 			daemon := newIntegrationDaemon(t)
 
 			daemon.videoDev = "/dev/video0"
@@ -654,6 +694,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 }
 
 func TestWeb_WebStatusAllAudioModes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		audio pixy.AudioMode
 	}{
@@ -665,6 +706,7 @@ func TestWeb_WebStatusAllAudioModes(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(string(tc.audio), func(t *testing.T) {
+			t.Parallel()
 			daemon := newIntegrationDaemon(t)
 
 			daemon.state.Audio = tc.audio
@@ -727,12 +769,14 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 }
 
 func TestSocket_StatusCommand(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "status")
 	assertSocketResponseHasPrefixes(t, resp, []string{"camera=", "audio=", "auto=", "device="})
 }
 
 func TestSocket_AutoToggleRoundTrip(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "auto-off")
 	if resp != "auto mode off" {
@@ -745,6 +789,7 @@ func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 }
 
 func TestSocket_ProbeCommand(t *testing.T) {
+	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "probe")
 	if daemon.videoDev != "" {
@@ -759,12 +804,14 @@ func TestSocket_ProbeCommand(t *testing.T) {
 }
 
 func TestSocket_WaybarCommand(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "waybar")
 	assertSocketResponseHasPrefixes(t, resp, []string{`"text"`, `"tooltip"`, `"class"`})
 }
 
 func TestSocket_DeviceCommand(t *testing.T) {
+	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "device")
 	if daemon.videoDev != "" {
@@ -779,18 +826,21 @@ func TestSocket_DeviceCommand(t *testing.T) {
 }
 
 func TestSocket_UnknownCommand(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "foobar")
 	assertSocketResponsePrefix(t, resp, "unknown command:", "socket response")
 }
 
 func TestSocket_StatusViaCommandReturnsStatus(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "status")
 	assertSocketResponseContains(t, resp, "camera=", "socket response")
 }
 
 func TestSocket_CommandsNoDevice(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 
@@ -810,6 +860,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			daemon, cfg := startSocketDaemon(t)
 
 			if daemonHasDevices(daemon) {
@@ -823,6 +874,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 }
 
 func TestSocket_AudioInvalidMode(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "audio badmode")
 	if resp != "usage: audio [nc|live|org]" {
@@ -831,8 +883,10 @@ func TestSocket_AudioInvalidMode(t *testing.T) {
 }
 
 func TestSocket_AudioValidModes(t *testing.T) {
+	t.Parallel()
 	for _, mode := range []string{"nc", "live", "org"} {
 		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
 			daemon, cfg := startSocketDaemon(t)
 
 			if daemonHasDevices(daemon) {
@@ -846,6 +900,7 @@ func TestSocket_AudioValidModes(t *testing.T) {
 }
 
 func TestSocket_PanTiltZoom(t *testing.T) {
+	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
 	if daemon.videoDev != "" {
 		t.Skip("device connected")
@@ -867,6 +922,7 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 		{"zoom invalid value", "zoom x", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			resp := sendSC(t, cfg.SocketPath(), tc.cmd)
 			if tc.wantErr {
 				assertSocketResponsePrefix(t, resp, "error:", "socket response")
@@ -878,6 +934,7 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 }
 
 func TestSocket_TogglePrivacy(t *testing.T) {
+	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "toggle-privacy")
 	if !strings.Contains(resp, "privacy") && !strings.Contains(resp, "tracking") {

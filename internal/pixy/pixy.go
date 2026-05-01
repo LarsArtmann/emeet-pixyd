@@ -172,6 +172,7 @@ type Config struct {
 	PollInterval  time.Duration
 	DebounceCount int
 	WebAddr       string
+	Debug         bool
 }
 
 // DefaultConfig returns the standard daemon configuration.

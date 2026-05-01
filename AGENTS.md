@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-04-30
+**Updated:** 2026-05-01
 
 ---
 
@@ -72,9 +72,11 @@ main() → NewDaemon() → Run()
 | `probe.go`        | Device probing (sysfs walks for video4linux + hidraw)                                      |
 | `web_types.go`    | `webStatus` struct shared between handlers and templates                                   |
 | `templates.templ` | HTML templates (compiled via `templ generate`)                                             |
+| `errors.go`       | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) |
 | `internal/pixy/`  | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`      |
 | `static/`         | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                      |
-| `*_test.go`       | Tests use `newTestDaemon()` with functional options (`withAudio`, `withInCall`)            |
+| `auto_test.go`       | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions                 |
+| `process_test.go`    | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse`                                       |
 
 ### Key Interactions
 
@@ -151,8 +153,12 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
 - **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
-- **Lint is clean (0 issues)**: Linters that produced only false positives for this codebase (exhaustruct, paralleltest, contextcheck, noctx, gochecknoglobals) have been removed from `.golangci.yml` `linters.enable`. Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706). Code-level fixes include extracted helpers (`ffmpegStreamCmd`, `cleanupFFmpeg`, `newHIDResponse`, `sendSC`).
+- **Lint is clean (0 issues)**: Linters that produced only false positives (`exhaustruct`, `paralleltest`, `contextcheck`, `gochecknoglobals`) have been removed from `.golangci.yml` `linters.enable`. Go 1.22+ eliminates the need for `tc := tc` loop variable capture (`copyloopvar` handles it). Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706). Code-level fixes include extracted helpers (`ffmpegStreamCmd`, `cleanupFFmpeg`, `newHIDResponse`, `sendSC`).
 - **OTel metrics migration**: Replaced `prometheus/client_golang/prometheus` direct usage with `go.opentelemetry.io/otel/exporters/prometheus`. Metrics (`metricInCall`, `metricAutoMode`, `metricCameraState`) are now `metric.Float64Gauge` instruments created via OTel MeterProvider. `promhttp.Handler()` still serves the `/metrics` endpoint. Test assertions use `promExporter.Collect()` with `metricdata.Gauge[float64]` instead of `testutil.ToFloat64()`.
+- **Error consolidation**: Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) live in `errors.go`. The unexported duplicates in `commands.go` were removed. All code references the exported versions.
+- **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
+- **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
+- **Test coverage for auto/process**: `auto_test.go` tests `handleCallStart`, `handleCallEnd`, `autoManage` state transitions. `process_test.go` tests `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc` filesystem.
 - **`golangci-lint fmt` auto-migrates config**: Running `golangci-lint fmt` re-enables all default linters and reformats `.golangci.yml`. Avoid running it; use `gofmt` or `goimports` directly instead.
 - **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
 - **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.

@@ -32,6 +32,12 @@ in {
       default = "nc";
       description = "Default audio mode (nc=noise cancel, live, org=original)";
     };
+
+    debug = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Enable debug mode (pprof endpoints at /debug/pprof/)";
+    };
   };
 
   config = lib.mkIf cfg.enable {

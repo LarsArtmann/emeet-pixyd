@@ -126,7 +126,7 @@ func findPixySource(ctx context.Context) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("findPixySource: %w", errAudioSourceNotFound)
+	return "", fmt.Errorf("findPixySource: %w", ErrAudioSourceNotFound)
 }
 
 func setDefaultSource(ctx context.Context, sourceID string) {
