@@ -481,3 +481,42 @@ func TestConfigFromEnv_PartialOverride(t *testing.T) {
 		t.Errorf("WebAddr = %q, want default %q", cfg.WebAddr, DefaultWebAddr)
 	}
 }
+
+func TestDefaultConfig_NewFields(t *testing.T) {
+	t.Parallel()
+
+	c := DefaultConfig()
+
+	if !c.AutoMode {
+		t.Error("DefaultConfig().AutoMode = false, want true")
+	}
+
+	if c.DefaultAudio != AudioNC {
+		t.Errorf("DefaultConfig().DefaultAudio = %q, want %q", c.DefaultAudio, AudioNC)
+	}
+}
+
+func TestConfigFromEnv_AutoAndAudio(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_AUTO", "false")
+	t.Setenv("EMEET_PIXYD_DEFAULT_AUDIO", "live")
+
+	cfg := ConfigFromEnv()
+
+	if cfg.AutoMode {
+		t.Error("AutoMode = true, want false")
+	}
+
+	if cfg.DefaultAudio != AudioLive {
+		t.Errorf("DefaultAudio = %q, want %q", cfg.DefaultAudio, AudioLive)
+	}
+}
+
+func TestConfigFromEnv_InvalidAudioIgnored(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_DEFAULT_AUDIO", "invalid")
+
+	cfg := ConfigFromEnv()
+
+	if cfg.DefaultAudio != AudioNC {
+		t.Errorf("DefaultAudio = %q, want default %q", cfg.DefaultAudio, AudioNC)
+	}
+}

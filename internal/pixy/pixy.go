@@ -169,12 +169,15 @@ func DefaultState() State {
 }
 
 // Config holds daemon configuration parameters.
+// Fields marked with env tags are read from environment variables by ConfigFromEnv().
 type Config struct {
 	StateDir      string
 	PollInterval  time.Duration
 	DebounceCount int
 	WebAddr       string
 	Debug         bool
+	AutoMode      bool
+	DefaultAudio  AudioMode
 }
 
 // DefaultConfig returns the standard daemon configuration.
@@ -184,13 +187,16 @@ func DefaultConfig() Config {
 		PollInterval:  DefaultPollInterval,
 		DebounceCount: DefaultDebounceCount,
 		WebAddr:       DefaultWebAddr,
+		AutoMode:      true,
+		DefaultAudio:  AudioNC,
 	}
 }
 
 // ConfigFromEnv returns a Config with defaults overridden by environment variables.
 // Recognized variables: EMEET_PIXYD_STATE_DIR, EMEET_PIXYD_WEB_ADDR,
 // EMEET_PIXYD_POLL_INTERVAL (Go duration), EMEET_PIXYD_DEBOUNCE_COUNT (int),
-// EMEET_PIXYD_DEBUG (bool).
+// EMEET_PIXYD_DEBUG (bool), EMEET_PIXYD_AUTO (bool),
+// EMEET_PIXYD_DEFAULT_AUDIO (nc/live/original).
 func ConfigFromEnv() Config {
 	cfg := DefaultConfig()
 
@@ -216,6 +222,16 @@ func ConfigFromEnv() Config {
 
 	if v := os.Getenv("EMEET_PIXYD_DEBUG"); v != "" {
 		cfg.Debug = strings.EqualFold(v, "true") || v == "1"
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_AUTO"); v != "" {
+		cfg.AutoMode = strings.EqualFold(v, "true") || v == "1"
+	}
+
+	if v := os.Getenv("EMEET_PIXYD_DEFAULT_AUDIO"); v != "" {
+		if m, err := ParseAudioMode(v); err == nil {
+			cfg.DefaultAudio = m
+		}
 	}
 
 	return cfg

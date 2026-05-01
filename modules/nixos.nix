@@ -64,14 +64,26 @@ in {
       wantedBy = ["graphical-session.target"];
 
       serviceConfig =
+        let
+          envVars = {
+            EMEET_PIXYD_AUTO =
+              if cfg.autoTracking && cfg.autoPrivacy
+              then "true"
+              else "false";
+            EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
+          }
+          // lib.optionalAttrs cfg.debug {
+            EMEET_PIXYD_DEBUG = "true";
+          };
+        in
         {
           Type = "simple";
           ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
           Restart = "on-failure";
           RestartSec = "3";
-        }
-        // lib.optionalAttrs cfg.debug {
-          Environment = "EMEET_PIXYD_DEBUG=true";
+          Environment = lib.concatStringsSep " " (
+            lib.mapAttrsToList (k: v: "${k}=${v}") envVars
+          );
         };
 
       path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify];
