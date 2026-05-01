@@ -6,11 +6,11 @@ import "errors"
 
 // CommandError wraps a command operation error with a descriptive label.
 type CommandError struct {
-	Ok  string // label for the operation that failed
+	Op  string // label for the operation that failed
 	Err error
 }
 
-func (e *CommandError) Error() string { return "error: " + e.Ok + ": " + e.Err.Error() }
+func (e *CommandError) Error() string { return "error: " + e.Op + ": " + e.Err.Error() }
 
 func (e *CommandError) Unwrap() error { return e.Err }
 

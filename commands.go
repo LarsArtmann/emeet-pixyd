@@ -114,7 +114,7 @@ func (d *Daemon) handleTrackingCommand(
 	label string,
 ) string {
 	if err := d.setTracking(ctx, state); err != nil {
-		return (&CommandError{Ok: label, Err: err}).Error()
+		return (&CommandError{Op: label, Err: err}).Error()
 	}
 
 	if state == pixy.StateTracking {
@@ -145,7 +145,7 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 
 	audioErr := d.setAudio(ctx, mode)
 	if audioErr != nil {
-		return (&CommandError{Ok: "audio " + string(mode), Err: audioErr}).Error()
+		return (&CommandError{Op: "audio " + string(mode), Err: audioErr}).Error()
 	}
 
 	return "audio: " + string(mode)
@@ -164,7 +164,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 		d.mu.RUnlock()
 	}
 	if err := d.setGesture(ctx, enable); err != nil {
-		return (&CommandError{Ok: cmd, Err: err}).Error()
+		return (&CommandError{Op: cmd, Err: err}).Error()
 	}
 
 	if enable {
@@ -176,7 +176,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) string {
 	if err := d.centerCamera(ctx); err != nil {
-		return (&CommandError{Ok: "center", Err: err}).Error()
+		return (&CommandError{Op: "center", Err: err}).Error()
 	}
 
 	return "centered"
@@ -241,7 +241,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 		axis+"_absolute",
 		strconv.Itoa(val*multiplier),
 	); v4l2Err != nil {
-		return (&CommandError{Ok: axis, Err: v4l2Err}).Error()
+		return (&CommandError{Op: axis, Err: v4l2Err}).Error()
 	}
 
 	return fmt.Sprintf("%s set to %d", axis, val)
