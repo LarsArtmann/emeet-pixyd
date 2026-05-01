@@ -114,7 +114,7 @@ func (d *Daemon) handleTrackingCommand(
 	label string,
 ) string {
 	if err := d.setTracking(ctx, state); err != nil {
-		return (&CommandError{Op: label, Err: err}).Error()
+		return (&CommandError{Op: label + " " + string(state), Err: err}).Error()
 	}
 
 	if state == pixy.StateTracking {
@@ -164,7 +164,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 		d.mu.RUnlock()
 	}
 	if err := d.setGesture(ctx, enable); err != nil {
-		return (&CommandError{Op: cmd, Err: err}).Error()
+		return (&CommandError{Op: cmd + " enable=" + strconv.FormatBool(enable), Err: err}).Error()
 	}
 
 	if enable {

@@ -88,7 +88,7 @@ func audioHIDByte(m pixy.AudioMode) byte {
 
 func hidSend(hidrawDev string, report []byte) (err error) {
 	if hidrawDev == "" {
-		return fmt.Errorf("hidSend: %w", pixy.ErrHIDDeviceNotAvailable)
+		return fmt.Errorf("hidSend (device not set): %w", pixy.ErrHIDDeviceNotAvailable)
 	}
 
 	buf := make([]byte, hidBufSize)
@@ -116,7 +116,7 @@ func hidSend(hidrawDev string, report []byte) (err error) {
 
 func hidSendRecv(ctx context.Context, hidrawDev string, report []byte) ([]byte, error) {
 	if hidrawDev == "" {
-		return nil, fmt.Errorf("hidSendRecv: %w", pixy.ErrHIDDeviceNotAvailable)
+		return nil, fmt.Errorf("hidSendRecv (device not set): %w", pixy.ErrHIDDeviceNotAvailable)
 	}
 
 	buf := make([]byte, hidBufSize)
@@ -153,10 +153,10 @@ func hidSendRecv(ctx context.Context, hidrawDev string, report []byte) ([]byte, 
 
 	select {
 	case <-ctx.Done():
-		return nil, fmt.Errorf("hidSendRecv context: %w", ctx.Err())
+		return nil, fmt.Errorf("hidSendRecv %s: %w", hidrawDev, ctx.Err())
 	case r := <-resultChan:
 		if r.err != nil {
-			return nil, fmt.Errorf("hidSendRecv read: %w", r.err)
+			return nil, fmt.Errorf("hidSendRecv %s read: %w", hidrawDev, r.err)
 		}
 
 		return r.data, nil

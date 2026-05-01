@@ -280,7 +280,7 @@ func (c Config) SocketPath() string { return c.StateDir + "/control.sock" }
 func SetDeadline(conn net.Conn, timeout time.Duration) error {
 	err := conn.SetDeadline(time.Now().Add(timeout))
 	if err != nil {
-		return fmt.Errorf("setDeadline: %w", err)
+		return fmt.Errorf("setDeadline (timeout=%v): %w", timeout, err)
 	}
 
 	return nil
@@ -292,26 +292,26 @@ func SendCommand(ctx context.Context, socketPath, cmd string) (string, error) {
 
 	conn, err := dialer.DialContext(ctx, "unix", socketPath)
 	if err != nil {
-		return "", fmt.Errorf("sendCommand dial: %w", err)
+		return "", fmt.Errorf("sendCommand dial %s: %w", socketPath, err)
 	}
 
 	defer func() { _ = conn.Close() }()
 
 	deadlineErr := SetDeadline(conn, DefaultWriteTimeout)
 	if deadlineErr != nil {
-		return "", deadlineErr
+		return "", fmt.Errorf("sendCommand %s deadline: %w", socketPath, deadlineErr)
 	}
 
 	_, writeErr := conn.Write([]byte(cmd))
 	if writeErr != nil {
-		return "", fmt.Errorf("sendCommand write: %w", writeErr)
+		return "", fmt.Errorf("sendCommand %s write: %w", socketPath, writeErr)
 	}
 
 	buf := make([]byte, ConnBufSize)
 
 	n, readErr := conn.Read(buf)
 	if readErr != nil {
-		return "", fmt.Errorf("sendCommand read: %w", readErr)
+		return "", fmt.Errorf("sendCommand %s read: %w", socketPath, readErr)
 	}
 
 	return strings.TrimSpace(string(buf[:n])), nil

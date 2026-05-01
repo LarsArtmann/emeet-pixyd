@@ -86,7 +86,7 @@ func (d *Daemon) setDeviceState(
 	d.mu.RUnlock()
 
 	if hidrawDev == "" {
-		return fmt.Errorf("setDeviceState: %w", pixy.ErrPIXYNotConnected)
+		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
 	}
 
 	err := hidSend(hidrawDev, configBytes)
@@ -95,18 +95,18 @@ func (d *Daemon) setDeviceState(
 		d.probeDevices()
 		d.mu.Unlock()
 
-		return fmt.Errorf("setDeviceState send config: %w", err)
+		return fmt.Errorf("setDeviceState send config via %s: %w", hidrawDev, err)
 	}
 
 	select {
 	case <-ctx.Done():
-		return fmt.Errorf("setDeviceState sleep: %w", ctx.Err())
+		return fmt.Errorf("setDeviceState %s: %w", hidrawDev, ctx.Err())
 	case <-time.After(hidCommandSleepMs * time.Millisecond):
 	}
 
 	err = hidSend(hidrawDev, commitBytes)
 	if err != nil {
-		return fmt.Errorf("setDeviceState send commit: %w", err)
+		return fmt.Errorf("setDeviceState send commit via %s: %w", hidrawDev, err)
 	}
 
 	d.mu.Lock()
