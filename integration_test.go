@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -18,37 +17,16 @@ import (
 
 func newIntegrationDaemon(t *testing.T) *Daemon {
 	t.Helper()
-	return &Daemon{
-		mu: sync.RWMutex{},
-
-		state: pixy.DefaultState(),
-
-		config: pixy.Config{
-			StateDir: t.TempDir(),
-
-			PollInterval: 2 * time.Second,
-
-			DebounceCount: 3,
-		},
-
-		videoDev: "",
-
-		hidrawDev: "",
-
-		debounceInUse: 0,
-
-		debounceIdle: 0,
-
-		streamSema: make(chan struct{}, 1),
-	}
+	return newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
+		d.config = testConfig(t.TempDir())
+	})
 }
 
 func newDaemonWithDevice(t *testing.T) *Daemon {
 	t.Helper()
-	d := newIntegrationDaemon(t)
-	d.videoDev = "/dev/video0"
-	d.hidrawDev = "/dev/hidraw7"
-	return d
+	return newTestDaemon(pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
+		d.config = testConfig(t.TempDir())
+	})
 }
 
 func newTestWebServer(t *testing.T, daemon *Daemon) *httptest.Server {

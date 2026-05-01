@@ -4,7 +4,8 @@ package main
 
 import (
 	"context"
-	"sync"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -289,29 +290,32 @@ func TestAutoManage_UpdatesMetrics(t *testing.T) {
 
 	d := testAutoDaemon()
 	d.autoManage(context.Background())
+
+	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)
+	requireGaugeValue(t, "emeet_pixyd_in_call", 0)
 }
 
 func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := &Daemon{
-		mu:    sync.RWMutex{},
-		state: pixy.DefaultState(),
-		config: pixy.Config{
+	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+		d.config = pixy.Config{
 			StateDir:      dir,
 			PollInterval:  2 * time.Second,
 			DebounceCount: 3,
 			WebAddr:       "127.0.0.1:0",
-		},
-		videoDev:        testVideoDev,
-		hidrawDev:       testHIDDev,
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (string, error) { return "", nil },
-		setSourceFn:     func(context.Context, string) {},
-		notifyFn:        func(context.Context, string, string) {},
-	}
+		}
+	})
 
 	d.autoManage(context.Background())
+
+	data, err := os.ReadFile(filepath.Join(dir, "state.json"))
+	if err != nil {
+		t.Fatalf("state file not created: %v", err)
+	}
+
+	if len(data) == 0 {
+		t.Fatal("state file is empty")
+	}
 }
