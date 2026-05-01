@@ -55,8 +55,10 @@ Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to d
 | `EMEET_PIXYD_POLL_INTERVAL`| `PollInterval`  | `2s`                 |
 | `EMEET_PIXYD_DEBOUNCE_COUNT`| `DebounceCount`| `3`                  |
 | `EMEET_PIXYD_DEBUG`        | `Debug`         | `false`              |
+| `EMEET_PIXYD_AUTO`         | `AutoMode`      | `true`               |
+| `EMEET_PIXYD_DEFAULT_AUDIO`| `DefaultAudio`  | `nc`                 |
 
-NixOS module passes `EMEET_PIXYD_DEBUG=true` when `hardware.emeet-pixy.debug` is enabled. Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
+NixOS module passes all options as `Environment=` vars — `autoTracking`+`autoPrivacy` control `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
 
 ### Control Flow
 
@@ -79,7 +81,7 @@ main() → NewDaemon() → Run()
 | `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing             |
 | `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                       |
 | `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
-| `uevent.go`       | Netlink uevent listener for device hotplug                                                 |
+| `uevent.go`       | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)     |
 | `uevent_linux.go` | Low-level `unix.Socket` call for netlink                                                   |
 | `auto.go`         | Auto-manage loop, call start/end handling, debounce logic                                  |
 | `state.go`        | State persistence (JSON load/save, atomic write)                                           |
@@ -97,7 +99,8 @@ main() → NewDaemon() → Run()
 - **HID protocol**: Commands are 9-byte config reports followed by a commit report, with a 200ms sleep between them. Responses are 64-byte reads parsed by byte position.
 - **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. State dir defaults to `/run/emeet-pixyd`.
 - **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles).
-- **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` product `00c0`.
+- **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` product `00c0`. Device name matching uses shared `isPixyName()` helper in `probe.go`.
+- **Uevent listener**: `listenUevents(ctx, ch)` is context-cancellable. A goroutine closes the netlink fd on context cancellation to unblock `fd.Read()` on shutdown.
 
 ### External Dependencies at Runtime
 
