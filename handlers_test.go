@@ -405,6 +405,7 @@ func TestCachingFS(t *testing.T) {
 }
 
 func TestUpdateMetrics(t *testing.T) {
+	t.Parallel()
 	registerMetrics()
 
 	state := pixy.State{

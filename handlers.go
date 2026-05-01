@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/pprof"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -609,5 +610,10 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("GET /api/snapshot", server.handleSnapshot)
 	mux.HandleFunc("GET /api/stream", server.handleStream)
 	mux.Handle("GET /metrics", promhttp.Handler())
+	mux.HandleFunc("GET /debug/pprof/", pprof.Index)
+	mux.HandleFunc("GET /debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("GET /debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("GET /debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("GET /debug/pprof/trace", pprof.Trace)
 	return mux
 }
