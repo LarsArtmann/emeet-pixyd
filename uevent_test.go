@@ -7,6 +7,7 @@ import (
 )
 
 func TestParseUevent(t *testing.T) {
+	t.Parallel()
 	// ueventOf returns a complete uevent, suppressing exhaustruct linter
 	// warnings since test cases intentionally omit fields irrelevant to parseUevent.
 	ueventOf := func(action, subsys, devpath string) uevent {
@@ -65,6 +66,7 @@ func TestParseUevent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := parseUevent(tt.input)
 			if got != tt.want {
 				t.Errorf("parseUevent(%q) = %+v, want %+v", tt.input, got, tt.want)
@@ -74,6 +76,7 @@ func TestParseUevent(t *testing.T) {
 }
 
 func TestIsRelevantUevent(t *testing.T) {
+	t.Parallel()
 	// ueventCase returns a complete uevent for isRelevantUevent tests.
 	// The nolint suppresses exhaustruct warnings: test cases intentionally
 	// omit DevPath since isRelevantUevent only inspects Action and Subsys.
@@ -103,6 +106,7 @@ func TestIsRelevantUevent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isRelevantUevent(tt.evt); got != tt.want {
 				t.Errorf("isRelevantUevent(%+v) = %v, want %v", tt.evt, got, tt.want)
 			}

@@ -912,6 +912,7 @@ func TestProbeVideo4linux_NonPIXYSources(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			testV4L2ProbesNothing(t, tc.devices)
 		})
 	}
