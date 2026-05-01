@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -48,7 +49,7 @@ func isRelevantUevent(evt uevent) bool {
 	return evt.Subsys == "video4linux" || evt.Subsys == "hidraw"
 }
 
-func (d *Daemon) listenUevents(ch chan<- struct{}) {
+func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 	f, err := os.Open("/sys/kernel/uevent_seqnum")
 	if err != nil {
 		slog.Debug("uevent: cannot open uevent_seqnum, disabling hotplug", "error", err)
@@ -63,12 +64,20 @@ func (d *Daemon) listenUevents(ch chan<- struct{}) {
 
 		return
 	}
-	defer func() { _ = fd.Close() }()
+
+	go func() {
+		<-ctx.Done()
+		_ = fd.Close()
+	}()
 
 	buf := make([]byte, 4096)
 	for {
 		n, readErr := fd.Read(buf)
 		if readErr != nil {
+			if ctx.Err() != nil {
+				return
+			}
+
 			slog.Debug("uevent read error", "error", readErr)
 
 			return

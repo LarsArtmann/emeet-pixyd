@@ -521,7 +521,7 @@ func (d *Daemon) Run() {
 	defer ticker.Stop()
 
 	ueventCh := make(chan struct{}, 8)
-	go d.listenUevents(ueventCh)
+	go d.listenUevents(ctx, ueventCh)
 
 	for {
 		select {
