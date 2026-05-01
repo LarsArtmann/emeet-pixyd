@@ -1,96 +1,101 @@
 version: "2"
 run:
-  timeout: 5m
-  go: 1.26.2
-  build-tags:
-    - goexperiment.arenas
-    - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
-    - goexperiment.runtimesecret
-    - goexperiment.simd
-  allow-parallel-runners: true
-  allow-serial-runners: true
-  issues-exit-code: 1
-  tests: true
+    timeout: 5m
+    go: 1.26.2
+    build-tags:
+        - goexperiment.arenas
+        - goexperiment.goroutineleakprofile
+        - goexperiment.jsonv2
+        - goexperiment.runtimesecret
+        - goexperiment.simd
+    allow-parallel-runners: true
+    allow-serial-runners: true
+    issues-exit-code: 1
+    tests: true
 output:
-  formats: {}
+    formats: {}
 linters:
-  enable:
-    - bodyclose
-    - copyloopvar
-    - cyclop
-    - dupl
-    - durationcheck
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - forcetypeassert
-    - funlen
-    - ginkgolinter
-    - gochecknoinits
-    - gochecksumtype
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - gosec
-    - gosmopolitan
-    - interfacebloat
-    - intrange
-    - loggercheck
-    - maintidx
-    - mirror
-    - misspell
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnesserr
-    - nilnil
-    - nolintlint
-    - perfsprint
-    - prealloc
-    - predeclared
-    - protogetter
-    - reassign
-    - recvcheck
-    - revive
-    - rowserrcheck
-    - sloglint
-    - spancheck
-    - sqlclosecheck
-    - testifylint
-    - thelper
-    - unconvert
-    - unparam
-    - usetesting
-    - wastedassign
-    - wrapcheck
-    - zerologlint
-  settings:
-    cyclop:
-      max-complexity: 20
-    funlen:
-      lines: 100
-      statements: 80
-    gosec:
-      excludes:
-        - G104
-        - G107
-        - G115
-        - G204
-        - G301
-        - G304
-        - G306
-        - G702
-        - G706
+    enable:
+        - bodyclose
+        - contextcheck
+        - copyloopvar
+        - cyclop
+        - dupl
+        - durationcheck
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustive
+        - exhaustruct
+        - forcetypeassert
+        - funlen
+        - ginkgolinter
+        - gochecknoglobals
+        - gochecknoinits
+        - gochecksumtype
+        - gocognit
+        - goconst
+        - gocritic
+        - gocyclo
+        - gosec
+        - gosmopolitan
+        - interfacebloat
+        - intrange
+        - loggercheck
+        - maintidx
+        - mirror
+        - misspell
+        - musttag
+        - nakedret
+        - nestif
+        - nilerr
+        - nilnesserr
+        - nilnil
+        - noctx
+        - nolintlint
+        - paralleltest
+        - perfsprint
+        - prealloc
+        - predeclared
+        - protogetter
+        - reassign
+        - recvcheck
+        - revive
+        - rowserrcheck
+        - sloglint
+        - spancheck
+        - sqlclosecheck
+        - testifylint
+        - thelper
+        - unconvert
+        - unparam
+        - usetesting
+        - wastedassign
+        - wrapcheck
+        - zerologlint
+    settings:
+        cyclop:
+            max-complexity: 20
+        funlen:
+            lines: 100
+            statements: 80
+        gosec:
+            excludes:
+                - G104
+                - G107
+                - G115
+                - G204
+                - G301
+                - G304
+                - G306
+                - G702
+                - G706
 formatters:
-  enable:
-    - gci
-    - goimports
-    - gofumpt
-    - golines
+    enable:
+        - gci
+        - goimports
+        - gofumpt
+        - golines
 issues:
-  max-issues-per-linter: 50
-  max-same-issues: 10
+    max-issues-per-linter: 50
+    max-same-issues: 10
