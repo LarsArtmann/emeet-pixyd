@@ -44,6 +44,20 @@ GitHub Actions: `go vet ./...`, `golangci-lint run --timeout 2m`, then `go test 
 
 Linux-only daemon (`//go:build linux` on all source files). Single binary, no subcommands — running with arguments sends a command to an already-running daemon via Unix socket; running without arguments starts the daemon.
 
+### Configuration
+
+Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to defaults for unset/invalid values:
+
+| Environment Variable        | Config Field    | Default              |
+| --------------------------- | --------------- | -------------------- |
+| `EMEET_PIXYD_STATE_DIR`    | `StateDir`      | `/run/emeet-pixyd`   |
+| `EMEET_PIXYD_WEB_ADDR`     | `WebAddr`       | `127.0.0.1:8090`     |
+| `EMEET_PIXYD_POLL_INTERVAL`| `PollInterval`  | `2s`                 |
+| `EMEET_PIXYD_DEBOUNCE_COUNT`| `DebounceCount`| `3`                  |
+| `EMEET_PIXYD_DEBUG`        | `Debug`         | `false`              |
+
+NixOS module passes `EMEET_PIXYD_DEBUG=true` when `hardware.emeet-pixy.debug` is enabled. Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
+
 ### Control Flow
 
 ```
@@ -92,6 +106,19 @@ main() → NewDaemon() → Run()
 - `wpctl` — PipeWire default source switching
 - `notify-send` — desktop notifications
 
+### Dependency Injection
+
+Daemon uses function fields for external dependencies, enabling test injectability:
+
+| Field              | Default              | Purpose                          |
+| ------------------ | -------------------- | -------------------------------- |
+| `isCameraInUseFn`  | `isCameraInUse`      | `/proc/*/fd` scanning            |
+| `findSourceFn`     | `findPixySource`     | `wpctl status` PipeWire lookup   |
+| `setSourceFn`      | `setDefaultSource`   | `wpctl set-default`              |
+| `notifyFn`         | `notify`             | `notify-send` desktop notifs     |
+
+`NewDaemon()` wires real implementations. Tests override via functional options (`testDaemonOption`).
+
 ---
 
 ## Code Patterns
@@ -123,7 +150,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ### Testing
 
 - Standard `testing` package only (no testify)
-- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withAudio()`, `withInCall()` options
+- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withAudio()`, `withInCall()`, or custom `testDaemonOption` to inject mock deps
+- Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`) default to no-op stubs in tests
 - `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
@@ -159,7 +187,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
 - **Test coverage for auto/process**: `auto_test.go` tests `handleCallStart`, `handleCallEnd`, `autoManage` state transitions. `process_test.go` tests `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc` filesystem.
-- **`golangci-lint fmt` auto-migrates config**: Running `golangci-lint fmt` re-enables all default linters and reformats `.golangci.yml`. Avoid running it; use `gofmt` or `goimports` directly instead.
+- **`gochecknoinits` removed from linters**: Valid `init()` in `handlers.go` for `registerMetrics()` — must run before any parallel test can call `updateMetrics()`
+- **`TestUpdateMetrics` is NOT parallel**: Tests global mutable metrics state, must run serially to avoid interference from parallel tests calling `updateMetrics()`
 - **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
 - **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
 
