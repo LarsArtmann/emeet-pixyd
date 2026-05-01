@@ -12,19 +12,21 @@ in {
     user = lib.mkOption {
       type = lib.types.str;
       default = "lars";
-      description = "User account for the daemon systemd service";
+      description = ''
+        User that owns the runtime state directory (/run/emeet-pixyd).
+        Must match the user running the graphical session, since the
+        daemon runs as a systemd user service under that session.
+      '';
     };
 
-    autoTracking = lib.mkOption {
+    auto = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable auto face tracking when video call detected";
-    };
-
-    autoPrivacy = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Enable privacy mode when no call is active";
+      description = ''
+        Enable auto-management: automatically activate tracking and noise
+        cancellation when a video call is detected, and switch to privacy
+        mode when the call ends.
+      '';
     };
 
     defaultAudio = lib.mkOption {
@@ -65,16 +67,17 @@ in {
 
       serviceConfig =
         let
-          envVars = {
-            EMEET_PIXYD_AUTO =
-              if cfg.autoTracking && cfg.autoPrivacy
-              then "true"
-              else "false";
-            EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
-          }
-          // lib.optionalAttrs cfg.debug {
-            EMEET_PIXYD_DEBUG = "true";
-          };
+          envVars =
+            {
+              EMEET_PIXYD_AUTO =
+                if cfg.auto
+                then "true"
+                else "false";
+              EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
+            }
+            // lib.optionalAttrs cfg.debug {
+              EMEET_PIXYD_DEBUG = "true";
+            };
         in
         {
           Type = "simple";
