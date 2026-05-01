@@ -17,15 +17,21 @@ output:
 linters:
     enable:
         - bodyclose
-        - durationcheck
+        - contextcheck
+        - copyloopvar
+        - cyclop
         - dupl
+        - durationcheck
         - errchkjson
         - errname
         - errorlint
         - exhaustive
+        - exhaustruct
         - forcetypeassert
         - funlen
         - ginkgolinter
+        - gochecknoglobals
+        - gochecknoinits
         - gochecksumtype
         - gocognit
         - goconst
@@ -47,6 +53,7 @@ linters:
         - nilnil
         - noctx
         - nolintlint
+        - paralleltest
         - perfsprint
         - prealloc
         - predeclared
@@ -69,9 +76,18 @@ linters:
     settings:
         cyclop:
             max-complexity: 20
+        exhaustruct:
+            exclude:
+                - os/exec.Cmd
         funlen:
             lines: 100
             statements: 80
+        gocritic:
+            disabled-checks:
+                - dupImport
+                - ifElseChain
+                - octalLiteral
+                - whyNoLint
         gosec:
             excludes:
                 - G104

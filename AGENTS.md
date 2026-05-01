@@ -48,15 +48,15 @@ Linux-only daemon (`//go:build linux` on all source files). Single binary, no su
 
 Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to defaults for unset/invalid values:
 
-| Environment Variable        | Config Field    | Default              |
-| --------------------------- | --------------- | -------------------- |
-| `EMEET_PIXYD_STATE_DIR`    | `StateDir`      | `/run/emeet-pixyd`   |
-| `EMEET_PIXYD_WEB_ADDR`     | `WebAddr`       | `127.0.0.1:8090`     |
-| `EMEET_PIXYD_POLL_INTERVAL`| `PollInterval`  | `2s`                 |
-| `EMEET_PIXYD_DEBOUNCE_COUNT`| `DebounceCount`| `3`                  |
-| `EMEET_PIXYD_DEBUG`        | `Debug`         | `false`              |
-| `EMEET_PIXYD_AUTO`         | `AutoMode`      | `true`               |
-| `EMEET_PIXYD_DEFAULT_AUDIO`| `DefaultAudio`  | `nc`                 |
+| Environment Variable         | Config Field    | Default            |
+| ---------------------------- | --------------- | ------------------ |
+| `EMEET_PIXYD_STATE_DIR`      | `StateDir`      | `/run/emeet-pixyd` |
+| `EMEET_PIXYD_WEB_ADDR`       | `WebAddr`       | `127.0.0.1:8090`   |
+| `EMEET_PIXYD_POLL_INTERVAL`  | `PollInterval`  | `2s`               |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `DebounceCount` | `3`                |
+| `EMEET_PIXYD_DEBUG`          | `Debug`         | `false`            |
+| `EMEET_PIXYD_AUTO`           | `AutoMode`      | `true`             |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `DefaultAudio`  | `nc`               |
 
 NixOS module passes all options as `Environment=` vars — `autoTracking`+`autoPrivacy` control `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
 
@@ -73,26 +73,26 @@ main() → NewDaemon() → Run()
 
 ### File Responsibilities
 
-| File              | Purpose                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------ |
-| `main.go`         | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server           |
-| `commands.go`     | Command routing for both Unix socket and CLI (`handleCommand` switch)                      |
-| `handlers.go`     | HTTP handlers, web UI, OTel/Prometheus metrics, MJPEG streaming, security middleware       |
-| `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing             |
-| `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                       |
-| `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications |
+| File              | Purpose                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| `main.go`         | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server            |
+| `commands.go`     | Command routing for both Unix socket and CLI (`handleCommand` switch)                       |
+| `handlers.go`     | HTTP handlers, web UI, OTel/Prometheus metrics, MJPEG streaming, security middleware        |
+| `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing              |
+| `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                        |
+| `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications  |
 | `uevent.go`       | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)     |
-| `uevent_linux.go` | Low-level `unix.Socket` call for netlink                                                   |
-| `auto.go`         | Auto-manage loop, call start/end handling, debounce logic                                  |
-| `state.go`        | State persistence (JSON load/save, atomic write)                                           |
-| `probe.go`        | Device probing (sysfs walks for video4linux + hidraw)                                      |
-| `web_types.go`    | `webStatus` struct shared between handlers and templates                                   |
-| `templates.templ` | HTML templates (compiled via `templ generate`)                                             |
+| `uevent_linux.go` | Low-level `unix.Socket` call for netlink                                                    |
+| `auto.go`         | Auto-manage loop, call start/end handling, debounce logic                                   |
+| `state.go`        | State persistence (JSON load/save, atomic write)                                            |
+| `probe.go`        | Device probing (sysfs walks for video4linux + hidraw)                                       |
+| `web_types.go`    | `webStatus` struct shared between handlers and templates                                    |
+| `templates.templ` | HTML templates (compiled via `templ generate`)                                              |
 | `errors.go`       | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) |
-| `internal/pixy/`  | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`      |
-| `static/`         | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                      |
-| `auto_test.go`       | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions                 |
-| `process_test.go`    | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse`                                       |
+| `internal/pixy/`  | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`       |
+| `static/`         | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                       |
+| `auto_test.go`    | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions                |
+| `process_test.go` | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse`                                       |
 
 ### Key Interactions
 
@@ -113,12 +113,12 @@ main() → NewDaemon() → Run()
 
 Daemon uses function fields for external dependencies, enabling test injectability:
 
-| Field              | Default              | Purpose                          |
-| ------------------ | -------------------- | -------------------------------- |
-| `isCameraInUseFn`  | `isCameraInUse`      | `/proc/*/fd` scanning            |
-| `findSourceFn`     | `findPixySource`     | `wpctl status` PipeWire lookup   |
-| `setSourceFn`      | `setDefaultSource`   | `wpctl set-default`              |
-| `notifyFn`         | `notify`             | `notify-send` desktop notifs     |
+| Field             | Default            | Purpose                        |
+| ----------------- | ------------------ | ------------------------------ |
+| `isCameraInUseFn` | `isCameraInUse`    | `/proc/*/fd` scanning          |
+| `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup |
+| `setSourceFn`     | `setDefaultSource` | `wpctl set-default`            |
+| `notifyFn`        | `notify`           | `notify-send` desktop notifs   |
 
 `NewDaemon()` wires real implementations. Tests override via functional options (`testDaemonOption`).
 
