@@ -82,7 +82,7 @@ templ toastOOB(msg, toastType string) {
 	</div>
 }
 
-templ stateIndicator(prefix string, value string) {
+templ stateIndicator(prefix, value string) {
 	<div class={ prefix + "-indicator", prefix + "-" + value }>
 		<span class={ prefix + "-dot" }></span>
 		<span>{ value }</span>
@@ -160,7 +160,7 @@ templ statusPanel(s webStatus) {
 			<div class="toggle-row">
 				<span class="toggle-label" id="auto-label">Auto Mode</span>
 				<button
-					class={ "toggle", templ.KV("on", s.Auto) }
+					class={ "toggle", templ.KV("on", s.Auto != "off") }
 					hx-post="/api/auto"
 					hx-target="#status-panel"
 					aria-labelledby="auto-label"

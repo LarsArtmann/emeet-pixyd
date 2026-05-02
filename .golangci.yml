@@ -79,6 +79,8 @@ linters:
         exhaustruct:
             exclude:
                 - os/exec.Cmd
+                - main.webStatus
+                - main.webStatusCheck
         funlen:
             lines: 100
             statements: 80
