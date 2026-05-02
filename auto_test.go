@@ -16,6 +16,21 @@ func testAutoDaemon(opts ...testDaemonOption) *Daemon {
 	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, opts...)
 }
 
+func readState[T any](d *Daemon, fn func(pixy.State) T) T {
+	d.mu.RLock()
+	v := fn(d.state)
+	d.mu.RUnlock()
+	return v
+}
+
+func readDebounce(d *Daemon) (inUse, idle int) {
+	d.mu.RLock()
+	inUse = d.debounceInUse
+	idle = d.debounceIdle
+	d.mu.RUnlock()
+	return
+}
+
 func TestHandleCallStart_SetsInCall(t *testing.T) {
 	t.Parallel()
 
@@ -26,11 +41,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	d.mu.RUnlock()
-
-	if !inCall {
+	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
 		t.Error("expected InCall=true after handleCallStart")
 	}
 
@@ -48,11 +59,7 @@ func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	d.mu.RUnlock()
-
-	if !inCall {
+	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
 		t.Error("expected InCall=true")
 	}
 }
@@ -66,11 +73,7 @@ func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	d.mu.RUnlock()
-
-	if !inCall {
+	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
 		t.Error("expected InCall=true")
 	}
 }
@@ -84,11 +87,9 @@ func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
 
-	d.mu.RLock()
-	audio := d.state.Audio
-	d.mu.RUnlock()
-
-	if audio != pixy.AudioLive {
+	if audio := readState(d, func(s pixy.State) pixy.AudioMode {
+		return s.Audio
+	}); audio != pixy.AudioLive {
 		t.Errorf("tracking-only should not change audio, got %s", audio)
 	}
 }
@@ -102,11 +103,9 @@ func TestHandleCallStart_PrivacyOnlyNoTracking(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoPrivacyOnly)
 
-	d.mu.RLock()
-	camera := d.state.Camera
-	d.mu.RUnlock()
-
-	if camera != pixy.StatePrivacy {
+	if camera := readState(d, func(s pixy.State) pixy.CameraState {
+		return s.Camera
+	}); camera != pixy.StatePrivacy {
 		t.Errorf("privacy-only should not activate tracking, got %s", camera)
 	}
 }
@@ -161,11 +160,7 @@ func TestHandleCallEnd_ClearsInCall(t *testing.T) {
 
 	d.handleCallEnd(context.Background(), pixy.AutoFull)
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	d.mu.RUnlock()
-
-	if inCall {
+	if readState(d, func(s pixy.State) bool { return s.InCall }) {
 		t.Error("expected InCall=false after handleCallEnd")
 	}
 
@@ -186,11 +181,9 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 
 	d.handleCallEnd(context.Background(), pixy.AutoOff)
 
-	d.mu.RLock()
-	camera := d.state.Camera
-	d.mu.RUnlock()
-
-	if camera != pixy.StateTracking {
+	if camera := readState(d, func(s pixy.State) pixy.CameraState {
+		return s.Camera
+	}); camera != pixy.StateTracking {
 		t.Errorf("auto-off should not enter privacy, got %s", camera)
 	}
 }
@@ -201,11 +194,9 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	camera := d.state.Camera
-	d.mu.RUnlock()
-
-	if camera != pixy.StateOffline {
+	if camera := readState(d, func(s pixy.State) pixy.CameraState {
+		return s.Camera
+	}); camera != pixy.StateOffline {
 		t.Errorf("expected offline with no device, got %s", camera)
 	}
 }
@@ -219,10 +210,8 @@ func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	camera := d.state.Camera
-	d.mu.RUnlock()
+	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
 
 	if inCall {
 		t.Error("should not be in call with auto off")
@@ -245,10 +234,8 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	debounceInUse := d.debounceInUse
-	d.mu.RUnlock()
+	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	debounceInUse, _ := readDebounce(d)
 
 	if !inCall {
 		t.Error("expected InCall=true after camera in use with debounce=1")
@@ -272,10 +259,8 @@ func TestAutoManage_InUseNotEnoughDebounce(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	debounceInUse := d.debounceInUse
-	d.mu.RUnlock()
+	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	debounceInUse, _ := readDebounce(d)
 
 	if inCall {
 		t.Error("should not be in call after single poll with debounce=3")
@@ -301,11 +286,7 @@ func TestAutoManage_IdleTriggersCallEnd(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	inCall := d.state.InCall
-	d.mu.RUnlock()
-
-	if inCall {
+	if readState(d, func(s pixy.State) bool { return s.InCall }) {
 		t.Error("expected InCall=false after camera idle with debounce=1")
 	}
 
@@ -329,10 +310,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	debounceInUse := d.debounceInUse
-	debounceIdle := d.debounceIdle
-	d.mu.RUnlock()
+	debounceInUse, debounceIdle := readDebounce(d)
 
 	if debounceInUse != 2 {
 		t.Errorf("expected debounceInUse=2, got %d", debounceInUse)
@@ -344,10 +322,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	d.mu.RLock()
-	debounceInUse = d.debounceInUse
-	debounceIdle = d.debounceIdle
-	d.mu.RUnlock()
+	debounceInUse, debounceIdle = readDebounce(d)
 
 	if debounceInUse != 0 {
 		t.Errorf("expected debounceInUse=0 after flip, got %d", debounceInUse)
