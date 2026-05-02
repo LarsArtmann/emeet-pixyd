@@ -2,6 +2,7 @@ coverage.out
 /result
 *.tmp
 .direnv/
+vendor/
 # Dependencies
 node_modules/
 # Test coverage
