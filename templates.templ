@@ -80,6 +80,42 @@ templ toastOOB(msg, toastType string) {
 	</div>
 }
 
+templ stateIndicator(prefix string, value string) {
+	<div class={ prefix + "-indicator", prefix + "-" + value }>
+		<span class={ prefix + "-dot" }></span>
+		<span>{ value }</span>
+	</div>
+}
+
+templ cameraBtn(color string, endpoint string, label string, shortcut string, ariaLabel string, active bool, online bool) {
+	<button
+		class={ "btn", color, templ.KV("btn-active", active) }
+		hx-post=endpoint
+		hx-target="#status-panel"
+		aria-label=ariaLabel
+		if !online {
+			disabled=""
+		}
+	>
+		{ label }<span class="kbd">{ shortcut }</span>
+	</button>
+}
+
+templ audioBtn(color string, mode string, label string, ariaLabel string, active bool, online bool) {
+	<button
+		class={ "btn", templ.KV(color, color != ""), templ.KV("btn-active", active) }
+		hx-post="/api/audio"
+		hx-vals={ fmt.Sprintf(`{"mode":"%s"}`, mode) }
+		hx-target="#status-panel"
+		aria-label=ariaLabel
+		if !online {
+			disabled=""
+		}
+	>
+		{ label }
+	</button>
+}
+
 templ statusPanel(s webStatus) {
 	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body, load" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
 		if s.Error != "" {
@@ -87,89 +123,20 @@ templ statusPanel(s webStatus) {
 		}
 		<div class="card" style="margin-bottom:1rem">
 			<div class="card-title">Camera</div>
-			<div class={ "state-indicator", "state-" + s.Camera }>
-				<span class="state-dot"></span>
-				<span>{ s.Camera }</span>
-			</div>
+			@stateIndicator("state", s.Camera)
 			<div class="btn-group">
-				<button
-					class={ "btn", "btn-green", templ.KV("btn-active", s.Camera == "tracking") }
-					hx-post="/api/track"
-					hx-target="#status-panel"
-					aria-label="Enable tracking"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Track<span class="kbd">T</span>
-				</button>
-				<button
-					class={ "btn", "btn-yellow", templ.KV("btn-active", s.Camera == "idle") }
-					hx-post="/api/idle"
-					hx-target="#status-panel"
-					aria-label="Set idle"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Idle<span class="kbd">I</span>
-				</button>
-				<button
-					class={ "btn", "btn-red", templ.KV("btn-active", s.Camera == "privacy") }
-					hx-post="/api/privacy"
-					hx-target="#status-panel"
-					aria-label="Enable privacy"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Privacy<span class="kbd">P</span>
-				</button>
+				@cameraBtn("btn-green", "/api/track", "Track", "T", "Enable tracking", s.Camera == "tracking", s.Online)
+				@cameraBtn("btn-yellow", "/api/idle", "Idle", "I", "Set idle", s.Camera == "idle", s.Online)
+				@cameraBtn("btn-red", "/api/privacy", "Privacy", "P", "Enable privacy", s.Camera == "privacy", s.Online)
 			</div>
 		</div>
 		<div class="card" style="margin-bottom:1rem">
 			<div class="card-title">Audio Mode</div>
-			<div class={ "audio-indicator", "audio-" + s.Audio }>
-				<span class="audio-dot"></span>
-				<span>{ s.Audio }</span>
-			</div>
+			@stateIndicator("audio", s.Audio)
 			<div class="btn-group">
-				<button
-					class={ "btn", "btn-green", templ.KV("btn-active", s.Audio == "nc") }
-					hx-post="/api/audio"
-					hx-vals='{"mode":"nc"}'
-					hx-target="#status-panel"
-					aria-label="Noise cancel"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Noise Cancel
-				</button>
-				<button
-					class={ "btn", "btn-yellow", templ.KV("btn-active", s.Audio == "live") }
-					hx-post="/api/audio"
-					hx-vals='{"mode":"live"}'
-					hx-target="#status-panel"
-					aria-label="Live audio"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Live
-				</button>
-				<button
-					class={ "btn", templ.KV("btn-active", s.Audio == "original") }
-					hx-post="/api/audio"
-					hx-vals='{"mode":"org"}'
-					hx-target="#status-panel"
-					aria-label="Original audio"
-					if !s.Online {
-						disabled=""
-					}
-				>
-					Original
-				</button>
+				@audioBtn("btn-green", "nc", "Noise Cancel", "Noise cancel", s.Audio == "nc", s.Online)
+				@audioBtn("btn-yellow", "live", "Live", "Live audio", s.Audio == "live", s.Online)
+				@audioBtn("", "org", "Original", "Original audio", s.Audio == "original", s.Online)
 			</div>
 		</div>
 		<div class="card" style="margin-bottom:1rem">

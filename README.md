@@ -40,17 +40,17 @@ No setup per app. No browser extension. Works with anything that opens `/dev/vid
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Call detection** | Scans `/proc/*/fd` for processes holding the video device — works with any app |
-| **Auto-activate** | Enables face tracking + noise cancellation when a call starts |
-| **Auto-privacy** | Physically blocks the lens when the call ends |
-| **Audio switching** | Auto-switches PipeWire default source to PIXY on call start |
-| **Web UI** | Dark-themed HTMX control panel with live MJPEG preview, PTZ sliders, and toast notifications |
-| **Waybar integration** | JSON output for a custom Waybar module |
-| **Hotplug** | Netlink uevent listener detects USB plug/unplug, auto-re-probes |
-| **Prometheus metrics** | OTel-based metrics at `/metrics` for monitoring |
-| **NixOS module** | Systemd user service, udev rules, tmpfiles.d — one option to enable |
+| Feature                | Description                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| **Call detection**     | Scans `/proc/*/fd` for processes holding the video device — works with any app               |
+| **Auto-activate**      | Enables face tracking + noise cancellation when a call starts                                |
+| **Auto-privacy**       | Physically blocks the lens when the call ends                                                |
+| **Audio switching**    | Auto-switches PipeWire default source to PIXY on call start                                  |
+| **Web UI**             | Dark-themed HTMX control panel with live MJPEG preview, PTZ sliders, and toast notifications |
+| **Waybar integration** | JSON output for a custom Waybar module                                                       |
+| **Hotplug**            | Netlink uevent listener detects USB plug/unplug, auto-re-probes                              |
+| **Prometheus metrics** | OTel-based metrics at `/metrics` for monitoring                                              |
+| **NixOS module**       | Systemd user service, udev rules, tmpfiles.d — one option to enable                          |
 
 ## Quick Start
 
@@ -111,12 +111,12 @@ emeet-pixy ptz              # Read pan/tilt/zoom values
 
 The daemon supports four auto-management strategies:
 
-| Mode | On call start | On call end |
-|---|---|---|
+| Mode             | On call start                                               | On call end  |
+| ---------------- | ----------------------------------------------------------- | ------------ |
 | `full` (default) | Face tracking + noise cancellation + PipeWire source switch | Privacy mode |
-| `tracking-only` | Face tracking | Privacy mode |
-| `privacy-only` | Nothing | Privacy mode |
-| `off` | Nothing | Nothing |
+| `tracking-only`  | Face tracking                                               | Privacy mode |
+| `privacy-only`   | Nothing                                                     | Privacy mode |
+| `off`            | Nothing                                                     | Nothing      |
 
 ## Web UI
 
@@ -136,36 +136,36 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 
 All config is via environment variables (no CLI flags — `os.Args` is reserved for socket commands):
 
-| Variable | Default | Description |
-|---|---|---|
-| `EMEET_PIXYD_STATE_DIR` | `/run/emeet-pixyd` | Runtime state directory (socket + state.json) |
-| `EMEET_PIXYD_WEB_ADDR` | `127.0.0.1:8090` | Web UI listen address (localhost only) |
-| `EMEET_PIXYD_POLL_INTERVAL` | `2s` | Call detection polling interval (Go duration) |
-| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3` | Consecutive polls before state change |
-| `EMEET_PIXYD_DEBUG` | `false` | Enable pprof endpoints at `/debug/pprof/` |
-| `EMEET_PIXYD_AUTO` | `full` | Auto mode: off, full, tracking-only, privacy-only |
-| `EMEET_PIXYD_DEFAULT_AUDIO` | `nc` | Default audio mode: nc, live, org |
+| Variable                     | Default            | Description                                       |
+| ---------------------------- | ------------------ | ------------------------------------------------- |
+| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)     |
+| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)            |
+| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)     |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change             |
+| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`         |
+| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                 |
 
 ### NixOS Module Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `hardware.emeet-pixy.enable` | bool | `false` | Enable the daemon |
-| `hardware.emeet-pixy.user` | string | `"lars"` | User owning the runtime state directory |
-| `hardware.emeet-pixy.auto` | enum | `"full"` | Auto-management strategy |
-| `hardware.emeet-pixy.defaultAudio` | enum | `"nc"` | Default audio mode |
-| `hardware.emeet-pixy.debug` | bool | `false` | Enable debug mode |
+| Option                             | Type   | Default  | Description                             |
+| ---------------------------------- | ------ | -------- | --------------------------------------- |
+| `hardware.emeet-pixy.enable`       | bool   | `false`  | Enable the daemon                       |
+| `hardware.emeet-pixy.user`         | string | `"lars"` | User owning the runtime state directory |
+| `hardware.emeet-pixy.auto`         | enum   | `"full"` | Auto-management strategy                |
+| `hardware.emeet-pixy.defaultAudio` | enum   | `"nc"`   | Default audio mode                      |
+| `hardware.emeet-pixy.debug`        | bool   | `false`  | Enable debug mode                       |
 
 ## Runtime Dependencies
 
 The daemon integrates with these Linux tools (all provided by the NixOS module):
 
-| Tool | Purpose | Required |
-|---|---|---|
-| `v4l2-ctl` | Pan/tilt/zoom control via V4L2 | Yes |
-| `ffmpeg` | MJPEG streaming in web UI | For preview only |
-| `wpctl` | PipeWire default source switching | For audio switching |
-| `notify-send` | Desktop notifications | Optional |
+| Tool          | Purpose                           | Required            |
+| ------------- | --------------------------------- | ------------------- |
+| `v4l2-ctl`    | Pan/tilt/zoom control via V4L2    | Yes                 |
+| `ffmpeg`      | MJPEG streaming in web UI         | For preview only    |
+| `wpctl`       | PipeWire default source switching | For audio switching |
+| `notify-send` | Desktop notifications             | Optional            |
 
 ## Architecture
 
@@ -196,15 +196,15 @@ static/           Frontend assets (HTMX, app.js, style.css) — go:embed
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---|---|
-| `PIXY not connected` | Check USB connection, run `lsusb \| grep 328f`. Ensure udev rules are loaded. |
-| `Permission denied` on hidraw | Verify udev rules match vendor `328f` product `00c0`. Run `udevadm control --reload-rules`. |
-| `v4l2-ctl: command not found` | Install `v4l-utils` (provided by NixOS module). |
-| No audio switching | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH. |
-| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output. |
-| Web UI shows "Camera in use" | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open. |
-| Debounce too slow | Reduce `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) or `EMEET_PIXYD_POLL_INTERVAL` (default 2s). |
+| Problem                           | Solution                                                                                     |
+| --------------------------------- | -------------------------------------------------------------------------------------------- |
+| `PIXY not connected`              | Check USB connection, run `lsusb \| grep 328f`. Ensure udev rules are loaded.                |
+| `Permission denied` on hidraw     | Verify udev rules match vendor `328f` product `00c0`. Run `udevadm control --reload-rules`.  |
+| `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                              |
+| No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                           |
+| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                    |
+| Web UI shows "Camera in use"      | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open.              |
+| Debounce too slow                 | Reduce `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) or `EMEET_PIXYD_POLL_INTERVAL` (default 2s). |
 
 ## Development
 

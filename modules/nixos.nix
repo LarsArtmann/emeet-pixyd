@@ -67,26 +67,24 @@ in {
       partOf = ["graphical-session.target"];
       wantedBy = ["graphical-session.target"];
 
-      serviceConfig =
-        let
-          envVars =
-            {
-              EMEET_PIXYD_AUTO = cfg.auto;
-              EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
-            }
-            // lib.optionalAttrs cfg.debug {
-              EMEET_PIXYD_DEBUG = "true";
-            };
-        in
-        {
-          Type = "simple";
-          ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
-          Restart = "on-failure";
-          RestartSec = "3";
-          Environment = lib.concatStringsSep " " (
-            lib.mapAttrsToList (k: v: "${k}=${v}") envVars
-          );
-        };
+      serviceConfig = let
+        envVars =
+          {
+            EMEET_PIXYD_AUTO = cfg.auto;
+            EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
+          }
+          // lib.optionalAttrs cfg.debug {
+            EMEET_PIXYD_DEBUG = "true";
+          };
+      in {
+        Type = "simple";
+        ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
+        Restart = "on-failure";
+        RestartSec = "3";
+        Environment = lib.concatStringsSep " " (
+          lib.mapAttrsToList (k: v: "${k}=${v}") envVars
+        );
+      };
 
       path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify];
     };

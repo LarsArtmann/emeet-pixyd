@@ -2,6 +2,7 @@
   lib,
   buildGoModule,
   src,
+  templ,
 }:
 buildGoModule {
   pname = "emeet-pixyd";
@@ -9,7 +10,14 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-oPGly5XGz3wndt5jCZaoGiCIn7HcjJQCxqSPjOAmI0E=";
+  vendorHash = "sha256-FnVn8EWpWeu/ELZzj4/079qZxftYSOXmF8mwKdS+9KI=";
+  proxyVendor = true;
+
+  nativeBuildInputs = [templ];
+
+  preBuild = ''
+    templ generate
+  '';
 
   ldflags = ["-s" "-w"];
 

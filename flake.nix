@@ -22,7 +22,8 @@
         || b == "flake.lock"
         || b == "coverage.out"
         || b == "docs"
-        || b == ".github");
+        || b == ".github"
+        || b == "vendor");
   in {
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -32,6 +33,7 @@
           filter = srcFilter;
           src = ./.;
         };
+        inherit (pkgs) templ;
       };
       default = self.packages.${system}.emeet-pixyd;
     });
@@ -42,6 +44,7 @@
           filter = srcFilter;
           src = self;
         };
+        inherit (prev) templ;
       };
     };
 

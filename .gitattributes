@@ -4,3 +4,5 @@ docs/status/*.md linguist-documentation
 
 # Ensure Go source files use LF line endings
 *.go text eol=lf
+# Exclude from language statistics
+vendor/** linguist-vendored
