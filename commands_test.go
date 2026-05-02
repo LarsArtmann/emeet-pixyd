@@ -47,7 +47,7 @@ func TestIsCommandErrorResponse(t *testing.T) {
 		{"privacy on", false},
 		{"error:", false},
 		{"ERROR: pan: invalid value", false}, // wrong case
-		{"error:pan", false}, // no space after colon
+		{"error:pan", false},                 // no space after colon
 	}
 
 	for _, tc := range tests {
