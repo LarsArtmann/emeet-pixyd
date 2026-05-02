@@ -174,11 +174,11 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **GOWORK=off required**: Parent directory has a `go.work` that doesn't include this project. Always use `GOWORK=off` for `go build`/`go test`. CI is configured with `GOWORK: off` env var.
 - **Audio mode shorthand**: CLI accepts `"org"` but the stored/displayed value is `"original"`. `ParseAudioMode` maps both.
 - **PTZ units**: V4L2 uses 1/3600-degree units internally (`v4l2DegreesPerUnit = 3600`). The daemon presents user-facing degrees but multiplies before sending to `v4l2-ctl`. Zoom is not multiplied.
-- **`webStatus` struct lives in `web_types.go`**, not in `templates.templ` (was moved out for cleaner separation).
-- **Generated file**: `templates.templ` must be compiled with `templ generate` before `go build`. The generated `_templ.go` file is gitignored.
+- **`webStatus` struct lives in `web_types.go`**, not in `templates.templ` (was moved out for cleaner separation). Camera/Audio/Auto fields use typed `pixy.CameraState`/`pixy.AudioMode`/`pixy.AutoMode` for compile-time safety.
+- **Generated file**: `templates.templ` must be compiled with `templ generate` before `go build`. The nix build runs `templ generate` automatically in `preBuild`. The generated `_templ.go` file is gitignored. Use `go generate ./...` to rebuild locally.
 - **Build tags**: All `.go` files in the root use `//go:build linux`. Tests that test Linux-specific code naturally require a Linux host.
 - **`flaky` test awareness**: Some tests probe real sysfs (e.g., `TestProbeDevices_SetsStateToOfflineWhenNoVideo`), so they may pass or fail depending on whether a PIXY is physically connected. These tests handle both outcomes gracefully.
-- **Nix filter excludes tests**: The `flake.nix` `srcFilter` excludes `*_test.go` and `*_fuzz_test.go` from the build source.
+- **Nix build uses `proxyVendor = true`**: The standard FOD-based vendor approach fails because `templ generate` (in `preBuild`) produces imports that weren't visible when the FOD ran `go mod vendor`. `proxyVendor = true` downloads deps during the build via Go module proxy, after `templ generate` has run. The `vendorHash` is a SHA of the downloaded module tarballs, not of the vendored source tree.
 - **WebAddr default**: `127.0.0.1:8090` (localhost only, not `:8090`)
 - **StateDir default**: `/run/emeet-pixyd` (tmpfiles.d rule in NixOS module creates this)
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
