@@ -86,7 +86,7 @@ in {
         );
       };
 
-      path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify];
+      path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify pkgs.ffmpeg-headless];
     };
   };
 }
