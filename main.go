@@ -49,6 +49,12 @@ type Daemon struct {
 	findSourceFn    func(ctx context.Context) (string, error)
 	setSourceFn     func(ctx context.Context, sourceID string)
 	notifyFn        func(ctx context.Context, title, body string)
+
+	setTrackingFn  func(ctx context.Context, state pixy.CameraState) error
+	setAudioFn     func(ctx context.Context, mode pixy.AudioMode) error
+	setGestureFn   func(ctx context.Context, enabled bool) error
+	centerCameraFn func(ctx context.Context) error
+	v4l2SetFn      func(ctx context.Context, dev, ctrl, val string) error
 }
 
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
@@ -68,6 +74,11 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		setSourceFn:     setDefaultSource,
 		notifyFn:        notify,
 	}
+	d.setTrackingFn = d.setTracking
+	d.setAudioFn = d.setAudio
+	d.setGestureFn = d.setGesture
+	d.centerCameraFn = d.centerCamera
+	d.v4l2SetFn = v4l2Set
 	d.state.AutoMode = cfg.AutoMode
 	d.state.Audio = cfg.DefaultAudio
 	d.loadState()

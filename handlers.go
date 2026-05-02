@@ -13,7 +13,6 @@ import (
 	"net/http/pprof"
 	"os/exec"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -213,7 +212,7 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		slog.Debug("web action", "cmd", command, "response", resp)
 
 		status := s.getWebStatusWithPTZ(request.Context())
-		if strings.HasPrefix(resp, "error:") {
+		if IsCommandErrorResponse(resp) {
 			status.Error = resp
 		} else {
 			status.Toast, status.ToastType = actionToast(command)
@@ -247,7 +246,7 @@ func actionToast(command string) (string, string) {
 }
 
 func applyResponseToStatus(resp string, status *webStatus, toast string) {
-	if strings.HasPrefix(resp, "error:") {
+	if IsCommandErrorResponse(resp) {
 		status.Error = resp
 	} else {
 		status.Toast = toast

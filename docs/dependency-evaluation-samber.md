@@ -13,17 +13,17 @@ Generic utility library (500+ functions) for slice/map/string manipulation: `Fil
 
 ### Candidate sites found
 
-| Pattern | Sites | `lo` function |
-|---|---|---|
-| `boolStr` ternary helper | 1 | `lo.Ternary` |
-| `ptr[T]` in tests | 4 | `lo.ToPtr` |
-| `ptzAxisValid` switch | 1 | `lo.Contains` |
-| `_ = someFunc()` | 16 | `lo.Try0` |
-| `ConfigFromEnv` env overrides | 7 | `lo.CoalesceOrEmpty` |
-| `isRelevantUevent` membership | 1 | `lo.Contains` |
-| `isPixyName` OR-chain | 1 | `lo.SomeBy` |
-| `setGesture` ternary assign | 1 | `lo.Ternary` |
-| `requestIDMiddleware` coalesce | 1 | `lo.CoalesceOrEmpty` |
+| Pattern                        | Sites | `lo` function        |
+| ------------------------------ | ----- | -------------------- |
+| `boolStr` ternary helper       | 1     | `lo.Ternary`         |
+| `ptr[T]` in tests              | 4     | `lo.ToPtr`           |
+| `ptzAxisValid` switch          | 1     | `lo.Contains`        |
+| `_ = someFunc()`               | 16    | `lo.Try0`            |
+| `ConfigFromEnv` env overrides  | 7     | `lo.CoalesceOrEmpty` |
+| `isRelevantUevent` membership  | 1     | `lo.Contains`        |
+| `isPixyName` OR-chain          | 1     | `lo.SomeBy`          |
+| `setGesture` ternary assign    | 1     | `lo.Ternary`         |
+| `requestIDMiddleware` coalesce | 1     | `lo.CoalesceOrEmpty` |
 
 ### Why each one fails
 
@@ -31,7 +31,7 @@ Generic utility library (500+ functions) for slice/map/string manipulation: `Fil
 - **`lo.ToPtr` replacing `ptr[T]`** — Only used in tests. Adding a production dependency to simplify test helpers is backwards. `ptr` is 1 line.
 - **`lo.Contains` replacing `ptzAxisValid`/`isRelevantUevent`** — 3-element membership checks. `lo.Contains([]string{"pan","tilt","zoom"}, axis)` allocates a slice on every call. Switch is zero-alloc.
 - **`lo.Try0` replacing `_ = f.Close()`** — Go convention. `lo.Try0` adds a function call and a dependency to express the same intent. Every Go developer reads `_ = f.Close()` instantly.
-- **`lo.CoalesceOrEmpty` replacing `ConfigFromEnv`** — The 7 env blocks each have different parsing logic (duration, int, bool, AudioMode). `CoalesceOrEmpty` only works for the string-as-is case. The `lo` version would be *more* complex.
+- **`lo.CoalesceOrEmpty` replacing `ConfigFromEnv`** — The 7 env blocks each have different parsing logic (duration, int, bool, AudioMode). `CoalesceOrEmpty` only works for the string-as-is case. The `lo` version would be _more_ complex.
 - **`lo.SomeBy` replacing `isPixyName`** — `strings.Contains` OR-chain is 3 short-circuit evaluations. `lo.SomeBy` allocates a slice, creates a closure, and iterates all 3 unconditionally. Slower.
 - **`lo.Ternary` for `setGesture` assign** — `var mark byte = hidByteIdle; if enabled { mark = gestureEnabledByte }` is perfectly clear Go. The `lo.Ternary` version is the same length but with a function call.
 
@@ -46,13 +46,13 @@ This codebase is **imperative I/O**, not data transformation:
 
 ### Cost summary
 
-| Factor | Impact |
-|---|---|
-| New dependency | +1 in minimal hardware daemon with 6 direct deps |
-| Style divergence | `lo.Ternary`/`lo.Contains` signal "JS/Python thinking", break Go readability norms |
-| Test coverage gain | None — every replacement is 1:1 semantics |
-| Performance | `lo.Contains`, `lo.SomeBy`, `lo.Ternary` allocate where current code doesn't |
-| Eager evaluation | `lo.Ternary` evaluates both branches — footgun for side-effecting code |
+| Factor             | Impact                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| New dependency     | +1 in minimal hardware daemon with 6 direct deps                                   |
+| Style divergence   | `lo.Ternary`/`lo.Contains` signal "JS/Python thinking", break Go readability norms |
+| Test coverage gain | None — every replacement is 1:1 semantics                                          |
+| Performance        | `lo.Contains`, `lo.SomeBy`, `lo.Ternary` allocate where current code doesn't       |
+| Eager evaluation   | `lo.Ternary` evaluates both branches — footgun for side-effecting code             |
 
 ---
 
@@ -79,13 +79,13 @@ Three event sources. One select. ~40 lines total.
 
 ### Mapping to ro
 
-| Event source | ro replacement | Problem |
-|---|---|---|
-| `ticker.C` | `ro.Interval` | Saves 0 lines over `time.NewTicker` |
-| `ueventCh` | `ro.FromChannel` + `ro.Filter` | Still need the goroutine reading raw netlink; ro can only wrap the channel |
-| `sigs` | `rosignal.NewSignalCatcher()` | Best fit — saves ~5 lines. Not worth a dependency. |
-| **Debounce** | `ro.DebounceTime` | **Semantic mismatch** — current debounce is count-based (3 consecutive same-direction polls), not time-based. No standard Rx operator models the flip-flop counter pattern in `auto.go:84-98`. |
-| **State** | `BehaviorSubject[pixy.State]` | Requires rewriting all 15+ state mutation sites from `d.mu.Lock(); d.state.X = v; d.mu.Unlock()` to `subject.Next(newState)`. Full concurrency model change. |
+| Event source | ro replacement                 | Problem                                                                                                                                                                                        |
+| ------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ticker.C`   | `ro.Interval`                  | Saves 0 lines over `time.NewTicker`                                                                                                                                                            |
+| `ueventCh`   | `ro.FromChannel` + `ro.Filter` | Still need the goroutine reading raw netlink; ro can only wrap the channel                                                                                                                     |
+| `sigs`       | `rosignal.NewSignalCatcher()`  | Best fit — saves ~5 lines. Not worth a dependency.                                                                                                                                             |
+| **Debounce** | `ro.DebounceTime`              | **Semantic mismatch** — current debounce is count-based (3 consecutive same-direction polls), not time-based. No standard Rx operator models the flip-flop counter pattern in `auto.go:84-98`. |
+| **State**    | `BehaviorSubject[pixy.State]`  | Requires rewriting all 15+ state mutation sites from `d.mu.Lock(); d.state.X = v; d.mu.Unlock()` to `subject.Next(newState)`. Full concurrency model change.                                   |
 
 ### The deeper problems
 

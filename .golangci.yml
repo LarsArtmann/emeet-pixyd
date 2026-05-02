@@ -17,6 +17,7 @@ output:
 linters:
     enable:
         - bodyclose
+        - contextcheck
         - copyloopvar
         - cyclop
         - dupl
@@ -25,9 +26,12 @@ linters:
         - errname
         - errorlint
         - exhaustive
+        - exhaustruct
         - forcetypeassert
         - funlen
         - ginkgolinter
+        - gochecknoglobals
+        - gochecknoinits
         - gochecksumtype
         - gocognit
         - goconst
@@ -49,6 +53,7 @@ linters:
         - nilnil
         - noctx
         - nolintlint
+        - paralleltest
         - perfsprint
         - prealloc
         - predeclared

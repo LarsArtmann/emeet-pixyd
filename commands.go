@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -113,7 +114,7 @@ func (d *Daemon) handleTrackingCommand(
 	state pixy.CameraState,
 	label string,
 ) string {
-	if err := d.setTracking(ctx, state); err != nil {
+	if err := d.setTrackingFn(ctx, state); err != nil {
 		return (&CommandError{Op: label + " " + string(state), Err: err}).Error()
 	}
 
@@ -143,7 +144,7 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 		}
 	}
 
-	audioErr := d.setAudio(ctx, mode)
+	audioErr := d.setAudioFn(ctx, mode)
 	if audioErr != nil {
 		return (&CommandError{Op: "audio " + string(mode), Err: audioErr}).Error()
 	}
@@ -163,7 +164,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 		enable = !d.state.Gesture
 		d.mu.RUnlock()
 	}
-	if err := d.setGesture(ctx, enable); err != nil {
+	if err := d.setGestureFn(ctx, enable); err != nil {
 		return (&CommandError{Op: cmd + " enable=" + strconv.FormatBool(enable), Err: err}).Error()
 	}
 
@@ -175,7 +176,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 }
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) string {
-	if err := d.centerCamera(ctx); err != nil {
+	if err := d.centerCameraFn(ctx); err != nil {
 		return (&CommandError{Op: "center", Err: err}).Error()
 	}
 
@@ -238,7 +239,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 	lo, hi := ptzLimits(axis)
 	val, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return fmt.Sprintf("error: %s: %v", axis, ErrInvalidValue)
+		return (&CommandError{Op: axis, Err: fmt.Errorf("%w: parse error", ErrInvalidValue)}).Error()
 	}
 
 	val = clampInt(val, lo, hi)
@@ -253,10 +254,10 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 	d.mu.RUnlock()
 
 	if videoDev == "" {
-		return fmt.Sprintf("error: %s: device not found", axis)
+		return (&CommandError{Op: axis, Err: errors.New("device not found")}).Error()
 	}
 
-	if v4l2Err := v4l2Set(
+	if v4l2Err := d.v4l2SetFn(
 		ctx,
 		videoDev,
 		axis+"_absolute",

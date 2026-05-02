@@ -2,7 +2,10 @@
 
 package main
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // CommandError wraps a command operation error with a descriptive label.
 type CommandError struct {
@@ -13,6 +16,9 @@ type CommandError struct {
 func (e *CommandError) Error() string { return "error: " + e.Op + ": " + e.Err.Error() }
 
 func (e *CommandError) Unwrap() error { return e.Err }
+
+// IsCommandErrorResponse reports whether s is a command error response string.
+func IsCommandErrorResponse(s string) bool { return strings.HasPrefix(s, "error: ") }
 
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.

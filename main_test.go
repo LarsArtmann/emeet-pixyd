@@ -67,6 +67,11 @@ func newTestDaemon(
 		setSourceFn:     func(context.Context, string) {},
 		notifyFn:        func(context.Context, string, string) {},
 	}
+	d.setTrackingFn = d.setTracking
+	d.setAudioFn = d.setAudio
+	d.setGestureFn = d.setGesture
+	d.centerCameraFn = d.centerCamera
+	d.v4l2SetFn = v4l2Set
 	for _, opt := range opts {
 		opt(d)
 	}
