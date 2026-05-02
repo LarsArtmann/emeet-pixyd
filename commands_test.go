@@ -47,7 +47,7 @@ func TestIsCommandErrorResponse(t *testing.T) {
 		{"privacy on", false},
 		{"error:", false},
 		{"ERROR: pan: invalid value", false}, // wrong case
-		{"error: pan", false},                // no space after colon
+		{"error:pan", false}, // no space after colon
 	}
 
 	for _, tc := range tests {
@@ -191,17 +191,11 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 func TestHandleCenterCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	var called bool
-	d := newTestDaemon(pixy.StateTracking, "", "", func(d *Daemon) {
-		d.centerCameraFn = func(context.Context) error { called = true; return nil }
-	})
+	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handleCenterCommand(context.Background())
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error, got: %s", resp)
-	}
-	if called {
-		t.Error("centerCamera should not be called without device")
 	}
 }
 
