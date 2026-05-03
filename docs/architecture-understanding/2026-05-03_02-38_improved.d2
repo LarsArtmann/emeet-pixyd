@@ -1,0 +1,150 @@
+direction: down
+
+title: EMEET PIXY Daemon — Target Architecture (Deepened Modules)
+
+# External actors
+user_cli: User (CLI) {
+  shape: person
+}
+user_web: User (Web UI) {
+  shape: person
+}
+linux_kernel: Linux Kernel {
+  shape: diamond
+  style.fill: "#2d2d2d"
+}
+
+# Daemon (simplified lifecycle)
+daemon: Daemon {
+  style.fill: "#1a1a2e"
+
+  run_loop: Run() Event Loop {
+    style.fill: "#16213e"
+
+    signal_handler: Signal Handler
+    ticker: Polling Ticker (2s)
+    uevent_listener: Uevent Listener
+  }
+
+  # Deepened HID Device
+  hid_device: HIDDevice {
+    style.fill: "#e94560"
+    style.stroke: "#ff6b6b"
+    style.stroke-width: 3
+
+    note: "Deep module: all HID protocol knowledge encapsulated"
+
+    SetTracking: SetTracking(CameraState) error
+
+    internal: Internal {
+      config_report: 9-byte config construction
+      commit_report: 4-byte commit construction
+      sleep_timing: 200ms inter-command sleep
+      response_parser: 64-byte response parsing
+      re_probe: auto re-probe on send failure
+    }
+  }
+
+  # Deepened V4L2 PTZ Controller
+  ptz_controller: PTZController {
+    style.fill: "#e94560"
+    style.stroke: "#ff6b6b"
+    style.stroke-width: 3
+
+    note: "Deep module: PTZ unit conversion + v4l2-ctl encapsulated"
+
+    Center: Center() error
+    SetAxis: SetAxis(axis value) error
+    ReadPTZ: ReadPTZ() PTZValues
+  }
+
+  # Deepened Call Detector
+  call_detector: CallDetector {
+    style.fill: "#533483"
+    style.stroke: "#bb86fc"
+    style.stroke-width: 3
+
+    note: "Deep module: debounce + state machine encapsulated"
+
+    Check: Check(videoDev) Event
+    state_machine: State Machine {
+      idle → in_call: CallStart
+      in_call → idle: CallEnd
+    }
+    debounce: Debounce Counter (N polls)
+  }
+
+  # Deepened Auto-Manager
+  auto_manager: Auto-Manager {
+    style.fill: "#533483"
+
+    OnCallStart: OnCallStart(CallStart)
+    OnCallEnd: OnCallEnd(CallEnd)
+    mode_router: Mode Router {
+      full: tracking audio source privacy
+      tracking-only: tracking privacy
+      privacy-only: privacy
+      off: nothing
+    }
+  }
+
+  # Command Registry (replaces switch)
+  command_registry: Command Registry {
+    style.fill: "#0f3460"
+
+    note: "Map-based dispatch, not switch"
+
+    register: map of string to Handler
+    route: route cmd to Handler
+
+    commands: Registered Commands
+  }
+
+  # Web Server (unchanged)
+  web_server: Web Server {
+    style.fill: "#0f3460"
+
+    http_handlers: HTTP Handlers
+    middleware: Middleware Stack
+    mjpeg_stream: MJPEG Stream
+    ptz_cache: PTZ Cache (2s TTL)
+  }
+
+  # State Management (unchanged)
+  state: State Manager {
+    style.fill: "#1a1a2e"
+    mu: sync.RWMutex
+    json: state.json
+  }
+}
+
+# Metrics (unchanged)
+metrics: Metrics {
+  style.fill: "#16213e"
+  otel: OTel Gauges
+  prometheus: Prometheus
+}
+
+# NixOS (unchanged)
+nixos: NixOS Module {
+  style.fill: "#7e57c2"
+  service: systemd Service
+  config: Environment Config
+}
+
+# Connections — simplified data flow
+user_cli -> command_registry: sends commands
+user_web -> web_server: HTTP + HTMX
+web_server -> command_registry: reuses registry
+
+command_registry -> hid_device: SetTracking / SetAudio / SetGesture
+command_registry -> ptz_controller: Center / SetAxis
+command_registry -> state: state updates
+
+ticker -> call_detector: Check(videoDev)
+call_detector -> auto_manager: CallStart / CallEnd events
+auto_manager -> hid_device: activate tracking + audio
+auto_manager -> metrics: update gauges
+
+linux_kernel -> call_detector: /proc/*/fd scanning
+linux_kernel -> uevent_listener: kobject uevents

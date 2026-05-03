@@ -1,0 +1,218 @@
+direction: down
+
+title: EMEET PIXY Daemon — Current Architecture
+
+# External actors
+user_cli: User (CLI) {
+  shape: person
+}
+user_web: User (Web UI) {
+  shape: person
+}
+linux_kernel: Linux Kernel {
+  shape: diamond
+  style.fill: "#2d2d2d"
+}
+
+# Main daemon
+daemon: Daemon {
+  style.fill: "#1a1a2e"
+
+  # Event loop
+  run_loop: Run() Event Loop {
+    style.fill: "#16213e"
+
+    signal_handler: Signal Handler {
+    SIGINT/SIGTERM: shutdown and save
+      SIGHUP: save state
+    }
+
+    ticker: Polling Ticker {
+      2s interval
+    }
+
+    uevent_listener: Netlink Uevent Listener {
+      watches add/remove for video4linux + hidraw
+    }
+  }
+
+  # Command routing
+  command_router: Command Router {
+    style.fill: "#0f3460"
+
+    socket_server: Unix Socket Server
+    handle_command: handleCommand Switch
+    socket_commands: Commands {
+      track idle privacy toggle-privacy
+      pan tilt zoom value
+      auto off full tracking-only privacy-only
+      status sync probe device waybar
+    }
+  }
+
+  # Auto-management
+  auto_manager: Auto-Manager {
+    style.fill: "#533483"
+
+    auto_manage: autoManage Cycle
+    debounce: Debounce Counter {
+      N consecutive polls (default 3)
+    }
+    call_start: handleCallStart
+    call_end: handleCallEnd
+  }
+
+  # Web server
+  web_server: Web Server {
+    style.fill: "#0f3460"
+
+    http_handlers: HTTP Handlers {
+      GET / → index
+      GET /panel → status panel
+      POST /api/* → actions
+      GET /api/stream → MJPEG
+      GET /api/snapshot → JPEG
+      GET /metrics → Prometheus
+    }
+
+    middleware: Middleware Stack {
+      request ID
+      security headers
+    }
+
+    ptz_cache: PTZ Cache {
+      2s TTL
+    }
+
+    mjpeg_stream: MJPEG Stream {
+      ffmpeg subprocess
+      single-client semaphore
+    }
+  }
+
+  # State management
+  state_manager: State Management {
+    style.fill: "#1a1a2e"
+
+    state_mu: sync.RWMutex
+    state_json: state.json {
+      atomic write: tmp + rename
+    }
+    cmd_mu: sync.Mutex {
+      serializes commands
+    }
+  }
+
+  # Hardware communication
+  hardware: Hardware Communication {
+    style.fill: "#e94560"
+
+    hid_protocol: HID Protocol {
+      config report: 9 bytes
+      commit report: 4 bytes
+      200ms sleep between
+      response: 64 bytes
+      500ms read timeout
+    }
+
+    v4l2_ctrl: V4L2 Control {
+      v4l2-ctl subprocess
+      pan/tilt: 1/3600° units
+      zoom: direct
+    }
+  }
+
+  # Call detection
+  call_detection: Call Detection {
+    style.fill: "#533483"
+
+    proc_scanner: /proc/*/fd Scanner
+    pipewire: PipeWire Source {
+      wpctl status
+      wpctl set-default
+    }
+    desktop_notif: Desktop Notifications {
+      notify-send
+    }
+  }
+
+  # Device probing
+  device_probe: Device Probing {
+    style.fill: "#e94560"
+
+    sysfs_walk: sysfs Walk {
+      /sys/class/video4linux
+      /sys/class/hidraw
+      vendor: 328f product: 00c0
+    }
+
+    hotplug: Hotplug Detection {
+      netlink uevents
+      re-probe on add
+    }
+  }
+}
+
+# Metrics
+metrics: Metrics {
+  style.fill: "#16213e"
+
+  otel_gauges: OTel Gauges {
+    emeet_pixyd_in_call
+    emeet_pixyd_auto_mode
+    emeet_pixyd_camera_state
+  }
+
+  prometheus: Prometheus Exporter
+  pprof: pprof {
+    gated behind Debug=true
+  }
+}
+
+# NixOS integration
+nixos: NixOS Module {
+  style.fill: "#7e57c2"
+
+  udev_rules: udev Rules
+  systemd_service: systemd User Service {
+    sd_notify READY=1
+    sd_notify WATCHDOG=1
+  }
+  env_config: Environment Variables {
+    EMEET_PIXYD_*
+  }
+}
+
+# Connections
+user_cli -> socket_server: sends commands
+user_web -> http_handlers: HTTP + HTMX
+linux_kernel -> uevent_listener: kobject uevents
+linux_kernel -> proc_scanner: /proc/*/fd
+linux_kernel -> sysfs_walk: /sys/class/*
+
+ticker -> auto_manage: triggers every 2s
+auto_manage -> call_detection: checks camera in use
+call_start -> hardware: activate tracking + audio
+call_start -> pipewire: switch source
+call_start -> desktop_notif: notify
+call_end -> hardware: privacy mode
+call_end -> desktop_notif: notify
+
+socket_server -> handle_command: routes commands
+handle_command -> hardware: HID writes
+handle_command -> state_manager: state updates
+handle_command -> v4l2_ctrl: PTZ commands
+
+http_handlers -> handle_command: reuses command router
+http_handlers -> mjpeg_stream: MJPEG streaming
+mjpeg_stream -> linux_kernel: ffmpeg → /dev/video*
+
+state_manager -> state_json: persist
+auto_manage -> metrics: update gauges
+
+uevent_listener -> device_probe: hotplug event
+device_probe -> hardware: set privacy on connect
+
+nixos -> env_config: configures
+nixos -> systemd_service: manages lifecycle
+systemd_service -> daemon: starts/stops
