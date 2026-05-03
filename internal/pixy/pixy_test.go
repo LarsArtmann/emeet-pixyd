@@ -307,6 +307,8 @@ func TestSendCommand_DialFailure(t *testing.T) {
 }
 
 func TestSendCommand_EndToEnd(t *testing.T) {
+	t.Parallel()
+
 	tmpDir := t.TempDir()
 	socketPath := tmpDir + "/test.sock"
 
@@ -398,6 +400,8 @@ func TestConfigValidate(t *testing.T) {
 }
 
 func TestConfigFromEnv_DefaultsWhenUnset(t *testing.T) {
+	t.Parallel()
+
 	cfg := ConfigFromEnv()
 	def := DefaultConfig()
 

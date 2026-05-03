@@ -12,11 +12,11 @@
 
 Extracted 3 helper templates:
 
-| Helper | Purpose | Replaces |
-|--------|---------|----------|
-| `stateIndicator(prefix, value string)` | Renders `<div class="X-indicator X-value">` with dot + label | 2× camera/audio state divs (lines 90-94, 132-136) |
-| `cameraBtn(color, endpoint, label, shortcut, ariaLabel, active, online bool)` | Single camera state button with disabled support | 3× Track/Idle/Privacy buttons (lines 95-128) |
-| `audioBtn(color, mode, label, ariaLabel, active, online bool)` | Single audio mode button with hx-vals | 3× NC/Live/Original buttons (lines 137-173) |
+| Helper                                                                        | Purpose                                                      | Replaces                                          |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| `stateIndicator(prefix, value string)`                                        | Renders `<div class="X-indicator X-value">` with dot + label | 2× camera/audio state divs (lines 90-94, 132-136) |
+| `cameraBtn(color, endpoint, label, shortcut, ariaLabel, active, online bool)` | Single camera state button with disabled support             | 3× Track/Idle/Privacy buttons (lines 95-128)      |
+| `audioBtn(color, mode, label, ariaLabel, active, online bool)`                | Single audio mode button with hx-vals                        | 3× NC/Live/Original buttons (lines 137-173)       |
 
 **Key fix:** `cameraBtn` and `audioBtn` initially used string literals (`hx-post="endpoint"`) instead of templ expressions (`hx-post=endpoint`). Caught and fixed — `aria-label` had the same bug. This would have rendered literal attribute values in HTML.
 
@@ -26,22 +26,22 @@ Extracted 3 helper templates:
 
 Extracted 5 test helpers:
 
-| Helper | Purpose | Replaces |
-|--------|---------|----------|
-| `newPTZDaemon(opts...)` | Test daemon with v4l2SetFn stub + default devices | 4× repeated newTestDaemon + v4l2SetFn setup |
-| `newPTZCaptureDaemon(opts...)` | PTZ daemon that captures v4l2Set calls | 2× var setCalls + v4l2SetFn closure pattern |
-| `newAutoOffDaemon()` | Daemon preset with AutoMode=AutoOff | 3× repeated auto-off preset |
-| `assertAutoModeEquals(t, d, want)` | RLock + assert AutoMode + RUnlock | 4× mu.RLock/got/RUnlock/assert pattern |
-| `notError(t, resp)` | Assert not a CommandErrorResponse | 10× repeated IsCommandErrorResponse checks |
+| Helper                             | Purpose                                           | Replaces                                    |
+| ---------------------------------- | ------------------------------------------------- | ------------------------------------------- |
+| `newPTZDaemon(opts...)`            | Test daemon with v4l2SetFn stub + default devices | 4× repeated newTestDaemon + v4l2SetFn setup |
+| `newPTZCaptureDaemon(opts...)`     | PTZ daemon that captures v4l2Set calls            | 2× var setCalls + v4l2SetFn closure pattern |
+| `newAutoOffDaemon()`               | Daemon preset with AutoMode=AutoOff               | 3× repeated auto-off preset                 |
+| `assertAutoModeEquals(t, d, want)` | RLock + assert AutoMode + RUnlock                 | 4× mu.RLock/got/RUnlock/assert pattern      |
+| `notError(t, resp)`                | Assert not a CommandErrorResponse                 | 10× repeated IsCommandErrorResponse checks  |
 
 ### auto_test.go — Net -52 lines
 
 Extracted 2 generic helpers:
 
-| Helper | Purpose | Replaces |
-|--------|---------|----------|
+| Helper                                                 | Purpose                                  | Replaces                                 |
+| ------------------------------------------------------ | ---------------------------------------- | ---------------------------------------- |
 | `readState[T any](d *Daemon, fn func(pixy.State) T) T` | Generic RLock + field accessor + RUnlock | 13× repeated mu.RLock/val/RUnlock blocks |
-| `readDebounce(d *Daemon) (inUse, idle int)` | Read both debounce counters under lock | 4× debounce RLock/RUnlock patterns |
+| `readDebounce(d *Daemon) (inUse, idle int)`            | Read both debounce counters under lock   | 4× debounce RLock/RUnlock patterns       |
 
 ### Build & Test Verification
 
@@ -61,6 +61,7 @@ Extracted 2 generic helpers:
 ### Go clone deduplication (threshold 15): 25 → 28 groups
 
 Counterintuitive increase because:
+
 1. New helper functions (`readState`, `newPTZDaemon`, etc.) create new structural patterns that art-dupl flags at the call sites
 2. The multi-line `readState(d, func(s pixy.State) pixy.CameraState { ... })` closures are flagged as clones across tests
 
@@ -82,6 +83,7 @@ The **actual meaningful duplication** was reduced significantly (see line counts
 ### Near-miss: web_types.go type change
 
 During templ dedup, I accidentally changed `webStatus` fields from `string` to `pixy.CameraState`/`pixy.AudioMode`/`pixy.AutoMode`. This cascaded into:
+
 - `handlers.go` — `string()` conversions became unnecessary → compile errors
 - `integration_test.go` — `webStatusCheck` type mismatches
 - `templates_templ.go` — type incompatibilities
@@ -108,33 +110,33 @@ During templ dedup, I accidentally changed `webStatus` fields from `string` to `
 
 ## f) Top #25 Things to Do Next
 
-| # | Priority | Item | Effort |
-|---|----------|------|--------|
-| 1 | HIGH | Audit commit `042507c` — webStatus type change may be half-baked on master | S |
-| 2 | HIGH | Verify `templ generate` output matches committed `_templ.go` (or add to CI) | S |
-| 3 | HIGH | Add pre-commit hook for `templ generate` + `go build` check | S |
-| 4 | MED | Fix 5 paralleltest warnings (add `t.Parallel()` to subtests) | S |
-| 5 | MED | Add CI check for art-dupl clone count regression | S |
-| 6 | MED | Properly type webStatus fields (pixy.CameraState instead of string) | M |
-| 7 | MED | Remove `string()` conversions in handlers.go after webStatus typing | S |
-| 8 | MED | Update integration_test.go webStatusCheck types to match | S |
-| 9 | MED | Add integration test for cameraBtn/audioBtn HTML output | M |
-| 10 | MED | Review if `readState[T]` generic helper is worth the complexity vs explicit helpers | S |
-| 11 | MED | Consider table-driven tests for PTZ commands to reduce remaining clones | M |
-| 12 | MED | Add `//go:generate templ generate` CI verification | S |
-| 13 | LOW | Extract common test setup patterns into test fixtures | M |
-| 14 | LOW | Add fuzz tests for new template helpers | M |
-| 15 | LOW | Benchmark template rendering with helpers vs inline | S |
-| 16 | LOW | Document test helper conventions in AGENTS.md | S |
-| 17 | LOW | Review exhaustruct exclusions — can any be fixed? | M |
-| 18 | LOW | Consider replacing gochecknoglobals with targeted nolint comments | S |
-| 19 | LOW | Add godoc to exported test helpers (if any are exported) | S |
-| 20 | LOW | Verify aarch64-linux build (commit caf740d added cross-compilation) | M |
-| 21 | LOW | Update README with deduplication stats | S |
-| 22 | LOW | Review if audioBtn color parameter handling (KV with empty string) is correct | S |
-| 23 | LOW | Add test for disabled button state in templates | S |
-| 24 | LOW | Clean up git stash list — may have stale entries | S |
-| 25 | LOW | Consider extracting test helpers to `internal/testutil` package | M |
+| #   | Priority | Item                                                                                | Effort |
+| --- | -------- | ----------------------------------------------------------------------------------- | ------ |
+| 1   | HIGH     | Audit commit `042507c` — webStatus type change may be half-baked on master          | S      |
+| 2   | HIGH     | Verify `templ generate` output matches committed `_templ.go` (or add to CI)         | S      |
+| 3   | HIGH     | Add pre-commit hook for `templ generate` + `go build` check                         | S      |
+| 4   | MED      | Fix 5 paralleltest warnings (add `t.Parallel()` to subtests)                        | S      |
+| 5   | MED      | Add CI check for art-dupl clone count regression                                    | S      |
+| 6   | MED      | Properly type webStatus fields (pixy.CameraState instead of string)                 | M      |
+| 7   | MED      | Remove `string()` conversions in handlers.go after webStatus typing                 | S      |
+| 8   | MED      | Update integration_test.go webStatusCheck types to match                            | S      |
+| 9   | MED      | Add integration test for cameraBtn/audioBtn HTML output                             | M      |
+| 10  | MED      | Review if `readState[T]` generic helper is worth the complexity vs explicit helpers | S      |
+| 11  | MED      | Consider table-driven tests for PTZ commands to reduce remaining clones             | M      |
+| 12  | MED      | Add `//go:generate templ generate` CI verification                                  | S      |
+| 13  | LOW      | Extract common test setup patterns into test fixtures                               | M      |
+| 14  | LOW      | Add fuzz tests for new template helpers                                             | M      |
+| 15  | LOW      | Benchmark template rendering with helpers vs inline                                 | S      |
+| 16  | LOW      | Document test helper conventions in AGENTS.md                                       | S      |
+| 17  | LOW      | Review exhaustruct exclusions — can any be fixed?                                   | M      |
+| 18  | LOW      | Consider replacing gochecknoglobals with targeted nolint comments                   | S      |
+| 19  | LOW      | Add godoc to exported test helpers (if any are exported)                            | S      |
+| 20  | LOW      | Verify aarch64-linux build (commit caf740d added cross-compilation)                 | M      |
+| 21  | LOW      | Update README with deduplication stats                                              | S      |
+| 22  | LOW      | Review if audioBtn color parameter handling (KV with empty string) is correct       | S      |
+| 23  | LOW      | Add test for disabled button state in templates                                     | S      |
+| 24  | LOW      | Clean up git stash list — may have stale entries                                    | S      |
+| 25  | LOW      | Consider extracting test helpers to `internal/testutil` package                     | M      |
 
 ---
 
@@ -150,14 +152,14 @@ The current state compiles and tests pass, but the webStatus type system is inco
 
 ## Metrics
 
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| templates.templ clone groups (t=5) | 5 | 2 | -60% |
-| Go clone groups (t=15) | 25 | 28 | +12% (tool artifact) |
-| auto_test.go lines | 394 | 342 | -52 |
-| commands_test.go lines | 530 | 477 | -53 |
-| Total test lines changed | — | — | -105 |
-| Test helpers added | 0 | 7 | +7 |
-| Lint issues (new) | 0 | 0 | 0 |
-| Build | PASS | PASS | ✅ |
-| Tests | PASS | PASS | ✅ |
+| Metric                             | Before | After | Delta                |
+| ---------------------------------- | ------ | ----- | -------------------- |
+| templates.templ clone groups (t=5) | 5      | 2     | -60%                 |
+| Go clone groups (t=15)             | 25     | 28    | +12% (tool artifact) |
+| auto_test.go lines                 | 394    | 342   | -52                  |
+| commands_test.go lines             | 530    | 477   | -53                  |
+| Total test lines changed           | —      | —     | -105                 |
+| Test helpers added                 | 0      | 7     | +7                   |
+| Lint issues (new)                  | 0      | 0     | 0                    |
+| Build                              | PASS   | PASS  | ✅                   |
+| Tests                              | PASS   | PASS  | ✅                   |

@@ -168,13 +168,13 @@ func ptr[T any](v T) *T { return new(v) }
 func assertWebStatusOffline(t *testing.T, status webStatus) {
 	t.Helper()
 	assertWebStatusField(t, status, webStatusCheck{
-		Camera: ptr(string(pixy.StatePrivacy)),
+		Camera: ptr(pixy.StatePrivacy),
 
-		Audio: ptr(string(pixy.AudioNC)),
+		Audio: ptr(pixy.AudioNC),
 
 		Gesture: new(false),
 
-		Auto: ptr(string(pixy.AutoFull)),
+		Auto: ptr(pixy.AutoFull),
 
 		InCall: new(false),
 
@@ -187,10 +187,10 @@ func assertWebStatusOffline(t *testing.T, status webStatus) {
 }
 
 type webStatusCheck struct {
-	Camera  *string
-	Audio   *string
+	Camera  *pixy.CameraState
+	Audio   *pixy.AudioMode
 	Gesture *bool
-	Auto    *string
+	Auto    *pixy.AutoMode
 	InCall  *bool
 	Online  *bool
 	Device  *string
@@ -620,13 +620,13 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 	webSrv := &webServer{daemon: daemon}
 	status := webSrv.getWebStatus()
 	assertWebStatusField(t, status, webStatusCheck{
-		Camera: ptr(string(pixy.StateTracking)),
+		Camera: ptr(pixy.StateTracking),
 
-		Audio: ptr(string(pixy.AudioLive)),
+		Audio: ptr(pixy.AudioLive),
 
 		Gesture: new(true),
 
-		Auto: ptr(string(pixy.AutoFull)),
+		Auto: ptr(pixy.AutoFull),
 
 		InCall: new(true),
 
@@ -664,7 +664,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 
 			status := webSrv.getWebStatus()
 
-			if status.Camera != string(tc.camera) {
+			if status.Camera != tc.camera {
 				t.Errorf("expected camera=%s, got %s", tc.camera, status.Camera)
 			}
 		})
@@ -693,7 +693,7 @@ func TestWeb_WebStatusAllAudioModes(t *testing.T) {
 
 			status := webSrv.getWebStatus()
 
-			if status.Audio != string(tc.audio) {
+			if status.Audio != tc.audio {
 				t.Errorf("expected audio=%s, got %s", tc.audio, status.Audio)
 			}
 		})
@@ -917,5 +917,131 @@ func TestSocket_TogglePrivacy(t *testing.T) {
 	resp := sendSC(t, cfg.SocketPath(), "toggle-privacy")
 	if !strings.Contains(resp, "privacy") && !strings.Contains(resp, "tracking") {
 		t.Errorf("expected privacy/tracking response, got: %s", resp)
+	}
+}
+
+func TestWeb_IndexContainsCameraButtons(t *testing.T) {
+	t.Parallel()
+
+	daemon := newDaemonWithDevice(t)
+	srv := newTestWebServer(t, daemon)
+
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatalf("GET /: %v", err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, _ := io.ReadAll(resp.Body)
+	html := string(body)
+
+	for _, want := range []string{
+		`hx-post="/api/track"`,
+		`hx-post="/api/idle"`,
+		`hx-post="/api/privacy"`,
+		`hx-post="/api/audio"`,
+		`hx-post="/api/gesture"`,
+		`hx-post="/api/auto"`,
+		`hx-post="/api/center"`,
+		`hx-post="/api/sync"`,
+		`hx-post="/api/probe"`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("index HTML missing %q", want)
+		}
+	}
+
+	bad := []string{`hx-post="endpoint"`, `aria-label="ariaLabel"`}
+	for _, b := range bad {
+		if strings.Contains(html, b) {
+			t.Errorf("index HTML contains literal template variable: %q", b)
+		}
+	}
+}
+
+func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
+	t.Parallel()
+
+	daemon := newDaemonWithDevice(t)
+	srv := newTestWebServer(t, daemon)
+
+	resp, err := http.Get(srv.URL + "/panel")
+	if err != nil {
+		t.Fatalf("GET /panel: %v", err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	html := string(body)
+
+	if !strings.Contains(html, `id="status-panel"`) {
+		t.Error("panel response missing #status-panel div")
+	}
+	if strings.Contains(html, `hx-trigger="every 3s, refresh from:body, load"`) {
+		t.Error("panel still has 'load' trigger (infinite loop bug)")
+	}
+}
+
+func TestHandleCommand_UnknownCommand(t *testing.T) {
+	t.Parallel()
+
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), "foobar")
+	if !strings.Contains(resp, "unknown command") {
+		t.Errorf("expected unknown command response, got: %s", resp)
+	}
+}
+
+func TestHandleCommand_StatusFormat(t *testing.T) {
+	t.Parallel()
+
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), "")
+	if !strings.Contains(resp, "camera=") || !strings.Contains(resp, "audio=") {
+		t.Errorf("status response missing expected fields: %s", resp)
+	}
+}
+
+func TestHandleCommand_AudioUsage(t *testing.T) {
+	t.Parallel()
+
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), "audio badmode")
+	if !strings.Contains(resp, "usage:") {
+		t.Errorf("expected usage message for bad audio mode, got: %s", resp)
+	}
+}
+
+func TestHandleCommand_PTZUsage(t *testing.T) {
+	t.Parallel()
+
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), "pan")
+	if !strings.Contains(resp, "usage:") {
+		t.Errorf("expected usage message for pan without value, got: %s", resp)
+	}
+}
+
+func TestHandleCommand_Device(t *testing.T) {
+	t.Parallel()
+
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), "device")
+	if !strings.Contains(resp, "/dev/video") {
+		t.Errorf("expected device path, got: %s", resp)
+	}
+}
+
+func TestHandleCommand_DeviceNotFound(t *testing.T) {
+	t.Parallel()
+
+	d := newIntegrationDaemon(t)
+	resp := d.handleCommand(context.Background(), "device")
+	if resp != respDeviceNotFound {
+		t.Errorf("expected device not found, got: %s", resp)
 	}
 }

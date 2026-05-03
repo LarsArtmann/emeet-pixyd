@@ -52,6 +52,8 @@ func TestIsCommandErrorResponse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.s, func(t *testing.T) {
+			t.Parallel()
+
 			if got := IsCommandErrorResponse(tc.s); got != tc.want {
 				t.Errorf("IsCommandErrorResponse(%q) = %v, want %v", tc.s, got, tc.want)
 			}
@@ -454,6 +456,8 @@ func TestActionToast_KnownCommands(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.cmd, func(t *testing.T) {
+			t.Parallel()
+
 			got, _ := actionToast(tc.cmd)
 			if got != tc.want {
 				t.Errorf("actionToast(%q) = %q, want %q", tc.cmd, got, tc.want)

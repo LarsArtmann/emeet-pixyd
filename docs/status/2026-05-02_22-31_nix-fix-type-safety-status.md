@@ -6,19 +6,19 @@
 
 ## a) FULLY DONE
 
-| # | Item | Commit |
-|---|------|--------|
-| 1 | **Nix flake build was broken** — `vendorHash` stale, missing `templ generate` in build, `vendor/` leaking into source | `43063e8` (prior session) + our fixes |
-| 2 | **Fixed stale `vendorHash`** — Regenerated from `go.mod` via `proxyVendor = true` approach | `43063e8` |
-| 3 | **Added `templ` to nix build** — `package.nix` now has `nativeBuildInputs = [templ]` and `preBuild = 'templ generate'` | `43063e8` |
-| 4 | **Added `proxyVendor = true`** — Standard FOD vendoring fails because templ-generated imports (`templ/runtime`) aren't visible during FOD's `go mod vendor` | `43063e8` |
-| 5 | **Excluded `vendor/` from `srcFilter`** — Prevents local vendor dir from confusing `buildGoModule`'s `-mod=vendor` | `43063e8` |
-| 6 | **Added `vendor/` to `.gitignore`** — Prevents accidental commit of vendored deps | `d7b63d8` |
-| 7 | **Added `//go:generate templ generate`** — Standard Go practice; enables `go generate ./...` | `8a9473a` |
-| 8 | **Typed `webStatus` fields** — `Camera`, `Audio`, `Auto` now use `pixy.CameraState`, `pixy.AudioMode`, `pixy.AutoMode` instead of raw `string`. Templates use typed comparisons (`s.Camera == pixy.StateTracking`) instead of magic strings | `042507c` |
-| 9 | **Added `ffmpeg-headless` to NixOS module PATH** — MJPEG streaming in the web UI requires `ffmpeg`, but it wasn't in the systemd service's PATH | `f7ead30` |
-| 10 | **Added `aarch64-linux` to `supportedSystems`** — Enables cross-compilation and native builds on ARM64 Linux | `caf740d` |
-| 11 | **Updated AGENTS.md** — Documented proxyVendor rationale, vendor exclusion, go:generate, typed webStatus | `a9ab3c5` |
+| #   | Item                                                                                                                                                                                                                                        | Commit                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1   | **Nix flake build was broken** — `vendorHash` stale, missing `templ generate` in build, `vendor/` leaking into source                                                                                                                       | `43063e8` (prior session) + our fixes |
+| 2   | **Fixed stale `vendorHash`** — Regenerated from `go.mod` via `proxyVendor = true` approach                                                                                                                                                  | `43063e8`                             |
+| 3   | **Added `templ` to nix build** — `package.nix` now has `nativeBuildInputs = [templ]` and `preBuild = 'templ generate'`                                                                                                                      | `43063e8`                             |
+| 4   | **Added `proxyVendor = true`** — Standard FOD vendoring fails because templ-generated imports (`templ/runtime`) aren't visible during FOD's `go mod vendor`                                                                                 | `43063e8`                             |
+| 5   | **Excluded `vendor/` from `srcFilter`** — Prevents local vendor dir from confusing `buildGoModule`'s `-mod=vendor`                                                                                                                          | `43063e8`                             |
+| 6   | **Added `vendor/` to `.gitignore`** — Prevents accidental commit of vendored deps                                                                                                                                                           | `d7b63d8`                             |
+| 7   | **Added `//go:generate templ generate`** — Standard Go practice; enables `go generate ./...`                                                                                                                                                | `8a9473a`                             |
+| 8   | **Typed `webStatus` fields** — `Camera`, `Audio`, `Auto` now use `pixy.CameraState`, `pixy.AudioMode`, `pixy.AutoMode` instead of raw `string`. Templates use typed comparisons (`s.Camera == pixy.StateTracking`) instead of magic strings | `042507c`                             |
+| 9   | **Added `ffmpeg-headless` to NixOS module PATH** — MJPEG streaming in the web UI requires `ffmpeg`, but it wasn't in the systemd service's PATH                                                                                             | `f7ead30`                             |
+| 10  | **Added `aarch64-linux` to `supportedSystems`** — Enables cross-compilation and native builds on ARM64 Linux                                                                                                                                | `caf740d`                             |
+| 11  | **Updated AGENTS.md** — Documented proxyVendor rationale, vendor exclusion, go:generate, typed webStatus                                                                                                                                    | `a9ab3c5`                             |
 
 ### Verification
 
@@ -85,33 +85,33 @@ These are items identified but not yet attempted:
 
 Sorted by impact × effort (highest first):
 
-| # | Item | Impact | Effort | Type |
-|---|------|--------|--------|------|
-| 1 | Disable 5 false-positive linters in `.golangci.yml` | High | 5 min | Quality |
-| 2 | Commit test helper extraction (readState, notError, etc.) | High | 1 min | Quality |
-| 3 | Fix NixOS module default user (require explicit setting) | High | 10 min | Config |
-| 4 | Add `//go:build linux` to `web_types.go` | Low | 1 min | Consistency |
-| 5 | Remove dead `vendor/** linguist-vendored` from `.gitattributes` | Low | 1 min | Cleanup |
-| 6 | Update README.md manual build instructions (mention `go generate`) | Medium | 5 min | Docs |
-| 7 | Update AGENTS.md "Lint is clean" claim | Medium | 2 min | Docs |
-| 8 | Add nix cross-compilation test to CI (`--all-systems`) | Medium | 10 min | CI |
-| 9 | Fix pre-commit hook executable permission | Low | 1 min | Fix |
-| 10 | Add structured error codes to command responses | Medium | 1 hour | API |
-| 11 | Add `ParseAudioMode` to accept `"original"` in addition to `"org"` | Medium | 5 min | UX |
-| 12 | Add integration test for web UI PTZ endpoints | Medium | 30 min | Testing |
-| 13 | Add e2e test for NixOS module evaluation | Medium | 1 hour | Testing |
-| 14 | Extract HID protocol constants to `internal/pixy/hid.go` | Medium | 30 min | Architecture |
-| 15 | Add `DevicePath` type for `videoDev`/`hidrawDev` fields | Medium | 1 hour | Type safety |
-| 16 | Refactor `handleCommand` to use a command registry map | Medium | 2 hours | Architecture |
-| 17 | Add `config` endpoint to web UI for viewing current config | Low | 1 hour | Feature |
-| 18 | Add systemd watchdog interval configuration | Low | 30 min | Feature |
-| 19 | Add graceful shutdown with drain for active streams | Medium | 1 hour | Reliability |
-| 20 | Add request logging middleware for web UI | Low | 30 min | Observability |
-| 21 | Evaluate `samber/lo` for functional helpers (already evaluated in docs/) | Low | 2 hours | Dependencies |
-| 22 | Add OpenTelemetry tracing (currently only metrics) | Low | 2 hours | Observability |
-| 23 | Add version flag / endpoint (`emeet-pixyd --version`) | Low | 30 min | Feature |
-| 24 | Add hot-reload for template development | Low | 2 hours | DX |
-| 25 | Add `nix flake show` to CI for output verification | Low | 5 min | CI |
+| #   | Item                                                                     | Impact | Effort  | Type          |
+| --- | ------------------------------------------------------------------------ | ------ | ------- | ------------- |
+| 1   | Disable 5 false-positive linters in `.golangci.yml`                      | High   | 5 min   | Quality       |
+| 2   | Commit test helper extraction (readState, notError, etc.)                | High   | 1 min   | Quality       |
+| 3   | Fix NixOS module default user (require explicit setting)                 | High   | 10 min  | Config        |
+| 4   | Add `//go:build linux` to `web_types.go`                                 | Low    | 1 min   | Consistency   |
+| 5   | Remove dead `vendor/** linguist-vendored` from `.gitattributes`          | Low    | 1 min   | Cleanup       |
+| 6   | Update README.md manual build instructions (mention `go generate`)       | Medium | 5 min   | Docs          |
+| 7   | Update AGENTS.md "Lint is clean" claim                                   | Medium | 2 min   | Docs          |
+| 8   | Add nix cross-compilation test to CI (`--all-systems`)                   | Medium | 10 min  | CI            |
+| 9   | Fix pre-commit hook executable permission                                | Low    | 1 min   | Fix           |
+| 10  | Add structured error codes to command responses                          | Medium | 1 hour  | API           |
+| 11  | Add `ParseAudioMode` to accept `"original"` in addition to `"org"`       | Medium | 5 min   | UX            |
+| 12  | Add integration test for web UI PTZ endpoints                            | Medium | 30 min  | Testing       |
+| 13  | Add e2e test for NixOS module evaluation                                 | Medium | 1 hour  | Testing       |
+| 14  | Extract HID protocol constants to `internal/pixy/hid.go`                 | Medium | 30 min  | Architecture  |
+| 15  | Add `DevicePath` type for `videoDev`/`hidrawDev` fields                  | Medium | 1 hour  | Type safety   |
+| 16  | Refactor `handleCommand` to use a command registry map                   | Medium | 2 hours | Architecture  |
+| 17  | Add `config` endpoint to web UI for viewing current config               | Low    | 1 hour  | Feature       |
+| 18  | Add systemd watchdog interval configuration                              | Low    | 30 min  | Feature       |
+| 19  | Add graceful shutdown with drain for active streams                      | Medium | 1 hour  | Reliability   |
+| 20  | Add request logging middleware for web UI                                | Low    | 30 min  | Observability |
+| 21  | Evaluate `samber/lo` for functional helpers (already evaluated in docs/) | Low    | 2 hours | Dependencies  |
+| 22  | Add OpenTelemetry tracing (currently only metrics)                       | Low    | 2 hours | Observability |
+| 23  | Add version flag / endpoint (`emeet-pixyd --version`)                    | Low    | 30 min  | Feature       |
+| 24  | Add hot-reload for template development                                  | Low    | 2 hours | DX            |
+| 25  | Add `nix flake show` to CI for output verification                       | Low    | 5 min   | CI            |
 
 ---
 

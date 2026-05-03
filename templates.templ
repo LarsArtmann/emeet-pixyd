@@ -1,9 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+)
 
 //go:generate templ generate
-
 templ page(s webStatus) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -13,8 +16,6 @@ templ page(s webStatus) {
 			<title>EMEET PIXY — { s.Camera }</title>
 			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F7;</text></svg>"/>
 			<link rel="stylesheet" href="/static/style.css"/>
-			<script src="/static/htmx-2.0.8.min.js"></script>
-			<script src="/static/app.js"></script>
 		</head>
 		<body>
 			<main class="container">
@@ -51,6 +52,8 @@ templ page(s webStatus) {
 				</div>
 			</main>
 			<div id="toast-container"></div>
+			<script src="/static/htmx-2.0.8.min.js"></script>
+			<script src="/static/app.js"></script>
 		</body>
 	</html>
 }
@@ -92,9 +95,9 @@ templ stateIndicator(prefix, value string) {
 templ cameraBtn(color string, endpoint string, label string, shortcut string, ariaLabel string, active bool, online bool) {
 	<button
 		class={ "btn", color, templ.KV("btn-active", active) }
-		hx-post=endpoint
+		hx-post={ endpoint }
 		hx-target="#status-panel"
-		aria-label=ariaLabel
+		aria-label={ ariaLabel }
 		if !online {
 			disabled=""
 		}
@@ -109,7 +112,7 @@ templ audioBtn(color string, mode string, label string, ariaLabel string, active
 		hx-post="/api/audio"
 		hx-vals={ fmt.Sprintf(`{"mode":"%s"}`, mode) }
 		hx-target="#status-panel"
-		aria-label=ariaLabel
+		aria-label={ ariaLabel }
 		if !online {
 			disabled=""
 		}
@@ -119,26 +122,26 @@ templ audioBtn(color string, mode string, label string, ariaLabel string, active
 }
 
 templ statusPanel(s webStatus) {
-	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body, load" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
+	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
 		if s.Error != "" {
 			<div class="error-banner">{ s.Error }</div>
 		}
 		<div class="card" style="margin-bottom:1rem">
 			<div class="card-title">Camera</div>
-			@stateIndicator("state", s.Camera)
+			@stateIndicator("state", string(s.Camera))
 			<div class="btn-group">
-				@cameraBtn("btn-green", "/api/track", "Track", "T", "Enable tracking", s.Camera == "tracking", s.Online)
-				@cameraBtn("btn-yellow", "/api/idle", "Idle", "I", "Set idle", s.Camera == "idle", s.Online)
-				@cameraBtn("btn-red", "/api/privacy", "Privacy", "P", "Enable privacy", s.Camera == "privacy", s.Online)
+				@cameraBtn("btn-green", "/api/track", "Track", "T", "Enable tracking", s.Camera == pixy.StateTracking, s.Online)
+				@cameraBtn("btn-yellow", "/api/idle", "Idle", "I", "Set idle", s.Camera == pixy.StateIdle, s.Online)
+				@cameraBtn("btn-red", "/api/privacy", "Privacy", "P", "Enable privacy", s.Camera == pixy.StatePrivacy, s.Online)
 			</div>
 		</div>
 		<div class="card" style="margin-bottom:1rem">
 			<div class="card-title">Audio Mode</div>
-			@stateIndicator("audio", s.Audio)
+			@stateIndicator("audio", string(s.Audio))
 			<div class="btn-group">
-				@audioBtn("btn-green", "nc", "Noise Cancel", "Noise cancel", s.Audio == "nc", s.Online)
-				@audioBtn("btn-yellow", "live", "Live", "Live audio", s.Audio == "live", s.Online)
-				@audioBtn("", "org", "Original", "Original audio", s.Audio == "original", s.Online)
+				@audioBtn("btn-green", "nc", "Noise Cancel", "Noise cancel", s.Audio == pixy.AudioNC, s.Online)
+				@audioBtn("btn-yellow", "live", "Live", "Live audio", s.Audio == pixy.AudioLive, s.Online)
+				@audioBtn("", "org", "Original", "Original audio", s.Audio == pixy.AudioOriginal, s.Online)
 			</div>
 		</div>
 		<div class="card" style="margin-bottom:1rem">
@@ -160,12 +163,12 @@ templ statusPanel(s webStatus) {
 			<div class="toggle-row">
 				<span class="toggle-label" id="auto-label">Auto Mode</span>
 				<button
-					class={ "toggle", templ.KV("on", s.Auto != "off") }
+					class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
 					hx-post="/api/auto"
 					hx-target="#status-panel"
 					aria-labelledby="auto-label"
 					role="switch"
-					aria-checked={ fmt.Sprintf("%t", s.Auto != "off") }
+					aria-checked={ fmt.Sprintf("%t", !s.Auto.IsOff()) }
 				></button>
 			</div>
 			if s.InCall {

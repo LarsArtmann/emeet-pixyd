@@ -28,7 +28,7 @@ func readDebounce(d *Daemon) (inUse, idle int) {
 	inUse = d.debounceInUse
 	idle = d.debounceIdle
 	d.mu.RUnlock()
-	return
+	return inUse, idle
 }
 
 func TestHandleCallStart_SetsInCall(t *testing.T) {

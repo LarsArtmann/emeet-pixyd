@@ -3,27 +3,17 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"embed"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/pprof"
-	"os/exec"
 	"strconv"
-	"sync"
-	"syscall"
 	"time"
 
-	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/metric"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 const (
@@ -52,72 +42,6 @@ const (
 //go:embed static
 var staticFS embed.FS
 
-var (
-	promExporter      *prometheus.Exporter
-	metricInCall      metric.Float64Gauge
-	metricAutoMode    metric.Float64Gauge
-	metricCameraState metric.Float64Gauge
-)
-
-var metricsOnce sync.Once
-
-func init() {
-	registerMetrics()
-}
-
-func registerMetrics() {
-	metricsOnce.Do(func() {
-		var err error
-		promExporter, err = prometheus.New(
-			prometheus.WithoutScopeInfo(),
-			prometheus.WithoutTargetInfo(),
-		)
-		if err != nil {
-			slog.Error("failed to create OTel Prometheus exporter", "error", err)
-			return
-		}
-		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
-		meter := mp.Meter("emeet-pixyd")
-		if metricInCall, err = meter.Float64Gauge("emeet_pixyd_in_call",
-			metric.WithDescription("Whether the camera is currently in a call (1=yes, 0=no)"),
-		); err != nil {
-			slog.Error("failed to create in_call gauge", "error", err)
-		}
-		if metricAutoMode, err = meter.Float64Gauge("emeet_pixyd_auto_mode",
-			metric.WithDescription("Whether auto-management mode is enabled (1=yes, 0=no)"),
-		); err != nil {
-			slog.Error("failed to create auto_mode gauge", "error", err)
-		}
-		if metricCameraState, err = meter.Float64Gauge("emeet_pixyd_camera_state",
-			metric.WithDescription("Current camera state as a gauge per state label (1=active)"),
-		); err != nil {
-			slog.Error("failed to create camera_state gauge", "error", err)
-		}
-	})
-}
-
-func updateMetrics(state pixy.State) {
-	ctx := context.Background()
-	if state.InCall {
-		metricInCall.Record(ctx, 1)
-	} else {
-		metricInCall.Record(ctx, 0)
-	}
-	if state.AutoMode.IsOff() {
-		metricAutoMode.Record(ctx, 0)
-	} else {
-		metricAutoMode.Record(ctx, 1)
-	}
-	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
-		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
-		if state.Camera == s {
-			metricCameraState.Record(ctx, 1, stateAttr)
-		} else {
-			metricCameraState.Record(ctx, 0, stateAttr)
-		}
-	}
-}
-
 func formatLastSynced(t time.Time) string {
 	if t.IsZero() {
 		return ""
@@ -142,14 +66,14 @@ func (s *webServer) getWebStatus() webStatus {
 	s.daemon.mu.RLock()
 	defer s.daemon.mu.RUnlock()
 	status := webStatus{
-		Camera:     string(s.daemon.state.Camera),
-		Audio:      string(s.daemon.state.Audio),
+		Camera:     s.daemon.state.Camera,
+		Audio:      s.daemon.state.Audio,
 		Gesture:    s.daemon.state.Gesture,
 		Pan:        0,
 		Tilt:       0,
 		Zoom:       0,
 		InCall:     s.daemon.state.InCall,
-		Auto:       string(s.daemon.state.AutoMode),
+		Auto:       s.daemon.state.AutoMode,
 		Online:     s.daemon.videoDev != "",
 		Device:     s.daemon.videoDev,
 		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),
@@ -212,11 +136,8 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		slog.Debug("web action", "cmd", command, "response", resp)
 
 		status := s.getWebStatusWithPTZ(request.Context())
-		if IsCommandErrorResponse(resp) {
-			status.Error = resp
-		} else {
-			status.Toast, status.ToastType = actionToast(command)
-		}
+		toast, _ := actionToast(command)
+		applyResponseToStatus(resp, &status, toast)
 
 		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
 	}
@@ -339,198 +260,6 @@ func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, 
 	return status, true
 }
 
-func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
-	s.daemon.lastFrame.RLock()
-	frame := s.daemon.lastFrame.data
-	s.daemon.lastFrame.RUnlock()
-
-	if len(frame) == 0 {
-		http.Error(responseWriter, "no frame available", http.StatusServiceUnavailable)
-
-		return
-	}
-
-	responseWriter.Header().Set("Content-Type", "image/jpeg")
-	responseWriter.Header().Set("Cache-Control", "no-store")
-	_, _ = responseWriter.Write(frame)
-}
-
-func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
-	return exec.CommandContext(ctx,
-		"ffmpeg",
-		"-f", "v4l2",
-		"-input_format", "mjpeg",
-		"-i", device,
-		"-f", "image2pipe",
-		"-vcodec", "mjpeg",
-		"-q:v", "5",
-		"-vf", "scale=640:-1",
-		"pipe:1",
-	)
-}
-
-func cleanupFFmpeg(cmd *exec.Cmd) {
-	_ = cmd.Process.Signal(syscall.SIGTERM)
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
-	select {
-	case <-done:
-	case <-time.After(ffmpegShutdown):
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
-	}
-}
-
-func (s *webServer) handleStream(
-	responseWriter http.ResponseWriter,
-	request *http.Request,
-) {
-	select {
-	case s.daemon.streamSema <- struct{}{}:
-	default:
-		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
-
-		return
-	}
-	defer func() { <-s.daemon.streamSema }()
-
-	status, ok := s.checkDevice(responseWriter)
-	if !ok {
-		return
-	}
-	if _, lookErr := exec.LookPath("ffmpeg"); lookErr != nil {
-		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
-
-		return
-	}
-	flusher, flushOk := responseWriter.(http.Flusher)
-	if !flushOk {
-
-		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
-
-		return
-	}
-	ctx := request.Context()
-	cmd := ffmpegStreamCmd(ctx, status.Device)
-	stdOut, pipeErr := cmd.StdoutPipe()
-	if pipeErr != nil {
-		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
-
-		return
-	}
-	startErr := cmd.Start()
-	if startErr != nil {
-		http.Error(responseWriter, "stream start error", http.StatusInternalServerError)
-
-		return
-	}
-	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
-	responseWriter.Header().Set("Cache-Control", "no-store")
-	defer cleanupFFmpeg(cmd)
-	br := bufio.NewReaderSize(stdOut, streamBufSize)
-	var buf bytes.Buffer
-	for {
-
-		select {
-
-		case <-ctx.Done():
-
-			return
-
-		default:
-
-		}
-
-		frame, frameErr := extractJPEGFrame(br, &buf)
-
-		if frameErr != nil {
-
-			slog.Debug("frame extract error", "error", frameErr)
-
-			return
-
-		}
-
-		s.daemon.lastFrame.Lock()
-		s.daemon.lastFrame.data = frame
-		s.daemon.lastFrame.Unlock()
-
-		_, headerErr := fmt.Fprintf(
-
-			responseWriter,
-
-			"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n",
-
-			len(frame),
-		)
-
-		if headerErr != nil {
-			return
-		}
-
-		_, writeErr := responseWriter.Write(frame)
-
-		if writeErr != nil {
-			return
-		}
-
-		_, sepErr := fmt.Fprint(responseWriter, "\r\n")
-
-		if sepErr != nil {
-			return
-		}
-
-		flusher.Flush()
-	}
-}
-
-func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
-	var soiFound bool
-	for {
-		if buf.Len() > maxStreamBufferSize {
-			buf.Reset()
-		}
-
-		b, err := br.ReadByte()
-		if err != nil {
-			return nil, fmt.Errorf("read byte: %w", err)
-		}
-
-		if !soiFound {
-			if b == 0xFF {
-				next, nextErr := br.ReadByte()
-				if nextErr != nil {
-					return nil, fmt.Errorf("read soi next: %w", nextErr)
-				}
-				switch next {
-				case 0xD8:
-					buf.Reset()
-					buf.Write([]byte{0xFF, 0xD8})
-					soiFound = true
-				case 0xFF:
-					_ = br.UnreadByte()
-				}
-			}
-			continue
-		}
-
-		buf.WriteByte(b)
-
-		if b == 0xFF {
-			next, nextErr := br.ReadByte()
-			if nextErr != nil {
-				return nil, fmt.Errorf("read eoi next: %w", nextErr)
-			}
-			buf.WriteByte(next)
-			if next == 0xD9 {
-				frame := make([]byte, buf.Len())
-				copy(frame, buf.Bytes())
-				return frame, nil
-			}
-		}
-	}
-}
-
 func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	resp := s.daemon.handleCommand(request.Context(), cmdToggleGesture)
@@ -547,48 +276,6 @@ func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResponseToStatus(resp, &status, "Auto mode toggled")
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
-}
-
-type cachingFS struct {
-	handler http.Handler
-}
-
-func (c cachingFS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().
-		Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int64(staticCacheMaxAge.Seconds())))
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	c.handler.ServeHTTP(w, r)
-}
-
-func ptzAxisValid(axis string) bool {
-	switch axis {
-	case axisPan, axisTilt, axisZoom:
-		return true
-	default:
-		return false
-	}
-}
-
-func securityMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().
-			Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'")
-		next.ServeHTTP(w, r)
-	})
-}
-
-func requestIDMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqID := r.Header.Get("X-Request-ID")
-		if reqID == "" {
-			reqID = fmt.Sprintf("%08x", time.Now().UnixNano()&0xFFFFFFFF)
-		}
-		w.Header().Set("X-Request-ID", reqID)
-		next.ServeHTTP(w, r)
-	})
 }
 
 func newWebMux(server *webServer) *http.ServeMux {
