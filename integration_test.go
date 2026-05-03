@@ -926,7 +926,11 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	daemon := newDaemonWithDevice(t)
 	srv := newTestWebServer(t, daemon)
 
-	resp, err := http.Get(srv.URL + "/")
+	req, err := http.NewRequestWithContext(context.Background(), "GET", srv.URL+"/", nil)
+	if err != nil {
+		t.Fatalf("create request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET /: %v", err)
 	}
@@ -965,7 +969,11 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 	daemon := newDaemonWithDevice(t)
 	srv := newTestWebServer(t, daemon)
 
-	resp, err := http.Get(srv.URL + "/panel")
+	req, err := http.NewRequestWithContext(context.Background(), "GET", srv.URL+"/panel", nil)
+	if err != nil {
+		t.Fatalf("create request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET /panel: %v", err)
 	}
