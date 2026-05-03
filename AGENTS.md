@@ -55,8 +55,8 @@ Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to d
 | `EMEET_PIXYD_POLL_INTERVAL`  | `PollInterval`  | `2s`               |
 | `EMEET_PIXYD_DEBOUNCE_COUNT` | `DebounceCount` | `3`                |
 | `EMEET_PIXYD_DEBUG`          | `Debug`         | `false`            |
-| `EMEET_PIXYD_AUTO`           | `AutoMode`      | `true`             |
-| `EMEET_PIXYD_DEFAULT_AUDIO`  | `DefaultAudio`  | `nc`               |
+| `EMEET_PIXYD_AUTO`           | `AutoMode`      | `full`             | off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `DefaultAudio`  | `nc`               | nc, live, org (shorthand for original) |
 
 NixOS module passes all options as `Environment=` vars — `autoTracking`+`autoPrivacy` control `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
 
@@ -77,7 +77,10 @@ main() → NewDaemon() → Run()
 | ----------------- | ------------------------------------------------------------------------------------------- |
 | `main.go`         | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server            |
 | `commands.go`     | Command routing for both Unix socket and CLI (`handleCommand` switch)                       |
-| `handlers.go`     | HTTP handlers, web UI, OTel/Prometheus metrics, MJPEG streaming, security middleware        |
+| `handlers.go`     | HTTP routing, web handlers, web UI                                              |
+| `metrics.go`      | OTel metrics registration, `updateMetrics()`, `init()`                         |
+| `stream.go`       | MJPEG streaming, snapshot, JPEG frame extraction                               |
+| `middleware.go`    | Security headers, request ID, caching FS, PTZ axis validation                  |
 | `hid.go`          | HID bidirectional communication over hidraw — config writes + response parsing              |
 | `v4l2.go`         | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                        |
 | `process.go`      | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications  |
@@ -91,8 +94,13 @@ main() → NewDaemon() → Run()
 | `errors.go`       | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) |
 | `internal/pixy/`  | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`       |
 | `static/`         | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                       |
-| `auto_test.go`    | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions                |
-| `process_test.go` | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse`                                       |
+| `behavior_test.go` | BDD-style behavioral tests: full auto lifecycle, debounce flip-flop, PTZ clamping, waybar tooltip, privacy toggle, audio cycle, state restart |
+| `commands_test.go` | Unit tests for PTZ, auto, gesture, audio, tracking commands, actionToast, applyResponseToStatus |
+| `main_test.go`    | Core test helpers (`newTestDaemon`, `testDaemonNoDevice`), state persistence, HID parsing, device probing, config tests |
+| `handlers_test.go`| Handler tests, `requireGaugeValue`, `matchAttrs` metric assertions, JPEG frame extraction, middleware tests |
+| `uevent_test.go`  | Uevent parsing tests                                                  |
+| `auto_test.go`    | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions, debounce, metrics |
+| `process_test.go` | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc`  |
 
 ### Key Interactions
 
@@ -119,6 +127,11 @@ Daemon uses function fields for external dependencies, enabling test injectabili
 | `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup |
 | `setSourceFn`     | `setDefaultSource` | `wpctl set-default`            |
 | `notifyFn`        | `notify`           | `notify-send` desktop notifs   |
+| `setTrackingFn`   | `d.setTracking`    | Camera state changes via HID   |
+| `setAudioFn`      | `d.setAudio`       | Audio mode changes via HID     |
+| `setGestureFn`    | `d.setGesture`     | Gesture toggle via HID         |
+| `centerCameraFn`  | `d.centerCamera`   | PTZ centering via v4l2-ctl     |
+| `v4l2SetFn`       | `v4l2Set`          | Arbitrary V4L2 control setting |
 
 `NewDaemon()` wires real implementations. Tests override via functional options (`testDaemonOption`).
 
@@ -153,8 +166,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ### Testing
 
 - Standard `testing` package only (no testify)
-- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withAudio()`, `withInCall()`, or custom `testDaemonOption` to inject mock deps
-- Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`) default to no-op stubs in tests
+- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withInCall()` or custom `testDaemonOption` to inject mock deps
+- Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`, `setTrackingFn`, `setAudioFn`, `setGestureFn`, `centerCameraFn`, `v4l2SetFn`) default to no-op stubs or real implementations in tests
 - `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
@@ -180,6 +193,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Scripts at end of body**: HTMX and `app.js` are loaded at the end of `<body>` (not in `<head>`) because `app.js` accesses `document.body` at line 12 which would be `null` in `<head>`.
 - **Build tags**: All `.go` files in the root use `//go:build linux`. Tests that test Linux-specific code naturally require a Linux host.
 - **`flaky` test awareness**: Some tests probe real sysfs (e.g., `TestProbeDevices_SetsStateToOfflineWhenNoVideo`), so they may pass or fail depending on whether a PIXY is physically connected. These tests handle both outcomes gracefully.
+- **`withAudio()` does not exist**: Only `withInCall()` is a predefined helper. To set audio in tests, use a custom `testDaemonOption`: `func(d *Daemon) { d.state.Audio = pixy.AudioLive }`.
 - **Nix build uses `proxyVendor = true`**: The standard FOD-based vendor approach fails because `templ generate` (in `preBuild`) produces imports that weren't visible when the FOD ran `go mod vendor`. `proxyVendor = true` downloads deps during the build via Go module proxy, after `templ generate` has run. The `vendorHash` is a SHA of the downloaded module tarballs, not of the vendored source tree.
 - **WebAddr default**: `127.0.0.1:8090` (localhost only, not `:8090`)
 - **StateDir default**: `/run/emeet-pixyd` (tmpfiles.d rule in NixOS module creates this)
@@ -187,7 +201,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
 - **Lint is clean (0 issues)**: Linters that produced only false positives (`contextcheck`, `exhaustruct`, `gochecknoinits`, `gochecknoglobals`, `paralleltest`) have been removed from `.golangci.yml` `linters.enable`. `contextcheck` flagged templ-generated `ServeHTTP` calls and `updateMetrics`; `exhaustruct` flagged intentional partial struct initializations throughout; `gochecknoinits` flagged the required OTel `init()` in `handlers.go`; `gochecknoglobals` flagged the OTel metric variables; `paralleltest` flagged `TestUpdateMetrics` which must be serial (global metrics state). Go 1.22+ eliminates the need for `tc := tc` loop variable capture (`copyloopvar` handles it). Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706).
-- **OTel metrics migration**: Replaced `prometheus/client_golang/prometheus` direct usage with `go.opentelemetry.io/otel/exporters/prometheus`. Metrics (`metricInCall`, `metricAutoMode`, `metricCameraState`) are now `metric.Float64Gauge` instruments created via OTel MeterProvider. `promhttp.Handler()` still serves the `/metrics` endpoint. Test assertions use `promExporter.Collect()` with `metricdata.Gauge[float64]` instead of `testutil.ToFloat64()`.
+- **`init()` is in `metrics.go`**: The OTel metrics `init()` was moved from `handlers.go` to `metrics.go` during handler extraction. `gochecknoinits` flags it there.
 - **Error consolidation**: Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) live in `errors.go`. The unexported duplicates in `commands.go` were removed. All code references the exported versions.
 - **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).

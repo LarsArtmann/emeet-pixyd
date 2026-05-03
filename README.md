@@ -98,13 +98,20 @@ emeet-pixy track            # Enable face tracking
 emeet-pixy idle             # Set camera to idle
 emeet-pixy center           # Center camera (pan=0, tilt=0, zoom=100)
 emeet-pixy audio [mode]     # Cycle or set audio mode (nc, live, org)
-emeet-pixy gesture [on|off] # Toggle gesture control
-emeet-pixy auto [on|off]    # Toggle auto-management mode
+emeet-pixy gesture-on       # Enable gesture control
+emeet-pixy gesture-off      # Disable gesture control
+emeet-pixy toggle-gesture   # Toggle gesture control
+emeet-pixy auto [mode]      # Set auto mode (off, full, tracking-only, privacy-only)
+emeet-pixy auto-on          # Enable full auto mode
+emeet-pixy auto-off         # Disable auto mode
+emeet-pixy toggle-auto      # Toggle auto mode
+emeet-pixy pan <value>      # Set pan (-170 to 170)
+emeet-pixy tilt <value>     # Set tilt (-30 to 30)
+emeet-pixy zoom <value>     # Set zoom (100 to 400)
 emeet-pixy sync             # Sync daemon state from camera hardware
 emeet-pixy probe            # Re-detect device (video + hidraw)
+emeet-pixy device           # Show current video device path
 emeet-pixy waybar           # Output Waybar JSON
-emeet-pixy snapshot         # Capture current frame as JPEG
-emeet-pixy ptz              # Read pan/tilt/zoom values
 ```
 
 ## Auto Modes
@@ -181,7 +188,10 @@ main() → NewDaemon() → Run()
 ```
 main.go           Entry point, daemon lifecycle, signal handling
 commands.go       Command routing (socket + CLI)
-handlers.go       HTTP handlers, web UI, OTel/Prometheus metrics
+handlers.go       HTTP handlers, web UI
+metrics.go        OTel metrics registration and updates
+stream.go         MJPEG streaming, snapshot, JPEG frame extraction
+middleware.go      Security headers, request ID, caching, PTZ validation
 hid.go            HID bidirectional communication (config/query)
 v4l2.go           V4L2 pan/tilt/zoom via v4l2-ctl
 process.go        /proc scanning for call detection, PipeWire, notifications
@@ -189,6 +199,8 @@ uevent.go         Netlink uevent listener for hotplug
 auto.go           Auto-manage loop, call start/end, debounce
 state.go          State persistence (JSON, atomic write)
 probe.go          Device probing (sysfs walks for video4linux + hidraw)
+errors.go         CommandError type, sentinel errors
+web_types.go      webStatus struct for web UI
 templates.templ   HTML templates (compiled via templ)
 internal/pixy/    Shared types: Config, State, CameraState, AudioMode, constants
 static/           Frontend assets (HTMX, app.js, style.css) — go:embed

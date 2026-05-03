@@ -270,8 +270,8 @@ func DefaultConfig() Config {
 // ConfigFromEnv returns a Config with defaults overridden by environment variables.
 // Recognized variables: EMEET_PIXYD_STATE_DIR, EMEET_PIXYD_WEB_ADDR,
 // EMEET_PIXYD_POLL_INTERVAL (Go duration), EMEET_PIXYD_DEBOUNCE_COUNT (int),
-// EMEET_PIXYD_DEBUG (bool), EMEET_PIXYD_AUTO (bool),
-// EMEET_PIXYD_DEFAULT_AUDIO (nc/live/original).
+// EMEET_PIXYD_DEBUG (bool), EMEET_PIXYD_AUTO (off/full/tracking-only/privacy-only, or legacy true/1/false/0),
+// EMEET_PIXYD_DEFAULT_AUDIO (nc/live/org).
 func ConfigFromEnv() Config {
 	cfg := DefaultConfig()
 
