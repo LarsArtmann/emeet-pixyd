@@ -31,6 +31,7 @@ Categories: Camera Control (7), Audio (5), Auto-Management (5), Web UI (9), CLI 
 **Verdict:** Well-architected for a single-binary hardware daemon.
 
 Strengths:
+
 - Function-field DI with 9 injectable seams — clean and testable
 - `internal/pixy/` provides clear shared type boundary
 - Lock discipline is consistent (acquire, copy, release, act)
@@ -51,6 +52,7 @@ All deferred — current code works well and the cost/benefit doesn't justify im
 ### 5. Architecture Visualization ✅
 
 Generated 4 files in `docs/architecture-understanding/`:
+
 - `2026-05-03_02-38_current.d2` / `.svg` — Current architecture (control flow, dependencies)
 - `2026-05-03_02-38_improved.d2` / `.svg` — Target architecture with proposed modules
 
@@ -60,19 +62,19 @@ Diagrams show the daemon's 5 concurrent goroutines (socket, HTTP, polling, ueven
 
 Created `behavior_test.go` — 11 behavioral tests covering full user workflows:
 
-| Test | Scenario |
-|------|----------|
-| TestAutoCallLifecycle | Full auto call start → tracking → end → idle |
-| TestAutoModeChangeMidCall | Mode change during active call |
-| TestDebouncePreventsFlipFlop | 3-cycle debounce stabilization |
-| TestPTZClampingWithDegreeMultiplier | V4L2 1/3600° unit conversion |
-| TestWaybarTooltipContent | JSON output with camera + audio + auto status |
-| TestErrorDuringCallStart | HID failure graceful degradation |
-| TestStateSurvivesRestart | State persistence round-trip |
-| TestAudioModeCycle | nc → live → org → nc cycling |
-| TestPrivacyToggleRoundTrip | privacy → idle → privacy |
-| TestAutoModePersistence | Config → state → reload |
-| TestTrackingOnlyMode | Tracking without audio/privacy |
+| Test                                | Scenario                                      |
+| ----------------------------------- | --------------------------------------------- |
+| TestAutoCallLifecycle               | Full auto call start → tracking → end → idle  |
+| TestAutoModeChangeMidCall           | Mode change during active call                |
+| TestDebouncePreventsFlipFlop        | 3-cycle debounce stabilization                |
+| TestPTZClampingWithDegreeMultiplier | V4L2 1/3600° unit conversion                  |
+| TestWaybarTooltipContent            | JSON output with camera + audio + auto status |
+| TestErrorDuringCallStart            | HID failure graceful degradation              |
+| TestStateSurvivesRestart            | State persistence round-trip                  |
+| TestAudioModeCycle                  | nc → live → org → nc cycling                  |
+| TestPrivacyToggleRoundTrip          | privacy → idle → privacy                      |
+| TestAutoModePersistence             | Config → state → reload                       |
+| TestTrackingOnlyMode                | Tracking without audio/privacy                |
 
 All tests pass with `-race`. Uses project conventions: standard `testing`, `newTestDaemon` builder, `testDaemonOption` pattern.
 
@@ -89,22 +91,23 @@ Fixed stale documentation in 4 files:
 
 ## Metrics
 
-| Metric | Value |
-|--------|-------|
-| Lint issues | 0 |
-| Test suites | 2 (root, internal/pixy) |
-| Test result | ALL PASS (race detector enabled) |
-| Coverage | 69.6% |
-| Behavioral tests | 11 new |
-| Features documented | 43 |
-| Architecture diagrams | 2 (current + improved) |
-| Doc files fixed | 4 |
+| Metric                | Value                            |
+| --------------------- | -------------------------------- |
+| Lint issues           | 0                                |
+| Test suites           | 2 (root, internal/pixy)          |
+| Test result           | ALL PASS (race detector enabled) |
+| Coverage              | 69.6%                            |
+| Behavioral tests      | 11 new                           |
+| Features documented   | 43                               |
+| Architecture diagrams | 2 (current + improved)           |
+| Doc files fixed       | 4                                |
 
 ---
 
 ## Files Changed
 
 ### New files
+
 - `FEATURES.md` — Feature inventory (43 features)
 - `behavior_test.go` — 11 BDD behavioral tests
 - `docs/architecture-understanding/2026-05-03_02-38_current.d2` — Current arch source
@@ -114,6 +117,7 @@ Fixed stale documentation in 4 files:
 - `docs/status/2026-05-03_03-01_comprehensive-7-skill-audit.md` — This file
 
 ### Modified files
+
 - `README.md` — CLI commands, file architecture table
 - `AGENTS.md` — Config table, file responsibilities, DI fields, test files, gotchas
 - `CHANGELOG.md` — Comprehensive entries for all features
