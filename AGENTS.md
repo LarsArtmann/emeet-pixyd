@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-05-02
+**Updated:** 2026-05-03
 
 ---
 
@@ -174,8 +174,10 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **GOWORK=off required**: Parent directory has a `go.work` that doesn't include this project. Always use `GOWORK=off` for `go build`/`go test`. CI is configured with `GOWORK: off` env var.
 - **Audio mode shorthand**: CLI accepts `"org"` but the stored/displayed value is `"original"`. `ParseAudioMode` maps both.
 - **PTZ units**: V4L2 uses 1/3600-degree units internally (`v4l2DegreesPerUnit = 3600`). The daemon presents user-facing degrees but multiplies before sending to `v4l2-ctl`. Zoom is not multiplied.
-- **`webStatus` struct lives in `web_types.go`**, not in `templates.templ` (was moved out for cleaner separation). Camera/Audio/Auto fields use typed `pixy.CameraState`/`pixy.AudioMode`/`pixy.AutoMode` for compile-time safety.
-- **Generated file**: `templates.templ` must be compiled with `templ generate` before `go build`. The nix build runs `templ generate` automatically in `preBuild`. The generated `_templ.go` file is gitignored. Use `go generate ./...` to rebuild locally.
+- **`webStatus` struct lives in `web_types.go`**, not in `templates.templ`. Fields `Camera`, `Audio`, `Auto` use typed `pixy.CameraState`/`pixy.AudioMode`/`pixy.AutoMode` for compile-time safety. Templates use typed comparisons (`s.Camera == pixy.StateTracking`) instead of raw string literals.
+- **Generated file**: `templates.templ` must be compiled with `templ generate` before `go build`. The nix build runs `templ generate` automatically in `preBuild`. The generated `_templ.go` file is gitignored. Use `go generate ./...` to rebuild locally. Templates import `pixy` for typed constants (`pixy.StateTracking`, `pixy.AudioNC`, etc.).
+- **Template `load` trigger was removed**: The `#status-panel` div uses `hx-trigger="every 3s, refresh from:body"` (no `load`). The `load` trigger caused an infinite loop with `outerHTML` swap because each swapped element re-triggered `load`. Initial page renders the panel server-side via `@statusPanel(s)` in `page()`.
+- **Scripts at end of body**: HTMX and `app.js` are loaded at the end of `<body>` (not in `<head>`) because `app.js` accesses `document.body` at line 12 which would be `null` in `<head>`.
 - **Build tags**: All `.go` files in the root use `//go:build linux`. Tests that test Linux-specific code naturally require a Linux host.
 - **`flaky` test awareness**: Some tests probe real sysfs (e.g., `TestProbeDevices_SetsStateToOfflineWhenNoVideo`), so they may pass or fail depending on whether a PIXY is physically connected. These tests handle both outcomes gracefully.
 - **Nix build uses `proxyVendor = true`**: The standard FOD-based vendor approach fails because `templ generate` (in `preBuild`) produces imports that weren't visible when the FOD ran `go mod vendor`. `proxyVendor = true` downloads deps during the build via Go module proxy, after `templ generate` has run. The `vendorHash` is a SHA of the downloaded module tarballs, not of the vendored source tree.
@@ -190,6 +192,9 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
 - **Test coverage for auto/process**: `auto_test.go` tests `handleCallStart`, `handleCallEnd`, `autoManage` state transitions. `process_test.go` tests `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc` filesystem.
+- **`webStatus` uses typed fields**: `Camera pixy.CameraState`, `Audio pixy.AudioMode`, `Auto pixy.AutoMode`. Templates use typed comparisons (`s.Camera == pixy.StateTracking`) instead of raw string literals, eliminating the previous split brain.
+- **Unified toast/error pattern**: All HTTP handlers use `applyResponseToStatus()` to set either `status.Error` (on command error) or `status.Toast`+`status.ToastType` (on success). No more duplicate error-handling paths.
+- **Handler extraction**: `handlers.go` (was 624 lines) extracted into `metrics.go` (OTel registration + updateMetrics), `stream.go` (MJPEG streaming + JPEG parsing), `middleware.go` (security headers, request ID, caching, PTZ validation). Handlers.go is now ~310 lines focused on HTTP routing and web handlers.
 - **`TestUpdateMetrics` is NOT parallel**: Tests global mutable metrics state, must run serially to avoid interference from parallel tests calling `updateMetrics()`. `TestSendCommand_EndToEnd` and `TestConfigFromEnv_DefaultsWhenUnset` both use `t.Parallel()` (temp socket dir and env reads respectively are safe to parallelize).
 - **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
 - **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
