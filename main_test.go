@@ -23,7 +23,9 @@ const (
 )
 
 func testConfig(dir string) pixy.Config {
+	//nolint:exhaustruct
 	return pixy.Config{
+		//nolint:exhaustruct
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
@@ -42,7 +44,9 @@ func newTestDaemon(
 	videoDev, hidrawDev string,
 	opts ...testDaemonOption,
 ) *Daemon {
+	//nolint:exhaustruct
 	d := &Daemon{
+		//nolint:exhaustruct
 		mu: sync.RWMutex{},
 		state: pixy.State{
 			Camera:   camera,
@@ -51,7 +55,9 @@ func newTestDaemon(
 			InCall:   false,
 			AutoMode: pixy.AutoFull,
 		},
+		//nolint:exhaustruct
 		config: pixy.Config{
+			//nolint:exhaustruct
 			StateDir:      "/tmp",
 			PollInterval:  2 * time.Second,
 			DebounceCount: 3,
@@ -171,6 +177,7 @@ func TestStateSaveLoad(t *testing.T) {
 
 	cfg := testConfig(t.TempDir())
 
+	//nolint:exhaustruct
 	d := &Daemon{
 		mu:     sync.RWMutex{},
 		config: cfg,
@@ -192,7 +199,9 @@ func TestStateSaveLoad(t *testing.T) {
 		t.Fatalf("saveState: %v", saveErr)
 	}
 
+	//nolint:exhaustruct
 	d2 := &Daemon{
+		//nolint:exhaustruct
 		mu:     sync.RWMutex{},
 		config: cfg,
 		state: pixy.State{
@@ -517,7 +526,9 @@ func TestHandleCommandAudioCycleNoDevice(t *testing.T) {
 func TestConfigPaths(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	cfg := pixy.Config{
+		//nolint:exhaustruct
 		StateDir:      "/tmp/test-pixyd",
 		PollInterval:  pixy.DefaultPollInterval,
 		DebounceCount: pixy.DefaultDebounceCount,

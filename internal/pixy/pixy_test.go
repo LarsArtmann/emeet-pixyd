@@ -263,6 +263,7 @@ func TestDefaultConfig(t *testing.T) {
 func TestConfig_StateFile(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	c := Config{StateDir: "/tmp/test"}
 
 	want := "/tmp/test/state.json"
@@ -274,6 +275,7 @@ func TestConfig_StateFile(t *testing.T) {
 func TestConfig_SocketPath(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	c := Config{StateDir: "/tmp/test"}
 
 	want := "/tmp/test/control.sock"
@@ -348,6 +350,7 @@ func TestSendCommand_EndToEnd(t *testing.T) {
 func TestConfigValidate(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	valid := Config{
 		StateDir:      "/tmp/test",
 		PollInterval:  time.Second,

@@ -619,6 +619,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 	daemon.state.InCall = true
 	webSrv := &webServer{daemon: daemon}
 	status := webSrv.getWebStatus()
+	//nolint:exhaustruct
 	assertWebStatusField(t, status, webStatusCheck{
 		Camera: ptr(pixy.StateTracking),
 
@@ -715,6 +716,7 @@ func shortSocketDir(t *testing.T) string {
 
 func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 	t.Helper()
+	//nolint:exhaustruct
 	cfg := pixy.Config{
 		StateDir: shortSocketDir(t),
 

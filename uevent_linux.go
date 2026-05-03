@@ -18,7 +18,9 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		return -1, fmt.Errorf("netlink socket: %w", err)
 	}
 
+	//nolint:exhaustruct
 	sa := &unix.SockaddrNetlink{
+		//nolint:exhaustruct
 		Groups: 1,
 	}
 	if bindErr := unix.Bind(fd, sa); bindErr != nil {

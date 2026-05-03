@@ -14,6 +14,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
+//nolint:gochecknoglobals
 var (
 	promExporter      *prometheus.Exporter
 	metricInCall      metric.Float64Gauge
@@ -21,8 +22,10 @@ var (
 	metricCameraState metric.Float64Gauge
 )
 
+//nolint:gochecknoglobals
 var metricsOnce sync.Once
 
+//nolint:gochecknoinits
 func init() {
 	registerMetrics()
 }

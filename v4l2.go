@@ -56,6 +56,7 @@ func parsePTZValues(ctx context.Context, dev string) ptzValues {
 		"--get-ctrl=pan_absolute,tilt_absolute,zoom_absolute",
 	).Output()
 	if err != nil {
+		//nolint:exhaustruct
 		return ptzValues{}
 	}
 

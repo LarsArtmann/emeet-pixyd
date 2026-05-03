@@ -257,6 +257,7 @@ type Config struct {
 
 // DefaultConfig returns the standard daemon configuration.
 func DefaultConfig() Config {
+	//nolint:exhaustruct
 	return Config{
 		StateDir:      DefaultStateDir,
 		PollInterval:  DefaultPollInterval,
@@ -365,6 +366,7 @@ func SetDeadline(conn net.Conn, timeout time.Duration) error {
 
 // SendCommand sends a command string over a Unix socket and returns the response.
 func SendCommand(ctx context.Context, socketPath, cmd string) (string, error) {
+	//nolint:exhaustruct
 	dialer := net.Dialer{Timeout: DefaultSocketTimeout}
 
 	conn, err := dialer.DialContext(ctx, "unix", socketPath)

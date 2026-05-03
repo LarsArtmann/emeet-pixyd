@@ -22,7 +22,9 @@ type uevent struct {
 }
 
 func parseUevent(data string) uevent {
+	//nolint:exhaustruct
 	evt := uevent{}
+
 	for line := range strings.SplitSeq(data, "\n") {
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {

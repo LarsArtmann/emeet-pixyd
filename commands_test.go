@@ -482,6 +482,7 @@ func TestActionToast_UnknownCommand(t *testing.T) {
 func TestApplyResponseToStatus_Error(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus("error: pan: bad", &status, "ignored")
 	if status.Error == "" {
@@ -495,6 +496,7 @@ func TestApplyResponseToStatus_Error(t *testing.T) {
 func TestApplyResponseToStatus_Success(t *testing.T) {
 	t.Parallel()
 
+	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus("tracking on", &status, "Tracking enabled")
 	if status.Error != "" {

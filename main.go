@@ -62,6 +62,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		return nil, fmt.Errorf("validate config: %w", err)
 	}
 
+	//nolint:exhaustruct
 	d := &Daemon{
 		mu:              sync.RWMutex{},
 		config:          cfg,
@@ -410,6 +411,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 		return fmt.Errorf("create state dir: %w", createErr)
 	}
 
+	//nolint:exhaustruct
 	lc := net.ListenConfig{}
 
 	listener, err := lc.Listen(ctx, "unix", socketPath)
@@ -495,6 +497,7 @@ func (d *Daemon) Run() {
 	if d.config.WebAddr != "" {
 		webSrv := &webServer{daemon: d}
 		mux := newWebMux(webSrv)
+		//nolint:exhaustruct
 		httpSrv = &http.Server{
 			Addr:              d.config.WebAddr,
 			Handler:           requestIDMiddleware(securityMiddleware(mux)),

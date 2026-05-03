@@ -330,6 +330,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
+	//nolint:exhaustruct
 	cfg := pixy.Config{
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
@@ -346,6 +347,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 		AutoMode: pixy.AutoTrackingOnly,
 	}
 
+	//nolint:exhaustruct
 	d1 := &Daemon{
 		mu:              sync.RWMutex{},
 		config:          cfg,
@@ -362,6 +364,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 	}
 
 	// When a new daemon loads from the same state dir
+	//nolint:exhaustruct
 	d2 := &Daemon{
 		mu:              sync.RWMutex{},
 		config:          cfg,
@@ -485,6 +488,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 
 	dir := t.TempDir()
 	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
+		//nolint:exhaustruct
 		d.config = pixy.Config{
 			StateDir:      dir,
 			PollInterval:  2 * time.Second,

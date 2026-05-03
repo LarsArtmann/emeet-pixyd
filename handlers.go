@@ -65,6 +65,7 @@ type webServer struct {
 func (s *webServer) getWebStatus() webStatus {
 	s.daemon.mu.RLock()
 	defer s.daemon.mu.RUnlock()
+	//nolint:exhaustruct
 	status := webStatus{
 		Camera:     s.daemon.state.Camera,
 		Audio:      s.daemon.state.Audio,
@@ -119,12 +120,12 @@ func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
 
 func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
-	templ.Handler(page(status)).ServeHTTP(responseWriter, request)
+	templ.Handler(page(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func (s *webServer) action(command string) http.HandlerFunc {
@@ -139,7 +140,7 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		toast, _ := actionToast(command)
 		applyResponseToStatus(resp, &status, toast)
 
-		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 	}
 }
 
@@ -186,7 +187,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	slog.Debug("web audio", "cmd", cmd, "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResponseToStatus(resp, &status, "Audio mode changed")
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func clampInt(v, lo, hi int) int {
@@ -235,17 +236,20 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 		templ.Handler(ptzSlider("Pan", axisPan, panMin, panMax, status.Pan, "\u00b0")).
 			ServeHTTP(responseWriter, request)
+
 	case axisTilt:
 
 		templ.Handler(ptzSlider("Tilt", axisTilt, tiltMin, tiltMax, status.Tilt, "\u00b0")).
 			ServeHTTP(responseWriter, request)
+
 	case axisZoom:
 
 		templ.Handler(ptzSlider("Zoom", axisZoom, zoomMin, zoomMax, status.Zoom, "x")).
 			ServeHTTP(responseWriter, request)
+
 	default:
 
-		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 	}
 }
 
@@ -266,7 +270,7 @@ func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, requ
 	slog.Debug("web gesture toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResponseToStatus(resp, &status, "Gesture toggled")
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request *http.Request) {
@@ -275,7 +279,7 @@ func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request
 	slog.Debug("web auto toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResponseToStatus(resp, &status, "Auto mode toggled")
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func newWebMux(server *webServer) *http.ServeMux {

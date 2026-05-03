@@ -348,6 +348,7 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 
 	dir := t.TempDir()
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+		//nolint:exhaustruct
 		d.config = pixy.Config{
 			StateDir:      dir,
 			PollInterval:  2 * time.Second,

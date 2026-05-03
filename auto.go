@@ -119,6 +119,6 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	d.mu.Unlock()
 
 	d.mu.RLock()
-	updateMetrics(d.state)
+	updateMetrics(d.state) //nolint:contextcheck
 	d.mu.RUnlock()
 }
