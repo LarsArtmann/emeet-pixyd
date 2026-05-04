@@ -38,6 +38,10 @@
       default = self.packages.${system}.emeet-pixyd;
     });
 
+    checks = forAllSystems (system: {
+      build = self.packages.${system}.default;
+    });
+
     overlays.default = _final: prev: {
       emeet-pixyd = prev.callPackage ./package.nix {
         src = prev.lib.cleanSourceWith {
@@ -55,7 +59,7 @@
     in {
       default = pkgs.mkShell {
         packages = with pkgs; [
-          go
+          go_1_26
           golangci-lint
           templ
         ];
