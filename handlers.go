@@ -235,19 +235,16 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	case axisPan:
 
 		templ.Handler(ptzSlider("Pan", axisPan, panMin, panMax, status.Pan, "\u00b0")).
-			//nolint:contextcheck
 			ServeHTTP(responseWriter, request)
 
 	case axisTilt:
 
 		templ.Handler(ptzSlider("Tilt", axisTilt, tiltMin, tiltMax, status.Tilt, "\u00b0")).
-			//nolint:contextcheck
 			ServeHTTP(responseWriter, request)
 
 	case axisZoom:
 
 		templ.Handler(ptzSlider("Zoom", axisZoom, zoomMin, zoomMax, status.Zoom, "x")).
-			//nolint:contextcheck
 			ServeHTTP(responseWriter, request)
 
 	default:
