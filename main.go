@@ -23,6 +23,10 @@ import (
 // Build info, overridden via -ldflags.
 var buildVersion = "dev"
 
+func init() {
+	slog.SetLogLoggerLevel(slog.LevelInfo)
+}
+
 type Daemon struct {
 	mu        sync.RWMutex
 	cmdMu     sync.Mutex
@@ -593,6 +597,10 @@ func exitWithDaemonError(err error) {
 
 func main() {
 	cfg := pixy.ConfigFromEnv()
+
+	if cfg.Debug {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
 
 	if len(os.Args) > 1 {
 		cmd := strings.Join(os.Args[1:], " ")
