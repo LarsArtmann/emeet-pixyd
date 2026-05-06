@@ -928,18 +928,11 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	daemon := newDaemonWithDevice(t)
 	srv := newTestWebServer(t, daemon)
 
-	req, err := http.NewRequestWithContext(context.Background(), "GET", srv.URL+"/", nil)
-	if err != nil {
-		t.Fatalf("create request: %v", err)
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("GET /: %v", err)
-	}
+	resp := get(t, srv.URL+"/")
 	defer resp.Body.Close() //nolint:errcheck
 
-	body, _ := io.ReadAll(resp.Body)
-	html := string(body)
+	body := getBody(t, resp)
+	html := body
 
 	for _, want := range []string{
 		`hx-post="/api/track"`,
@@ -971,22 +964,13 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 	daemon := newDaemonWithDevice(t)
 	srv := newTestWebServer(t, daemon)
 
-	req, err := http.NewRequestWithContext(context.Background(), "GET", srv.URL+"/panel", nil)
-	if err != nil {
-		t.Fatalf("create request: %v", err)
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("GET /panel: %v", err)
-	}
+	resp := get(t, srv.URL+"/panel")
 	defer resp.Body.Close() //nolint:errcheck
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected 200, got %d", resp.StatusCode)
-	}
+	assertHTTPStatusOK(t, resp)
 
-	body, _ := io.ReadAll(resp.Body)
-	html := string(body)
+	body := getBody(t, resp)
+	html := body
 
 	if !strings.Contains(html, `id="status-panel"`) {
 		t.Error("panel response missing #status-panel div")

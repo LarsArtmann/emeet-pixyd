@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -41,9 +40,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true after handleCallStart")
-	}
+	assertInCall(t, d, true)
 
 	if !notifyCalled {
 		t.Error("expected notify to be called")
@@ -59,9 +56,7 @@ func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true")
-	}
+	assertInCall(t, d, true)
 }
 
 func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
@@ -73,9 +68,7 @@ func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true")
-	}
+	assertInCall(t, d, true)
 }
 
 func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
@@ -114,15 +107,17 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 	t.Parallel()
 
 	var setSourceCalled bool
-	d := testAutoDaemon(func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (string, error) { return "42", nil }
-		d.setSourceFn = func(_ context.Context, id string) {
-			setSourceCalled = true
-			if id != "42" {
-				t.Errorf("expected source id 42, got %s", id)
+	d := testAutoDaemon(
+		withFindSource("42"),
+		func(d *Daemon) {
+			d.setSourceFn = func(_ context.Context, id string) {
+				setSourceCalled = true
+				if id != "42" {
+					t.Errorf("expected source id 42, got %s", id)
+				}
 			}
-		}
-	})
+		},
+	)
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 
@@ -135,10 +130,12 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 	t.Parallel()
 
 	var setSourceCalled bool
-	d := testAutoDaemon(func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (string, error) { return "42", nil }
-		d.setSourceFn = func(_ context.Context, _ string) { setSourceCalled = true }
-	})
+	d := testAutoDaemon(
+		withFindSource("42"),
+		func(d *Daemon) {
+			d.setSourceFn = func(_ context.Context, _ string) { setSourceCalled = true }
+		},
+	)
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
 
@@ -153,16 +150,12 @@ func TestHandleCallEnd_ClearsInCall(t *testing.T) {
 	var notifyCalled bool
 	d := testAutoDaemon(
 		withInCall(true),
-		func(d *Daemon) {
-			d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
-		},
+		withNotifyCalled(&notifyCalled),
 	)
 
 	d.handleCallEnd(context.Background(), pixy.AutoFull)
 
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=false after handleCallEnd")
-	}
+	assertInCall(t, d, false)
 
 	if !notifyCalled {
 		t.Error("expected notify to be called")
@@ -210,12 +203,8 @@ func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	assertInCall(t, d, false)
 	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
-
-	if inCall {
-		t.Error("should not be in call with auto off")
-	}
 
 	if camera != pixy.StatePrivacy {
 		t.Errorf("camera state should not change with auto off, got %s", camera)
@@ -234,12 +223,8 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	assertInCall(t, d, true)
 	debounceInUse, _ := readDebounce(d)
-
-	if !inCall {
-		t.Error("expected InCall=true after camera in use with debounce=1")
-	}
 
 	if debounceInUse != 1 {
 		t.Errorf("expected debounceInUse=1, got %d", debounceInUse)
@@ -259,12 +244,8 @@ func TestAutoManage_InUseNotEnoughDebounce(t *testing.T) {
 
 	d.autoManage(context.Background())
 
-	inCall := readState(d, func(s pixy.State) bool { return s.InCall })
+	assertInCall(t, d, false)
 	debounceInUse, _ := readDebounce(d)
-
-	if inCall {
-		t.Error("should not be in call after single poll with debounce=3")
-	}
 
 	if debounceInUse != 1 {
 		t.Errorf("expected debounceInUse=1, got %d", debounceInUse)
@@ -277,18 +258,14 @@ func TestAutoManage_IdleTriggersCallEnd(t *testing.T) {
 	var notifyCalled bool
 	d := testAutoDaemon(
 		withInCall(true),
-		func(d *Daemon) {
-			d.isCameraInUseFn = func(_ string) bool { return false }
-			d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
-			d.config.DebounceCount = 1
-		},
+		withCameraInUse(false),
+		withNotifyCalled(&notifyCalled),
+		func(d *Daemon) { d.config.DebounceCount = 1 },
 	)
 
 	d.autoManage(context.Background())
 
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=false after camera idle with debounce=1")
-	}
+	assertInCall(t, d, false)
 
 	if !notifyCalled {
 		t.Error("expected notify to be called")
@@ -347,15 +324,7 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
-		//nolint:exhaustruct
-		d.config = pixy.Config{
-			StateDir:      dir,
-			PollInterval:  2 * time.Second,
-			DebounceCount: 3,
-			WebAddr:       "127.0.0.1:0",
-		}
-	})
+	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withConfig(dir))
 
 	d.autoManage(context.Background())
 

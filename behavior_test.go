@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -60,9 +59,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	d.autoManage(context.Background())
 
 	// Then the call starts, PipeWire source switches, and user is notified
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true after 3 debounce cycles")
-	}
+	assertInCall(t, d, true)
 	if len(setSourceCalls) == 0 || setSourceCalls[0] != "42" {
 		t.Errorf("expected PipeWire source switch to 42, got: %v", setSourceCalls)
 	}
@@ -78,9 +75,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	d.autoManage(context.Background())
 
 	// Then the call ends and privacy notification is sent
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=false after camera released")
-	}
+	assertInCall(t, d, false)
 	if len(notifyBodies) == 0 {
 		t.Error("expected notification on call end")
 	}
@@ -113,9 +108,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	if resp != respAutoModeOff {
 		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("InCall should still be true after auto mode change")
-	}
+	assertInCall(t, d, true)
 	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
 	if camera != pixy.StateTracking {
 		t.Errorf("camera should still be tracking, got: %s", camera)
@@ -126,9 +119,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	d.config.DebounceCount = 1
 	d.autoManage(context.Background())
 
-	if readState(d, func(s pixy.State) bool { return s.InCall }) == false {
-		t.Error("InCall should remain true because auto is off (no call end handling)")
-	}
+	assertInCall(t, d, true)
 }
 
 // ---------------------------------------------------------------------------
@@ -167,9 +158,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	}
 
 	// Then no call was started
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("should not be in call after flip-flop")
-	}
+	assertInCall(t, d, false)
 	if callStarted {
 		t.Error("no notification should have been sent")
 	}
@@ -180,9 +169,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	d.autoManage(context.Background())
 
 	// Then still no call (counter reset, only 2 of 3)
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("should not be in call after only 2 cycles post-reset")
-	}
+	assertInCall(t, d, false)
 }
 
 // ---------------------------------------------------------------------------
@@ -320,9 +307,7 @@ func TestBehavior_ErrorDuringCallStart_StillSetsInCall(t *testing.T) {
 	d.autoManage(context.Background())
 
 	// Then InCall is still set (we don't lose the call state just because HID failed)
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("InCall should be set even when tracking activation fails")
-	}
+	assertInCall(t, d, true)
 }
 
 // ---------------------------------------------------------------------------
@@ -333,13 +318,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	//nolint:exhaustruct
-	cfg := pixy.Config{
-		StateDir:      dir,
-		PollInterval:  2 * time.Second,
-		DebounceCount: 3,
-		WebAddr:       "127.0.0.1:0",
-	}
+	cfg := testConfig(dir)
 
 	// Given a daemon with specific state
 	original := pixy.State{
@@ -350,34 +329,14 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 		AutoMode: pixy.AutoTrackingOnly,
 	}
 
-	//nolint:exhaustruct
-	d1 := &Daemon{
-		mu:              sync.RWMutex{},
-		config:          cfg,
-		state:           original,
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (string, error) { return "", nil },
-		setSourceFn:     func(context.Context, string) {},
-		notifyFn:        func(context.Context, string, string) {},
-	}
+	d1 := newDaemonForStateTest(cfg, original)
 
 	if err := d1.saveState(); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
 	// When a new daemon loads from the same state dir
-	//nolint:exhaustruct
-	d2 := &Daemon{
-		mu:              sync.RWMutex{},
-		config:          cfg,
-		state:           pixy.DefaultState(),
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (string, error) { return "", nil },
-		setSourceFn:     func(context.Context, string) {},
-		notifyFn:        func(context.Context, string, string) {},
-	}
+	d2 := newDaemonForStateTest(cfg, pixy.DefaultState())
 	d2.loadState()
 
 	// Then all fields match the original
@@ -490,15 +449,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		//nolint:exhaustruct
-		d.config = pixy.Config{
-			StateDir:      dir,
-			PollInterval:  2 * time.Second,
-			DebounceCount: 3,
-			WebAddr:       "127.0.0.1:0",
-		}
-	})
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withConfig(dir))
 
 	// When user sets auto mode to tracking-only
 	d.handleAutoCommand([]string{"auto", "tracking-only"})
@@ -536,15 +487,11 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 	d.autoManage(context.Background())
 
 	// Then InCall is set and notification sent with tracking-only mode
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true")
-	}
+	assertInCall(t, d, true)
 	if len(notifyMessages) == 0 {
 		t.Error("expected notification")
 	}
-	if !strings.Contains(notifyMessages[0], "tracking-only") {
-		t.Errorf("notification should mention tracking-only, got: %s", notifyMessages[0])
-	}
+	assertNotifyContains(t, notifyMessages, "tracking-only")
 }
 
 // ---------------------------------------------------------------------------
@@ -568,9 +515,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	// When camera is used (call start) — privacy-only should NOT activate tracking
 	d.autoManage(context.Background())
 
-	if !readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=true")
-	}
+	assertInCall(t, d, true)
 	// Tracking activation is NOT called because privacy-only mode doesn't activate tracking
 	// The camera state stays as-is (or gets set to offline because HID fails, but that's fine)
 
@@ -579,15 +524,11 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	d.isCameraInUseFn = func(string) bool { return false }
 	d.autoManage(context.Background())
 
-	if readState(d, func(s pixy.State) bool { return s.InCall }) {
-		t.Error("expected InCall=false after call end")
-	}
+	assertInCall(t, d, false)
 	if len(notifyMessages) == 0 {
 		t.Error("expected notification on call end")
 	}
-	if !strings.Contains(notifyMessages[0], "privacy") {
-		t.Errorf("notification should mention privacy, got: %s", notifyMessages[0])
-	}
+	assertNotifyContains(t, notifyMessages, "privacy")
 }
 
 // ---------------------------------------------------------------------------
@@ -680,9 +621,7 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("expected 200, got %d", resp.StatusCode)
-	}
+	assertHTTPStatusOK(t, resp)
 
 	respBody, _ := io.ReadAll(resp.Body)
 	html := string(respBody)

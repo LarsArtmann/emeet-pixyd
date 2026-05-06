@@ -66,9 +66,7 @@ func TestIsCommandErrorResponse(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func newPTZDaemon(opts ...testDaemonOption) *Daemon {
-	allOpts := append([]testDaemonOption{func(d *Daemon) {
-		d.v4l2SetFn = func(context.Context, string, string, string) error { return nil }
-	}}, opts...)
+	allOpts := append([]testDaemonOption{func(_ *Daemon) {}}, opts...)
 	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", allOpts...)
 }
 
@@ -127,9 +125,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "", "", func(d *Daemon) {
-		d.v4l2SetFn = func(context.Context, string, string, string) error { return nil }
-	})
+	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handlePTZCommand(context.Background(), []string{"pan", "10"})
 	if !IsCommandErrorResponse(resp) {

@@ -35,7 +35,17 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rw, r)
-		slog.Debug("http", "method", r.Method, "path", r.URL.Path, "status", rw.status, "duration", time.Since(start))
+		slog.Debug(
+			"http",
+			"method",
+			r.Method,
+			"path",
+			r.URL.Path,
+			"status",
+			rw.status,
+			"duration",
+			time.Since(start),
+		)
 	})
 }
 

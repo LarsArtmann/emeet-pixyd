@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,6 +38,72 @@ type testDaemonOption func(*Daemon)
 
 func withInCall(inCall bool) testDaemonOption {
 	return func(d *Daemon) { d.state.InCall = inCall }
+}
+
+func withNotifyCalled(called *bool) testDaemonOption {
+	return func(d *Daemon) {
+		d.notifyFn = func(_ context.Context, _, _ string) { *called = true }
+	}
+}
+
+func withCameraInUse(inUse bool) testDaemonOption {
+	return func(d *Daemon) { d.isCameraInUseFn = func(_ string) bool { return inUse } }
+}
+
+func withFindSource(id string) testDaemonOption {
+	return func(d *Daemon) {
+		d.findSourceFn = func(_ context.Context) (string, error) { return id, nil }
+	}
+}
+
+func withConfig(dir string) testDaemonOption {
+	return func(d *Daemon) {
+		//nolint:exhaustruct
+		d.config = pixy.Config{
+			StateDir:      dir,
+			PollInterval:  2 * time.Second,
+			DebounceCount: 3,
+			WebAddr:       "127.0.0.1:0",
+		}
+	}
+}
+
+func assertInCall(t *testing.T, d *Daemon, want bool) {
+	t.Helper()
+	if got := readState(d, func(s pixy.State) bool { return s.InCall }); got != want {
+		t.Errorf("expected InCall=%v, got %v", want, got)
+	}
+}
+
+func assertHTTPStatusOK(t *testing.T, resp *http.Response) {
+	t.Helper()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+}
+
+func assertNotifyContains(t *testing.T, messages []string, substr string) {
+	t.Helper()
+	if len(messages) == 0 {
+		t.Fatalf("expected notification containing %q, but no notifications", substr)
+	}
+	if !strings.Contains(messages[0], substr) {
+		t.Errorf("notification should mention %s, got: %s", substr, messages[0])
+	}
+}
+
+func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
+	//nolint:exhaustruct
+	return &Daemon{
+		mu:              sync.RWMutex{},
+		config:          cfg,
+		state:           state,
+		streamSema:      make(chan struct{}, 1),
+		isCameraInUseFn: func(string) bool { return false },
+		findSourceFn:    func(context.Context) (string, error) { return "", nil },
+		setSourceFn:     func(context.Context, string) {},
+		notifyFn:        func(context.Context, string, string) {},
+	}
 }
 
 func newTestDaemon(
