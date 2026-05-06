@@ -17,7 +17,9 @@
   });
 
   document.addEventListener("htmx:configRequest", function (e) {
-    var path = e.detail.pathInfo.requestPath;
+    var pathInfo = e.detail.pathInfo;
+    if (!pathInfo) return;
+    var path = pathInfo.requestPath;
     if (path.indexOf("/api/ptz/") === 0) {
       var elt = e.detail.elt;
       if (elt && elt.classList.contains("ptz-slider")) {

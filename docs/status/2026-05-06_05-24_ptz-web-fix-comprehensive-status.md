@@ -122,33 +122,33 @@ Nothing is totally fucked up. The codebase is in good shape:
 
 ## F. Top 25 Things to Do Next
 
-| # | Priority | Item | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | P0 | Update AGENTS.md with PTZ fix details (cache invalidation, toast behavior) | S | M |
-| 2 | P0 | Update FEATURES.md — PTZ Sliders description should mention toast feedback | S | S |
-| 3 | P1 | Add unit tests for `ptzAxisLabel`, `ptzAxisUnit`, `ptzAxisValue`, `invalidatePTZCache` | S | M |
-| 4 | P1 | Add BDD test for tilt and zoom web slider (currently only pan tested) | S | M |
-| 5 | P1 | Test the actual web UI with a real PIXY camera end-to-end | M | H |
-| 6 | P1 | Surface auto-manage errors to web UI (tracking/audio/gesture failures) | M | H |
-| 7 | P2 | Add WebSocket support for real-time status updates (replace 3s polling) | L | H |
-| 8 | P2 | Add PTZ relative mode (`pan+10`, `tilt-5`) for step-by-step control | M | M |
-| 9 | P2 | Add camera preset support (save/recall PTZ positions) | M | H |
-| 10 | P2 | Improve MJPEG stream reconnection (detect camera state changes) | M | M |
-| 11 | P2 | Add configurable notification preferences | M | M |
-| 12 | P3 | Add keyboard shortcuts for PTZ (arrow keys for pan/tilt, +/- for zoom) | S | M |
-| 13 | P3 | Add PTZ value display with live hardware readback in web UI | M | M |
-| 14 | P3 | Mobile-responsive testing and polish | M | M |
-| 15 | P3 | Add integration test with real hardware (guarded by build tag) | L | H |
-| 16 | P3 | Replace `prometheus/client_golang` with pure OTel prometheus exporter | M | S |
-| 17 | P3 | Add structured logging with configurable levels | M | M |
-| 18 | P3 | Add health check endpoint for monitoring | S | M |
-| 19 | P4 | Add dark/light theme toggle | S | S |
-| 20 | P4 | Add camera preview snapshot download button | S | S |
-| 21 | P4 | Add firmware version query | M | M |
-| 22 | P4 | Add multiple camera support | L | M |
-| 23 | P4 | Add configuration web UI for runtime settings | L | M |
-| 24 | P4 | Add i18n/localization support | L | M |
-| 25 | P4 | Add access control / authentication for web UI | L | H |
+| #   | Priority | Item                                                                                   | Effort | Impact |
+| --- | -------- | -------------------------------------------------------------------------------------- | ------ | ------ |
+| 1   | P0       | Update AGENTS.md with PTZ fix details (cache invalidation, toast behavior)             | S      | M      |
+| 2   | P0       | Update FEATURES.md — PTZ Sliders description should mention toast feedback             | S      | S      |
+| 3   | P1       | Add unit tests for `ptzAxisLabel`, `ptzAxisUnit`, `ptzAxisValue`, `invalidatePTZCache` | S      | M      |
+| 4   | P1       | Add BDD test for tilt and zoom web slider (currently only pan tested)                  | S      | M      |
+| 5   | P1       | Test the actual web UI with a real PIXY camera end-to-end                              | M      | H      |
+| 6   | P1       | Surface auto-manage errors to web UI (tracking/audio/gesture failures)                 | M      | H      |
+| 7   | P2       | Add WebSocket support for real-time status updates (replace 3s polling)                | L      | H      |
+| 8   | P2       | Add PTZ relative mode (`pan+10`, `tilt-5`) for step-by-step control                    | M      | M      |
+| 9   | P2       | Add camera preset support (save/recall PTZ positions)                                  | M      | H      |
+| 10  | P2       | Improve MJPEG stream reconnection (detect camera state changes)                        | M      | M      |
+| 11  | P2       | Add configurable notification preferences                                              | M      | M      |
+| 12  | P3       | Add keyboard shortcuts for PTZ (arrow keys for pan/tilt, +/- for zoom)                 | S      | M      |
+| 13  | P3       | Add PTZ value display with live hardware readback in web UI                            | M      | M      |
+| 14  | P3       | Mobile-responsive testing and polish                                                   | M      | M      |
+| 15  | P3       | Add integration test with real hardware (guarded by build tag)                         | L      | H      |
+| 16  | P3       | Replace `prometheus/client_golang` with pure OTel prometheus exporter                  | M      | S      |
+| 17  | P3       | Add structured logging with configurable levels                                        | M      | M      |
+| 18  | P3       | Add health check endpoint for monitoring                                               | S      | M      |
+| 19  | P4       | Add dark/light theme toggle                                                            | S      | S      |
+| 20  | P4       | Add camera preview snapshot download button                                            | S      | S      |
+| 21  | P4       | Add firmware version query                                                             | M      | M      |
+| 22  | P4       | Add multiple camera support                                                            | L      | M      |
+| 23  | P4       | Add configuration web UI for runtime settings                                          | L      | M      |
+| 24  | P4       | Add i18n/localization support                                                          | L      | M      |
+| 25  | P4       | Add access control / authentication for web UI                                         | L      | H      |
 
 ---
 
@@ -157,6 +157,7 @@ Nothing is totally fucked up. The codebase is in good shape:
 **Has the PTZ slider fix been tested with a real EMEET PIXY camera?**
 
 The fix addresses the code-level bug (stale cache, no toast), but the actual user experience depends on hardware behavior:
+
 - Does `v4l2-ctl` accept the new position fast enough that the next readback (within 2s cache TTL) returns the correct value?
 - Does the camera move smoothly with the 300ms debounce, or does it stutter on rapid slider drags?
 - Does the success toast ("Pan set to 50") appear at the right time relative to the physical camera movement?
@@ -167,10 +168,10 @@ These can only be verified with the physical device connected.
 
 ## Session Changes (uncommitted)
 
-| File | Lines Changed | Description |
-|------|--------------|-------------|
-| `handlers.go` | +60 / -12 | PTZ handler rewrite: user-value response, cache invalidation, toast feedback |
-| `templates.templ` | +5 | `ptzSliderWithToast` template |
-| `behavior_test.go` | +109 | 2 BDD tests: PTZ web slider user-input + error-toast |
+| File               | Lines Changed | Description                                                                  |
+| ------------------ | ------------- | ---------------------------------------------------------------------------- |
+| `handlers.go`      | +60 / -12     | PTZ handler rewrite: user-value response, cache invalidation, toast feedback |
+| `templates.templ`  | +5            | `ptzSliderWithToast` template                                                |
+| `behavior_test.go` | +109          | 2 BDD tests: PTZ web slider user-input + error-toast                         |
 
 **Total:** +174 / -12 across 3 files
