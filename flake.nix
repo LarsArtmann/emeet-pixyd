@@ -54,6 +54,14 @@
 
     nixosModules.default = import ./modules/nixos.nix;
 
+    apps = forAllSystems (system: {
+      default = {
+        type = "app";
+        program = "${self.packages.${system}.default}/bin/emeet-pixyd";
+        env.EMEET_PIXYD_DEBUG = "true";
+      };
+    });
+
     devShells = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
