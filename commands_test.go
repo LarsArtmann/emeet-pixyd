@@ -18,7 +18,7 @@ import (
 func TestCommandError_Error(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: "pan", Err: ErrInvalidValue}
+	err := &CommandError{Op: axisPan, Err: ErrInvalidValue}
 	want := "error: pan: invalid value"
 	if got := err.Error(); got != want {
 		t.Errorf("Error() = %q, want %q", got, want)
@@ -28,7 +28,7 @@ func TestCommandError_Error(t *testing.T) {
 func TestCommandError_Unwrap(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: "pan", Err: ErrInvalidValue}
+	err := &CommandError{Op: axisPan, Err: ErrInvalidValue}
 	if got := err.Unwrap(); !errors.Is(got, ErrInvalidValue) {
 		t.Errorf("Unwrap() = %v, want ErrInvalidValue", got)
 	}
@@ -102,7 +102,7 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{"pan"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan})
 	if !strings.HasPrefix(resp, "usage:") {
 		t.Errorf("expected usage message, got: %s", resp)
 	}
@@ -113,7 +113,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{"pan", "not-a-number"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "not-a-number"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -127,7 +127,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
-	resp := d.handlePTZCommand(context.Background(), []string{"pan", "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -170,7 +170,7 @@ func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 
 	d, setCalls := newPTZCaptureDaemon()
 
-	d.handlePTZCommand(context.Background(), []string{"zoom", "200"})
+	d.handlePTZCommand(context.Background(), []string{axisZoom, "200"})
 	if len(*setCalls) != 1 {
 		t.Fatalf("expected 1 call, got %d", len(*setCalls))
 	}
@@ -187,9 +187,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 	t.Parallel()
 
 	var calls int
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
-		d.centerCameraFn = func(context.Context) error { calls++; return nil }
-	})
+	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
 	if IsCommandErrorResponse(resp) {
@@ -220,7 +218,7 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 
 	d := newAutoOffDaemon()
 
-	resp := d.handleAutoCommand([]string{"auto", "full"})
+	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
@@ -259,7 +257,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 		d.state.AutoMode = pixy.AutoFull
 	})
 
-	resp := d.handleAutoCommand([]string{"auto-off"})
+	resp := d.handleAutoCommand([]string{cmdAutoOff})
 	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoOff)
 }
@@ -269,7 +267,7 @@ func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 
 	d := newAutoOffDaemon()
 
-	resp := d.handleAutoCommand([]string{"toggle-auto"})
+	resp := d.handleAutoCommand([]string{cmdToggleAuto})
 	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
@@ -288,11 +286,8 @@ func notError(t *testing.T, resp string) {
 func TestHandleGestureCommand_On(t *testing.T) {
 	t.Parallel()
 
-	var called bool
-	var enabledArg bool
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.setGestureFn = func(context.Context, bool) error { called = true; enabledArg = true; return nil }
-	})
+	var called, enabledArg bool
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), "gesture-on")
 	notError(t, resp)
@@ -304,11 +299,8 @@ func TestHandleGestureCommand_On(t *testing.T) {
 func TestHandleGestureCommand_Off(t *testing.T) {
 	t.Parallel()
 
-	var called bool
-	var enabledArg bool
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.setGestureFn = func(context.Context, bool) error { called = true; enabledArg = false; return nil }
-	})
+	var called, enabledArg bool
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), "gesture-off")
 	notError(t, resp)
@@ -357,11 +349,9 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 	t.Parallel()
 
 	var modeArg pixy.AudioMode
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error { modeArg = m; return nil }
-	})
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureAudio(&modeArg))
 
-	resp := d.handleAudioCommand(context.Background(), []string{"audio", "live"})
+	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
 	notError(t, resp)
 	if modeArg != pixy.AudioLive {
 		t.Errorf("setAudio called with %s, want %s", modeArg, pixy.AudioLive)
@@ -385,10 +375,9 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 	var modeArg pixy.AudioMode
 	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
-		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error { modeArg = m; return nil }
-	})
+	}, withCaptureAudio(&modeArg))
 
-	resp := d.handleAudioCommand(context.Background(), []string{"audio"})
+	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio})
 	notError(t, resp)
 	if modeArg != pixy.AudioLive {
 		t.Errorf("next mode = %s, want %s", modeArg, pixy.AudioLive)
@@ -403,11 +392,9 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error { stateArg = s; return nil }
-	})
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureTracking(&stateArg))
 
-	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, "track")
+	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
 	notError(t, resp)
 	if stateArg != pixy.StateTracking {
 		t.Errorf("setTracking called with %s, want %s", stateArg, pixy.StateTracking)
@@ -440,12 +427,12 @@ func TestActionToast_KnownCommands(t *testing.T) {
 		cmd  string
 		want string
 	}{
-		{"track", "Tracking enabled"},
-		{"idle", "Camera idle"},
-		{"privacy", "Privacy mode on"},
-		{"center", "Camera centered"},
-		{"sync", "State synced"},
-		{"probe", "Probed devices"},
+		{"track", toastTrackingEnabled},
+		{cmdIdle, toastCameraIdle},
+		{cmdPrivacy, toastPrivacyOn},
+		{cmdCenter, toastCameraCentered},
+		{cmdSync, toastStateSynced},
+		{cmdProbe, toastProbedDevices},
 		{"toggle-gesture", "Gesture toggled"},
 		{"toggle-auto", "Auto mode toggled"},
 	}

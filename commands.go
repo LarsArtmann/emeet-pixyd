@@ -19,11 +19,19 @@ const (
 	respDeviceNotFound = "device not found"
 
 	cmdGestureOn     = "gesture-on"
+	cmdGestureOff    = "gesture-off"
 	cmdIdle          = "idle"
 	cmdAutoOn        = "auto-on"
+	cmdAutoOff       = "auto-off"
 	cmdPrivacy       = string(pixy.StatePrivacy)
 	cmdToggleGesture = "toggle-gesture"
 	cmdToggleAuto    = "toggle-auto"
+	cmdTrack         = "track"
+	cmdAudio         = "audio"
+	cmdCenter        = "center"
+	cmdAuto          = "auto"
+	cmdSync          = "sync"
+	cmdProbe         = "probe"
 	minCmdParts      = 2
 )
 
@@ -40,8 +48,8 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case "status":
 		return d.getStatus(ctx)
 
-	case "track":
-		return d.handleTrackingCommand(ctx, pixy.StateTracking, "track")
+	case cmdTrack:
+		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTrack)
 
 	case cmdIdle:
 		return d.handleTrackingCommand(ctx, pixy.StateIdle, cmdIdle)
@@ -60,25 +68,25 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 
 		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, "toggle-privacy")
 
-	case "audio":
+	case cmdAudio:
 		return d.handleAudioCommand(ctx, parts)
 
-	case cmdGestureOn, "gesture-off", cmdToggleGesture:
+	case cmdGestureOn, cmdGestureOff, cmdToggleGesture:
 		return d.handleGestureCommand(ctx, parts[0])
 
-	case "center":
+	case cmdCenter:
 		return d.handleCenterCommand(ctx)
 
-	case cmdAutoOn, "auto-off", cmdToggleAuto, "auto":
+	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
 
 	case "waybar":
 		return d.waybarOutput()
 
-	case "sync":
+	case cmdSync:
 		return d.syncState(ctx)
 
-	case "probe":
+	case cmdProbe:
 		d.mu.Lock()
 		d.probeDevices()
 		dev := d.videoDev
@@ -203,9 +211,9 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 	switch cmd {
 	case cmdAutoOn:
 		mode = pixy.AutoFull
-	case "auto-off":
+	case cmdAutoOff:
 		mode = pixy.AutoOff
-	case "toggle-auto":
+	case cmdToggleAuto:
 		d.mu.RLock()
 		if d.state.AutoMode.IsOff() {
 			mode = pixy.AutoFull

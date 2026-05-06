@@ -47,12 +47,12 @@ func TestParseUevent(t *testing.T) {
 		{
 			name:  "partial keys only",
 			input: "ACTION=add\nMAJOR=81",
-			want:  uevent{Action: "add"}, //nolint:exhaustruct
+			want:  uevent{Action: ueventAdd}, //nolint:exhaustruct
 		},
 		{
 			name:  "extra newlines",
 			input: "\nACTION=add\n\nSUBSYSTEM=hidraw\n\n",
-			want:  uevent{Action: "add", Subsys: "hidraw"}, //nolint:exhaustruct
+			want:  uevent{Action: ueventAdd, Subsys: "hidraw"}, //nolint:exhaustruct
 		},
 		{
 			name:  "value contains equals",

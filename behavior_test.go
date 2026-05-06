@@ -102,7 +102,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	)
 
 	// When the user disables auto mode via command
-	resp := d.handleAutoCommand([]string{"auto", "off"})
+	resp := d.handleAutoCommand([]string{cmdAutoOff})
 
 	// Then auto mode is off but the call state is preserved
 	if resp != respAutoModeOff {
@@ -188,7 +188,7 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	})
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
-	resp := d.handlePTZCommand(context.Background(), []string{"pan", "200"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "200"})
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
@@ -212,7 +212,7 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
 	v4l2Calls = nil
-	resp = d.handlePTZCommand(context.Background(), []string{"zoom", "500"})
+	resp = d.handlePTZCommand(context.Background(), []string{axisZoom, "500"})
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
@@ -539,11 +539,16 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	t.Parallel()
 
 	// Given a daemon with a device and a web server (cache has stale pan=0)
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
-		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
-		d.ptzCache.values = ptzValues{Pan: 0, Tilt: 0, Zoom: 100}
-		d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
-	})
+	d := newTestDaemon(
+		pixy.StateTracking,
+		"/dev/video0",
+		"/dev/hidraw7",
+		withNoopV4L2(),
+		func(d *Daemon) {
+			d.ptzCache.values = ptzValues{Pan: 0, Tilt: 0, Zoom: 100}
+			d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
+		},
+	)
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
@@ -597,9 +602,7 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	t.Parallel()
 
 	// Given a daemon with no device
-	d := newTestDaemon(pixy.StateOffline, "", "", func(d *Daemon) {
-		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
-	})
+	d := newTestDaemon(pixy.StateOffline, "", "", withNoopV4L2())
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)

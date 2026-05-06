@@ -38,6 +38,13 @@ const (
 	toastTypeError   = "error"
 
 	ptzCacheTTL = 2 * time.Second
+
+	toastTrackingEnabled = "Tracking enabled"
+	toastCameraIdle      = "Camera idle"
+	toastPrivacyOn       = "Privacy mode on"
+	toastCameraCentered  = "Camera centered"
+	toastStateSynced     = "State synced"
+	toastProbedDevices   = "Probed devices"
 )
 
 //go:embed static
@@ -148,18 +155,18 @@ func (s *webServer) action(command string) http.HandlerFunc {
 
 func actionToast(command string) (string, string) {
 	switch command {
-	case "track":
-		return "Tracking enabled", toastTypeSuccess
+	case cmdTrack:
+		return toastTrackingEnabled, toastTypeSuccess
 	case cmdIdle:
-		return "Camera idle", toastTypeSuccess
+		return toastCameraIdle, toastTypeSuccess
 	case cmdPrivacy:
-		return "Privacy mode on", toastTypeSuccess
-	case "center":
-		return "Camera centered", toastTypeSuccess
-	case "sync":
-		return "State synced", toastTypeSuccess
-	case "probe":
-		return "Probed devices", toastTypeSuccess
+		return toastPrivacyOn, toastTypeSuccess
+	case cmdCenter:
+		return toastCameraCentered, toastTypeSuccess
+	case cmdSync:
+		return toastStateSynced, toastTypeSuccess
+	case cmdProbe:
+		return toastProbedDevices, toastTypeSuccess
 	case cmdToggleGesture:
 		return "Gesture toggled", toastTypeInfo
 	case cmdToggleAuto:

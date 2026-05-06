@@ -310,9 +310,8 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest
 func TestAutoManage_UpdatesMetrics(t *testing.T) {
-	t.Parallel()
-
 	d := testAutoDaemon()
 	d.autoManage(context.Background())
 

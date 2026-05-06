@@ -260,13 +260,15 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
+const testStateDir = "/tmp/test"
+
 func TestConfig_StateFile(t *testing.T) {
 	t.Parallel()
 
 	//nolint:exhaustruct
-	c := Config{StateDir: "/tmp/test"}
+	c := Config{StateDir: testStateDir}
 
-	want := "/tmp/test/state.json"
+	want := testStateDir + "/state.json"
 	if got := c.StateFile(); got != want {
 		t.Errorf("Config.StateFile() = %v, want %v", got, want)
 	}
@@ -276,9 +278,9 @@ func TestConfig_SocketPath(t *testing.T) {
 	t.Parallel()
 
 	//nolint:exhaustruct
-	c := Config{StateDir: "/tmp/test"}
+	c := Config{StateDir: testStateDir}
 
-	want := "/tmp/test/control.sock"
+	want := testStateDir + "/control.sock"
 	if got := c.SocketPath(); got != want {
 		t.Errorf("Config.SocketPath() = %v, want %v", got, want)
 	}
@@ -352,7 +354,7 @@ func TestConfigValidate(t *testing.T) {
 
 	//nolint:exhaustruct
 	valid := Config{
-		StateDir:      "/tmp/test",
+		StateDir:      testStateDir,
 		PollInterval:  time.Second,
 		DebounceCount: 3,
 		WebAddr:       "127.0.0.1:8090",

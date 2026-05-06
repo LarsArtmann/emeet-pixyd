@@ -21,6 +21,8 @@ import (
 )
 
 // Build info, overridden via -ldflags.
+//
+//nolint:gochecknoglobals
 var buildVersion = "dev"
 
 type Daemon struct {
@@ -361,7 +363,7 @@ func (d *Daemon) waybarOutput() string {
 	switch camera {
 	case pixy.StateTracking:
 		icon = "\uf030"
-		class = "tracking"
+		class = string(pixy.StateTracking)
 		text = "CAM"
 	case pixy.StatePrivacy:
 		icon = "\uf011"
@@ -369,11 +371,11 @@ func (d *Daemon) waybarOutput() string {
 		text = "OFF"
 	case pixy.StateIdle:
 		icon = "\uf03d"
-		class = "idle"
+		class = cmdIdle
 		text = "IDLE"
 	case pixy.StateOffline:
 		icon = "\uf00d"
-		class = "offline"
+		class = string(pixy.StateOffline)
 		text = "---"
 	}
 

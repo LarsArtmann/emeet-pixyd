@@ -30,7 +30,7 @@ func testConfig(dir string) pixy.Config {
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
-		WebAddr:       "127.0.0.1:0",
+		WebAddr:       testWebAddr,
 	}
 }
 
@@ -48,6 +48,46 @@ func withNotifyCalled(called *bool) testDaemonOption {
 
 func withCameraInUse(inUse bool) testDaemonOption {
 	return func(d *Daemon) { d.isCameraInUseFn = func(_ string) bool { return inUse } }
+}
+
+func withNoopV4L2() testDaemonOption {
+	return func(d *Daemon) {
+		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
+	}
+}
+
+func withCaptureTracking(captured *pixy.CameraState) testDaemonOption {
+	return func(d *Daemon) {
+		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+			*captured = s
+			return nil
+		}
+	}
+}
+
+func withCaptureAudio(captured *pixy.AudioMode) testDaemonOption {
+	return func(d *Daemon) {
+		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error {
+			*captured = m
+			return nil
+		}
+	}
+}
+
+func withCaptureGesture(called, captured *bool) testDaemonOption {
+	return func(d *Daemon) {
+		d.setGestureFn = func(_ context.Context, enabled bool) error {
+			*called = true
+			*captured = enabled
+			return nil
+		}
+	}
+}
+
+func withCaptureCenter(calls *int) testDaemonOption {
+	return func(d *Daemon) {
+		d.centerCameraFn = func(context.Context) error { *calls++; return nil }
+	}
 }
 
 func withFindSource(id string) testDaemonOption {
@@ -397,7 +437,7 @@ func TestHandleCommandDeviceRequired(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateOffline, "", "")
 
-	for _, cmd := range []string{"track", "idle", "privacy", "toggle-privacy", "center", "gesture-on", "gesture-off"} {
+	for _, cmd := range []string{"track", cmdIdle, cmdPrivacy, "toggle-privacy", "center", "gesture-on", "gesture-off"} {
 		result := d.handleCommand(context.Background(), cmd)
 		if result == "" {
 			t.Errorf("expected error response for '%s' with no device", cmd)
@@ -772,8 +812,8 @@ func TestParseAudioMode(t *testing.T) {
 
 	tests := []parseTestCase[pixy.AudioMode]{
 		{"nc", pixy.AudioNC, false},
-		{"live", pixy.AudioLive, false},
-		{"org", pixy.AudioOriginal, false},
+		{audioModeLive, pixy.AudioLive, false},
+		{audioModeOrg, pixy.AudioOriginal, false},
 		{"unknown", "", true},
 		{"", "", true},
 	}
@@ -917,6 +957,11 @@ const (
 	pixyProduct = "00c0"
 )
 
+const (
+	testVideoDev0 = "video0"
+	testVideoDev2 = "video2"
+)
+
 func testV4L2ProbesPIXY(t *testing.T, devices []fakeVideoDev) {
 	t.Helper()
 	root := t.TempDir()
@@ -946,8 +991,8 @@ func TestProbeVideo4linux_PIXYFound(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: "video0", vendor: pixyVendor, product: pixyProduct, index: "0"},
-		{name: "video2", vendor: pixyVendor, product: pixyProduct, index: "1"},
+		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
+		{name: testVideoDev2, vendor: pixyVendor, product: pixyProduct, index: "1"},
 	})
 }
 
@@ -955,7 +1000,7 @@ func TestProbeVideo4linux_PIXYOnlyCaptureNode(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: "video0", vendor: pixyVendor, product: pixyProduct, index: "0"},
+		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
 	})
 }
 
@@ -963,7 +1008,7 @@ func TestProbeVideo4linux_PIXYNoIndexFile(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: "video0", vendor: pixyVendor, product: pixyProduct, index: ""},
+		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: ""},
 	})
 }
 
@@ -988,7 +1033,7 @@ func TestProbeVideo4linux_NonPIXYSources(t *testing.T) {
 		{
 			"WrongVendorProduct",
 			append([]fakeVideoDev{}, fakeVideoDev{
-				name:    "video0",
+				name:    testVideoDev0,
 				vendor:  "1234",
 				product: "5678",
 				index:   "0",
@@ -1023,7 +1068,7 @@ func TestProbeVideo4linux_OBSCamIgnored(t *testing.T) {
 	writeFakeFile(t, filepath.Join(obsDir, "index"), "0")
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: "video0", vendor: pixyVendor, product: pixyProduct, index: "0"},
+		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
 	})
 }
 
@@ -1031,7 +1076,7 @@ func TestProbeVideo4linux_MetadataNodeSkipped(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesNothing(t, []fakeVideoDev{
-		{name: "video2", vendor: pixyVendor, product: pixyProduct, index: "1"},
+		{name: testVideoDev2, vendor: pixyVendor, product: pixyProduct, index: "1"},
 	})
 }
 
@@ -1202,7 +1247,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 	// Given a sysfs tree with another camera first, then PIXY
 	root := t.TempDir()
 
-	otherDir := filepath.Join(root, "video0")
+	otherDir := filepath.Join(root, testVideoDev0)
 	writeFakeFile(
 		t,
 		filepath.Join(otherDir, "device/modalias"),
@@ -1213,7 +1258,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 
 	createFakeVideo4linux(t, root, []fakeVideoDev{
 		{
-			name:    "video2",
+			name:    testVideoDev2,
 			vendor:  pixyVendor,
 			product: pixyProduct,
 			index:   "0",

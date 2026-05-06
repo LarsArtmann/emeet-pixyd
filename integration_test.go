@@ -15,6 +15,12 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+const (
+	testWebAddr   = "127.0.0.1:0"
+	audioModeLive = "live"
+	audioModeOrg  = "org"
+)
+
 func newIntegrationDaemon(t *testing.T) *Daemon {
 	t.Helper()
 	return newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
@@ -162,7 +168,6 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 
 // assertWebStatusOffline verifies all fields match offline/no-device state.
 
-//go:fix inline
 func ptr[T any](v T) *T { return new(v) }
 
 func assertWebStatusOffline(t *testing.T, status webStatus) {
@@ -386,7 +391,7 @@ func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
 
 func TestWeb_AudioWithValidModes(t *testing.T) {
 	t.Parallel()
-	for _, mode := range []string{"nc", "live", "org"} {
+	for _, mode := range []string{"nc", audioModeLive, audioModeOrg} {
 		t.Run(mode, func(t *testing.T) {
 			t.Parallel()
 			daemon := newIntegrationDaemon(t)
@@ -724,7 +729,7 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 
 		DebounceCount: 3,
 
-		WebAddr: "127.0.0.1:0",
+		WebAddr: testWebAddr,
 	}
 	daemon, daemonErr := NewDaemon(cfg)
 	if daemonErr != nil {
@@ -826,17 +831,17 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 
 		cmd string
 	}{
-		{"track", "track"},
+		{cmdTrack, cmdTrack},
 
-		{"privacy", "privacy"},
+		{cmdPrivacy, cmdPrivacy},
 
-		{"audio", "audio"},
+		{cmdAudio, cmdAudio},
 
 		{"gesture", "gesture-on"},
 
-		{"sync", "sync"},
+		{cmdSync, cmdSync},
 
-		{"center", "center"},
+		{cmdCenter, cmdCenter},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -894,9 +899,9 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 		{"pan with value", "pan 10", true},
 		{"tilt with value", "tilt -5", true},
 		{"zoom with value", "zoom 200", true},
-		{"pan missing value", "pan", false},
+		{"pan missing value", axisPan, false},
 		{"tilt missing value", "tilt", false},
-		{"zoom missing value", "zoom", false},
+		{"zoom missing value", axisZoom, false},
 		{"pan invalid value", "pan abc", true},
 		{"tilt invalid value", "tilt !", true},
 		{"zoom invalid value", "zoom x", true},
