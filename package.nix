@@ -19,7 +19,7 @@ buildGoModule {
     templ generate
   '';
 
-  ldflags = ["-s" "-w"];
+  ldflags = ["-s" "-w" "-X main.buildVersion=0.2.0"];
 
   postInstall = ''
     ln -s $out/bin/emeet-pixyd $out/bin/emeet-pixy
