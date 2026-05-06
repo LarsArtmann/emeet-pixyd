@@ -35,6 +35,7 @@ const (
 
 	toastTypeSuccess = "success"
 	toastTypeInfo    = "info"
+	toastTypeError   = "error"
 
 	ptzCacheTTL = 2 * time.Second
 )
@@ -230,26 +231,61 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	intVal = clampInt(intVal, lo, hi)
 	resp := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", resp)
-	status := s.getWebStatusWithPTZ(request.Context())
+
+	if IsCommandErrorResponse(resp) {
+		status := s.getWebStatusWithPTZ(request.Context())
+		sliderVal := ptzAxisValue(axis, status)
+		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
+			ptzAxisLabel(axis), axis, lo, hi, sliderVal, ptzAxisUnit(axis),
+			resp, toastTypeError,
+		)).ServeHTTP(responseWriter, request)
+		return
+	}
+
+	s.invalidatePTZCache()
+
+	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
+		ptzAxisLabel(axis), axis, lo, hi, intVal, ptzAxisUnit(axis),
+		fmt.Sprintf("%s set to %d", ptzAxisLabel(axis), intVal), toastTypeSuccess,
+	)).ServeHTTP(responseWriter, request)
+}
+
+func (s *webServer) invalidatePTZCache() {
+	s.daemon.ptzCache.mu.Lock()
+	s.daemon.ptzCache.expiresAt = time.Time{}
+	s.daemon.ptzCache.mu.Unlock()
+}
+
+func ptzAxisLabel(axis string) string {
 	switch axis {
 	case axisPan:
-
-		templ.Handler(ptzSlider("Pan", axisPan, panMin, panMax, status.Pan, "\u00b0")).
-			ServeHTTP(responseWriter, request)
-
+		return "Pan"
 	case axisTilt:
-
-		templ.Handler(ptzSlider("Tilt", axisTilt, tiltMin, tiltMax, status.Tilt, "\u00b0")).
-			ServeHTTP(responseWriter, request)
-
+		return "Tilt"
 	case axisZoom:
-
-		templ.Handler(ptzSlider("Zoom", axisZoom, zoomMin, zoomMax, status.Zoom, "x")).
-			ServeHTTP(responseWriter, request)
-
+		return "Zoom"
 	default:
+		return axis
+	}
+}
 
-		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+func ptzAxisUnit(axis string) string {
+	if axis == axisZoom {
+		return "x"
+	}
+	return "\u00b0"
+}
+
+func ptzAxisValue(axis string, status webStatus) int {
+	switch axis {
+	case axisPan:
+		return status.Pan
+	case axisTilt:
+		return status.Tilt
+	case axisZoom:
+		return status.Zoom
+	default:
+		return 0
 	}
 }
 

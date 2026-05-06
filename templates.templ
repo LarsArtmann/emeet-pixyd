@@ -77,6 +77,11 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 	</div>
 }
 
+templ ptzSliderWithToast(label, axis string, min, max, value int, unit string, toastMsg string, toastType string) {
+	@ptzSlider(label, axis, min, max, value, unit)
+	@toastOOB(toastMsg, toastType)
+}
+
 templ toastOOB(msg, toastType string) {
 	<div id="toast-container" hx-swap-oob="innerHTML">
 		if msg != "" {

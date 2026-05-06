@@ -5,6 +5,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -584,5 +587,111 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	}
 	if !strings.Contains(notifyMessages[0], "privacy") {
 		t.Errorf("notification should mention privacy, got: %s", notifyMessages[0])
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: PTZ slider via web returns user's input value, not stale cache
+// ---------------------------------------------------------------------------
+
+func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
+	t.Parallel()
+
+	// Given a daemon with a device and a web server (cache has stale pan=0)
+	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
+		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
+		d.ptzCache.values = ptzValues{Pan: 0, Tilt: 0, Zoom: 100}
+		d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
+	})
+	webSrv := &webServer{daemon: d}
+	mux := newWebMux(webSrv)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// When user sets pan to 50 via the web interface
+	body := strings.NewReader("value=50")
+	req, reqErr := http.NewRequestWithContext(
+		context.Background(), http.MethodPost,
+		server.URL+"/api/ptz/pan", body,
+	)
+	if reqErr != nil {
+		t.Fatalf("create request: %v", reqErr)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		t.Fatalf("POST /api/ptz/pan: %v", respErr)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	respBody, _ := io.ReadAll(resp.Body)
+	html := string(respBody)
+
+	// Then the response slider contains the user's value (50), not the stale cache value (0)
+	if !strings.Contains(html, `value="50"`) {
+		t.Errorf("slider response should contain value=50, got: %s", html)
+	}
+	if strings.Contains(html, `value="0"`) {
+		t.Error("slider response should NOT contain stale cache value 0")
+	}
+
+	// And a success toast is shown
+	if !strings.Contains(html, "Pan set to 50") {
+		t.Errorf("response should contain success toast, got: %s", html)
+	}
+
+	// And the PTZ cache is invalidated
+	d.ptzCache.mu.RLock()
+	expired := time.Now().After(d.ptzCache.expiresAt)
+	d.ptzCache.mu.RUnlock()
+	if !expired {
+		t.Error("PTZ cache should be invalidated after successful set")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: PTZ slider via web shows error toast on failure
+// ---------------------------------------------------------------------------
+
+func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
+	t.Parallel()
+
+	// Given a daemon with no device
+	d := newTestDaemon(pixy.StateOffline, "", "", func(d *Daemon) {
+		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
+	})
+	webSrv := &webServer{daemon: d}
+	mux := newWebMux(webSrv)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// When user tries to set pan
+	body := strings.NewReader("value=50")
+	req, reqErr := http.NewRequestWithContext(
+		context.Background(), http.MethodPost,
+		server.URL+"/api/ptz/pan", body,
+	)
+	if reqErr != nil {
+		t.Fatalf("create request: %v", reqErr)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		t.Fatalf("POST /api/ptz/pan: %v", respErr)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	respBody, _ := io.ReadAll(resp.Body)
+	html := string(respBody)
+
+	// Then an error toast is shown
+	if !strings.Contains(html, "toast-error") {
+		t.Errorf("response should contain error toast, got: %s", html)
+	}
+	if !strings.Contains(html, "error:") {
+		t.Errorf("response should contain error message, got: %s", html)
 	}
 }
