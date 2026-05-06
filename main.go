@@ -23,10 +23,6 @@ import (
 // Build info, overridden via -ldflags.
 var buildVersion = "dev"
 
-func init() {
-	slog.SetLogLoggerLevel(slog.LevelInfo)
-}
-
 type Daemon struct {
 	mu        sync.RWMutex
 	cmdMu     sync.Mutex
@@ -507,7 +503,7 @@ func (d *Daemon) Run() {
 		//nolint:exhaustruct
 		httpSrv = &http.Server{
 			Addr:              d.config.WebAddr,
-			Handler:           requestIDMiddleware(securityMiddleware(mux)),
+			Handler:           requestIDMiddleware(loggingMiddleware(securityMiddleware(mux))),
 			ReadHeaderTimeout: 5 * time.Second,
 			ReadTimeout:       10 * time.Second,
 			WriteTimeout:      30 * time.Second,
