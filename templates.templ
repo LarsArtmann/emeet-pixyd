@@ -15,7 +15,7 @@ templ page(s webStatus) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>EMEET PIXY — { s.Camera }</title>
 			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F7;</text></svg>"/>
-			<link rel="stylesheet" href="/static/style.css"/>
+			<link rel="stylesheet" href={ fmt.Sprintf("/static/style.css?v=%s", s.Version) }/>
 		</head>
 		<body>
 			<main class="container">
@@ -52,8 +52,8 @@ templ page(s webStatus) {
 				</div>
 			</main>
 			<div id="toast-container"></div>
-			<script src="/static/htmx-2.0.8.min.js"></script>
-			<script src="/static/app.js"></script>
+			<script src={ fmt.Sprintf("/static/htmx-2.0.8.min.js?v=%s", s.Version) }></script>
+			<script src={ fmt.Sprintf("/static/app.js?v=%s", s.Version) }></script>
 		</body>
 	</html>
 }

@@ -79,6 +79,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Online:     s.daemon.videoDev != "",
 		Device:     s.daemon.videoDev,
 		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),
+		Version:    buildVersion,
 	}
 	if status.Online {
 		status.Zoom = zoomDefault

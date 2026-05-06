@@ -20,6 +20,9 @@ import (
 	"github.com/coreos/go-systemd/v22/daemon"
 )
 
+// Build info, overridden via -ldflags.
+var buildVersion = "dev"
+
 type Daemon struct {
 	mu        sync.RWMutex
 	cmdMu     sync.Mutex
