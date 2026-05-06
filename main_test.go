@@ -50,6 +50,10 @@ func withCameraInUse(inUse bool) testDaemonOption {
 	return func(d *Daemon) { d.isCameraInUseFn = func(_ string) bool { return inUse } }
 }
 
+func cameraInUseFn(string) bool { return true }
+
+func cameraNotInUseFn(string) bool { return false }
+
 func withNoopV4L2() testDaemonOption {
 	return func(d *Daemon) {
 		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }

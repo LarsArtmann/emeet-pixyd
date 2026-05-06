@@ -49,7 +49,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 		d.notifyFn = func(_ context.Context, _, body string) {
 			notifyBodies = append(notifyBodies, body)
 		}
-		d.isCameraInUseFn = func(string) bool { return true }
+		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 3
 	})
 
@@ -68,7 +68,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	}
 
 	// When the camera is released for 3 consecutive poll cycles
-	d.isCameraInUseFn = func(string) bool { return false }
+	d.isCameraInUseFn = cameraNotInUseFn
 	notifyBodies = nil
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
@@ -115,7 +115,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	}
 
 	// When camera is released, nothing happens (auto is off)
-	d.isCameraInUseFn = func(string) bool { return false }
+	d.isCameraInUseFn = cameraNotInUseFn
 	d.config.DebounceCount = 1
 	d.autoManage(context.Background())
 
@@ -133,14 +133,14 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	callStarted := false
 	d := testAutoDaemon(func(d *Daemon) {
 		d.config.DebounceCount = 3
-		d.isCameraInUseFn = func(string) bool { return false }
+		d.isCameraInUseFn = cameraNotInUseFn
 		d.notifyFn = func(context.Context, string, string) {
 			callStarted = true
 		}
 	})
 
 	// When camera is used for 2 cycles, then idle for 1, then used for 2 again
-	d.isCameraInUseFn = func(string) bool { return true }
+	d.isCameraInUseFn = cameraInUseFn
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
@@ -149,7 +149,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 		t.Errorf("after 2 in-use polls: inUse=%d idle=%d, want 2/0", inUse, idle)
 	}
 
-	d.isCameraInUseFn = func(string) bool { return false }
+	d.isCameraInUseFn = cameraNotInUseFn
 	d.autoManage(context.Background())
 
 	inUse, idle = readDebounce(d)
@@ -164,7 +164,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	}
 
 	// When camera is used for 2 more cycles (not enough for debounce)
-	d.isCameraInUseFn = func(string) bool { return true }
+	d.isCameraInUseFn = cameraInUseFn
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
@@ -299,7 +299,7 @@ func TestBehavior_ErrorDuringCallStart_StillSetsInCall(t *testing.T) {
 
 	// Given a daemon with video device but no hidraw (setDeviceState returns early)
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
-		d.isCameraInUseFn = func(string) bool { return true }
+		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -479,7 +479,7 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 		d.notifyFn = func(_ context.Context, _, body string) {
 			notifyMessages = append(notifyMessages, body)
 		}
-		d.isCameraInUseFn = func(string) bool { return true }
+		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -508,7 +508,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 		d.notifyFn = func(_ context.Context, _, body string) {
 			notifyMessages = append(notifyMessages, body)
 		}
-		d.isCameraInUseFn = func(string) bool { return true }
+		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -521,7 +521,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 
 	// When camera is released (call end) — privacy should activate
 	notifyMessages = nil
-	d.isCameraInUseFn = func(string) bool { return false }
+	d.isCameraInUseFn = cameraNotInUseFn
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, false)
