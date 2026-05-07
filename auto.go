@@ -20,14 +20,14 @@ func (d *Daemon) handleCallStart(
 	d.mu.Unlock()
 
 	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
-		trackErr := d.setTracking(ctx, pixy.StateTracking)
+		trackErr := d.setTrackingFn(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			slog.Error("failed to activate tracking", "error", trackErr)
 		}
 	}
 
 	if autoMode.ActivatesAudio() {
-		audioErr := d.setAudio(ctx, pixy.AudioNC)
+		audioErr := d.setAudioFn(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			slog.Error("failed to set audio mode", "error", audioErr)
 		}
@@ -50,7 +50,7 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 	d.mu.Unlock()
 
 	if autoMode.ActivatesPrivacy() {
-		privacyErr := d.setTracking(ctx, pixy.StatePrivacy)
+		privacyErr := d.setTrackingFn(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
 			slog.Error("failed to enter privacy mode", "error", privacyErr)
 		}

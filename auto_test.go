@@ -336,3 +336,77 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 		t.Fatal("state file is empty")
 	}
 }
+
+func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
+	t.Parallel()
+
+	var trackingCalls []pixy.CameraState
+	d := testAutoDaemon(func(d *Daemon) {
+		d.isCameraInUseFn = cameraInUseFn
+		d.config.DebounceCount = 1
+		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+			trackingCalls = append(trackingCalls, s)
+			return nil
+		}
+	})
+
+	d.autoManage(context.Background())
+
+	assertInCall(t, d, true)
+	if len(trackingCalls) == 0 {
+		t.Fatal("expected setTrackingFn to be called via auto-manage")
+	}
+	if trackingCalls[0] != pixy.StateTracking {
+		t.Errorf("expected tracking call with StateTracking, got %s", trackingCalls[0])
+	}
+}
+
+func TestAutoManage_UsesMockedAudioFn(t *testing.T) {
+	t.Parallel()
+
+	var audioCalls []pixy.AudioMode
+	d := testAutoDaemon(func(d *Daemon) {
+		d.isCameraInUseFn = cameraInUseFn
+		d.config.DebounceCount = 1
+		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error {
+			audioCalls = append(audioCalls, m)
+			return nil
+		}
+	})
+
+	d.autoManage(context.Background())
+
+	if len(audioCalls) == 0 {
+		t.Fatal("expected setAudioFn to be called via auto-manage")
+	}
+	if audioCalls[0] != pixy.AudioNC {
+		t.Errorf("expected audio call with AudioNC, got %s", audioCalls[0])
+	}
+}
+
+func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
+	t.Parallel()
+
+	var trackingCalls []pixy.CameraState
+	d := testAutoDaemon(
+		withInCall(true),
+		func(d *Daemon) {
+			d.isCameraInUseFn = cameraNotInUseFn
+			d.config.DebounceCount = 1
+			d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+				trackingCalls = append(trackingCalls, s)
+				return nil
+			}
+		},
+	)
+
+	d.autoManage(context.Background())
+
+	assertInCall(t, d, false)
+	if len(trackingCalls) == 0 {
+		t.Fatal("expected setTrackingFn to be called on call end")
+	}
+	if trackingCalls[0] != pixy.StatePrivacy {
+		t.Errorf("expected privacy call on call end, got %s", trackingCalls[0])
+	}
+}
