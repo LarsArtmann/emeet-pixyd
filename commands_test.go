@@ -81,12 +81,6 @@ func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]struct{ axis, va
 	return d, &calls
 }
 
-func newAutoOffDaemon() *Daemon {
-	return newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.state.AutoMode = pixy.AutoOff
-	})
-}
-
 func assertAutoModeEquals(t *testing.T, d *Daemon, want pixy.AutoMode) {
 	t.Helper()
 	d.mu.RLock()
@@ -210,7 +204,7 @@ func TestHandleCenterCommand_NoDevice(t *testing.T) {
 func TestHandleAutoCommand_SetMode(t *testing.T) {
 	t.Parallel()
 
-	d := newAutoOffDaemon()
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
 
 	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
 	if IsCommandErrorResponse(resp) {
@@ -233,7 +227,7 @@ func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 	t.Parallel()
 
-	d := newAutoOffDaemon()
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
 
 	resp := d.handleAutoCommand([]string{"auto-on"})
 	notError(t, resp)
@@ -255,7 +249,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	t.Parallel()
 
-	d := newAutoOffDaemon()
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
 
 	resp := d.handleAutoCommand([]string{cmdToggleAuto})
 	notError(t, resp)

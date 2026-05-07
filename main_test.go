@@ -99,6 +99,12 @@ func withCaptureCenter(calls *int) testDaemonOption {
 	}
 }
 
+func withAutoMode(mode pixy.AutoMode) testDaemonOption {
+	return func(d *Daemon) { d.state.AutoMode = mode }
+}
+
+func ptr[T any](v T) *T { return new(v) }
+
 func withFindSource(id string) testDaemonOption {
 	return func(d *Daemon) {
 		d.findSourceFn = func(_ context.Context) (string, error) { return id, nil }

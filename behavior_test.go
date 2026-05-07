@@ -56,21 +56,9 @@ func postPTZFormValue(
 	return resp, string(respBody)
 }
 
-// assertCameraStateFromDaemon asserts camera state using a safe locked read.
-func assertCameraStateFromDaemon(t *testing.T, d *Daemon, expected pixy.CameraState) {
+// assertV4L2Call asserts exactly one v4l2 call with the expected value.
+func assertV4L2Call(t *testing.T, v4l2Calls []struct{ axis, val string }, wantVal string) {
 	t.Helper()
-	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
-	if camera != expected {
-		t.Errorf("camera state = %s, want %s", camera, expected)
-	}
-}
-
-// assertPTZSuccess asserts a PTZ command succeeded and made exactly one v4l2 call.
-func assertPTZSuccess(t *testing.T, resp, wantVal string, v4l2Calls []struct{ axis, val string }) {
-	t.Helper()
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
-	}
 	if len(v4l2Calls) != 1 {
 		t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
 	}
@@ -242,17 +230,20 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
 	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "200"})
-	assertPTZSuccess(t, resp, "612000", v4l2Calls)
+	notError(t, resp)
+	assertV4L2Call(t, v4l2Calls, "612000")
 
 	// When tilt is set beyond minimum (-50 → clamp to -30)
 	v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-50"})
-	assertPTZSuccess(t, resp, "-108000", v4l2Calls)
+	notError(t, resp)
+	assertV4L2Call(t, v4l2Calls, "-108000")
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
 	v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{axisZoom, "500"})
-	assertPTZSuccess(t, resp, "400", v4l2Calls)
+	notError(t, resp)
+	assertV4L2Call(t, v4l2Calls, "400")
 }
 
 // ---------------------------------------------------------------------------
@@ -454,14 +445,14 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
-	assertCameraStateFromDaemon(t, d, pixy.StateTracking)
+	assertCameraState(t, d, pixy.StateTracking)
 
 	// When user toggles again from tracking → should enter privacy
 	resp = d.handleCommand(context.Background(), cmdTogglePrivacy)
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
-	assertCameraStateFromDaemon(t, d, pixy.StatePrivacy)
+	assertCameraState(t, d, pixy.StatePrivacy)
 
 	if len(trackingCalls) != 2 {
 		t.Errorf("expected 2 tracking calls, got %d", len(trackingCalls))

@@ -167,9 +167,6 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 }
 
 // assertWebStatusOffline verifies all fields match offline/no-device state.
-
-func ptr[T any](v T) *T { return new(v) }
-
 func assertWebStatusOffline(t *testing.T, status webStatus) {
 	t.Helper()
 	assertWebStatusField(t, status, webStatusCheck{
