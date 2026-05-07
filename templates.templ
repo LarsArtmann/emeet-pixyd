@@ -65,6 +65,7 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 			type="range"
 			class="ptz-slider"
 			id={ "slider-" + axis }
+			name="value"
 			min={ fmt.Sprintf("%d", min) }
 			max={ fmt.Sprintf("%d", max) }
 			value={ fmt.Sprintf("%d", value) }
@@ -185,8 +186,8 @@ templ statusPanel(s webStatus) {
 		if s.Online {
 			<div class="card" style="margin-bottom:1rem">
 				<div class="card-title">PTZ</div>
-				@ptzSlider("Pan", "pan", -170, 170, s.Pan, "&#176;")
-				@ptzSlider("Tilt", "tilt", -30, 30, s.Tilt, "&#176;")
+				@ptzSlider("Pan", "pan", -170, 170, s.Pan, "°")
+				@ptzSlider("Tilt", "tilt", -30, 30, s.Tilt, "°")
 				@ptzSlider("Zoom", "zoom", 100, 400, s.Zoom, "x")
 				<div class="spacer"></div>
 				<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
