@@ -491,6 +491,23 @@ func sendCommand(cfg pixy.Config, cmd string) (string, error) {
 	return resp, nil
 }
 
+func (d *Daemon) newHTTPServer() *http.Server {
+	webSrv := &webServer{daemon: d}
+	mux := newWebMux(webSrv)
+	//nolint:exhaustruct
+	return &http.Server{
+		Addr: d.config.WebAddr,
+		Handler: Chain(
+			mux, securityMiddleware, loggingMiddleware, requestIDMiddleware,
+		),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20,
+	}
+}
+
 func (d *Daemon) Run() {
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
@@ -510,23 +527,7 @@ func (d *Daemon) Run() {
 
 	var httpSrv *http.Server
 	if d.config.WebAddr != "" {
-		webSrv := &webServer{daemon: d}
-		mux := newWebMux(webSrv)
-		//nolint:exhaustruct
-		httpSrv = &http.Server{
-			Addr:              d.config.WebAddr,
-			Handler: Chain(
-				mux,
-				securityMiddleware,
-				loggingMiddleware,
-				requestIDMiddleware,
-			),
-			ReadHeaderTimeout: 5 * time.Second,
-			ReadTimeout:       10 * time.Second,
-			WriteTimeout:      30 * time.Second,
-			IdleTimeout:       60 * time.Second,
-			MaxHeaderBytes:    1 << 20,
-		}
+		httpSrv = d.newHTTPServer()
 
 		go func() {
 			slog.Info("web UI starting", "addr", d.config.WebAddr)

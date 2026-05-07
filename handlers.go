@@ -307,24 +307,6 @@ func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, 
 	return status, true
 }
 
-func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, request *http.Request) {
-	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	resp := s.daemon.handleCommand(request.Context(), cmdToggleGesture)
-	slog.Debug("web gesture toggle", "response", resp)
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Gesture toggled", toastTypeInfo)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
-}
-
-func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request *http.Request) {
-	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	resp := s.daemon.handleCommand(request.Context(), cmdToggleAuto)
-	slog.Debug("web auto toggle", "response", resp)
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Auto mode toggled", toastTypeInfo)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
-}
-
 func newWebMux(server *webServer) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
@@ -335,8 +317,8 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))
 	mux.HandleFunc("POST /api/toggle-privacy", server.action(cmdTogglePrivacy))
 	mux.HandleFunc("POST /api/audio", server.handleAudio)
-	mux.HandleFunc("POST /api/gesture", server.handleGestureToggle)
-	mux.HandleFunc("POST /api/auto", server.handleAutoToggle)
+	mux.HandleFunc("POST /api/gesture", server.action(cmdToggleGesture))
+	mux.HandleFunc("POST /api/auto", server.action(cmdToggleAuto))
 	mux.HandleFunc("POST /api/center", server.action(cmdCenter))
 	mux.HandleFunc("POST /api/sync", server.action(cmdSync))
 	mux.HandleFunc("POST /api/probe", server.action(cmdProbe))
