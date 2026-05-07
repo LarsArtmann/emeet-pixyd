@@ -1,0 +1,126 @@
+direction: down
+
+title: {
+  label: emeet-pixyd — Current Architecture
+  near: top-center
+  shape: text
+  style: {
+    font-size: 24
+    bold: true
+  }
+}
+
+# External interfaces
+CLI: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+WebBrowser: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+Waybar: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+Prometheus: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+
+# Main daemon
+Daemon: {
+  shape: rectangle
+  style.fill: "#e8f4e8"
+
+  Run: {
+    shape: rectangle
+    label: "Run()\nSignal handling\nMain loop"
+  }
+
+  State: {
+    shape: cylinder
+    label: "State (JSON)\ncamera/audio/gesture\ninCall/autoMode"
+  }
+
+  Commands: {
+    shape: rectangle
+    label: "handleCommand()\ntrack/idle/privacy\naudio/gesture/auto\nPTZ/sync/probe"
+  }
+
+  AutoManage: {
+    shape: rectangle
+    label: "autoManage()\nDebounce logic\ncall start/end"
+  }
+}
+
+# Hardware layer
+HID: {
+  shape: diamond
+  label: "HID Protocol\n(/dev/hidraw*)"
+  style.fill: "#ffe8e8"
+}
+V4L2: {
+  shape: diamond
+  label: "V4L2 PTZ\n(/dev/video*)"
+  style.fill: "#ffe8e8"
+}
+
+# OS services
+ProcScanner: {
+  shape: rectangle
+  label: "/proc/*/fd scanner\nCall detection"
+  style.fill: "#e8e8ff"
+}
+Uevent: {
+  shape: rectangle
+  label: "Netlink uevent\nHotplug detection"
+  style.fill: "#e8e8ff"
+}
+PipeWire: {
+  shape: rectangle
+  label: "wpctl\nPipeWire source"
+  style.fill: "#e8e8ff"
+}
+Notify: {
+  shape: rectangle
+  label: "notify-send\nDesktop notifications"
+  style.fill: "#e8e8ff"
+}
+
+# Web layer
+WebServer: {
+  shape: rectangle
+  style.fill: "#fff4e8"
+
+  HTTPHandlers: {
+    label: "HTTP Handlers\nHTMX + templ"
+  }
+  MJPEGStream: {
+    label: "MJPEG Stream\nffmpeg → MJPEG"
+  }
+  Metrics: {
+    label: "OTel Prometheus\n/metrics endpoint"
+  }
+  Middleware: {
+    label: "Security headers\nRequest ID\nCaching"
+  }
+}
+
+# Connections
+CLI -> Daemon.Commands: "Unix socket\ncontrol.sock"
+WebBrowser -> WebServer.HTTPHandlers: "HTTP :8090"
+Waybar -> CLI: "emeet-pixyd waybar"
+Prometheus -> WebServer.Metrics: "GET /metrics"
+
+WebServer.HTTPHandlers -> Daemon.Commands: "handleCommand()"
+Daemon.Commands -> HID: "HID config+commit"
+Daemon.Commands -> V4L2: "v4l2-ctl PTZ"
+Daemon.AutoManage -> ProcScanner: "isCameraInUse()"
+Daemon.AutoManage -> HID: "setTracking/setAudio"
+Daemon.AutoManage -> PipeWire: "setDefaultSource"
+Daemon.AutoManage -> Notify: "notifications"
+Daemon.AutoManage -> Daemon.State: "persist"
+Daemon.Run -> Uevent: "listenUevents()"
+Daemon.Run -> Daemon.AutoManage: "ticker (2s)"
+WebServer.MJPEGStream -> V4L2: "ffmpeg MJPEG"

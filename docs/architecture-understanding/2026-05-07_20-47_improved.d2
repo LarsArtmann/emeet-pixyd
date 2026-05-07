@@ -1,0 +1,141 @@
+direction: down
+
+title: {
+  label: emeet-pixyd — Improved Architecture
+  near: top-center
+  shape: text
+  style: {
+    font-size: 24
+    bold: true
+  }
+}
+
+# External interfaces
+CLI: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+WebBrowser: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+Waybar: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+Prometheus: {
+  shape: hexagon
+  style.fill: "#f0f0f0"
+}
+
+# Daemon core (decomposed)
+Daemon: {
+  shape: rectangle
+  style.fill: "#e8f4e8"
+
+  Lifecycle: {
+    shape: rectangle
+    label: "Lifecycle\nsetupSignalHandler()\nstartWebServer()\nrunPollLoop()"
+  }
+
+  State: {
+    shape: cylinder
+    label: "State Store\natomic JSON persist\ntyped fields"
+  }
+
+  CommandRouter: {
+    shape: rectangle
+    label: "Command Router\nType-safe dispatch\nCommandError responses"
+  }
+
+  AutoManager: {
+    shape: rectangle
+    label: "Auto Manager\nDebounce engine\nMode-specific behavior"
+  }
+
+  PTZCache_: {
+    shape: rectangle
+    label: "PTZ Cache\nNamed type\nTTL-based invalidation"
+  }
+
+  FrameStore: {
+    shape: rectangle
+    label: "Frame Store\nNamed type\nLast JPEG frame"
+  }
+}
+
+# Hardware adapters (injectable)
+DeviceLayer: {
+  shape: rectangle
+  style.fill: "#ffe8e8"
+  label: "Device Adapters (injectable)"
+
+  HIDAdapter: {
+    label: "HID Adapter\nconfig+commit\nqueryHIDState[T]"
+  }
+  V4L2Adapter: {
+    label: "V4L2 Adapter\nPTZ control\nparsePTZValues"
+  }
+  ProcessScanner: {
+    label: "Process Scanner\n/proc/*/fd\ncall detection"
+  }
+  UeventListener: {
+    label: "Uevent Listener\nNetlink hotplug\ncontext-cancellable"
+  }
+}
+
+# OS services (injectable)
+OSServices: {
+  shape: rectangle
+  style.fill: "#e8e8ff"
+  label: "OS Services (injectable)"
+
+  PipeWireCtrl: {
+    label: "PipeWire Controller\nfindSource\nsetDefault"
+  }
+  Notifier: {
+    label: "Notifier\nnotify-send\nwith fallback"
+  }
+}
+
+# Web layer
+WebLayer: {
+  shape: rectangle
+  style.fill: "#fff4e8"
+
+  HTMXHandlers: {
+    label: "HTMX Handlers\nTyped webStatus\nToast system"
+  }
+  StreamService: {
+    label: "Stream Service\nffmpeg MJPEG\nSnapshot API"
+  }
+  MetricsService: {
+    label: "Metrics Service\nLazy registration\nOTel gauges"
+  }
+  Middleware_: {
+    label: "Middleware\nSecurity headers\nRequest ID\nCaching"
+  }
+  StaticAssets: {
+    label: "Static Assets\nEmbedded FS\nCache headers"
+  }
+}
+
+# Connections
+CLI -> Daemon.CommandRouter: "Unix socket"
+WebBrowser -> WebLayer.HTMXHandlers: "HTTP :8090"
+Waybar -> CLI: "emeet-pixyd waybar"
+Prometheus -> WebLayer.MetricsService: "GET /metrics"
+
+WebLayer.HTMXHandlers -> Daemon.CommandRouter: "dispatch"
+Daemon.CommandRouter -> DeviceLayer.HIDAdapter: "setTracking/setAudio"
+Daemon.CommandRouter -> DeviceLayer.V4L2Adapter: "PTZ commands"
+Daemon.AutoManager -> DeviceLayer.ProcessScanner: "isCameraInUse()"
+Daemon.AutoManager -> DeviceLayer.HIDAdapter: "state changes"
+Daemon.AutoManager -> OSServices.PipeWireCtrl: "source switch"
+Daemon.AutoManager -> OSServices.Notifier: "notifications"
+Daemon.AutoManager -> Daemon.State: "persist"
+Daemon.Lifecycle -> DeviceLayer.UeventListener: "listen()"
+Daemon.Lifecycle -> Daemon.AutoManager: "ticker (2s)"
+WebLayer.StreamService -> DeviceLayer.V4L2Adapter: "ffmpeg MJPEG"
+Daemon.PTZCache_ -> DeviceLayer.V4L2Adapter: "query on miss"
+Daemon.FrameStore -> WebLayer.StreamService: "last frame"
