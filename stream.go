@@ -85,6 +85,10 @@ func (s *webServer) handleStream(
 
 		return
 	}
+	rc := http.NewResponseController(responseWriter)
+	if dlErr := rc.SetWriteDeadline(time.Time{}); dlErr != nil {
+		slog.Debug("clear write deadline", "error", dlErr)
+	}
 	ctx := request.Context()
 	cmd := ffmpegStreamCmd(ctx, status.Device)
 	stdOut, pipeErr := cmd.StdoutPipe()
@@ -92,6 +96,15 @@ func (s *webServer) handleStream(
 		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
 
 		return
+	}
+	stdErr, _ := cmd.StderrPipe()
+	if stdErr != nil {
+		go func() {
+			scanner := bufio.NewScanner(stdErr)
+			for scanner.Scan() {
+				slog.Debug("ffmpeg", "line", scanner.Text())
+			}
+		}()
 	}
 	startErr := cmd.Start()
 	if startErr != nil {
