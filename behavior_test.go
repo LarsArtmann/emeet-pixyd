@@ -29,6 +29,43 @@ import (
 // BDD structure is expressed through test naming and inline comments.
 
 // ---------------------------------------------------------------------------
+// Test helpers
+// ---------------------------------------------------------------------------
+
+// postPTZFormValue posts a form-encoded PTZ value and returns the response and HTML.
+func postPTZFormValue(
+	t *testing.T,
+	server *httptest.Server,
+	path, value string,
+) (*http.Response, string) {
+	t.Helper()
+	body := strings.NewReader("value=" + value)
+	req, reqErr := http.NewRequestWithContext(
+		context.Background(), http.MethodPost, server.URL+path, body,
+	)
+	if reqErr != nil {
+		t.Fatalf("create request: %v", reqErr)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		t.Fatalf("POST %s: %v", path, respErr)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	respBody, _ := io.ReadAll(resp.Body)
+	return resp, string(respBody)
+}
+
+// assertCameraStateFromDaemon asserts camera state using a safe locked read.
+func assertCameraStateFromDaemon(t *testing.T, d *Daemon, expected pixy.CameraState) {
+	t.Helper()
+	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	if camera != expected {
+		t.Errorf("camera state = %s, want %s", camera, expected)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Scenario: User starts a video call with full auto mode
 // ---------------------------------------------------------------------------
 
@@ -189,37 +226,17 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
 	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "200"})
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
-	}
-	if len(v4l2Calls) != 1 {
-		t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
-	}
-	if v4l2Calls[0].val != "612000" {
-		t.Errorf("pan 200 should clamp to 170 and multiply: got %s, want 612000", v4l2Calls[0].val)
-	}
+	assertPTZSuccess(t, resp, "612000", v4l2Calls)
 
 	// When tilt is set beyond minimum (-50 → clamp to -30)
 	v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-50"})
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
-	}
-	if v4l2Calls[0].val != "-108000" {
-		t.Errorf("tilt -50 should clamp to -30 and multiply: got %s, want -108000",
-			v4l2Calls[0].val)
-	}
+	assertPTZSuccess(t, resp, "-108000", v4l2Calls)
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
 	v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{axisZoom, "500"})
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
-	}
-	if v4l2Calls[0].val != "400" {
-		t.Errorf("zoom 500 should clamp to 400 without multiplier: got %s, want 400",
-			v4l2Calls[0].val)
-	}
+	assertPTZSuccess(t, resp, "400", v4l2Calls)
 }
 
 // ---------------------------------------------------------------------------
@@ -421,20 +438,14 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
-	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
-	if camera != pixy.StateTracking {
-		t.Errorf("after toggle from privacy, expected tracking, got %s", camera)
-	}
+	assertCameraStateFromDaemon(t, d, pixy.StateTracking)
 
 	// When user toggles again from tracking → should enter privacy
 	resp = d.handleCommand(context.Background(), cmdTogglePrivacy)
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
-	camera = readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
-	if camera != pixy.StatePrivacy {
-		t.Errorf("after toggle from tracking, expected privacy, got %s", camera)
-	}
+	assertCameraStateFromDaemon(t, d, pixy.StatePrivacy)
 
 	if len(trackingCalls) != 2 {
 		t.Errorf("expected 2 tracking calls, got %d", len(trackingCalls))
@@ -555,22 +566,8 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	defer server.Close()
 
 	// When user sets pan to 50 via the web interface
-	body := strings.NewReader("value=50")
-	req, reqErr := http.NewRequestWithContext(
-		context.Background(), http.MethodPost,
-		server.URL+"/api/ptz/pan", body,
-	)
-	if reqErr != nil {
-		t.Fatalf("create request: %v", reqErr)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, respErr := http.DefaultClient.Do(req)
-	if respErr != nil {
-		t.Fatalf("POST /api/ptz/pan: %v", respErr)
-	}
-	defer resp.Body.Close() //nolint:errcheck
-	respBody, _ := io.ReadAll(resp.Body)
-	html := string(respBody)
+	resp, html := postPTZFormValue(t, server, "/api/ptz/pan", "50")
+	resp.Body.Close() //nolint:errcheck
 
 	// Then the response slider contains the user's value (50), not the stale cache value (0)
 	if !strings.Contains(html, `value="50"`) {
@@ -609,25 +606,9 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	defer server.Close()
 
 	// When user tries to set pan
-	body := strings.NewReader("value=50")
-	req, reqErr := http.NewRequestWithContext(
-		context.Background(), http.MethodPost,
-		server.URL+"/api/ptz/pan", body,
-	)
-	if reqErr != nil {
-		t.Fatalf("create request: %v", reqErr)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, respErr := http.DefaultClient.Do(req)
-	if respErr != nil {
-		t.Fatalf("POST /api/ptz/pan: %v", respErr)
-	}
+	resp, html := postPTZFormValue(t, server, "/api/ptz/pan", "50")
 	defer resp.Body.Close() //nolint:errcheck
-
 	assertHTTPStatusOK(t, resp)
-
-	respBody, _ := io.ReadAll(resp.Body)
-	html := string(respBody)
 
 	// Then an error toast is shown
 	if !strings.Contains(html, "toast-error") {

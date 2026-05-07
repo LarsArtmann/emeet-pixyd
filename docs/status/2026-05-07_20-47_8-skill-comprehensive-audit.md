@@ -7,13 +7,13 @@
 
 ## 1. Code Quality Scan
 
-| Metric          | Result                  |
-| --------------- | ----------------------- |
-| `go build`      | ✅ Clean                |
-| `go vet`        | ✅ Clean                |
-| `golangci-lint` | 0 issues                |
-| `go test -race` | ✅ Pass (2 packages)    |
-| `gofumpt`       | ✅ Clean                |
+| Metric          | Result               |
+| --------------- | -------------------- |
+| `go build`      | ✅ Clean             |
+| `go vet`        | ✅ Clean             |
+| `golangci-lint` | 0 issues             |
+| `go test -race` | ✅ Pass (2 packages) |
+| `gofumpt`       | ✅ Clean             |
 
 **Duplication findings:** Minimal. The only actionable duplication is the PTZ axis dispatch pattern repeated in 3 switch statements (handlers.go:267-298). The lock-copy-unlock pattern repeated ~15 times is idiomatic Go.
 
@@ -25,11 +25,11 @@ Reviewed all 28 Go source files (8,185 LOC) and all test files.
 
 ### Findings Summary
 
-| Severity | Count | Examples |
-|----------|-------|---------|
-| Critical | 0     | — |
+| Severity | Count | Examples                                                                                                           |
+| -------- | ----- | ------------------------------------------------------------------------------------------------------------------ |
+| Critical | 0     | —                                                                                                                  |
 | Medium   | 5     | Anonymous embedded structs, stale roadmap, decorative whitespace, init() global state, WATCHDOG tied to autoManage |
-| Low      | 12    | Toast type bug, hardcoded zoom default, PTZ axis consolidation, stream constants location |
+| Low      | 12    | Toast type bug, hardcoded zoom default, PTZ axis consolidation, stream constants location                          |
 
 ### Top 3 Actionable Items
 
@@ -57,6 +57,7 @@ See `docs/planning/2026-05-07_20-47_full-review-8-skill-audit.md` for the comple
 ### Modularity Score: 8/10
 
 **Strengths:**
+
 - Clean package boundary: `internal/pixy` holds all shared types, config, and IPC helpers
 - Excellent dependency injection: 9 function fields on Daemon for test injectability
 - Type-safe string types with `Valid()` methods prevent invalid states
@@ -64,6 +65,7 @@ See `docs/planning/2026-05-07_20-47_full-review-8-skill-audit.md` for the comple
 - Proper lock discipline with consistent copy-then-release pattern
 
 **Weaknesses:**
+
 - `main.go` (623 lines) is the largest file — contains Daemon struct, lifecycle, socket server, signal handling, and status formatting
 - `metrics.go` uses `init()` for global metric registration, forcing serial tests
 - `probeDevices()` still mutates Daemon fields directly rather than returning values
@@ -86,10 +88,10 @@ Good. The `webServer` struct composes `*Daemon` cleanly. The `State` and `Config
 
 Generated 2 D2 diagrams:
 
-| Diagram | File |
-|---------|------|
-| Current state | `docs/architecture-understanding/2026-05-07_20-47_current.d2` → `.svg` |
-| Ideal state | `docs/architecture-understanding/2026-05-07_20-47_improved.d2` → `.svg` |
+| Diagram       | File                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| Current state | `docs/architecture-understanding/2026-05-07_20-47_current.d2` → `.svg`  |
+| Ideal state   | `docs/architecture-understanding/2026-05-07_20-47_improved.d2` → `.svg` |
 
 **Key difference:** The improved diagram shows `lastFrame` and `ptzCache` extracted to named types, `Run()` decomposed into focused lifecycle methods, and stream constants moved to the stream module.
 
@@ -131,6 +133,7 @@ The project already has excellent BDD-style tests in `behavior_test.go` (639 lin
 ### Assessment: **Do NOT adopt Ginkgo**
 
 **Rationale:**
+
 1. The project's convention is `standard testing package only (no ginkgo/testify)` — documented in AGENTS.md
 2. Current BDD structure is clean, readable, and consistent
 3. Adding Ginkgo would introduce a heavy dependency (10+ transitive packages) for marginal readability gain
@@ -139,13 +142,13 @@ The project already has excellent BDD-style tests in `behavior_test.go` (639 lin
 
 ### What IS needed instead:
 
-| Test Area                                  | Priority | File             |
-| ------------------------------------------ | -------- | ---------------- |
-| PTZ axis helper functions (unit)           | P1       | handlers_test.go |
-| Tilt and zoom web slider (BDD)             | P1       | behavior_test.go |
-| Stream error handling (BDD)                | P2       | behavior_test.go |
-| Config validation edge cases               | P2       | pixy_test.go     |
-| Concurrent command dispatch (integration)  | P2       | integration_test.go |
+| Test Area                                 | Priority | File                |
+| ----------------------------------------- | -------- | ------------------- |
+| PTZ axis helper functions (unit)          | P1       | handlers_test.go    |
+| Tilt and zoom web slider (BDD)            | P1       | behavior_test.go    |
+| Stream error handling (BDD)               | P2       | behavior_test.go    |
+| Config validation edge cases              | P2       | pixy_test.go        |
+| Concurrent command dispatch (integration) | P2       | integration_test.go |
 
 ---
 
@@ -164,17 +167,18 @@ The main finding: **SUPERB_ROADMAP.md is stale** — 12 of its 22 items are alre
 
 ## Overall Assessment
 
-| Dimension       | Score | Notes |
-|-----------------|-------|-------|
-| Build quality   | 10/10 | Zero warnings, zero lint issues |
-| Test quality    | 9/10  | BDD + unit + integration + fuzz, comprehensive |
-| Type safety     | 9/10  | Strong types, generics, Valid() methods |
-| Architecture    | 8/10  | Good DI, clean boundaries, monolithic main.go |
-| Documentation   | 7/10  | AGENTS.md excellent, roadmap stale |
-| Error handling  | 8/10  | CommandError type, sentinel errors, some toast bugs |
-| Observability   | 7/10  | OTel metrics, pprof, structured logging could improve |
+| Dimension      | Score | Notes                                                 |
+| -------------- | ----- | ----------------------------------------------------- |
+| Build quality  | 10/10 | Zero warnings, zero lint issues                       |
+| Test quality   | 9/10  | BDD + unit + integration + fuzz, comprehensive        |
+| Type safety    | 9/10  | Strong types, generics, Valid() methods               |
+| Architecture   | 8/10  | Good DI, clean boundaries, monolithic main.go         |
+| Documentation  | 7/10  | AGENTS.md excellent, roadmap stale                    |
+| Error handling | 8/10  | CommandError type, sentinel errors, some toast bugs   |
+| Observability  | 7/10  | OTel metrics, pprof, structured logging could improve |
 
 **The codebase is production-ready and well-maintained.** The gap between current state and "superb" is primarily:
+
 1. Stale roadmap/docs (easy fix)
 2. Minor bugs (toast type, stream constants)
 3. Architecture extraction (PTZ module, state machine)
