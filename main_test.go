@@ -197,9 +197,9 @@ func newTestDaemon(
 
 func assertCameraState(t *testing.T, d *Daemon, expected pixy.CameraState) {
 	t.Helper()
-
-	if d.state.Camera != expected {
-		t.Errorf("expected camera state %s, got %s", expected, d.state.Camera)
+	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	if camera != expected {
+		t.Errorf("expected camera state %s, got %s", expected, camera)
 	}
 }
 

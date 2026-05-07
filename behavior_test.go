@@ -65,6 +65,30 @@ func assertCameraStateFromDaemon(t *testing.T, d *Daemon, expected pixy.CameraSt
 	}
 }
 
+// assertPTZSuccess asserts a PTZ command succeeded and made exactly one v4l2 call.
+func assertPTZSuccess(t *testing.T, resp, wantVal string, v4l2Calls []struct{ axis, val string }) {
+	t.Helper()
+	if IsCommandErrorResponse(resp) {
+		t.Errorf("expected success, got: %s", resp)
+	}
+	if len(v4l2Calls) != 1 {
+		t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
+	}
+	if v4l2Calls[0].val != wantVal {
+		t.Errorf("v4l2 call val = %s, want %s", v4l2Calls[0].val, wantVal)
+	}
+}
+
+// assertDebounce asserts the debounce counters match the expected values.
+func assertDebounce(t *testing.T, d *Daemon, wantInUse, wantIdle int) {
+	t.Helper()
+	inUse, idle := readDebounce(d)
+	if inUse != wantInUse || idle != wantIdle {
+		t.Errorf("debounce counters: inUse=%d idle=%d, want %d/%d",
+			inUse, idle, wantInUse, wantIdle)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Scenario: User starts a video call with full auto mode
 // ---------------------------------------------------------------------------
@@ -181,18 +205,12 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
-	inUse, idle := readDebounce(d)
-	if inUse != 2 || idle != 0 {
-		t.Errorf("after 2 in-use polls: inUse=%d idle=%d, want 2/0", inUse, idle)
-	}
+	assertDebounce(t, d, 2, 0)
 
 	d.isCameraInUseFn = cameraNotInUseFn
 	d.autoManage(context.Background())
 
-	inUse, idle = readDebounce(d)
-	if inUse != 0 || idle != 1 {
-		t.Errorf("after 1 idle poll: inUse=%d idle=%d, want 0/1", inUse, idle)
-	}
+	assertDebounce(t, d, 0, 1)
 
 	// Then no call was started
 	assertInCall(t, d, false)

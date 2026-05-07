@@ -49,9 +49,7 @@ func TestHandleStream_SemaphoreFull(t *testing.T) {
 	resp := getStream(t, server.URL+"/api/stream")
 	defer resp.Body.Close() //nolint:errcheck
 
-	if resp.StatusCode != http.StatusServiceUnavailable {
-		t.Errorf("expected 503, got %d", resp.StatusCode)
-	}
+	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
 
 func TestHandleStream_NoDevice(t *testing.T) {
@@ -66,9 +64,7 @@ func TestHandleStream_NoDevice(t *testing.T) {
 	resp := getStream(t, server.URL+"/api/stream")
 	defer resp.Body.Close() //nolint:errcheck
 
-	if resp.StatusCode != http.StatusServiceUnavailable {
-		t.Errorf("expected 503, got %d", resp.StatusCode)
-	}
+	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
 
 func TestHandleStream_NoFFmpeg(t *testing.T) {
@@ -105,9 +101,7 @@ func TestHandleSnapshot_NoFrame(t *testing.T) {
 	resp := getStream(t, server.URL+"/api/snapshot")
 	defer resp.Body.Close() //nolint:errcheck
 
-	if resp.StatusCode != http.StatusServiceUnavailable {
-		t.Errorf("expected 503 (no frame), got %d", resp.StatusCode)
-	}
+	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
 
 func TestHandleSnapshot_WithFrame(t *testing.T) {

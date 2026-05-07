@@ -215,11 +215,13 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
-	d := testAutoDaemon(func(d *Daemon) {
-		d.isCameraInUseFn = func(_ string) bool { return true }
-		d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
-		d.config.DebounceCount = 1
-	})
+	d := testAutoDaemon(
+		withCameraInUse(true),
+		func(d *Daemon) {
+			d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
+			d.config.DebounceCount = 1
+		},
+	)
 
 	d.autoManage(context.Background())
 
@@ -238,9 +240,7 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 func TestAutoManage_InUseNotEnoughDebounce(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(func(d *Daemon) {
-		d.isCameraInUseFn = func(_ string) bool { return true }
-	})
+	d := testAutoDaemon(withCameraInUse(true))
 
 	d.autoManage(context.Background())
 
@@ -337,18 +337,28 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 	}
 }
 
+func withCaptureTrackingSlice(captured *[]pixy.CameraState) testDaemonOption {
+	return func(d *Daemon) {
+		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+			*captured = append(*captured, s)
+			return nil
+		}
+	}
+}
+
+func withDebounceCount(n int) testDaemonOption {
+	return func(d *Daemon) { d.config.DebounceCount = n }
+}
+
 func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
 	t.Parallel()
 
 	var trackingCalls []pixy.CameraState
-	d := testAutoDaemon(func(d *Daemon) {
-		d.isCameraInUseFn = cameraInUseFn
-		d.config.DebounceCount = 1
-		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
-			trackingCalls = append(trackingCalls, s)
-			return nil
-		}
-	})
+	d := testAutoDaemon(
+		withCameraInUse(true),
+		withDebounceCount(1),
+		withCaptureTrackingSlice(&trackingCalls),
+	)
 
 	d.autoManage(context.Background())
 
@@ -390,14 +400,9 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 	var trackingCalls []pixy.CameraState
 	d := testAutoDaemon(
 		withInCall(true),
-		func(d *Daemon) {
-			d.isCameraInUseFn = cameraNotInUseFn
-			d.config.DebounceCount = 1
-			d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
-				trackingCalls = append(trackingCalls, s)
-				return nil
-			}
-		},
+		withCameraInUse(false),
+		withDebounceCount(1),
+		withCaptureTrackingSlice(&trackingCalls),
 	)
 
 	d.autoManage(context.Background())
