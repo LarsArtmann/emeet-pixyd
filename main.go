@@ -348,6 +348,12 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 	)
 }
 
+type waybarJSON struct {
+	Text    string `json:"text"`
+	Tooltip string `json:"tooltip"`
+	Class   string `json:"class"`
+}
+
 func (d *Daemon) waybarOutput() string {
 	d.mu.RLock()
 	camera := d.state.Camera
@@ -383,18 +389,22 @@ func (d *Daemon) waybarOutput() string {
 		class += " in-call"
 	}
 
-	tooltip := fmt.Sprintf("EMEET PIXY: %s", camera)
-	tooltip += fmt.Sprintf("\nAudio: %s", audio)
-
-	tooltip += fmt.Sprintf("\nAuto: %s", autoMode)
+	var tooltip strings.Builder
+	tooltip.Grow(64)
+	tooltip.WriteString("EMEET PIXY: ")
+	tooltip.WriteString(string(camera))
+	tooltip.WriteString("\nAudio: ")
+	tooltip.WriteString(string(audio))
+	tooltip.WriteString("\nAuto: ")
+	tooltip.WriteString(autoMode.String())
 	if inCall {
-		tooltip += "\nIn call: yes"
+		tooltip.WriteString("\nIn call: yes")
 	}
 
-	out := map[string]string{
-		"text":    icon + " " + text,
-		"tooltip": tooltip,
-		"class":   "custom-camera " + class,
+	out := waybarJSON{
+		Text:    icon + " " + text,
+		Tooltip: tooltip.String(),
+		Class:   "custom-camera " + class,
 	}
 
 	data, err := json.Marshal(out)
