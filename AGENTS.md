@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-05-03
+**Updated:** 2026-05-08
 
 ---
 
@@ -92,7 +92,7 @@ main() → NewDaemon() → Run()
 | `web_types.go`     | `webStatus` struct shared between handlers and templates                                                                                      |
 | `templates.templ`  | HTML templates (compiled via `templ generate`)                                                                                                |
 | `errors.go`        | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                                                   |
-| `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, constants, `SendCommand`                                                         |
+| `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand` |
 | `static/`          | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                                                                         |
 | `behavior_test.go` | BDD-style behavioral tests: full auto lifecycle, debounce flip-flop, PTZ clamping, waybar tooltip, privacy toggle, audio cycle, state restart |
 | `commands_test.go` | Unit tests for PTZ, auto, gesture, audio, tracking commands, actionToast, applyResponseToStatus                                               |
@@ -124,8 +124,8 @@ Daemon uses function fields for external dependencies, enabling test injectabili
 | Field             | Default            | Purpose                        |
 | ----------------- | ------------------ | ------------------------------ |
 | `isCameraInUseFn` | `isCameraInUse`    | `/proc/*/fd` scanning          |
-| `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup |
-| `setSourceFn`     | `setDefaultSource` | `wpctl set-default`            |
+| `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup (returns `pixy.SourceID`) |
+| `setSourceFn`     | `setDefaultSource` | `wpctl set-default` (takes `pixy.SourceID`)              |
 | `notifyFn`        | `notify`           | `notify-send` desktop notifs   |
 | `setTrackingFn`   | `d.setTracking`    | Camera state changes via HID   |
 | `setAudioFn`      | `d.setAudio`       | Audio mode changes via HID     |
@@ -161,6 +161,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - `CameraState` and `AudioMode` are string-based types with `Valid()` and `String()` methods
 - `ParseAudioMode("org")` maps to `AudioOriginal` (value `"original"`) — the CLI shorthand differs from the stored value
 - Generic `queryHIDState[T]` in `hid.go` for type-safe HID queries
+- `PID` and `SourceID` are branded types via `github.com/larsartmann/go-branded-id` (phantom typing) — prevent mixing process IDs and PipeWire source IDs at compile time. Defined in `internal/pixy/ids.go`.
 - Metrics use OpenTelemetry SDK (`go.opentelemetry.io/otel/exporters/prometheus`) with `promhttp.Handler()` for the `/metrics` endpoint. `prometheus/client_golang` kept only for `promhttp`.
 
 ### Testing
@@ -168,6 +169,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - Standard `testing` package only (no testify)
 - **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withInCall()` or custom `testDaemonOption` to inject mock deps
 - Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`, `setTrackingFn`, `setAudioFn`, `setGestureFn`, `centerCameraFn`, `v4l2SetFn`) default to no-op stubs or real implementations in tests
+- Predefined test options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, `withNotifyCalled()`, `withNotifyMessages()`, `withFindSource()`, `withCaptureTracking()`, `withCaptureAudio()`, `withCaptureGesture()`, `withCaptureGestureArg()`, `withCaptureCenter()`, `withNoopV4L2()`, `withDebounceCount()`
 - `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
@@ -193,7 +195,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Scripts at end of body**: HTMX and `app.js` are loaded at the end of `<body>` (not in `<head>`) because `app.js` accesses `document.body` at line 12 which would be `null` in `<head>`.
 - **Build tags**: All `.go` files in the root use `//go:build linux`. Tests that test Linux-specific code naturally require a Linux host.
 - **`flaky` test awareness**: Some tests probe real sysfs (e.g., `TestProbeDevices_SetsStateToOfflineWhenNoVideo`), so they may pass or fail depending on whether a PIXY is physically connected. These tests handle both outcomes gracefully.
-- **`withAudio()` does not exist**: Only `withInCall()` is a predefined helper. To set audio in tests, use a custom `testDaemonOption`: `func(d *Daemon) { d.state.Audio = pixy.AudioLive }`.
+- **Branded ID types**: `pixy.PID` (branded `int`) and `pixy.SourceID` (branded `string`) in `internal/pixy/ids.go` use `github.com/larsartmann/go-branded-id` for phantom type branding. `ppidOf`/`isDescendantOf` use `pixy.PID`; `findPixySource`/`setDefaultSource` use `pixy.SourceID`. Zero value is `pixy.PID{}`/`pixy.SourceID{}` (check with `.IsZero()`).
 - **Nix build uses `proxyVendor = true`**: The standard FOD-based vendor approach fails because `templ generate` (in `preBuild`) produces imports that weren't visible when the FOD ran `go mod vendor`. `proxyVendor = true` downloads deps during the build via Go module proxy, after `templ generate` has run. The `vendorHash` is a SHA of the downloaded module tarballs, not of the vendored source tree.
 - **WebAddr default**: `127.0.0.1:8090` (localhost only, not `:8090`)
 - **StateDir default**: `/run/emeet-pixyd` (tmpfiles.d rule in NixOS module creates this)
