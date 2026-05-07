@@ -97,12 +97,17 @@ func (s *webServer) handleStream(
 
 		return
 	}
-	stdErr, _ := cmd.StderrPipe()
-	if stdErr != nil {
+	stdErr, stdErrErr := cmd.StderrPipe()
+	if stdErrErr != nil {
+		slog.Debug("ffmpeg stderr pipe error", "error", stdErrErr)
+	} else if stdErr != nil {
 		go func() {
 			scanner := bufio.NewScanner(stdErr)
 			for scanner.Scan() {
 				slog.Debug("ffmpeg", "line", scanner.Text())
+			}
+			if scanErr := scanner.Err(); scanErr != nil {
+				slog.Debug("ffmpeg stderr scan error", "error", scanErr)
 			}
 		}()
 	}
