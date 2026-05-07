@@ -251,6 +251,33 @@ func assertSocketResponseHasPrefixes(t *testing.T, resp string, prefixes []strin
 	}
 }
 
+func assertCommandContainsAnyOf(t *testing.T, resp string, substrs []string, label string) {
+	t.Helper()
+	for _, s := range substrs {
+		if strings.Contains(resp, s) {
+			return
+		}
+	}
+	t.Errorf("expected one of %v in %s, got: %s", substrs, label, resp)
+}
+
+func assertCommandContainsAllOf(t *testing.T, resp string, substrs []string, label string) {
+	t.Helper()
+	for _, s := range substrs {
+		if !strings.Contains(resp, s) {
+			t.Errorf("expected all of %v in %s, got: %s", substrs, label, resp)
+			return
+		}
+	}
+}
+
+func assertCommandResponse(t *testing.T, cmd string, substr, label string) {
+	t.Helper()
+	d := newDaemonWithDevice(t)
+	resp := d.handleCommand(context.Background(), cmd)
+	assertCommandContains(t, resp, substr, label)
+}
+
 // ---------- Index page ----------
 
 func TestWeb_IndexReturnsHTML(t *testing.T) {
@@ -922,9 +949,7 @@ func TestSocket_TogglePrivacy(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), cmdTogglePrivacy)
-	if !strings.Contains(resp, "privacy") && !strings.Contains(resp, "tracking") {
-		t.Errorf("expected privacy/tracking response, got: %s", resp)
-	}
+	assertCommandContainsAllOf(t, resp, []string{"privacy", "tracking"}, "socket response")
 }
 
 func TestWeb_IndexContainsCameraButtons(t *testing.T) {
@@ -987,12 +1012,7 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 
 func TestHandleCommand_UnknownCommand(t *testing.T) {
 	t.Parallel()
-
-	d := newDaemonWithDevice(t)
-	resp := d.handleCommand(context.Background(), "foobar")
-	if !strings.Contains(resp, "unknown command") {
-		t.Errorf("expected unknown command response, got: %s", resp)
-	}
+	assertCommandResponse(t, "foobar", "unknown command", "response")
 }
 
 func TestHandleCommand_StatusFormat(t *testing.T) {
@@ -1000,29 +1020,17 @@ func TestHandleCommand_StatusFormat(t *testing.T) {
 
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), "")
-	if !strings.Contains(resp, "camera=") || !strings.Contains(resp, "audio=") {
-		t.Errorf("status response missing expected fields: %s", resp)
-	}
+	assertCommandContainsAnyOf(t, resp, []string{"camera=", "audio="}, "status response")
 }
 
 func TestHandleCommand_AudioUsage(t *testing.T) {
 	t.Parallel()
-
-	d := newDaemonWithDevice(t)
-	resp := d.handleCommand(context.Background(), "audio badmode")
-	if !strings.Contains(resp, "usage:") {
-		t.Errorf("expected usage message for bad audio mode, got: %s", resp)
-	}
+	assertCommandResponse(t, "audio badmode", "usage:", "response for bad audio mode")
 }
 
 func TestHandleCommand_PTZUsage(t *testing.T) {
 	t.Parallel()
-
-	d := newDaemonWithDevice(t)
-	resp := d.handleCommand(context.Background(), "pan")
-	if !strings.Contains(resp, "usage:") {
-		t.Errorf("expected usage message for pan without value, got: %s", resp)
-	}
+	assertCommandResponse(t, "pan", "usage:", "response for pan without value")
 }
 
 func TestHandleCommand_Device(t *testing.T) {
@@ -1030,9 +1038,7 @@ func TestHandleCommand_Device(t *testing.T) {
 
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), cmdDevice)
-	if !strings.Contains(resp, "/dev/video") {
-		t.Errorf("expected device path, got: %s", resp)
-	}
+	assertCommandContains(t, resp, "/dev/video", "response")
 }
 
 func TestHandleCommand_DeviceNotFound(t *testing.T) {

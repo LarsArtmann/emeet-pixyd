@@ -219,6 +219,14 @@ func assertStatusContains(t *testing.T, result, substr, msg string) {
 	}
 }
 
+func assertCommandContains(t *testing.T, resp, substr, label string) {
+	t.Helper()
+
+	if !strings.Contains(resp, substr) {
+		t.Errorf("expected %q in %s, got: %s", substr, label, resp)
+	}
+}
+
 func assertStatusPrefix(t *testing.T, result, prefix, msg string) {
 	t.Helper()
 

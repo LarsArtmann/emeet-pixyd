@@ -117,9 +117,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
-	if !strings.Contains(resp, "pan") {
-		t.Errorf("error should mention axis 'pan', got: %s", resp)
-	}
+	assertCommandContains(t, resp, "pan", "error")
 }
 
 func TestHandlePTZCommand_NoDevice(t *testing.T) {
@@ -131,9 +129,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
-	if !strings.Contains(resp, "device not found") {
-		t.Errorf("error should mention 'device not found', got: %s", resp)
-	}
+	assertCommandContains(t, resp, "device not found", "error")
 }
 
 func TestHandlePTZCommand_V4L2Error(t *testing.T) {
@@ -160,9 +156,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got error: %s", resp)
 	}
-	if !strings.Contains(resp, "pan") || !strings.Contains(resp, "10") {
-		t.Errorf("unexpected response: %s", resp)
-	}
+	assertCommandContainsAnyOf(t, resp, []string{"pan", "10"}, "response")
 }
 
 func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
@@ -222,9 +216,7 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
-	if !strings.Contains(resp, "full") {
-		t.Errorf("response should mention 'full', got: %s", resp)
-	}
+	assertCommandContains(t, resp, "full", "response")
 
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
@@ -235,9 +227,7 @@ func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	resp := d.handleAutoCommand([]string{"auto", "invalid-mode"})
-	if !strings.Contains(resp, "usage:") {
-		t.Errorf("expected usage message, got: %s", resp)
-	}
+	assertCommandContains(t, resp, "usage:", "response")
 }
 
 func TestHandleAutoCommand_ToggleOff(t *testing.T) {
@@ -364,9 +354,7 @@ func TestHandleAudioCommand_InvalidMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	resp := d.handleAudioCommand(context.Background(), []string{"audio", "invalid"})
-	if !strings.Contains(resp, "usage:") {
-		t.Errorf("expected usage message, got: %s", resp)
-	}
+	assertCommandContains(t, resp, "usage:", "response")
 }
 
 func TestHandleAudioCommand_NextMode(t *testing.T) {

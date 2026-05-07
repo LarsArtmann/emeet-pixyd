@@ -140,9 +140,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	if len(notifyBodies) == 0 {
 		t.Error("expected notification on call end")
 	}
-	if !strings.Contains(notifyBodies[0], "privacy") {
-		t.Errorf("expected privacy notification, got: %s", notifyBodies[0])
-	}
+	assertCommandContains(t, notifyBodies[0], "privacy", "notification")
 }
 
 // ---------------------------------------------------------------------------
@@ -488,9 +486,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("state file not found: %v", err)
 	}
-	if !strings.Contains(string(data), "tracking-only") {
-		t.Errorf("state file should contain 'tracking-only', got: %s", string(data))
-	}
+	assertCommandContains(t, string(data), "tracking-only", "state file")
 }
 
 // ---------------------------------------------------------------------------
@@ -588,17 +584,13 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	resp.Body.Close() //nolint:errcheck
 
 	// Then the response slider contains the user's value (50), not the stale cache value (0)
-	if !strings.Contains(html, `value="50"`) {
-		t.Errorf("slider response should contain value=50, got: %s", html)
-	}
+	assertCommandContains(t, html, `value="50"`, "slider response")
 	if strings.Contains(html, `value="0"`) {
 		t.Error("slider response should NOT contain stale cache value 0")
 	}
 
 	// And a success toast is shown
-	if !strings.Contains(html, "Pan set to 50") {
-		t.Errorf("response should contain success toast, got: %s", html)
-	}
+	assertCommandContains(t, html, "Pan set to 50", "response")
 
 	// And the PTZ cache is invalidated
 	d.ptzCache.mu.RLock()
@@ -629,10 +621,6 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	assertHTTPStatusOK(t, resp)
 
 	// Then an error toast is shown
-	if !strings.Contains(html, "toast-error") {
-		t.Errorf("response should contain error toast, got: %s", html)
-	}
-	if !strings.Contains(html, "error:") {
-		t.Errorf("response should contain error message, got: %s", html)
-	}
+	assertCommandContains(t, html, "toast-error", "response")
+	assertCommandContains(t, html, "error:", "response")
 }
