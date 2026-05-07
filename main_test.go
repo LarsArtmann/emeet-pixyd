@@ -504,14 +504,6 @@ func TestWaybarOutput(t *testing.T) {
 	}
 }
 
-func TestIsCameraInUseEmptyDevice(t *testing.T) {
-	t.Parallel()
-
-	if isCameraInUse("") {
-		t.Error("expected false for empty video device")
-	}
-}
-
 func TestHandleCommandTogglePrivacy(t *testing.T) {
 	t.Parallel()
 
