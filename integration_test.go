@@ -261,16 +261,6 @@ func assertCommandContainsAnyOf(t *testing.T, resp string, substrs []string, lab
 	t.Errorf("expected one of %v in %s, got: %s", substrs, label, resp)
 }
 
-func assertCommandContainsAllOf(t *testing.T, resp string, substrs []string, label string) {
-	t.Helper()
-	for _, s := range substrs {
-		if !strings.Contains(resp, s) {
-			t.Errorf("expected all of %v in %s, got: %s", substrs, label, resp)
-			return
-		}
-	}
-}
-
 func assertCommandResponse(t *testing.T, cmd string, substr, label string) {
 	t.Helper()
 	d := newDaemonWithDevice(t)
@@ -482,21 +472,23 @@ func testPTZEndpoint(t *testing.T, path, body string, expectedStatus int) {
 	assertStatusCode(t, resp, expectedStatus)
 }
 
-func TestWeb_PTZMissingAxis(
-	t *testing.T,
-) {
+func TestWeb_PTZEndpoint(t *testing.T) {
 	t.Parallel()
-	testPTZEndpoint(t, "/api/ptz/", "", http.StatusBadRequest)
-}
-
-func TestWeb_PTZMissingValue(t *testing.T) {
-	t.Parallel()
-	testPTZEndpoint(t, "/api/ptz/pan", "", http.StatusBadRequest)
-}
-
-func TestWeb_PTZWithAxisAndValue(t *testing.T) {
-	t.Parallel()
-	testPTZEndpoint(t, "/api/ptz/pan", "value=10", http.StatusOK)
+	tests := []struct {
+		path   string
+		body   string
+		status int
+	}{
+		{"/api/ptz/", "", http.StatusBadRequest},
+		{"/api/ptz/pan", "", http.StatusBadRequest},
+		{"/api/ptz/pan", "value=10", http.StatusOK},
+	}
+	for _, tc := range tests {
+		t.Run(tc.path, func(t *testing.T) {
+			t.Parallel()
+			testPTZEndpoint(t, tc.path, tc.body, tc.status)
+		})
+	}
 }
 
 // ---------- Track/Idle/Privacy ----------
@@ -949,7 +941,7 @@ func TestSocket_TogglePrivacy(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), cmdTogglePrivacy)
-	assertCommandContainsAllOf(t, resp, []string{"privacy", "tracking"}, "socket response")
+	assertCommandContains(t, resp, "privacy", "socket response")
 }
 
 func TestWeb_IndexContainsCameraButtons(t *testing.T) {

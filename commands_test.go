@@ -141,7 +141,7 @@ func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 		}
 	})
 
-	resp := d.handlePTZCommand(context.Background(), []string{"pan", "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -152,7 +152,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 
 	d, _ := newPTZCaptureDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{"pan", "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got error: %s", resp)
 	}
