@@ -289,7 +289,7 @@ func TestHandleGestureCommand_On(t *testing.T) {
 	var called, enabledArg bool
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
-	resp := d.handleGestureCommand(context.Background(), "gesture-on")
+	resp := d.handleGestureCommand(context.Background(), cmdGestureOn)
 	notError(t, resp)
 	if !called || !enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/true", called, enabledArg)
@@ -302,7 +302,7 @@ func TestHandleGestureCommand_Off(t *testing.T) {
 	var called, enabledArg bool
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
-	resp := d.handleGestureCommand(context.Background(), "gesture-off")
+	resp := d.handleGestureCommand(context.Background(), cmdGestureOff)
 	notError(t, resp)
 	if !called || enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/false", called, enabledArg)
@@ -318,7 +318,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 		d.setGestureFn = func(_ context.Context, enabled bool) error { enabledArg = enabled; return nil }
 	})
 
-	resp := d.handleGestureCommand(context.Background(), "toggle-gesture")
+	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp)
 	if !enabledArg {
 		t.Errorf("toggle should enable gesture, got enabled=%v", enabledArg)
@@ -334,7 +334,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 		d.setGestureFn = func(_ context.Context, enabled bool) error { enabledArg = enabled; return nil }
 	})
 
-	resp := d.handleGestureCommand(context.Background(), "toggle-gesture")
+	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp)
 	if enabledArg {
 		t.Errorf("toggle should disable gesture, got enabled=%v", enabledArg)
@@ -410,7 +410,7 @@ func TestHandleTrackingCommand_ErrorPath(t *testing.T) {
 		}
 	})
 
-	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, "track")
+	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -427,13 +427,13 @@ func TestActionToast_KnownCommands(t *testing.T) {
 		cmd  string
 		want string
 	}{
-		{"track", toastTrackingEnabled},
+		{cmdTrack, toastTrackingEnabled},
 		{cmdIdle, toastCameraIdle},
 		{cmdPrivacy, toastPrivacyOn},
 		{cmdCenter, toastCameraCentered},
 		{cmdSync, toastStateSynced},
 		{cmdProbe, toastProbedDevices},
-		{"toggle-gesture", "Gesture toggled"},
+		{cmdToggleGesture, "Gesture toggled"},
 		{"toggle-auto", "Auto mode toggled"},
 	}
 
@@ -467,12 +467,15 @@ func TestApplyResponseToStatus_Error(t *testing.T) {
 
 	//nolint:exhaustruct
 	status := webStatus{}
-	applyResponseToStatus("error: pan: bad", &status, "ignored")
+	applyResponseToStatus("error: pan: bad", &status, "ignored", toastTypeError)
 	if status.Error == "" {
 		t.Error("Error should be set")
 	}
 	if status.Toast != "" {
 		t.Error("Toast should not be set for error")
+	}
+	if status.ToastType != "" {
+		t.Error("ToastType should not be set for error")
 	}
 }
 
@@ -481,11 +484,42 @@ func TestApplyResponseToStatus_Success(t *testing.T) {
 
 	//nolint:exhaustruct
 	status := webStatus{}
-	applyResponseToStatus("tracking on", &status, "Tracking enabled")
+	applyResponseToStatus("tracking on", &status, "Tracking enabled", toastTypeSuccess)
 	if status.Error != "" {
 		t.Error("Error should not be set")
 	}
 	if status.Toast != "Tracking enabled" {
 		t.Errorf("Toast = %q, want %q", status.Toast, "Tracking enabled")
+	}
+	if status.ToastType != toastTypeSuccess {
+		t.Errorf("ToastType = %q, want %q", status.ToastType, toastTypeSuccess)
+	}
+}
+
+func TestApplyResponseToStatus_InfoToast(t *testing.T) {
+	t.Parallel()
+
+	//nolint:exhaustruct
+	status := webStatus{}
+	applyResponseToStatus("ok", &status, "Toggled", toastTypeInfo)
+	if status.ToastType != toastTypeInfo {
+		t.Errorf("ToastType = %q, want %q", status.ToastType, toastTypeInfo)
+	}
+}
+
+func TestApplyResponseToStatus_ErrorOverridesToast(t *testing.T) {
+	t.Parallel()
+
+	//nolint:exhaustruct
+	status := webStatus{}
+	applyResponseToStatus("error: something failed", &status, "Success msg", toastTypeSuccess)
+	if status.Error == "" {
+		t.Error("Error should be set for error response")
+	}
+	if status.Toast != "" {
+		t.Error("Toast should not be set when response is an error")
+	}
+	if status.ToastType != "" {
+		t.Error("ToastType should not be set when response is an error")
 	}
 }

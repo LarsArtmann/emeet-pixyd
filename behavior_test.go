@@ -417,7 +417,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	})
 
 	// When user toggles privacy from privacy mode → should activate tracking
-	resp := d.handleCommand(context.Background(), "toggle-privacy")
+	resp := d.handleCommand(context.Background(), cmdTogglePrivacy)
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
@@ -427,7 +427,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	}
 
 	// When user toggles again from tracking → should enter privacy
-	resp = d.handleCommand(context.Background(), "toggle-privacy")
+	resp = d.handleCommand(context.Background(), cmdTogglePrivacy)
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}

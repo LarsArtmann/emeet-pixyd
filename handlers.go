@@ -17,7 +17,6 @@ import (
 )
 
 const (
-	audioCommand        = "audio"
 	zoomDefault         = 100
 	maxStreamBufferSize = 10 * 1024 * 1024
 	maxBodyBytes        = 1 << 10
@@ -146,8 +145,8 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		slog.Debug("web action", "cmd", command, "response", resp)
 
 		status := s.getWebStatusWithPTZ(request.Context())
-		toast, _ := actionToast(command)
-		applyResponseToStatus(resp, &status, toast)
+		toast, toastType := actionToast(command)
+		applyResponseToStatus(resp, &status, toast, toastType)
 
 		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 	}
@@ -176,26 +175,26 @@ func actionToast(command string) (string, string) {
 	}
 }
 
-func applyResponseToStatus(resp string, status *webStatus, toast string) {
+func applyResponseToStatus(resp string, status *webStatus, toast, toastType string) {
 	if IsCommandErrorResponse(resp) {
 		status.Error = resp
 	} else {
 		status.Toast = toast
-		status.ToastType = toastTypeInfo
+		status.ToastType = toastType
 	}
 }
 
 func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	mode := request.FormValue("mode")
-	cmd := audioCommand
+	cmd := cmdAudio
 	if mode != "" {
-		cmd = audioCommand + " " + mode
+		cmd = cmdAudio + " " + mode
 	}
 	resp := s.daemon.handleCommand(request.Context(), cmd)
 	slog.Debug("web audio", "cmd", cmd, "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Audio mode changed")
+	applyResponseToStatus(resp, &status, "Audio mode changed", toastTypeSuccess)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
@@ -313,7 +312,7 @@ func (s *webServer) handleGestureToggle(responseWriter http.ResponseWriter, requ
 	resp := s.daemon.handleCommand(request.Context(), cmdToggleGesture)
 	slog.Debug("web gesture toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Gesture toggled")
+	applyResponseToStatus(resp, &status, "Gesture toggled", toastTypeInfo)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
@@ -322,7 +321,7 @@ func (s *webServer) handleAutoToggle(responseWriter http.ResponseWriter, request
 	resp := s.daemon.handleCommand(request.Context(), cmdToggleAuto)
 	slog.Debug("web auto toggle", "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Auto mode toggled")
+	applyResponseToStatus(resp, &status, "Auto mode toggled", toastTypeInfo)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
@@ -331,16 +330,16 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
-	mux.HandleFunc("POST /api/track", server.action("track"))
+	mux.HandleFunc("POST /api/track", server.action(cmdTrack))
 	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))
-	mux.HandleFunc("POST /api/toggle-privacy", server.action("toggle-privacy"))
+	mux.HandleFunc("POST /api/toggle-privacy", server.action(cmdTogglePrivacy))
 	mux.HandleFunc("POST /api/audio", server.handleAudio)
 	mux.HandleFunc("POST /api/gesture", server.handleGestureToggle)
 	mux.HandleFunc("POST /api/auto", server.handleAutoToggle)
-	mux.HandleFunc("POST /api/center", server.action("center"))
-	mux.HandleFunc("POST /api/sync", server.action("sync"))
-	mux.HandleFunc("POST /api/probe", server.action("probe"))
+	mux.HandleFunc("POST /api/center", server.action(cmdCenter))
+	mux.HandleFunc("POST /api/sync", server.action(cmdSync))
+	mux.HandleFunc("POST /api/probe", server.action(cmdProbe))
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/ptz/", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "missing axis", http.StatusBadRequest)

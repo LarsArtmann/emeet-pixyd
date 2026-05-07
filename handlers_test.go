@@ -404,6 +404,30 @@ func TestCachingFS(t *testing.T) {
 	}
 }
 
+func BenchmarkExtractJPEGFrame(b *testing.B) {
+	data := make([]byte, 0, 104)
+	data = append(data, 0xFF, 0xD8)
+	for range 100 {
+		data = append(data, 0x42)
+	}
+	data = append(data, 0xFF, 0xD9)
+
+	b.ResetTimer()
+	for range b.N {
+		br := bufio.NewReader(bytes.NewReader(data))
+		buf := &bytes.Buffer{}
+		_, _ = extractJPEGFrame(br, buf)
+	}
+}
+
+func BenchmarkFormatLastSynced(b *testing.B) {
+	t := time.Now()
+	b.ResetTimer()
+	for range b.N {
+		formatLastSynced(t)
+	}
+}
+
 //nolint:paralleltest
 func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()

@@ -756,7 +756,7 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 func TestSocket_StatusCommand(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "status")
+	resp := sendSC(t, cfg.SocketPath(), cmdStatus)
 	assertSocketResponseHasPrefixes(t, resp, []string{"camera=", "audio=", "auto=", "device="})
 }
 
@@ -776,7 +776,7 @@ func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 func TestSocket_ProbeCommand(t *testing.T) {
 	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "probe")
+	resp := sendSC(t, cfg.SocketPath(), cmdProbe)
 	if daemon.videoDev != "" {
 		if !strings.HasPrefix(resp, "device found:") {
 			t.Errorf("expected 'device found: ...', got: %s", resp)
@@ -791,14 +791,14 @@ func TestSocket_ProbeCommand(t *testing.T) {
 func TestSocket_WaybarCommand(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "waybar")
+	resp := sendSC(t, cfg.SocketPath(), cmdWaybar)
 	assertSocketResponseHasPrefixes(t, resp, []string{`"text"`, `"tooltip"`, `"class"`})
 }
 
 func TestSocket_DeviceCommand(t *testing.T) {
 	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "device")
+	resp := sendSC(t, cfg.SocketPath(), cmdDevice)
 	if daemon.videoDev != "" {
 		if resp != daemon.videoDev {
 			t.Errorf("expected %s, got: %s", daemon.videoDev, resp)
@@ -820,7 +820,7 @@ func TestSocket_UnknownCommand(t *testing.T) {
 func TestSocket_StatusViaCommandReturnsStatus(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "status")
+	resp := sendSC(t, cfg.SocketPath(), cmdStatus)
 	assertSocketResponseContains(t, resp, "camera=", "socket response")
 }
 
@@ -837,7 +837,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 
 		{cmdAudio, cmdAudio},
 
-		{"gesture", "gesture-on"},
+		{"gesture", cmdGestureOn},
 
 		{cmdSync, cmdSync},
 
@@ -921,7 +921,7 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 func TestSocket_TogglePrivacy(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
-	resp := sendSC(t, cfg.SocketPath(), "toggle-privacy")
+	resp := sendSC(t, cfg.SocketPath(), cmdTogglePrivacy)
 	if !strings.Contains(resp, "privacy") && !strings.Contains(resp, "tracking") {
 		t.Errorf("expected privacy/tracking response, got: %s", resp)
 	}
@@ -1029,7 +1029,7 @@ func TestHandleCommand_Device(t *testing.T) {
 	t.Parallel()
 
 	d := newDaemonWithDevice(t)
-	resp := d.handleCommand(context.Background(), "device")
+	resp := d.handleCommand(context.Background(), cmdDevice)
 	if !strings.Contains(resp, "/dev/video") {
 		t.Errorf("expected device path, got: %s", resp)
 	}
@@ -1039,7 +1039,7 @@ func TestHandleCommand_DeviceNotFound(t *testing.T) {
 	t.Parallel()
 
 	d := newIntegrationDaemon(t)
-	resp := d.handleCommand(context.Background(), "device")
+	resp := d.handleCommand(context.Background(), cmdDevice)
 	if resp != respDeviceNotFound {
 		t.Errorf("expected device not found, got: %s", resp)
 	}

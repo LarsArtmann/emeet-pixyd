@@ -385,7 +385,7 @@ func TestHandleCommandStatus(t *testing.T) {
 
 	d := testDaemonNoDevice()
 
-	result := d.handleCommand(context.Background(), "status")
+	result := d.handleCommand(context.Background(), cmdStatus)
 	assertStatusPrefix(t, result, "camera=offline", "offline status")
 	assertStatusContains(t, result, "audio=", "offline status")
 	assertStatusContains(t, result, "auto=", "offline status")
@@ -441,7 +441,7 @@ func TestHandleCommandDeviceRequired(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateOffline, "", "")
 
-	for _, cmd := range []string{"track", cmdIdle, cmdPrivacy, "toggle-privacy", "center", "gesture-on", "gesture-off"} {
+	for _, cmd := range []string{cmdTrack, cmdIdle, cmdPrivacy, cmdTogglePrivacy, cmdCenter, cmdGestureOn, cmdGestureOff} {
 		result := d.handleCommand(context.Background(), cmd)
 		if result == "" {
 			t.Errorf("expected error response for '%s' with no device", cmd)
@@ -509,7 +509,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
-	result := d.handleCommand(context.Background(), "toggle-privacy")
+	result := d.handleCommand(context.Background(), cmdTogglePrivacy)
 	if result == "" {
 		t.Error("expected non-empty response")
 	}
@@ -520,7 +520,7 @@ func TestHandleCommandProbe(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateOffline, "", "")
 
-	result := d.handleCommand(context.Background(), "probe")
+	result := d.handleCommand(context.Background(), cmdProbe)
 
 	if d.videoDev != "" {
 		assertStatusPrefix(t, result, "device found:", "PIXY connected")
@@ -741,7 +741,7 @@ func TestHandleCommandSyncNoDevice(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(pixy.StateOffline, "", "")
-	result := d.handleCommand(context.Background(), "sync")
+	result := d.handleCommand(context.Background(), cmdSync)
 	assertErrorPrefix(t, result)
 }
 
@@ -751,7 +751,7 @@ func TestHandleCommandSyncWithDevice(t *testing.T) {
 	d := testDaemonWithDevice(pixy.StatePrivacy)
 	d.config = testConfig(t.TempDir())
 
-	result := d.handleCommand(context.Background(), "sync")
+	result := d.handleCommand(context.Background(), cmdSync)
 	if !strings.HasPrefix(result, "synced") && !strings.Contains(result, "error") {
 		t.Errorf("expected sync result, got: %s", result)
 	}
@@ -1275,5 +1275,21 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 	// Then the PIXY is found even though it's not the first device
 	if result != "/dev/video2" {
 		t.Errorf("expected /dev/video2, got %s", result)
+	}
+}
+
+func BenchmarkParseHIDResponse(b *testing.B) {
+	data := []byte{0x09, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01}
+	b.ResetTimer()
+	for range b.N {
+		parseHIDResponse(data)
+	}
+}
+
+func BenchmarkWaybarOutput(b *testing.B) {
+	d := testDaemonWithState(pixy.StateTracking, true)
+	b.ResetTimer()
+	for range b.N {
+		d.waybarOutput()
 	}
 }

@@ -18,12 +18,14 @@ const (
 	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
 	respDeviceNotFound = "device not found"
 
+	cmdStatus        = "status"
 	cmdGestureOn     = "gesture-on"
 	cmdGestureOff    = "gesture-off"
 	cmdIdle          = "idle"
 	cmdAutoOn        = "auto-on"
 	cmdAutoOff       = "auto-off"
 	cmdPrivacy       = string(pixy.StatePrivacy)
+	cmdTogglePrivacy = "toggle-privacy"
 	cmdToggleGesture = "toggle-gesture"
 	cmdToggleAuto    = "toggle-auto"
 	cmdTrack         = "track"
@@ -32,6 +34,8 @@ const (
 	cmdAuto          = "auto"
 	cmdSync          = "sync"
 	cmdProbe         = "probe"
+	cmdWaybar        = "waybar"
+	cmdDevice        = "device"
 	minCmdParts      = 2
 )
 
@@ -45,7 +49,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	}
 
 	switch parts[0] {
-	case "status":
+	case cmdStatus:
 		return d.getStatus(ctx)
 
 	case cmdTrack:
@@ -57,16 +61,16 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case cmdPrivacy:
 		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdPrivacy)
 
-	case "toggle-privacy":
+	case cmdTogglePrivacy:
 		d.mu.RLock()
 		camera := d.state.Camera
 		d.mu.RUnlock()
 
 		if camera == pixy.StatePrivacy {
-			return d.handleTrackingCommand(ctx, pixy.StateTracking, "toggle-privacy")
+			return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTogglePrivacy)
 		}
 
-		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, "toggle-privacy")
+		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdTogglePrivacy)
 
 	case cmdAudio:
 		return d.handleAudioCommand(ctx, parts)
@@ -80,7 +84,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
 
-	case "waybar":
+	case cmdWaybar:
 		return d.waybarOutput()
 
 	case cmdSync:
@@ -101,7 +105,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case axisPan, axisTilt, axisZoom:
 		return d.handlePTZCommand(ctx, parts)
 
-	case "device":
+	case cmdDevice:
 		d.mu.RLock()
 		dev := d.videoDev
 		d.mu.RUnlock()
@@ -165,9 +169,9 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 	switch cmd {
 	case cmdGestureOn:
 		enable = true
-	case "gesture-off":
+	case cmdGestureOff:
 		enable = false
-	case "toggle-gesture":
+	case cmdToggleGesture:
 		d.mu.RLock()
 		enable = !d.state.Gesture
 		d.mu.RUnlock()
@@ -185,7 +189,7 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) string {
 	if err := d.centerCameraFn(ctx); err != nil {
-		return (&CommandError{Op: "center", Err: err}).Error()
+		return (&CommandError{Op: cmdCenter, Err: err}).Error()
 	}
 
 	return "centered"
