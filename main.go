@@ -515,7 +515,12 @@ func (d *Daemon) Run() {
 		//nolint:exhaustruct
 		httpSrv = &http.Server{
 			Addr:              d.config.WebAddr,
-			Handler:           requestIDMiddleware(loggingMiddleware(securityMiddleware(mux))),
+			Handler: Chain(
+				mux,
+				securityMiddleware,
+				loggingMiddleware,
+				requestIDMiddleware,
+			),
 			ReadHeaderTimeout: 5 * time.Second,
 			ReadTimeout:       10 * time.Second,
 			WriteTimeout:      30 * time.Second,

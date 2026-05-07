@@ -69,6 +69,17 @@ func securityMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Chain wraps a handler with multiple middleware, applying them outermost-first.
+func Chain(
+	h http.Handler,
+	mws ...func(http.Handler) http.Handler,
+) http.Handler {
+	for i := len(mws) - 1; i >= 0; i-- {
+		h = mws[i](h)
+	}
+	return h
+}
+
 func requestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := r.Header.Get("X-Request-ID")
