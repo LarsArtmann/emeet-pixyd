@@ -44,7 +44,7 @@ type Daemon struct {
 
 	ptzCache struct {
 		mu        sync.RWMutex
-		values    ptzValues
+		values    pixy.PTZValues
 		expiresAt time.Time
 	}
 
@@ -167,9 +167,7 @@ func (d *Daemon) setGesture(ctx context.Context, enabled bool) error {
 }
 
 func (d *Daemon) centerCamera(ctx context.Context) error {
-	d.mu.RLock()
-	videoDev := d.videoDev
-	d.mu.RUnlock()
+	videoDev := d.videoDevice()
 
 	if videoDev == "" {
 		return fmt.Errorf("centerCamera: %w", pixy.ErrPIXYNotConnected)
@@ -187,40 +185,32 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	return nil
 }
 
-func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
+func (d *Daemon) videoDevice() string {
 	d.mu.RLock()
-	hidrawDev := d.hidrawDev
+	dev := d.videoDev
 	d.mu.RUnlock()
+	return dev
+}
 
+func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
 	return queryHIDState(
-		ctx,
-		hidrawDev,
+		ctx, d.hidDevice(),
 		[]byte{cameraConfigPrefix, hidInterfaceTracking, 0x01, 0x01},
 		func(p hidResponse) pixy.CameraState { return p.Tracking },
 	)
 }
 
 func (d *Daemon) queryAudio(ctx context.Context) (pixy.AudioMode, error) {
-	d.mu.RLock()
-	hidrawDev := d.hidrawDev
-	d.mu.RUnlock()
-
 	return queryHIDState(
-		ctx,
-		hidrawDev,
+		ctx, d.hidDevice(),
 		[]byte{cameraConfigPrefix, hidInterfaceAudio, audioConfigMarker, 0x04},
 		func(p hidResponse) pixy.AudioMode { return p.Audio },
 	)
 }
 
 func (d *Daemon) queryGesture(ctx context.Context) (bool, error) {
-	d.mu.RLock()
-	hidrawDev := d.hidrawDev
-	d.mu.RUnlock()
-
 	return queryHIDState(
-		ctx,
-		hidrawDev,
+		ctx, d.hidDevice(),
 		[]byte{
 			cameraConfigPrefix, hidInterfaceGesture,
 			gestureConfigMark1, gestureConfigMark2,
@@ -232,10 +222,15 @@ func (d *Daemon) queryGesture(ctx context.Context) (bool, error) {
 	)
 }
 
-func (d *Daemon) syncState(ctx context.Context) string {
+func (d *Daemon) hidDevice() string {
 	d.mu.RLock()
-	videoDev := d.videoDev
+	dev := d.hidrawDev
 	d.mu.RUnlock()
+	return dev
+}
+
+func (d *Daemon) syncState(ctx context.Context) string {
+	videoDev := d.videoDevice()
 
 	if videoDev == "" {
 		return "error: PIXY not connected"

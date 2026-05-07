@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 const (
@@ -17,12 +19,6 @@ const (
 	axisTilt = "tilt"
 	axisZoom = "zoom"
 )
-
-type ptzValues struct {
-	Pan  int
-	Tilt int
-	Zoom int
-}
 
 func v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 	err := exec.CommandContext(ctx, "v4l2-ctl", "-d", dev, "--set-ctrl="+ctrl+"="+value).
@@ -50,17 +46,17 @@ func v4l2SetMultiple(ctx context.Context, dev string, controls map[string]string
 	return nil
 }
 
-func parsePTZValues(ctx context.Context, dev string) ptzValues {
+func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
 	out, err := exec.CommandContext(
 		ctx, "v4l2-ctl", "-d", dev,
 		"--get-ctrl=pan_absolute,tilt_absolute,zoom_absolute",
 	).Output()
 	if err != nil {
 		//nolint:exhaustruct
-		return ptzValues{}
+		return pixy.PTZValues{}
 	}
 
-	var ptz ptzValues
+	var ptz pixy.PTZValues
 
 	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
 		key, val, ok := strings.Cut(line, ":")

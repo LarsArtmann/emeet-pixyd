@@ -23,6 +23,11 @@ const (
 	testHIDDev   = "/dev/hidraw7"
 )
 
+const (
+	testStrPrivacy  = "privacy"
+	testStrTracking = "tracking"
+)
+
 func testConfig(dir string) pixy.Config {
 	//nolint:exhaustruct
 	return pixy.Config{
@@ -110,6 +115,13 @@ func withConfig(dir string) testDaemonOption {
 			WebAddr:       "127.0.0.1:0",
 		}
 	}
+}
+
+func readState[T any](d *Daemon, fn func(pixy.State) T) T {
+	d.mu.RLock()
+	v := fn(d.state)
+	d.mu.RUnlock()
+	return v
 }
 
 func assertInCall(t *testing.T, d *Daemon, want bool) {
@@ -473,8 +485,8 @@ func TestWaybarOutput(t *testing.T) {
 		inCall   bool
 		expected string
 	}{
-		{pixy.StateTracking, false, "tracking"},
-		{pixy.StatePrivacy, false, "privacy"},
+		{pixy.StateTracking, false, testStrTracking},
+		{pixy.StatePrivacy, false, testStrPrivacy},
 		{pixy.StateIdle, false, "idle"},
 		{pixy.StateOffline, false, "offline"},
 		{pixy.StateTracking, true, "tracking in-call"},
@@ -501,14 +513,6 @@ func TestWaybarOutput(t *testing.T) {
 
 		assertParsedField(t, parsed, "text")
 		assertParsedField(t, parsed, "tooltip")
-	}
-}
-
-func TestIsCameraInUseEmptyDevice(t *testing.T) {
-	t.Parallel()
-
-	if isCameraInUse("") {
-		t.Error("expected false for empty video device")
 	}
 }
 

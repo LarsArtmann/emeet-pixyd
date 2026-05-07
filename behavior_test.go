@@ -570,7 +570,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 		"/dev/hidraw7",
 		withNoopV4L2(),
 		func(d *Daemon) {
-			d.ptzCache.values = ptzValues{Pan: 0, Tilt: 0, Zoom: 100}
+			d.ptzCache.values = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}
 			d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
 		},
 	)

@@ -15,13 +15,6 @@ func testAutoDaemon(opts ...testDaemonOption) *Daemon {
 	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, opts...)
 }
 
-func readState[T any](d *Daemon, fn func(pixy.State) T) T {
-	d.mu.RLock()
-	v := fn(d.state)
-	d.mu.RUnlock()
-	return v
-}
-
 func readDebounce(d *Daemon) (inUse, idle int) {
 	d.mu.RLock()
 	inUse = d.debounceInUse

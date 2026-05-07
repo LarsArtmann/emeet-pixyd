@@ -243,6 +243,13 @@ func DefaultState() State {
 	}
 }
 
+// PTZValues holds the current pan/tilt/zoom position of the camera.
+type PTZValues struct {
+	Pan  int
+	Tilt int
+	Zoom int
+}
+
 // Config holds daemon configuration parameters.
 // Fields marked with env tags are read from environment variables by ConfigFromEnv().
 type Config struct {

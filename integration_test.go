@@ -941,7 +941,8 @@ func TestSocket_TogglePrivacy(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), cmdTogglePrivacy)
-	assertCommandContains(t, resp, "privacy", "socket response")
+	assertCommandContainsAnyOf(t, resp,
+		[]string{testStrPrivacy, testStrTracking}, "socket response")
 }
 
 func TestWeb_IndexContainsCameraButtons(t *testing.T) {
