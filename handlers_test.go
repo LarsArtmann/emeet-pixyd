@@ -428,6 +428,45 @@ func BenchmarkFormatLastSynced(b *testing.B) {
 	}
 }
 
+func TestLoggingMiddleware_CapturesStatus(t *testing.T) {
+	t.Parallel()
+
+	var capturedStatus int
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		capturedStatus = http.StatusNotFound
+	})
+	handler := loggingMiddleware(inner)
+
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "/test", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if capturedStatus != http.StatusNotFound {
+		t.Errorf("inner handler saw status %d, want %d", capturedStatus, http.StatusNotFound)
+	}
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("recorder status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+}
+
+func TestLoggingMiddleware_DefaultStatusOK(t *testing.T) {
+	t.Parallel()
+
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	})
+	handler := loggingMiddleware(inner)
+
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200 when WriteHeader not called, got %d", rec.Code)
+	}
+}
+
 //nolint:paralleltest
 func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()
