@@ -27,9 +27,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
-	d := testAutoDaemon(func(d *Daemon) {
-		d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
-	})
+	d := testAutoDaemon(withNotifyCalled(&notifyCalled))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
@@ -103,10 +101,10 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
-			d.setSourceFn = func(_ context.Context, id string) {
+			d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
 				setSourceCalled = true
-				if id != "42" {
-					t.Errorf("expected source id 42, got %s", id)
+				if id.String() != "42" {
+					t.Errorf("expected source id 42, got %s", id.String())
 				}
 			}
 		},
@@ -126,7 +124,7 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
-			d.setSourceFn = func(_ context.Context, _ string) { setSourceCalled = true }
+			d.setSourceFn = func(_ context.Context, _ pixy.SourceID) { setSourceCalled = true }
 		},
 	)
 
@@ -208,10 +206,8 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 	var notifyCalled bool
 	d := testAutoDaemon(
 		withCameraInUse(true),
-		func(d *Daemon) {
-			d.notifyFn = func(_ context.Context, _, _ string) { notifyCalled = true }
-			d.config.DebounceCount = 1
-		},
+		withNotifyCalled(&notifyCalled),
+		func(d *Daemon) { d.config.DebounceCount = 1 },
 	)
 
 	d.autoManage(context.Background())

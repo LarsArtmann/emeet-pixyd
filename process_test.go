@@ -6,57 +6,62 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 func TestPpidOf_CurrentProcess(t *testing.T) {
 	t.Parallel()
-	myPID := os.Getpid()
+	myPID := pixy.NewPID(os.Getpid())
 	ppid := ppidOf(myPID)
-	if ppid == 0 {
+	if ppid.IsZero() {
 		t.Fatal("expected non-zero ppid for current process")
 	}
-	t.Logf("current pid=%d ppid=%d", myPID, ppid)
+	t.Logf("current pid=%d ppid=%d", myPID.Get(), ppid.Get())
 }
 
 func TestPpidOf_InvalidPID(t *testing.T) {
 	t.Parallel()
-	ppid := ppidOf(999999999)
-	if ppid != 0 {
-		t.Errorf("expected 0 for invalid PID, got %d", ppid)
+	ppid := ppidOf(pixy.NewPID(999999999))
+	if !ppid.IsZero() {
+		t.Errorf("expected 0 for invalid PID, got %d", ppid.Get())
 	}
 }
 
 func TestPpidOf_InitProcess(t *testing.T) {
 	t.Parallel()
-	ppid := ppidOf(1)
-	if ppid == 0 {
+	ppid := ppidOf(pixy.NewPID(1))
+	if ppid.IsZero() {
 		t.Log("init ppid is 0 (expected in most cases)")
 	}
 }
 
 func TestIsDescendantOf_Self(t *testing.T) {
 	t.Parallel()
-	myPID := os.Getpid()
+	myPID := pixy.NewPID(os.Getpid())
 	ppid := ppidOf(myPID)
-	if ppid == 0 {
+	if ppid.IsZero() {
 		t.Skip("cannot determine parent PID")
 	}
 	if !isDescendantOf(myPID, ppid) {
-		t.Errorf("expected current process %d to be descendant of parent %d", myPID, ppid)
+		t.Errorf(
+			"expected current process %d to be descendant of parent %d",
+			myPID.Get(), ppid.Get(),
+		)
 	}
 }
 
 func TestIsDescendantOf_NotDescendant(t *testing.T) {
 	t.Parallel()
-	myPID := os.Getpid()
-	if isDescendantOf(myPID, 1) {
+	myPID := pixy.NewPID(os.Getpid())
+	if isDescendantOf(myPID, pixy.NewPID(1)) {
 		t.Log("process is descendant of PID 1 (common on Linux)")
 	}
 }
 
 func TestIsDescendantOf_SamePID(t *testing.T) {
 	t.Parallel()
-	myPID := os.Getpid()
+	myPID := pixy.NewPID(os.Getpid())
 	if isDescendantOf(myPID, myPID) {
 		t.Error("a process should not be its own descendant")
 	}
@@ -123,9 +128,9 @@ func TestPpidOf_MalformedStat(t *testing.T) {
 
 	// ppidOf reads from /proc, not our tmpDir, so this tests the real /proc.
 	// We just verify it doesn't panic on edge cases.
-	ppid := ppidOf(-1)
-	if ppid != 0 {
-		t.Errorf("expected 0 for negative PID, got %d", ppid)
+	ppid := ppidOf(pixy.NewPID(-1))
+	if !ppid.IsZero() {
+		t.Errorf("expected 0 for negative PID, got %d", ppid.Get())
 	}
 }
 
@@ -133,5 +138,5 @@ func TestIsDescendantOf_MaxDepth(t *testing.T) {
 	t.Parallel()
 	// PID 1's parent is 0, which should hit max depth or terminate
 	// This shouldn't panic regardless of outcome
-	isDescendantOf(1, 999999999)
+	isDescendantOf(pixy.NewPID(1), pixy.NewPID(999999999))
 }

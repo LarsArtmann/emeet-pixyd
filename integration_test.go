@@ -23,16 +23,12 @@ const (
 
 func newIntegrationDaemon(t *testing.T) *Daemon {
 	t.Helper()
-	return newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.config = testConfig(t.TempDir())
-	})
+	return newTestDaemon(pixy.StatePrivacy, "", "", withTestConfig(t.TempDir()))
 }
 
 func newDaemonWithDevice(t *testing.T) *Daemon {
 	t.Helper()
-	return newTestDaemon(pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
-		d.config = testConfig(t.TempDir())
-	})
+	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withTestConfig(t.TempDir()))
 }
 
 func newTestWebServer(t *testing.T, daemon *Daemon) *httptest.Server {

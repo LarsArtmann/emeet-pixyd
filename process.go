@@ -11,44 +11,46 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
-func ppidOf(pid int) int {
-	statData, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "stat"))
+func ppidOf(pid pixy.PID) pixy.PID {
+	statData, err := os.ReadFile(filepath.Join("/proc", pid.String(), "stat"))
 	if err != nil {
-		return 0
+		return pixy.PID{}
 	}
 
 	statStr := string(statData)
 
 	lastParen := strings.LastIndex(statStr, ")")
 	if lastParen == -1 {
-		return 0
+		return pixy.PID{}
 	}
 
 	fields := strings.Fields(statStr[lastParen+1:])
 	if len(fields) < 2 {
-		return 0
+		return pixy.PID{}
 	}
 
 	ppid, err := strconv.Atoi(fields[1])
 	if err != nil {
-		return 0
+		return pixy.PID{}
 	}
 
-	return ppid
+	return pixy.NewPID(ppid)
 }
 
 const maxDescendantDepth = 32
 
-func isDescendantOf(pid, ancestor int) bool {
+func isDescendantOf(pid, ancestor pixy.PID) bool {
 	for range maxDescendantDepth {
 		ppid := ppidOf(pid)
-		if ppid == 0 || ppid == pid {
+		if ppid.IsZero() || ppid.Equal(pid) {
 			return false
 		}
 
-		if ppid == ancestor {
+		if ppid.Equal(ancestor) {
 			return true
 		}
 
@@ -63,7 +65,7 @@ func isCameraInUse(videoDev string) bool {
 		return false
 	}
 
-	myPID := os.Getpid()
+	myPID := pixy.NewPID(os.Getpid())
 
 	procEntries, err := os.ReadDir("/proc")
 	if err != nil {
@@ -75,12 +77,13 @@ func isCameraInUse(videoDev string) bool {
 			continue
 		}
 
-		pid, parseErr := strconv.Atoi(proc.Name())
+		rawPID, parseErr := strconv.Atoi(proc.Name())
 		if parseErr != nil {
 			continue
 		}
 
-		if pid == myPID || isDescendantOf(pid, myPID) {
+		pid := pixy.NewPID(rawPID)
+		if pid.Equal(myPID) || isDescendantOf(pid, myPID) {
 			continue
 		}
 
@@ -106,10 +109,10 @@ func isCameraInUse(videoDev string) bool {
 	return false
 }
 
-func findPixySource(ctx context.Context) (string, error) {
+func findPixySource(ctx context.Context) (pixy.SourceID, error) {
 	out, err := exec.CommandContext(ctx, "wpctl", "status").Output()
 	if err != nil {
-		return "", fmt.Errorf("findPixySource: %w", err)
+		return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", err)
 	}
 
 	for line := range strings.SplitSeq(string(out), "\n") {
@@ -119,19 +122,19 @@ func findPixySource(ctx context.Context) (string, error) {
 
 				_, parseErr := strconv.Atoi(field)
 				if parseErr == nil {
-					return field, nil
+					return pixy.NewSourceID(field), nil
 				}
 			}
 		}
 	}
 
-	return "", fmt.Errorf("findPixySource: %w", ErrAudioSourceNotFound)
+	return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", ErrAudioSourceNotFound)
 }
 
-func setDefaultSource(ctx context.Context, sourceID string) {
-	err := exec.CommandContext(ctx, "wpctl", "set-default", sourceID).Run()
+func setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
+	err := exec.CommandContext(ctx, "wpctl", "set-default", sourceID.String()).Run()
 	if err != nil {
-		slog.Error("failed to set default audio source", "id", sourceID, "error", err)
+		slog.Error("failed to set default audio source", "id", sourceID.String(), "error", err)
 	}
 }
 

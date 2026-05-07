@@ -91,9 +91,9 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	)
 
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (string, error) { return "42", nil }
-		d.setSourceFn = func(_ context.Context, id string) {
-			setSourceCalls = append(setSourceCalls, id)
+		d.findSourceFn = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
+		d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
+			setSourceCalls = append(setSourceCalls, id.String())
 		}
 		d.notifyFn = func(_ context.Context, _, body string) {
 			notifyBodies = append(notifyBodies, body)
@@ -488,13 +488,10 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 	t.Parallel()
 
 	var notifyMessages []string
-	d := testAutoDaemon(func(d *Daemon) {
+	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
 		d.state.Camera = pixy.StatePrivacy
 		d.state.Audio = pixy.AudioLive
-		d.notifyFn = func(_ context.Context, _, body string) {
-			notifyMessages = append(notifyMessages, body)
-		}
 		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
@@ -518,12 +515,9 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	t.Parallel()
 
 	var notifyMessages []string
-	d := testAutoDaemon(func(d *Daemon) {
+	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoPrivacyOnly
 		d.state.Camera = pixy.StateIdle
-		d.notifyFn = func(_ context.Context, _, body string) {
-			notifyMessages = append(notifyMessages, body)
-		}
 		d.isCameraInUseFn = cameraInUseFn
 		d.config.DebounceCount = 1
 	})

@@ -51,8 +51,8 @@ type Daemon struct {
 	streamSema chan struct{}
 
 	isCameraInUseFn func(videoDev string) bool
-	findSourceFn    func(ctx context.Context) (string, error)
-	setSourceFn     func(ctx context.Context, sourceID string)
+	findSourceFn    func(ctx context.Context) (pixy.SourceID, error)
+	setSourceFn     func(ctx context.Context, sourceID pixy.SourceID)
 	notifyFn        func(ctx context.Context, title, body string)
 
 	setTrackingFn  func(ctx context.Context, state pixy.CameraState) error

@@ -435,13 +435,16 @@ func TestRequestIDMiddleware_Passthrough(t *testing.T) {
 	}
 }
 
+func okHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	})
+}
+
 func TestCachingFS(t *testing.T) {
 	t.Parallel()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("ok"))
-	})
-	cfs := cachingFS{handler: inner}
+	cfs := cachingFS{handler: okHandler()}
 
 	req := httptest.NewRequestWithContext(context.Background(), "GET", "/static/test.js", nil)
 	rec := httptest.NewRecorder()
@@ -506,9 +509,7 @@ func TestLoggingMiddleware_CapturesStatus(t *testing.T) {
 func TestLoggingMiddleware_DefaultStatusOK(t *testing.T) {
 	t.Parallel()
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("ok"))
-	})
+	inner := okHandler()
 	handler := loggingMiddleware(inner)
 
 	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)

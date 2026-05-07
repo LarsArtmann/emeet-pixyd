@@ -297,10 +297,10 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 	t.Parallel()
 
 	var enabledArg bool
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.state.Gesture = false
-		d.setGestureFn = func(_ context.Context, enabled bool) error { enabledArg = enabled; return nil }
-	})
+	d := newTestDaemon(pixy.StatePrivacy, "", "",
+		func(d *Daemon) { d.state.Gesture = false },
+		withCaptureGestureArg(&enabledArg),
+	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp)
@@ -313,10 +313,10 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 	t.Parallel()
 
 	var enabledArg bool
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.state.Gesture = true
-		d.setGestureFn = func(_ context.Context, enabled bool) error { enabledArg = enabled; return nil }
-	})
+	d := newTestDaemon(pixy.StatePrivacy, "", "",
+		func(d *Daemon) { d.state.Gesture = true },
+		withCaptureGestureArg(&enabledArg),
+	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp)

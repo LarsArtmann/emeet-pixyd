@@ -93,6 +93,23 @@ func withCaptureGesture(called, captured *bool) testDaemonOption {
 	}
 }
 
+func withCaptureGestureArg(captured *bool) testDaemonOption {
+	return func(d *Daemon) {
+		d.setGestureFn = func(_ context.Context, enabled bool) error {
+			*captured = enabled
+			return nil
+		}
+	}
+}
+
+func withNotifyMessages(captured *[]string) testDaemonOption {
+	return func(d *Daemon) {
+		d.notifyFn = func(_ context.Context, _, body string) {
+			*captured = append(*captured, body)
+		}
+	}
+}
+
 func withCaptureCenter(calls *int) testDaemonOption {
 	return func(d *Daemon) {
 		d.centerCameraFn = func(context.Context) error { *calls++; return nil }
@@ -107,7 +124,7 @@ func ptr[T any](v T) *T { return new(v) }
 
 func withFindSource(id string) testDaemonOption {
 	return func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (string, error) { return id, nil }
+		d.findSourceFn = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID(id), nil }
 	}
 }
 
@@ -121,6 +138,10 @@ func withConfig(dir string) testDaemonOption {
 			WebAddr:       "127.0.0.1:0",
 		}
 	}
+}
+
+func withTestConfig(tmpDir string) testDaemonOption {
+	return func(d *Daemon) { d.config = testConfig(tmpDir) }
 }
 
 func readState[T any](d *Daemon, fn func(pixy.State) T) T {
@@ -162,8 +183,8 @@ func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 		state:           state,
 		streamSema:      make(chan struct{}, 1),
 		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (string, error) { return "", nil },
-		setSourceFn:     func(context.Context, string) {},
+		findSourceFn:    func(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil },
+		setSourceFn:     func(context.Context, pixy.SourceID) {},
 		notifyFn:        func(context.Context, string, string) {},
 	}
 }
@@ -198,8 +219,8 @@ func newTestDaemon(
 		debounceIdle:    0,
 		streamSema:      make(chan struct{}, 1),
 		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (string, error) { return "", nil },
-		setSourceFn:     func(context.Context, string) {},
+		findSourceFn:    func(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil },
+		setSourceFn:     func(context.Context, pixy.SourceID) {},
 		notifyFn:        func(context.Context, string, string) {},
 	}
 	d.setTrackingFn = d.setTracking
