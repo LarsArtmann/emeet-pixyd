@@ -466,7 +466,7 @@ func BenchmarkExtractJPEGFrame(b *testing.B) {
 	data = append(data, 0xFF, 0xD9)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		br := bufio.NewReader(bytes.NewReader(data))
 		buf := &bytes.Buffer{}
 		_, _ = extractJPEGFrame(br, buf)
@@ -476,7 +476,7 @@ func BenchmarkExtractJPEGFrame(b *testing.B) {
 func BenchmarkFormatLastSynced(b *testing.B) {
 	t := time.Now()
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		formatLastSynced(t)
 	}
 }

@@ -207,11 +207,15 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
 - **Test coverage for auto/process**: `auto_test.go` tests `handleCallStart`, `handleCallEnd`, `autoManage` state transitions. `process_test.go` tests `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc` filesystem.
 - **`webStatus` uses typed fields**: `Camera pixy.CameraState`, `Audio pixy.AudioMode`, `Auto pixy.AutoMode`. Templates use typed comparisons (`s.Camera == pixy.StateTracking`) instead of raw string literals, eliminating the previous split brain.
-- **Unified toast/error pattern**: All HTTP handlers use `applyResponseToStatus()` to set either `status.Error` (on command error) or `status.Toast`+`status.ToastType` (on success). No more duplicate error-handling paths.
+- **Unified toast/error pattern**: All HTTP handlers use `applyResponseToStatus()` to set either `status.Error` (on command error) or `status.Toast`+`status.ToastType` (on success). The toast type (`success`, `info`, `error`) is propagated from `actionToast()` through `applyResponseToStatus()` — not hardcoded.
 - **Handler extraction**: `handlers.go` (was 624 lines) extracted into `metrics.go` (OTel registration + updateMetrics), `stream.go` (MJPEG streaming + JPEG parsing), `middleware.go` (security headers, request ID, caching, PTZ validation). Handlers.go is now ~310 lines focused on HTTP routing and web handlers.
+- **Command constants**: All command strings are named constants in `commands.go`: `cmdTrack`, `cmdIdle`, `cmdPrivacy`, `cmdTogglePrivacy`, `cmdCenter`, `cmdSync`, `cmdProbe`, `cmdAudio`, `cmdAuto`, `cmdAutoOn`, `cmdAutoOff`, `cmdToggleAuto`, `cmdGestureOn`, `cmdGestureOff`, `cmdToggleGesture`, `cmdStatus`, `cmdWaybar`, `cmdDevice`. No raw string literals for command names anywhere in the codebase.
+- **`waybarJSON` struct**: Waybar output uses a typed struct with json tags (`waybarJSON`) and `strings.Builder` for tooltip construction. Optimized from 23 allocs/860ns to 7 allocs/334ns.
 - **`TestUpdateMetrics` is NOT parallel**: Tests global mutable metrics state, must run serially to avoid interference from parallel tests calling `updateMetrics()`. `TestSendCommand_EndToEnd` and `TestConfigFromEnv_DefaultsWhenUnset` both use `t.Parallel()` (temp socket dir and env reads respectively are safe to parallelize).
-- **errcheck `exclude-rules` don't work**: golangci-lint v2.11.4's `issues.exclude-rules` doesn't suppress errcheck issues. Use `//nolint:errcheck` inline instead (see integration_test.go pattern).
-- **errcheck in test cleanup**: `resp.Body.Close()` and `os.RemoveAll()` in test code use `//nolint:errcheck` — these errors are harmless and intentionally ignored.
+- **Auto-manage uses DI functions**: `handleCallStart` and `handleCallEnd` call `d.setTrackingFn()` and `d.setAudioFn()` (not the direct methods). This ensures the auto-manage path is mockable in tests.
+- **Toast type propagation**: `applyResponseToStatus()` accepts a `toastType` parameter. `actionToast()` returns both message and type (`success`/`info`). All callers propagate the type correctly.
+- **`audioCommand` removed**: Unified to `cmdAudio` (was duplicate).
+- **Benchmarks**: 4 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`.
 
 ---
 

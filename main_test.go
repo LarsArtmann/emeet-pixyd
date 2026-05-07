@@ -1281,7 +1281,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 func BenchmarkParseHIDResponse(b *testing.B) {
 	data := []byte{0x09, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01}
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		parseHIDResponse(data)
 	}
 }
@@ -1289,7 +1289,7 @@ func BenchmarkParseHIDResponse(b *testing.B) {
 func BenchmarkWaybarOutput(b *testing.B) {
 	d := testDaemonWithState(pixy.StateTracking, true)
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		d.waybarOutput()
 	}
 }
