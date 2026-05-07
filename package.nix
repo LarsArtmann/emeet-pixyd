@@ -10,7 +10,7 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-FnVn8EWpWeu/ELZzj4/079qZxftYSOXmF8mwKdS+9KI=";
+  vendorHash = "sha256-F7uprfUn4TCWr7gFi/GbvsfTsf1D/jH2qqgXC3wHTuI=";
   proxyVendor = true;
 
   nativeBuildInputs = [templ];
