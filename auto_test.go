@@ -188,7 +188,7 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withAutoMode(pixy.AutoOff))
+	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withAutoOff())
 
 	d.autoManage(context.Background())
 

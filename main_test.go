@@ -116,8 +116,8 @@ func withCaptureCenter(calls *int) testDaemonOption {
 	}
 }
 
-func withAutoMode(mode pixy.AutoMode) testDaemonOption {
-	return func(d *Daemon) { d.state.AutoMode = mode }
+func withAutoOff() testDaemonOption {
+	return func(d *Daemon) { d.state.AutoMode = pixy.AutoOff }
 }
 
 func ptr[T any](v T) *T { return new(v) }

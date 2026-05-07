@@ -204,7 +204,7 @@ func TestHandleCenterCommand_NoDevice(t *testing.T) {
 func TestHandleAutoCommand_SetMode(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
 	if IsCommandErrorResponse(resp) {
@@ -227,7 +227,7 @@ func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{"auto-on"})
 	notError(t, resp)
@@ -249,7 +249,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoMode(pixy.AutoOff))
+	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdToggleAuto})
 	notError(t, resp)
