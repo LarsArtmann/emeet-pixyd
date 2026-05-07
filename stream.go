@@ -87,7 +87,7 @@ func (s *webServer) handleStream(
 	}
 	rc := http.NewResponseController(responseWriter)
 	if dlErr := rc.SetWriteDeadline(time.Time{}); dlErr != nil {
-		slog.Debug("clear write deadline", "error", dlErr)
+		slog.Warn("could not clear write deadline; stream may be cut off by server timeout", "error", dlErr)
 	}
 	ctx := request.Context()
 	cmd := ffmpegStreamCmd(ctx, status.Device)

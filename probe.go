@@ -64,7 +64,7 @@ func probeVideo4linux(sysfsPath string) string {
 			continue
 		}
 
-		vendor, product := readUSBVendorProduct(fmt.Sprintf("%s/%s/device", sysfsPath, name))
+		vendor, product := readUSBVendorProduct(filepath.Join(sysfsPath, name, "device"))
 
 		if vendor == pixyVendorID && product == pixyProductID {
 			return videoPath
