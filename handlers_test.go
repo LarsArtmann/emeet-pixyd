@@ -210,6 +210,59 @@ func TestExtractJPEGFrame_FFThenEOF(t *testing.T) {
 	}
 }
 
+func TestPTZAxisLabel(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		axis string
+		want string
+	}{
+		{axisPan, "Pan"},
+		{axisTilt, "Tilt"},
+		{axisZoom, "Zoom"},
+		{"unknown", "unknown"}, //nolint:goconst
+	}
+	for _, tc := range tests {
+		got := ptzAxisLabel(tc.axis)
+		if got != tc.want {
+			t.Errorf("ptzAxisLabel(%q) = %q, want %q", tc.axis, got, tc.want)
+		}
+	}
+}
+
+func TestPTZAxisUnit(t *testing.T) {
+	t.Parallel()
+
+	if got := ptzAxisUnit(axisPan); got != "\u00b0" {
+		t.Errorf("pan unit = %q, want °", got)
+	}
+	if got := ptzAxisUnit(axisTilt); got != "\u00b0" {
+		t.Errorf("tilt unit = %q, want °", got)
+	}
+	if got := ptzAxisUnit(axisZoom); got != "x" {
+		t.Errorf("zoom unit = %q, want x", got)
+	}
+}
+
+func TestPTZAxisValue(t *testing.T) {
+	t.Parallel()
+
+	//nolint:exhaustruct
+	status := webStatus{Pan: -10, Tilt: 5, Zoom: 200}
+	if got := ptzAxisValue(axisPan, status); got != -10 {
+		t.Errorf("pan value = %d, want -10", got)
+	}
+	if got := ptzAxisValue(axisTilt, status); got != 5 {
+		t.Errorf("tilt value = %d, want 5", got)
+	}
+	if got := ptzAxisValue(axisZoom, status); got != 200 {
+		t.Errorf("zoom value = %d, want 200", got)
+	}
+	if got := ptzAxisValue("unknown", status); got != 0 {
+		t.Errorf("unknown axis = %d, want 0", got)
+	}
+}
+
 func TestClampInt(t *testing.T) {
 	t.Parallel()
 
