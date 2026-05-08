@@ -254,7 +254,7 @@ func assertCommandContainsAnyOf(t *testing.T, resp string, substrs []string, lab
 	t.Errorf("expected one of %v in %s, got: %s", substrs, label, resp)
 }
 
-func assertCommandResponse(t *testing.T, cmd string, substr, label string) {
+func assertCommandResponse(t *testing.T, cmd, substr, label string) {
 	t.Helper()
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), cmd)

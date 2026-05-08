@@ -220,7 +220,7 @@ func TestPTZAxisLabel(t *testing.T) {
 		{axisPan, "Pan"},
 		{axisTilt, "Tilt"},
 		{axisZoom, "Zoom"},
-		{"unknown", "unknown"}, //nolint:goconst
+		{"unknown", "unknown"},
 	}
 	for _, tc := range tests {
 		got := ptzAxisLabel(tc.axis)

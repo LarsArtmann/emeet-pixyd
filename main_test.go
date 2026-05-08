@@ -857,7 +857,7 @@ func TestParseAudioMode(t *testing.T) {
 		{"nc", pixy.AudioNC, false},
 		{audioModeLive, pixy.AudioLive, false},
 		{audioModeOrg, pixy.AudioOriginal, false},
-		{"unknown", "", true}, //nolint:goconst
+		{"unknown", "", true},
 		{"", "", true},
 	}
 	runParseTests(t, "pixy.ParseAudioMode", pixy.ParseAudioMode, tests)

@@ -92,7 +92,7 @@ main() → NewDaemon() → Run()
 | `web_types.go`     | `webStatus` struct shared between handlers and templates                                                                                      |
 | `templates.templ`  | HTML templates (compiled via `templ generate`)                                                                                                |
 | `errors.go`        | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                                                   |
-| `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand` |
+| `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand`                                      |
 | `static/`          | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                                                                         |
 | `behavior_test.go` | BDD-style behavioral tests: full auto lifecycle, debounce flip-flop, PTZ clamping, waybar tooltip, privacy toggle, audio cycle, state restart |
 | `commands_test.go` | Unit tests for PTZ, auto, gesture, audio, tracking commands, actionToast, applyResponseToStatus                                               |
@@ -121,17 +121,17 @@ main() → NewDaemon() → Run()
 
 Daemon uses function fields for external dependencies, enabling test injectability:
 
-| Field             | Default            | Purpose                        |
-| ----------------- | ------------------ | ------------------------------ |
-| `isCameraInUseFn` | `isCameraInUse`    | `/proc/*/fd` scanning          |
+| Field             | Default            | Purpose                                                  |
+| ----------------- | ------------------ | -------------------------------------------------------- |
+| `isCameraInUseFn` | `isCameraInUse`    | `/proc/*/fd` scanning                                    |
 | `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup (returns `pixy.SourceID`) |
 | `setSourceFn`     | `setDefaultSource` | `wpctl set-default` (takes `pixy.SourceID`)              |
-| `notifyFn`        | `notify`           | `notify-send` desktop notifs   |
-| `setTrackingFn`   | `d.setTracking`    | Camera state changes via HID   |
-| `setAudioFn`      | `d.setAudio`       | Audio mode changes via HID     |
-| `setGestureFn`    | `d.setGesture`     | Gesture toggle via HID         |
-| `centerCameraFn`  | `d.centerCamera`   | PTZ centering via v4l2-ctl     |
-| `v4l2SetFn`       | `v4l2Set`          | Arbitrary V4L2 control setting |
+| `notifyFn`        | `notify`           | `notify-send` desktop notifs                             |
+| `setTrackingFn`   | `d.setTracking`    | Camera state changes via HID                             |
+| `setAudioFn`      | `d.setAudio`       | Audio mode changes via HID                               |
+| `setGestureFn`    | `d.setGesture`     | Gesture toggle via HID                                   |
+| `centerCameraFn`  | `d.centerCamera`   | PTZ centering via v4l2-ctl                               |
+| `v4l2SetFn`       | `v4l2Set`          | Arbitrary V4L2 control setting                           |
 
 `NewDaemon()` wires real implementations. Tests override via functional options (`testDaemonOption`).
 
