@@ -156,7 +156,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
 	assertInCall(t, d, true)
-	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	camera := readCameraState(d)
 	if camera != pixy.StateTracking {
 		t.Errorf("camera should still be tracking, got: %s", camera)
 	}
@@ -220,30 +220,24 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	t.Parallel()
 
-	var v4l2Calls []struct{ axis, val string }
-	d := newPTZDaemon(func(d *Daemon) {
-		d.v4l2SetFn = func(_ context.Context, _, axis, val string) error {
-			v4l2Calls = append(v4l2Calls, struct{ axis, val string }{axis, val})
-			return nil
-		}
-	})
+	d, v4l2Calls := newPTZCaptureDaemon()
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
 	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "200"})
 	notError(t, resp)
-	assertV4L2Call(t, v4l2Calls, "612000")
+	assertV4L2Call(t, *v4l2Calls, "612000")
 
 	// When tilt is set beyond minimum (-50 → clamp to -30)
-	v4l2Calls = nil
+	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-50"})
 	notError(t, resp)
-	assertV4L2Call(t, v4l2Calls, "-108000")
+	assertV4L2Call(t, *v4l2Calls, "-108000")
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
-	v4l2Calls = nil
+	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{axisZoom, "500"})
 	notError(t, resp)
-	assertV4L2Call(t, v4l2Calls, "400")
+	assertV4L2Call(t, *v4l2Calls, "400")
 }
 
 // ---------------------------------------------------------------------------
@@ -416,7 +410,7 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 		}
 	}
 
-	finalAudio := readState(d, func(s pixy.State) pixy.AudioMode { return s.Audio })
+	finalAudio := readAudioState(d)
 	if finalAudio != pixy.AudioNC {
 		t.Errorf("after full cycle, audio should be NC, got %s", finalAudio)
 	}

@@ -41,9 +41,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(func(d *Daemon) {
-		d.state.Camera = pixy.StatePrivacy
-	})
+	d := testAutoDaemon(withCameraState(pixy.StatePrivacy))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
@@ -53,9 +51,7 @@ func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(func(d *Daemon) {
-		d.state.Audio = pixy.AudioLive
-	})
+	d := testAutoDaemon(withAudioState(pixy.AudioLive))
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 
@@ -65,15 +61,11 @@ func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(func(d *Daemon) {
-		d.state.Audio = pixy.AudioLive
-	})
+	d := testAutoDaemon(withAudioState(pixy.AudioLive))
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
 
-	if audio := readState(d, func(s pixy.State) pixy.AudioMode {
-		return s.Audio
-	}); audio != pixy.AudioLive {
+	if audio := readAudioState(d); audio != pixy.AudioLive {
 		t.Errorf("tracking-only should not change audio, got %s", audio)
 	}
 }
@@ -81,15 +73,11 @@ func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 func TestHandleCallStart_PrivacyOnlyNoTracking(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(func(d *Daemon) {
-		d.state.Camera = pixy.StatePrivacy
-	})
+	d := testAutoDaemon(withCameraState(pixy.StatePrivacy))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoPrivacyOnly)
 
-	if camera := readState(d, func(s pixy.State) pixy.CameraState {
-		return s.Camera
-	}); camera != pixy.StatePrivacy {
+	if camera := readCameraState(d); camera != pixy.StatePrivacy {
 		t.Errorf("privacy-only should not activate tracking, got %s", camera)
 	}
 }
@@ -165,9 +153,7 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 
 	d.handleCallEnd(context.Background(), pixy.AutoOff)
 
-	if camera := readState(d, func(s pixy.State) pixy.CameraState {
-		return s.Camera
-	}); camera != pixy.StateTracking {
+	if camera := readCameraState(d); camera != pixy.StateTracking {
 		t.Errorf("auto-off should not enter privacy, got %s", camera)
 	}
 }
@@ -178,9 +164,7 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 	d.autoManage(context.Background())
 
-	if camera := readState(d, func(s pixy.State) pixy.CameraState {
-		return s.Camera
-	}); camera != pixy.StateOffline {
+	if camera := readCameraState(d); camera != pixy.StateOffline {
 		t.Errorf("expected offline with no device, got %s", camera)
 	}
 }
@@ -193,7 +177,7 @@ func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, false)
-	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	camera := readCameraState(d)
 
 	if camera != pixy.StatePrivacy {
 		t.Errorf("camera state should not change with auto off, got %s", camera)
@@ -207,7 +191,7 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 	d := testAutoDaemon(
 		withCameraInUse(true),
 		withNotifyCalled(&notifyCalled),
-		func(d *Daemon) { d.config.DebounceCount = 1 },
+		withDebounceCount(),
 	)
 
 	d.autoManage(context.Background())
@@ -247,7 +231,7 @@ func TestAutoManage_IdleTriggersCallEnd(t *testing.T) {
 		withInCall(true),
 		withCameraInUse(false),
 		withNotifyCalled(&notifyCalled),
-		func(d *Daemon) { d.config.DebounceCount = 1 },
+		withDebounceCount(),
 	)
 
 	d.autoManage(context.Background())
@@ -333,8 +317,8 @@ func withCaptureTrackingSlice(captured *[]pixy.CameraState) testDaemonOption {
 	}
 }
 
-func withDebounceCount(n int) testDaemonOption {
-	return func(d *Daemon) { d.config.DebounceCount = n }
+func withDebounceCount() testDaemonOption {
+	return func(d *Daemon) { d.config.DebounceCount = 1 }
 }
 
 func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
@@ -343,7 +327,7 @@ func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
 	var trackingCalls []pixy.CameraState
 	d := testAutoDaemon(
 		withCameraInUse(true),
-		withDebounceCount(1),
+		withDebounceCount(),
 		withCaptureTrackingSlice(&trackingCalls),
 	)
 
@@ -388,7 +372,7 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 	d := testAutoDaemon(
 		withInCall(true),
 		withCameraInUse(false),
-		withDebounceCount(1),
+		withDebounceCount(),
 		withCaptureTrackingSlice(&trackingCalls),
 	)
 

@@ -2,13 +2,18 @@ package pixy
 
 import "testing"
 
+func assertGet[T comparable](t *testing.T, got, want T, msg string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("%s = %v, want %v", msg, got, want)
+	}
+}
+
 func TestNewPID(t *testing.T) {
 	t.Parallel()
 
 	pid := NewPID(42)
-	if pid.Get() != 42 {
-		t.Errorf("NewPID(42).Get() = %d, want 42", pid.Get())
-	}
+	assertGet(t, pid.Get(), 42, "NewPID(42).Get()")
 	if pid.IsZero() {
 		t.Error("NewPID(42).IsZero() = true, want false")
 	}
@@ -24,9 +29,7 @@ func TestPID_ZeroValue(t *testing.T) {
 	if !pid.IsZero() {
 		t.Error("zero PID should be IsZero()")
 	}
-	if pid.Get() != 0 {
-		t.Errorf("zero PID.Get() = %d, want 0", pid.Get())
-	}
+	assertGet(t, pid.Get(), 0, "zero PID.Get()")
 }
 
 func TestPID_Equal(t *testing.T) {

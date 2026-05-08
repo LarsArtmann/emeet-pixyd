@@ -26,17 +26,22 @@ const (
 const (
 	testStrPrivacy  = "privacy"
 	testStrTracking = "tracking"
+	testStrUnknown  = "unknown"
 )
 
-func testConfig(dir string) pixy.Config {
+func defaultTestConfig(dir string) pixy.Config {
 	//nolint:exhaustruct
 	return pixy.Config{
-		//nolint:exhaustruct
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
-		WebAddr:       testWebAddr,
 	}
+}
+
+func testConfig(dir string) pixy.Config {
+	cfg := defaultTestConfig(dir)
+	cfg.WebAddr = testWebAddr
+	return cfg
 }
 
 type testDaemonOption func(*Daemon)
@@ -130,25 +135,42 @@ func withFindSource(id string) testDaemonOption {
 
 func withConfig(dir string) testDaemonOption {
 	return func(d *Daemon) {
-		//nolint:exhaustruct
-		d.config = pixy.Config{
-			StateDir:      dir,
-			PollInterval:  2 * time.Second,
-			DebounceCount: 3,
-			WebAddr:       "127.0.0.1:0",
-		}
+		d.config = defaultTestConfig(dir)
+		d.config.WebAddr = "127.0.0.1:0"
 	}
+}
+
+func withCameraState(state pixy.CameraState) testDaemonOption {
+	return func(d *Daemon) { d.state.Camera = state }
+}
+
+func withAudioState(mode pixy.AudioMode) testDaemonOption {
+	return func(d *Daemon) { d.state.Audio = mode }
 }
 
 func withTestConfig(tmpDir string) testDaemonOption {
 	return func(d *Daemon) { d.config = testConfig(tmpDir) }
 }
 
+func noopFindSourceFn(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil }
+
+func noopSetSourceFn(context.Context, pixy.SourceID) {}
+
+func noopNotifyFn(context.Context, string, string) {}
+
 func readState[T any](d *Daemon, fn func(pixy.State) T) T {
 	d.mu.RLock()
 	v := fn(d.state)
 	d.mu.RUnlock()
 	return v
+}
+
+func readCameraState(d *Daemon) pixy.CameraState {
+	return readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+}
+
+func readAudioState(d *Daemon) pixy.AudioMode {
+	return readState(d, func(s pixy.State) pixy.AudioMode { return s.Audio })
 }
 
 func assertInCall(t *testing.T, d *Daemon, want bool) {
@@ -183,9 +205,9 @@ func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 		state:           state,
 		streamSema:      make(chan struct{}, 1),
 		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil },
-		setSourceFn:     func(context.Context, pixy.SourceID) {},
-		notifyFn:        func(context.Context, string, string) {},
+		findSourceFn:    noopFindSourceFn,
+		setSourceFn:     noopSetSourceFn,
+		notifyFn:        noopNotifyFn,
 	}
 }
 
@@ -219,9 +241,9 @@ func newTestDaemon(
 		debounceIdle:    0,
 		streamSema:      make(chan struct{}, 1),
 		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    func(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil },
-		setSourceFn:     func(context.Context, pixy.SourceID) {},
-		notifyFn:        func(context.Context, string, string) {},
+		findSourceFn:    noopFindSourceFn,
+		setSourceFn:     noopSetSourceFn,
+		notifyFn:        noopNotifyFn,
 	}
 	d.setTrackingFn = d.setTracking
 	d.setAudioFn = d.setAudio
@@ -236,7 +258,7 @@ func newTestDaemon(
 
 func assertCameraState(t *testing.T, d *Daemon, expected pixy.CameraState) {
 	t.Helper()
-	camera := readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	camera := readCameraState(d)
 	if camera != expected {
 		t.Errorf("expected camera state %s, got %s", expected, camera)
 	}
@@ -578,7 +600,7 @@ func TestAudioModeNext(t *testing.T) {
 		{pixy.AudioNC, pixy.AudioLive},
 		{pixy.AudioLive, pixy.AudioOriginal},
 		{pixy.AudioOriginal, pixy.AudioNC},
-		{pixy.AudioMode("unknown"), pixy.AudioNC},
+		{pixy.AudioMode(testStrUnknown), pixy.AudioNC},
 	}
 	for _, testCase := range tests {
 		result := testCase.input.Next()
@@ -603,7 +625,7 @@ func TestAudioModeHIDByte(t *testing.T) {
 		{pixy.AudioNC, hidByteNC},
 		{pixy.AudioLive, hidByteLive},
 		{pixy.AudioOriginal, hidByteOriginal},
-		{pixy.AudioMode("unknown"), hidByteNC},
+		{pixy.AudioMode(testStrUnknown), hidByteNC},
 	}
 	for _, testCase := range tests {
 		result := audioHIDByte(testCase.mode)
@@ -629,7 +651,7 @@ func TestCameraStateHIDByte(t *testing.T) {
 		{pixy.StatePrivacy, hidBytePrivacy},
 		{pixy.StateIdle, hidByteIdle},
 		{pixy.StateOffline, hidByteIdle},
-		{pixy.CameraState("unknown"), hidByteIdle},
+		{pixy.CameraState(testStrUnknown), hidByteIdle},
 	}
 	for _, testCase := range tests {
 		result := cameraHIDByte(testCase.state)
@@ -857,7 +879,7 @@ func TestParseAudioMode(t *testing.T) {
 		{"nc", pixy.AudioNC, false},
 		{audioModeLive, pixy.AudioLive, false},
 		{audioModeOrg, pixy.AudioOriginal, false},
-		{"unknown", "", true},
+		{testStrUnknown, "", true},
 		{"", "", true},
 	}
 	runParseTests(t, "pixy.ParseAudioMode", pixy.ParseAudioMode, tests)
@@ -871,7 +893,7 @@ func TestParseCameraState(t *testing.T) {
 		{"tracking", pixy.StateTracking, false},
 		{"privacy", pixy.StatePrivacy, false},
 		{"offline", pixy.StateOffline, false},
-		{"unknown", "", true},
+		{testStrUnknown, "", true},
 		{"", "", true},
 	}
 	runParseTests(t, "pixy.ParseCameraState", pixy.ParseCameraState, tests)
