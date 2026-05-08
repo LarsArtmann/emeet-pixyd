@@ -91,6 +91,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 		d.probeDevices()
 		dev := d.videoDev
 		d.mu.Unlock()
+		d.publishState()
 
 		if dev != "" {
 			return "device found: " + dev
@@ -202,6 +203,7 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 		d.state.AutoMode = mode
 		d.saveStateOrLog("failed to save state")
 		d.mu.Unlock()
+		d.publishState()
 
 		return "auto mode: " + mode.String()
 	}
@@ -229,6 +231,7 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 	d.state.AutoMode = mode
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
+	d.publishState()
 
 	if mode.IsOff() {
 		return respAutoModeOff
@@ -274,5 +277,6 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 		return (&CommandError{Op: axis, Err: v4l2Err}).Error()
 	}
 
+	d.publishPTZ()
 	return fmt.Sprintf("%s set to %d", axis, val)
 }

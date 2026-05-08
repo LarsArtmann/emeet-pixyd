@@ -171,6 +171,47 @@
   });
 
   (function () {
+    if (!window.EventSource) return;
+    var es = null;
+    var retryDelay = 1000;
+    var maxRetryDelay = 30000;
+    var refreshDebounceTimer = null;
+
+    function scheduleRefresh() {
+      if (refreshDebounceTimer) return;
+      refreshDebounceTimer = setTimeout(function () {
+        refreshDebounceTimer = null;
+        if (document.visibilityState === "visible") {
+          htmx.trigger(document.body, "refresh");
+        }
+      }, 50);
+    }
+
+    function connect() {
+      try {
+        es = new EventSource("/api/events");
+      } catch (err) {
+        return;
+      }
+      es.addEventListener("state", scheduleRefresh);
+      es.addEventListener("ptz", scheduleRefresh);
+      es.addEventListener("online", scheduleRefresh);
+      es.onopen = function () {
+        retryDelay = 1000;
+      };
+      es.onerror = function () {
+        if (es) {
+          es.close();
+          es = null;
+        }
+        setTimeout(connect, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, maxRetryDelay);
+      };
+    }
+    connect();
+  })();
+
+  (function () {
     var img = document.getElementById("preview-img");
     if (!img) return;
     var retryTimer = null;

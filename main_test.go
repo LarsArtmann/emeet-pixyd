@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/events"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
@@ -179,6 +180,7 @@ func newTestDaemon(
 		debounceInUse:   0,
 		debounceIdle:    0,
 		streamSema:      make(chan struct{}, 1),
+		events:          events.New(),
 		isCameraInUseFn: func(string) bool { return false },
 		findSourceFn:    func(context.Context) (string, error) { return "", nil },
 		setSourceFn:     func(context.Context, string) {},

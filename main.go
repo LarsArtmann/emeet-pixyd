@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/events"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
 )
@@ -50,6 +51,8 @@ type Daemon struct {
 
 	streamSema chan struct{}
 
+	events *events.Broadcaster
+
 	isCameraInUseFn func(videoDev string) bool
 	findSourceFn    func(ctx context.Context) (string, error)
 	setSourceFn     func(ctx context.Context, sourceID string)
@@ -75,6 +78,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		videoDev:        "",
 		hidrawDev:       "",
 		streamSema:      make(chan struct{}, 1),
+		events:          events.New(),
 		isCameraInUseFn: isCameraInUse,
 		findSourceFn:    findPixySource,
 		setSourceFn:     setDefaultSource,
@@ -91,6 +95,67 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.probeDevices()
 
 	return d, nil
+}
+
+// publishState captures the current state under RLock, marshals it, and
+// fans out a TypeState event. Must NOT be called while holding d.mu.
+func (d *Daemon) publishState() {
+	if d.events == nil {
+		return
+	}
+	d.mu.RLock()
+	snapshot := struct {
+		Camera     pixy.CameraState `json:"camera"`
+		Audio      pixy.AudioMode   `json:"audio"`
+		Gesture    bool             `json:"gesture"`
+		Auto       pixy.AutoMode    `json:"auto"`
+		InCall     bool             `json:"inCall"`
+		Online     bool             `json:"online"`
+		Device     string           `json:"device"`
+		LastSynced time.Time        `json:"lastSynced"`
+	}{
+		Camera:     d.state.Camera,
+		Audio:      d.state.Audio,
+		Gesture:    d.state.Gesture,
+		Auto:       d.state.AutoMode,
+		InCall:     d.state.InCall,
+		Online:     d.videoDev != "",
+		Device:     d.videoDev,
+		LastSynced: d.lastSyncedAt,
+	}
+	d.mu.RUnlock()
+
+	body, err := json.Marshal(snapshot)
+	if err != nil {
+		slog.Debug("publishState marshal", "error", err)
+		return
+	}
+	d.events.Publish(events.Event{Type: events.TypeState, Body: body})
+}
+
+// publishPTZ fans out a TypePTZ event. The body is empty by design — clients
+// re-fetch /panel which already serves fresh PTZ values via the cache.
+func (d *Daemon) publishPTZ() {
+	if d.events == nil {
+		return
+	}
+	d.events.Publish(events.Event{Type: events.TypePTZ, Body: []byte(`{}`)})
+}
+
+// publishOnline fans out a TypeOnline event indicating online/offline transitions.
+// Caller must NOT hold d.mu.
+func (d *Daemon) publishOnline(online bool) {
+	if d.events == nil {
+		return
+	}
+	body, err := json.Marshal(struct {
+		Online bool `json:"online"`
+	}{Online: online})
+	if err != nil {
+		slog.Debug("publishOnline marshal", "error", err)
+		return
+	}
+	d.events.Publish(events.Event{Type: events.TypeOnline, Body: body})
 }
 
 func (d *Daemon) setDeviceState(
@@ -111,6 +176,7 @@ func (d *Daemon) setDeviceState(
 		d.mu.Lock()
 		d.probeDevices()
 		d.mu.Unlock()
+		d.publishState()
 
 		return fmt.Errorf("setDeviceState send config via %s: %w", hidrawDev, err)
 	}
@@ -131,6 +197,7 @@ func (d *Daemon) setDeviceState(
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 
+	d.publishState()
 	return nil
 }
 
@@ -184,6 +251,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 		return fmt.Errorf("centerCamera: %w", err)
 	}
 
+	d.publishPTZ()
 	return nil
 }
 
@@ -284,6 +352,7 @@ func (d *Daemon) syncState(ctx context.Context) string {
 		d.saveStateOrLog("failed to save synced state")
 		d.mu.Unlock()
 
+		d.publishState()
 		return "synced (state updated from camera)"
 	}
 
@@ -573,6 +642,9 @@ func (d *Daemon) Run() {
 			d.probeDevices()
 			newVideo := d.videoDev
 			d.mu.Unlock()
+			if oldVideo != newVideo {
+				d.publishState()
+			}
 			if oldVideo == "" && newVideo != "" {
 				slog.Info("device appeared, syncing state")
 				_ = d.syncState(ctx)

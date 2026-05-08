@@ -18,6 +18,7 @@ func (d *Daemon) handleCallStart(
 	d.mu.Lock()
 	d.state.InCall = true
 	d.mu.Unlock()
+	d.publishState()
 
 	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
 		trackErr := d.setTracking(ctx, pixy.StateTracking)
@@ -48,6 +49,7 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 	d.mu.Lock()
 	d.state.InCall = false
 	d.mu.Unlock()
+	d.publishState()
 
 	if autoMode.ActivatesPrivacy() {
 		privacyErr := d.setTracking(ctx, pixy.StatePrivacy)
@@ -75,6 +77,9 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		d.probeDevices()
 		videoDev = d.videoDev
 		d.mu.Unlock()
+		if videoDev != "" {
+			d.publishState()
+		}
 
 		if videoDev == "" {
 			return

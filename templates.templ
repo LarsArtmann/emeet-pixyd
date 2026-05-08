@@ -127,7 +127,7 @@ templ audioBtn(color string, mode string, label string, ariaLabel string, active
 }
 
 templ statusPanel(s webStatus) {
-	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
+	<div id="status-panel" hx-get="/panel" hx-trigger="every 30s, refresh from:body" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
 		if s.Error != "" {
 			<div class="error-banner">{ s.Error }</div>
 		}

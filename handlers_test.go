@@ -8,9 +8,11 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/events"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
@@ -437,4 +439,90 @@ func TestUpdateMetrics(t *testing.T) {
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 0)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)
+}
+
+func TestHandleEvents_SendsInitialSnapshotAndPropagatesPublish(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StateTracking, testVideoDev, testHIDDev)
+	srv := &webServer{daemon: d}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, "GET", "/api/events", nil)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		srv.handleEvents(rec, req)
+		close(done)
+	}()
+
+	// Give the handler time to register its subscriber and emit the snapshot.
+	deadline := time.Now().Add(500 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		if d.events.SubscriberCount() == 1 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if d.events.SubscriberCount() != 1 {
+		t.Fatalf("subscriber not registered: count=%d", d.events.SubscriberCount())
+	}
+
+	// Trigger a publish; the handler should write the event into the recorder.
+	d.events.Publish(events.Event{Type: events.TypePTZ, Body: []byte(`{"pan":42}`)})
+
+	// Wait briefly for the write to land.
+	time.Sleep(100 * time.Millisecond)
+
+	cancel()
+	<-done
+
+	got := rec.Body.String()
+	if !strings.Contains(got, "Content-Type: text/event-stream") &&
+		rec.Header().Get("Content-Type") != "text/event-stream" {
+		t.Errorf("Content-Type header = %q, want text/event-stream", rec.Header().Get("Content-Type"))
+	}
+	if !strings.Contains(got, "event: state\n") {
+		t.Errorf("missing initial state event; body=%q", got)
+	}
+	if !strings.Contains(got, "event: ptz\n") {
+		t.Errorf("missing ptz event; body=%q", got)
+	}
+	if !strings.Contains(got, `"pan":42`) {
+		t.Errorf("ptz body not propagated; body=%q", got)
+	}
+}
+
+func TestHandleEvents_StreamsCorrectHeaders(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StateIdle, testVideoDev, testHIDDev)
+	srv := &webServer{daemon: d}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(ctx, "GET", "/api/events", nil)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		srv.handleEvents(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	if got := rec.Header().Get("Content-Type"); got != "text/event-stream" {
+		t.Errorf("Content-Type = %q, want text/event-stream", got)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", got)
+	}
+	if got := rec.Header().Get("X-Accel-Buffering"); got != "no" {
+		t.Errorf("X-Accel-Buffering = %q, want no", got)
+	}
 }
