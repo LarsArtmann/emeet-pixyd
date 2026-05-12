@@ -22,8 +22,6 @@ const (
 	maxBodyBytes        = 1 << 10
 
 	staticCacheMaxAge = 7 * 24 * time.Hour
-	ffmpegShutdown    = 2 * time.Second
-	streamBufSize     = 64 * 1024
 
 	toastTypeSuccess = "success"
 	toastTypeInfo    = "info"
@@ -163,9 +161,9 @@ func actionToast(command string) (string, string) {
 	case cmdProbe:
 		return toastProbedDevices, toastTypeSuccess
 	case cmdToggleGesture:
-		return "Gesture toggled", toastTypeInfo
+		return toastGestureToggled, toastTypeInfo
 	case cmdToggleAuto:
-		return "Auto mode toggled", toastTypeInfo
+		return toastAutoToggled, toastTypeInfo
 	default:
 		return "", ""
 	}
@@ -190,7 +188,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	resp := s.daemon.handleCommand(request.Context(), cmd)
 	slog.Debug("web audio", "cmd", cmd, "response", resp)
 	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, "Audio mode changed", toastTypeSuccess)
+	applyResponseToStatus(resp, &status, toastAudioChanged, toastTypeSuccess)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 

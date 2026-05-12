@@ -33,6 +33,22 @@ func (d *Daemon) loadState() {
 		return
 	}
 
+	if !loaded.Valid() {
+		slog.Warn(
+			"invalid state values, using defaults",
+			"path",
+			d.config.StateFile(),
+			"camera",
+			loaded.Camera,
+			"audio",
+			loaded.Audio,
+			"autoMode",
+			loaded.AutoMode,
+		)
+
+		return
+	}
+
 	d.state = loaded
 }
 

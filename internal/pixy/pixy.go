@@ -243,6 +243,11 @@ func DefaultState() State {
 	}
 }
 
+// Valid reports whether all enum fields contain recognized values.
+func (s State) Valid() bool {
+	return s.Camera.Valid() && s.Audio.Valid() && s.AutoMode.Valid()
+}
+
 // PTZValues holds the current pan/tilt/zoom position of the camera.
 type PTZValues struct {
 	Pan  int

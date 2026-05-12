@@ -80,9 +80,9 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 				return
 			}
 
-			slog.Debug("uevent read error", "error", readErr)
+			slog.Debug("uevent read error, retrying", "error", readErr)
 
-			return
+			continue
 		}
 
 		evt := parseUevent(string(buf[:n]))

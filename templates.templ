@@ -71,7 +71,7 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 			hx-post={ "/api/ptz/" + axis }
 			hx-target={ "#ptz-" + axis }
 			hx-swap="outerHTML"
-			hx-trigger="input changed delay:300ms, change"
+			hx-trigger="input changed delay:300ms"
 		/>
 		<span class="slider-value" id={ "val-" + axis }>{ fmt.Sprintf("%d%s", value, unit) }</span>
 	</div>
@@ -129,7 +129,7 @@ templ audioBtn(color string, mode string, label string, ariaLabel string, active
 templ statusPanel(s webStatus) {
 	<div id="status-panel" hx-get="/panel" hx-trigger="every 3s, refresh from:body" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
 		if s.Error != "" {
-			<div class="error-banner">{ s.Error }</div>
+			<div class="error-banner" role="alert">{ s.Error }</div>
 		}
 		<div class="card" style="margin-bottom:1rem">
 			<div class="card-title">Camera</div>

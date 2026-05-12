@@ -14,6 +14,11 @@ import (
 	"time"
 )
 
+const (
+	ffmpegShutdownTimeout = 2 * time.Second
+	streamBufSize         = 64 * 1024
+)
+
 func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
 	s.daemon.lastFrame.RLock()
 	frame := s.daemon.lastFrame.data
@@ -50,7 +55,7 @@ func cleanupFFmpeg(cmd *exec.Cmd) {
 	go func() { done <- cmd.Wait() }()
 	select {
 	case <-done:
-	case <-time.After(ffmpegShutdown):
+	case <-time.After(ffmpegShutdownTimeout):
 		_ = cmd.Process.Kill()
 		_ = cmd.Wait()
 	}
@@ -105,25 +110,16 @@ func (s *webServer) handleStream(
 	br := bufio.NewReaderSize(stdOut, streamBufSize)
 	var buf bytes.Buffer
 	for {
-
 		select {
-
 		case <-ctx.Done():
-
 			return
-
 		default:
-
 		}
 
 		frame, frameErr := extractJPEGFrame(br, &buf)
-
 		if frameErr != nil {
-
 			slog.Debug("frame extract error", "error", frameErr)
-
 			return
-
 		}
 
 		s.daemon.lastFrame.Lock()
@@ -131,26 +127,20 @@ func (s *webServer) handleStream(
 		s.daemon.lastFrame.Unlock()
 
 		_, headerErr := fmt.Fprintf(
-
 			responseWriter,
-
 			"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n",
-
 			len(frame),
 		)
-
 		if headerErr != nil {
 			return
 		}
 
 		_, writeErr := responseWriter.Write(frame)
-
 		if writeErr != nil {
 			return
 		}
 
 		_, sepErr := fmt.Fprint(responseWriter, "\r\n")
-
 		if sepErr != nil {
 			return
 		}
@@ -160,8 +150,9 @@ func (s *webServer) handleStream(
 }
 
 func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
+	const maxIterations = 10 * 1024 * 1024
 	var soiFound bool
-	for {
+	for range maxIterations {
 		if buf.Len() > maxStreamBufferSize {
 			buf.Reset()
 		}
@@ -204,4 +195,6 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 			}
 		}
 	}
+
+	return nil, fmt.Errorf("max iterations (%d) reached scanning for JPEG frame", maxIterations)
 }
