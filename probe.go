@@ -90,7 +90,7 @@ func hasPixyVendorProduct(ueventData []byte) bool {
 
 		parts := strings.Split(hidID, ":")
 		if len(parts) != 3 {
-			return false
+			continue
 		}
 
 		vendor, vErr := strconv.ParseInt(parts[1], 16, 0)

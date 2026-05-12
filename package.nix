@@ -4,9 +4,12 @@
   src,
   templ,
 }:
+let
+  version = "0.2.0";
+in
 buildGoModule {
   pname = "emeet-pixyd";
-  version = "0.2.0";
+  inherit version;
 
   inherit src;
 
@@ -19,7 +22,7 @@ buildGoModule {
     templ generate
   '';
 
-  ldflags = ["-s" "-w" "-X main.buildVersion=0.2.0"];
+  ldflags = ["-s" "-w" "-X main.buildVersion=${version}"];
 
   postInstall = ''
     ln -s $out/bin/emeet-pixyd $out/bin/emeet-pixy

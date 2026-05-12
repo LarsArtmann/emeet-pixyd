@@ -130,8 +130,11 @@ func hidSendRecv(ctx context.Context, hidrawDev string, report []byte) ([]byte, 
 	defer func() { _ = hidFile.Close() }()
 
 	written, writeErr := hidFile.Write(buf)
-	if writeErr != nil || written == 0 {
+	if writeErr != nil {
 		return nil, fmt.Errorf("write hidraw %s: %w", hidrawDev, writeErr)
+	}
+	if written == 0 {
+		return nil, fmt.Errorf("write hidraw %s: wrote 0 bytes", hidrawDev)
 	}
 
 	type readResult struct {

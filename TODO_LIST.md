@@ -1,7 +1,7 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-05-07
-**Source docs verified:** SUPERB_ROADMAP.md, all planning docs, all status docs
+**Updated:** 2026-05-12
+**Source docs verified:** docs/SUPERB_ROADMAP.md, all planning docs, all status docs
 
 ---
 
@@ -90,23 +90,47 @@
 | 41  | ⬜ TODO | Consolidate PTZ axis dispatch into lookup table                                                    | Review     |
 | 42  | ⬜ TODO | PTZ readback accuracy — delay before readback or maintain in-memory "last set" value               | Status E.1 |
 
+## Phase 8: From 15-Skill Comprehensive Audit (2026-05-12)
+
+|| #   | Status  | Task                                                                                               | Source          |
+| --- | ------- | -------------------------------------------------------------------------------------------------- | --------------- |
+| 43  | ✅ DONE | Fix `hidSendRecv` nil error wrapping bug (zero-write produces `%!w(<nil>)`)                       | Code Review C1  |
+| 44  | ✅ DONE | Fix `hasPixyVendorProduct` — `return false` → `continue` on malformed HID_ID                       | Code Review C4  |
+| 45  | ✅ DONE | Fix `flake.nix` — remove invalid `env` attribute from app definition                               | Nix Review      |
+| 46  | ✅ DONE | Fix `package.nix` — deduplicate version string via `let version` binding                           | Nix Review      |
+| 47  | ⬜ TODO | Fix `autoManage` — only call `saveState` when state actually changed                               | Self-Review 4   |
+| 48  | ⬜ TODO | Validate loaded state in `loadState()` — reject garbage CameraState/AudioMode/AutoMode values      | Code Review C2  |
+| 49  | ⬜ TODO | Fix `uevent.go` — transient read errors permanently disable hotplug, add retry                     | Code Review C5  |
+| 50  | ⬜ TODO | Move PTZ limits to shared constants in `internal/pixy/` (split brain with templates.templ)         | Self-Review S1  |
+| 51  | ⬜ TODO | Consolidate 9 function pointers into a `Dependencies` interface for compile-time safety            | Architecture 3  |
+| 52  | ⬜ TODO | Replace `handleCommand(string) string` with typed `CommandResult` struct                           | Architecture 2  |
+| 53  | ⬜ TODO | Consolidate PTZ logic into single `ptz.go` (currently split across 5 files)                       | Architecture 3  |
+| 54  | ⬜ TODO | Add systemd hardening to NixOS module (MemoryMax, ProtectSystem, RestrictAddressFamilies)          | Nix Review H2   |
+| 55  | ⬜ TODO | Fix false-positive tests — `TestHandleCommandSyncWithDevice` accepts both success AND error       | BDD Review P0   |
+| 56  | ⬜ TODO | Remove `, change` from PTZ slider hx-trigger (doubles requests)                                    | Frontend Review |
+| 57  | ⬜ TODO | Suppress toast spam during PTZ slider drag                                                         | Frontend Review |
+| 58  | ⬜ TODO | Add `role="alert"` to error banners for screen reader announcement                                | Frontend A11y   |
+| 59  | ⬜ TODO | Migrate to `encoding/json/v2` for 10x JSON performance                                             | How-to-Go       |
+| 60  | ⬜ TODO | Add `extractJPEGFrame` max-iterations guard to prevent infinite loop on corrupt stream              | Self-Review 4.8 |
+| 61  | ⬜ TODO | Archive or rewrite `docs/SUPERB_ROADMAP.md` — metrics/file table/deps all stale                    | Docs Freshness  |
+
 ---
 
 ## Docs Verified
 
-| File              | Status                                         |
-| ----------------- | ---------------------------------------------- |
-| AGENTS.md         | ✅ Current as of 2026-05-03                    |
-| FEATURES.md       | ✅ Verified — 43 features, all match code      |
-| SUPERB_ROADMAP.md | 🔶 Stale — many items completed but not marked |
-| README.md         | ✅ Current                                     |
-| CHANGELOG.md      | ✅ Current                                     |
+| File                | Status                                         |
+| ------------------- | ---------------------------------------------- |
+| AGENTS.md           | ✅ Current as of 2026-05-12                    |
+| FEATURES.md         | ✅ Verified — 44 features, all match code      |
+| docs/SUPERB_ROADMAP.md | 🔶 Stale — metrics/file table/deps all wrong |
+| README.md           | ✅ Current                                     |
+| CHANGELOG.md        | ✅ Current                                     |
 
 ## Summary
 
 | Status     | Count |
 | ---------- | ----- |
-| ✅ DONE    | 12    |
+| ✅ DONE    | 16    |
 | 🔶 PARTIAL | 3     |
-| ⬜ TODO    | 27    |
-| **Total**  | 42    |
+| ⬜ TODO    | 42    |
+| **Total**  | 61    |

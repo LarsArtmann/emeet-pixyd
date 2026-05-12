@@ -58,7 +58,7 @@ Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to d
 | `EMEET_PIXYD_AUTO`           | `AutoMode`      | `full`             | off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
 | `EMEET_PIXYD_DEFAULT_AUDIO`  | `DefaultAudio`  | `nc`               | nc, live, org (shorthand for original)                           |
 
-NixOS module passes all options as `Environment=` vars — `autoTracking`+`autoPrivacy` control `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
+NixOS module passes all options as `Environment=` vars — `auto` (enum: off/full/tracking-only/privacy-only) maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
 
 ### Control Flow
 

@@ -58,7 +58,6 @@
       default = {
         type = "app";
         program = "${self.packages.${system}.default}/bin/emeet-pixyd";
-        env.EMEET_PIXYD_DEBUG = "true";
       };
     });
 

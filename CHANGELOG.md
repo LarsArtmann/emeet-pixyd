@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - systemd `sd_notify` integration (READY=1, WATCHDOG=1)
 - SIGHUP for state save without shutdown
 - Comprehensive test suite: unit, integration, fuzz, and BDD behavioral tests
-- `behavior_test.go`: 11 end-to-end user scenario tests
+- `behavior_test.go`: 14 end-to-end user scenario tests
 
 ### Changed
 
@@ -37,6 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - OTel metrics migration from direct `prometheus/client_golang` to OTel SDK
 - Error consolidation: exported sentinel errors in `errors.go`
 - Auto mode type changed from boolean to `AutoMode` string enum (`off`/`full`/`tracking-only`/`privacy-only`)
+- Branded types for PID and SourceID via `go-branded-id`
+- Unified `audioCommand` to `cmdAudio` constant
+- Fixed `hid.go` nil error wrapping bug in `hidSendRecv` zero-write path
+- Fixed `probe.go` malformed HID_ID handling (`return false` → `continue`)
+- Fixed `flake.nix` invalid `env` attribute in app definition
+- Fixed `package.nix` version string duplication via `let version` binding
 
 ## [0.1.0] - 2026-01-01
 

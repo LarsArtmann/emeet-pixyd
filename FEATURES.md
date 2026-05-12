@@ -117,8 +117,8 @@
 
 ## Summary
 
-- **Total features:** 43
-- **Fully functional:** 43
+- **Total features:** 44
+- **Fully functional:** 44
 - **Partially functional:** 0
 - **Broken:** 0
 - **Planned:** 0
