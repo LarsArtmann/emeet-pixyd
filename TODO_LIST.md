@@ -20,7 +20,7 @@
 | 1   | ✅ DONE    | `.golangci.yml` centralized configuration                                                                       | Roadmap 2.3   |
 | 2   | ✅ DONE    | Fix linter suppressions (nlreturn, whitespace, goconst, perfsprint, modernize)                                  | Roadmap 7.1   |
 | 3   | ✅ DONE    | `CommandError` structured error type                                                                            | Roadmap 3.4   |
-| 4   | 🔶 PARTIAL | `String()` method test coverage — `CameraState.String()`, `AudioMode.String()` exist but no explicit test calls | Roadmap 7.2   |
+| 4   | ✅ DONE | `String()` method test coverage — `CameraState.String()`, `AudioMode.String()` exist but no explicit test calls | Roadmap 7.2   |
 | 5   | ✅ DONE    | `t.Parallel()` in all tests (only 2 justified serial tests)                                                     | Quality sweep |
 
 ## Phase 2: Decomposition (P1)
@@ -82,10 +82,10 @@
 
 | #   | Status  | Task                                                                                               | Source     |
 | --- | ------- | -------------------------------------------------------------------------------------------------- | ---------- |
-| 36  | ⬜ TODO | Fix `applyResponseToStatus` — should use toast type from `actionToast`, not always `toastTypeInfo` | Review L2  |
+| 36  | ✅ DONE   | Extract toast type from `actionToast`, propagate through `applyResponseToStatus` | Review L2  |
 | 37  | ⬜ TODO | Extract `lastFrame`/`ptzCache` from anonymous embedded structs to named types                      | Review M1  |
-| 38  | ⬜ TODO | Move `streamBufSize`/`ffmpegShutdown` constants from handlers.go to stream.go                      | Review L12 |
-| 39  | ⬜ TODO | Remove decorative blank lines in stream.go select/case blocks                                      | Review M5  |
+| 38  | ✅ DONE | Moved `streamBufSize`/`ffmpegShutdownTimeout` constants from handlers.go to stream.go                     | Review L12 |
+| 39  | ✅ DONE | Removed decorative blank lines in stream.go select/case blocks                                         | Review M5  |
 | 40  | ⬜ TODO | Update `SUPERB_ROADMAP.md` — many items completed                                                  | Review M4  |
 | 41  | ⬜ TODO | Consolidate PTZ axis dispatch into lookup table                                                    | Review     |
 | 42  | ⬜ TODO | PTZ readback accuracy — delay before readback or maintain in-memory "last set" value               | Status E.1 |
@@ -98,20 +98,20 @@
 | 44  | ✅ DONE | Fix `hasPixyVendorProduct` — `return false` → `continue` on malformed HID_ID                       | Code Review C4  |
 | 45  | ✅ DONE | Fix `flake.nix` — remove invalid `env` attribute from app definition                               | Nix Review      |
 | 46  | ✅ DONE | Fix `package.nix` — deduplicate version string via `let version` binding                           | Nix Review      |
-| 47  | ⬜ TODO | Fix `autoManage` — only call `saveState` when state actually changed                               | Self-Review 4   |
-| 48  | ⬜ TODO | Validate loaded state in `loadState()` — reject garbage CameraState/AudioMode/AutoMode values      | Code Review C2  |
-| 49  | ⬜ TODO | Fix `uevent.go` — transient read errors permanently disable hotplug, add retry                     | Code Review C5  |
-| 50  | ⬜ TODO | Move PTZ limits to shared constants in `internal/pixy/` (split brain with templates.templ)         | Self-Review S1  |
+| 47  | ✅ DONE | Fix `autoManage` — only call `saveState` when state actually changed                               | Self-Review 4   |
+| 48  | ✅ DONE | Validate loaded state in `loadState()` — reject garbage CameraState/AudioMode/AutoMode values      | Code Review C2  |
+| 49  | ✅ DONE | Fix `uevent.go` — transient read errors permanently disable hotplug, added retry with continue     | Code Review C5  |
+| 50  | ✅ DONE | Moved PTZ limits to shared constants in `internal/pixy/` (eliminated split brain with templates)   | Self-Review S1  |
 | 51  | ⬜ TODO | Consolidate 9 function pointers into a `Dependencies` interface for compile-time safety            | Architecture 3  |
 | 52  | ⬜ TODO | Replace `handleCommand(string) string` with typed `CommandResult` struct                           | Architecture 2  |
 | 53  | ⬜ TODO | Consolidate PTZ logic into single `ptz.go` (currently split across 5 files)                       | Architecture 3  |
-| 54  | ⬜ TODO | Add systemd hardening to NixOS module (MemoryMax, ProtectSystem, RestrictAddressFamilies)          | Nix Review H2   |
-| 55  | ⬜ TODO | Fix false-positive tests — `TestHandleCommandSyncWithDevice` accepts both success AND error       | BDD Review P0   |
-| 56  | ⬜ TODO | Remove `, change` from PTZ slider hx-trigger (doubles requests)                                    | Frontend Review |
+| 54  | ✅ DONE | Added systemd hardening to NixOS module (ProtectSystem, PrivateTmp, NoNewPrivileges, MemoryMax)    | Nix Review H2   |
+| 55  | ✅ DONE | Fixed false-positive tests — proper assertions for sync/toggle-privacy commands                    | BDD Review P0   |
+| 56  | ✅ DONE | Removed `, change` from PTZ slider hx-trigger (was doubling requests)                              | Frontend Review |
 | 57  | ⬜ TODO | Suppress toast spam during PTZ slider drag                                                         | Frontend Review |
-| 58  | ⬜ TODO | Add `role="alert"` to error banners for screen reader announcement                                | Frontend A11y   |
-| 59  | ⬜ TODO | Migrate to `encoding/json/v2` for 10x JSON performance                                             | How-to-Go       |
-| 60  | ⬜ TODO | Add `extractJPEGFrame` max-iterations guard to prevent infinite loop on corrupt stream              | Self-Review 4.8 |
+| 58  | ✅ DONE | Added `role="alert"` to error banners for screen reader announcement                             | Frontend A11y   |
+| 59  | ❌ SKIP | `encoding/json/v2` not available in Go 1.26.2 stdlib — revisit when landed                         | How-to-Go       |
+| 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream     | Self-Review 4.8 |
 | 61  | ⬜ TODO | Archive or rewrite `docs/SUPERB_ROADMAP.md` — metrics/file table/deps all stale                    | Docs Freshness  |
 
 ---
@@ -130,7 +130,8 @@
 
 | Status     | Count |
 | ---------- | ----- |
-| ✅ DONE    | 16    |
-| 🔶 PARTIAL | 3     |
-| ⬜ TODO    | 42    |
+| ✅ DONE    | 27    |
+| 🔶 PARTIAL | 1     |
+| ❌ SKIP    | 1     |
+| ⬜ TODO    | 32    |
 | **Total**  | 61    |

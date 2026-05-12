@@ -43,6 +43,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fixed `probe.go` malformed HID_ID handling (`return false` → `continue`)
 - Fixed `flake.nix` invalid `env` attribute in app definition
 - Fixed `package.nix` version string duplication via `let version` binding
+- PTZ limits moved to shared `internal/pixy` constants (eliminated template split brain)
+- Auto-manage only persists state when a state change actually occurs
+- State validation on load rejects garbage CameraState/AudioMode/AutoMode values
+- JPEG frame extraction guarded against infinite loops on corrupt streams (10M iteration cap)
+- Uevent listener retries on transient read errors instead of permanently dying
+- PTZ slider hx-trigger fixed (removed `, change` that doubled requests)
+- Error banner `role="alert"` for screen reader accessibility
+- Stream constants moved from `handlers.go` to `stream.go`
+- Toast response constants extracted (`respTrackingOn`, `respPrivacyOn`, `respTrackingOff`)
+- False-positive tests eliminated with proper assertions
+- NixOS systemd hardening: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`, `MemoryMax=256M`
 
 ## [0.1.0] - 2026-01-01
 

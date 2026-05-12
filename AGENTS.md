@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-05-08
+**Updated:** 2026-05-12
 
 ---
 
@@ -216,7 +216,16 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`TestUpdateMetrics` is NOT parallel**: Tests global mutable metrics state, must run serially to avoid interference from parallel tests calling `updateMetrics()`. `TestSendCommand_EndToEnd` and `TestConfigFromEnv_DefaultsWhenUnset` both use `t.Parallel()` (temp socket dir and env reads respectively are safe to parallelize).
 - **Auto-manage uses DI functions**: `handleCallStart` and `handleCallEnd` call `d.setTrackingFn()` and `d.setAudioFn()` (not the direct methods). This ensures the auto-manage path is mockable in tests.
 - **Toast type propagation**: `applyResponseToStatus()` accepts a `toastType` parameter. `actionToast()` returns both message and type (`success`/`info`). All callers propagate the type correctly.
-- **`audioCommand` removed**: Unified to `cmdAudio` (was duplicate).
+- **Response string constants**: `respTrackingOn`, `respPrivacyOn`, `respTrackingOff`, `respAutoModeOff`, `respAudioUsage`, `respAutoUsage`, `respDeviceNotFound` in `commands.go`. All command handlers return these constants instead of inline strings.
+- **`TestHandleCommandTogglePrivacy` tests mock behavior**: The test uses `withCaptureTrackingSlice` to verify the DI function was called with the correct argument, and asserts the exact response string (`respTrackingOn`). It does NOT assert `d.state.Camera` because the mock bypasses `setDeviceState` (which is the only path that mutates daemon state via the `stateSetter` callback).
+- **PTZ shared constants**: `pixy.PanMin`, `pixy.PanMax`, `pixy.TiltMin`, `pixy.TiltMax`, `pixy.ZoomMin`, `pixy.ZoomMax`, `pixy.ZoomDefault` in `internal/pixy/pixy.go`. Used by `handlers.go` and `templates.templ`.
+- **State validation**: `loadState()` calls `loaded.Valid()` to reject garbage enum values. `pixy.State.Valid()` checks Camera, Audio, and Auto fields.
+- **Stream constants**: `streamBufSize` and `ffmpegShutdownTimeout` live in `stream.go`, not `handlers.go`.
+- **Toast constants**: `toastAudioChanged`, `toastGestureToggled`, `toastAutoToggled` in `handlers.go`.
+- **NixOS systemd hardening**: `ProtectSystem=strict`, `PrivateTmp=true`, `NoNewPrivileges=true`, `RestrictAddressFamilies=[AF_UNIX AF_NETLINK AF_INET]`, `MemoryMax=256M`.
+- **JPEG max-iterations**: `extractJPEGFrame` has a 10M iteration guard to prevent infinite loops on corrupt streams.
+- **Uevent retry**: Transient read errors use `continue` instead of `return` to keep the hotplug listener alive.
+- **Auto-manage conditional save**: `autoManage` only calls `saveStateOrLog` when `handleCallStart` or `handleCallEnd` actually triggered a state change.
 - **Benchmarks**: 4 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`.
 
 ---
