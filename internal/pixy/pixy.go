@@ -250,6 +250,18 @@ type PTZValues struct {
 	Zoom int
 }
 
+// PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
+const (
+	PanMin  = -170
+	PanMax  = 170
+	TiltMin = -30
+	TiltMax = 30
+	ZoomMin = 100
+	ZoomMax = 400
+	// ZoomDefault is the zoom value when the camera is centered/reset.
+	ZoomDefault = 100
+)
+
 // Config holds daemon configuration parameters.
 // Fields marked with env tags are read from environment variables by ConfigFromEnv().
 type Config struct {

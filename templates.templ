@@ -185,9 +185,9 @@ templ statusPanel(s webStatus) {
 		if s.Online {
 			<div class="card" style="margin-bottom:1rem">
 				<div class="card-title">PTZ</div>
-				@ptzSlider("Pan", "pan", -170, 170, s.Pan, "&#176;")
-				@ptzSlider("Tilt", "tilt", -30, 30, s.Tilt, "&#176;")
-				@ptzSlider("Zoom", "zoom", 100, 400, s.Zoom, "x")
+				@ptzSlider("Pan", "pan", pixy.PanMin, pixy.PanMax, s.Pan, "&#176;")
+				@ptzSlider("Tilt", "tilt", pixy.TiltMin, pixy.TiltMax, s.Tilt, "&#176;")
+				@ptzSlider("Zoom", "zoom", pixy.ZoomMin, pixy.ZoomMax, s.Zoom, "x")
 				<div class="spacer"></div>
 				<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
 			</div>

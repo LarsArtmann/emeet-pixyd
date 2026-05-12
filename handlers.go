@@ -12,21 +12,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
-	zoomDefault         = 100
 	maxStreamBufferSize = 10 * 1024 * 1024
 	maxBodyBytes        = 1 << 10
-
-	panMin  = -170
-	panMax  = 170
-	tiltMin = -30
-	tiltMax = 30
-	zoomMin = 100
-	zoomMax = 400
 
 	staticCacheMaxAge = 7 * 24 * time.Hour
 	ffmpegShutdown    = 2 * time.Second
@@ -44,6 +37,9 @@ const (
 	toastCameraCentered  = "Camera centered"
 	toastStateSynced     = "State synced"
 	toastProbedDevices   = "Probed devices"
+	toastAudioChanged    = "Audio mode changed"
+	toastGestureToggled  = "Gesture toggled"
+	toastAutoToggled     = "Auto mode toggled"
 )
 
 //go:embed static
@@ -88,7 +84,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Version:    buildVersion,
 	}
 	if status.Online {
-		status.Zoom = zoomDefault
+		status.Zoom = pixy.ZoomDefault
 	}
 
 	return status
@@ -205,11 +201,11 @@ func clampInt(v, lo, hi int) int {
 func ptzLimits(axis string) (int, int) {
 	switch axis {
 	case axisPan:
-		return panMin, panMax
+		return pixy.PanMin, pixy.PanMax
 	case axisTilt:
-		return tiltMin, tiltMax
+		return pixy.TiltMin, pixy.TiltMax
 	case axisZoom:
-		return zoomMin, zoomMax
+		return pixy.ZoomMin, pixy.ZoomMax
 	default:
 		return 0, 0
 	}

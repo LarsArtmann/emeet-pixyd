@@ -292,18 +292,18 @@ func TestPTZLimits(t *testing.T) {
 	t.Parallel()
 
 	lo, hi := ptzLimits(axisPan)
-	if lo != panMin || hi != panMax {
-		t.Errorf("pan limits: got %d,%d, want %d,%d", lo, hi, panMin, panMax)
+	if lo != pixy.PanMin || hi != pixy.PanMax {
+		t.Errorf("pan limits: got %d,%d, want %d,%d", lo, hi, pixy.PanMin, pixy.PanMax)
 	}
 
 	lo, hi = ptzLimits(axisTilt)
-	if lo != tiltMin || hi != tiltMax {
-		t.Errorf("tilt limits: got %d,%d, want %d,%d", lo, hi, tiltMin, tiltMax)
+	if lo != pixy.TiltMin || hi != pixy.TiltMax {
+		t.Errorf("tilt limits: got %d,%d, want %d,%d", lo, hi, pixy.TiltMin, pixy.TiltMax)
 	}
 
 	lo, hi = ptzLimits(axisZoom)
-	if lo != zoomMin || hi != zoomMax {
-		t.Errorf("zoom limits: got %d,%d, want %d,%d", lo, hi, zoomMin, zoomMax)
+	if lo != pixy.ZoomMin || hi != pixy.ZoomMax {
+		t.Errorf("zoom limits: got %d,%d, want %d,%d", lo, hi, pixy.ZoomMin, pixy.ZoomMax)
 	}
 
 	lo, hi = ptzLimits("unknown")
