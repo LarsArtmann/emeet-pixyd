@@ -83,6 +83,13 @@ in {
         RestartSec = "3";
         WatchdogSec = "30";
         OOMScoreAdjust = -100;
+
+        ProtectSystem = "strict";
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+        RestrictAddressFamilies = ["AF_UNIX" "AF_NETLINK" "AF_INET"];
+        MemoryMax = "256M";
+
         Environment = lib.concatStringsSep " " (
           lib.mapAttrsToList (k: v: "${k}=${v}") envVars
         );
