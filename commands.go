@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	respTrackingOn     = "tracking on"
+	respPrivacyOn      = "privacy on"
+	respTrackingOff    = "tracking off"
 	respAutoModeOff    = "auto mode: off"
 	respAudioUsage     = "usage: audio [nc|live|org]"
 	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
@@ -131,14 +134,14 @@ func (d *Daemon) handleTrackingCommand(
 	}
 
 	if state == pixy.StateTracking {
-		return "tracking on"
+		return respTrackingOn
 	}
 
 	if state == pixy.StatePrivacy {
-		return "privacy on"
+		return respPrivacyOn
 	}
 
-	return "tracking off"
+	return respTrackingOff
 }
 
 func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string {

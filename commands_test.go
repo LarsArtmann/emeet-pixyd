@@ -43,8 +43,8 @@ func TestIsCommandErrorResponse(t *testing.T) {
 	}{
 		{"error: pan: invalid value", true},
 		{"error: zoom: device not found", true},
-		{"tracking on", false},
-		{"privacy on", false},
+		{respTrackingOn, false},
+		{respPrivacyOn, false},
 		{"error:", false},
 		{"ERROR: pan: invalid value", false}, // wrong case
 		{"error:pan", false},                 // no space after colon
@@ -466,7 +466,7 @@ func TestApplyResponseToStatus_Success(t *testing.T) {
 
 	//nolint:exhaustruct
 	status := webStatus{}
-	applyResponseToStatus("tracking on", &status, "Tracking enabled", toastTypeSuccess)
+	applyResponseToStatus(respTrackingOn, &status, "Tracking enabled", toastTypeSuccess)
 	if status.Error != "" {
 		t.Error("Error should not be set")
 	}

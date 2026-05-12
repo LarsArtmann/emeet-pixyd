@@ -568,11 +568,19 @@ func TestWaybarOutput(t *testing.T) {
 func TestHandleCommandTogglePrivacy(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
+	var captured []pixy.CameraState
+	d := newTestDaemon(
+		pixy.StatePrivacy, testVideoDev, "/dev/hidraw0",
+		withCaptureTrackingSlice(&captured),
+	)
 
 	result := d.handleCommand(context.Background(), cmdTogglePrivacy)
-	if result == "" {
-		t.Error("expected non-empty response")
+	if result != respTrackingOn {
+		t.Errorf("expected %q, got %q", respTrackingOn, result)
+	}
+
+	if len(captured) != 1 || captured[0] != pixy.StateTracking {
+		t.Errorf("expected tracking call with tracking, got %v", captured)
 	}
 }
 
@@ -813,8 +821,14 @@ func TestHandleCommandSyncWithDevice(t *testing.T) {
 	d.config = testConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), cmdSync)
-	if !strings.HasPrefix(result, "synced") && !strings.Contains(result, "error") {
-		t.Errorf("expected sync result, got: %s", result)
+	if IsCommandErrorResponse(result) {
+		assertErrorPrefix(t, result)
+
+		return
+	}
+
+	if !strings.HasPrefix(result, "synced") {
+		t.Errorf("expected sync result to start with 'synced', got: %s", result)
 	}
 }
 
