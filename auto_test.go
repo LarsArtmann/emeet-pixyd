@@ -294,7 +294,10 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withConfig(dir))
+	d := newTestDaemon(
+		pixy.StatePrivacy, testVideoDev, testHIDDev,
+		withConfig(dir), withCameraInUse(true), withDebounceCount(),
+	)
 
 	d.autoManage(context.Background())
 

@@ -104,19 +104,24 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	debounceCount := d.config.DebounceCount
 	d.mu.Unlock()
 
+	changed := false
 	if inUse && !inCall && debounceInUse >= debounceCount {
 		slog.Info("camera in use, activating", "auto_mode", autoMode)
 		d.handleCallStart(ctx, camera, autoMode)
+		changed = true
 	}
 
 	if !inUse && inCall && debounceIdle >= debounceCount {
 		slog.Info("camera released", "auto_mode", autoMode)
 		d.handleCallEnd(ctx, autoMode)
+		changed = true
 	}
 
-	d.mu.Lock()
-	d.saveStateOrLog("failed to save state after auto-manage")
-	d.mu.Unlock()
+	if changed {
+		d.mu.Lock()
+		d.saveStateOrLog("failed to save state after auto-manage")
+		d.mu.Unlock()
+	}
 
 	d.mu.RLock()
 	updateMetrics(d.state) //nolint:contextcheck
