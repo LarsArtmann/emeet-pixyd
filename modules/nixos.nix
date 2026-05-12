@@ -77,10 +77,12 @@ in {
             EMEET_PIXYD_DEBUG = "true";
           };
       in {
-        Type = "simple";
+        Type = "notify";
         ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
         Restart = "on-failure";
         RestartSec = "3";
+        WatchdogSec = "30";
+        OOMScoreAdjust = -100;
         Environment = lib.concatStringsSep " " (
           lib.mapAttrsToList (k: v: "${k}=${v}") envVars
         );

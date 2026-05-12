@@ -40,28 +40,45 @@ func probeVideo4linux(sysfsPath string) string {
 			continue
 		}
 
-		vendorFile := fmt.Sprintf("%s/%s/device/id/vendor", sysfsPath, name)
-		productFile := fmt.Sprintf("%s/%s/device/id/product", sysfsPath, name)
+		ueventFile := fmt.Sprintf("%s/%s/device/uevent", sysfsPath, name)
 
-		vendorData, vErr := os.ReadFile(vendorFile)
-		if vErr != nil {
+		ueventData, uErr := os.ReadFile(ueventFile)
+		if uErr != nil {
+			slog.Warn("video4linux probe: failed to read uevent", "path", ueventFile, "error", uErr)
+
 			continue
 		}
 
-		productData, pErr := os.ReadFile(productFile)
-		if pErr != nil {
-			continue
-		}
-
-		vendor := strings.TrimSpace(string(vendorData))
-		product := strings.TrimSpace(string(productData))
-
-		if vendor == pixyVendorID && product == pixyProductID {
+		if hasPixyProduct(ueventData) {
 			return videoPath
 		}
 	}
 
 	return ""
+}
+
+func hasPixyProduct(ueventData []byte) bool {
+	for line := range strings.SplitSeq(string(ueventData), "\n") {
+		product, ok := strings.CutPrefix(line, "PRODUCT=")
+		if !ok {
+			continue
+		}
+
+		parts := strings.Split(product, "/")
+		if len(parts) < 2 {
+			return false
+		}
+
+		vendor, vErr := strconv.ParseInt(parts[0], 16, 0)
+		prod, pErr := strconv.ParseInt(parts[1], 16, 0)
+		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
+		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
+
+		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
+			vendor == expectedVendor && prod == expectedProduct
+	}
+
+	return false
 }
 
 func hasPixyVendorProduct(ueventData []byte) bool {

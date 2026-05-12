@@ -979,8 +979,7 @@ func writeFakeFile(t *testing.T, path, content string) {
 
 type fakeVideoDev struct {
 	name    string
-	vendor  string
-	product string
+	product string // uevent PRODUCT=vendor/product/version
 	index   string
 }
 
@@ -995,8 +994,11 @@ func createFakeVideo4linux(t *testing.T, root string, devices []fakeVideoDev) {
 
 	for _, dev := range devices {
 		base := filepath.Join(root, dev.name)
-		writeFakeFile(t, filepath.Join(base, "device/id/vendor"), dev.vendor)
-		writeFakeFile(t, filepath.Join(base, "device/id/product"), dev.product)
+
+		content := "DEVTYPE=usb_interface\n"
+		content += "DRIVER=uvcvideo\n"
+		content += "PRODUCT=" + dev.product + "\n"
+		writeFakeFile(t, filepath.Join(base, "device/uevent"), content)
 
 		if dev.index != "" {
 			writeFakeFile(t, filepath.Join(base, "index"), dev.index)
@@ -1018,8 +1020,9 @@ func createFakeHidraw(t *testing.T, root string, devices []fakeHidrawDev) {
 }
 
 const (
-	pixyVendor  = "328f"
-	pixyProduct = "00c0"
+	pixyUeventProduct = "328f/c0/2004"
+	pixyVendor        = "328f"
+	pixyProduct       = "00c0"
 )
 
 const (
@@ -1056,8 +1059,8 @@ func TestProbeVideo4linux_PIXYFound(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
-		{name: testVideoDev2, vendor: pixyVendor, product: pixyProduct, index: "1"},
+		{name: testVideoDev0, product: pixyUeventProduct, index: "0"},
+		{name: testVideoDev2, product: pixyUeventProduct, index: "1"},
 	})
 }
 
@@ -1065,7 +1068,7 @@ func TestProbeVideo4linux_PIXYOnlyCaptureNode(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
+		{name: testVideoDev0, product: pixyUeventProduct, index: "0"},
 	})
 }
 
@@ -1073,7 +1076,7 @@ func TestProbeVideo4linux_PIXYNoIndexFile(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: ""},
+		{name: testVideoDev0, product: pixyUeventProduct, index: ""},
 	})
 }
 
@@ -1089,20 +1092,20 @@ func TestProbeVideo4linux_NonPIXYSources(t *testing.T) {
 			[]fakeVideoDev{
 				{
 					name:    "video1",
-					vendor:  "1511",
-					product: "402d",
+					product: "1511/402d/0100",
 					index:   "0",
 				},
 			},
 		},
 		{
 			"WrongVendorProduct",
-			append([]fakeVideoDev{}, fakeVideoDev{
-				name:    testVideoDev0,
-				vendor:  "1234",
-				product: "5678",
-				index:   "0",
-			}),
+			[]fakeVideoDev{
+				{
+					name:    testVideoDev0,
+					product: "1234/5678/0001",
+					index:   "0",
+				},
+			},
 		},
 		{"EmptyDir", nil},
 	}
@@ -1133,7 +1136,7 @@ func TestProbeVideo4linux_OBSCamIgnored(t *testing.T) {
 	writeFakeFile(t, filepath.Join(obsDir, "index"), "0")
 
 	testV4L2ProbesPIXY(t, []fakeVideoDev{
-		{name: testVideoDev0, vendor: pixyVendor, product: pixyProduct, index: "0"},
+		{name: testVideoDev0, product: pixyUeventProduct, index: "0"},
 	})
 }
 
@@ -1141,7 +1144,7 @@ func TestProbeVideo4linux_MetadataNodeSkipped(t *testing.T) {
 	t.Parallel()
 
 	testV4L2ProbesNothing(t, []fakeVideoDev{
-		{name: testVideoDev2, vendor: pixyVendor, product: pixyProduct, index: "1"},
+		{name: testVideoDev2, product: pixyUeventProduct, index: "1"},
 	})
 }
 
@@ -1278,6 +1281,68 @@ func TestProbeHidraw_NoUeventFile(t *testing.T) {
 	}
 }
 
+func TestHasPixyProduct(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		uevent  string
+		matches bool
+	}{
+		{
+			"compact hex (kernel format)",
+			"DEVTYPE=usb_interface\nPRODUCT=328f/c0/2004\n",
+			true,
+		},
+		{
+			"leading zeros",
+			"DEVTYPE=usb_interface\nPRODUCT=328f/00c0/2004\n",
+			true,
+		},
+		{
+			"uppercase hex",
+			"DEVTYPE=usb_interface\nPRODUCT=328F/C0/2004\n",
+			true,
+		},
+		{
+			"wrong vendor",
+			"DEVTYPE=usb_interface\nPRODUCT=1234/c0/2004\n",
+			false,
+		},
+		{
+			"wrong product",
+			"DEVTYPE=usb_interface\nPRODUCT=328f/00c1/2004\n",
+			false,
+		},
+		{
+			"no PRODUCT line",
+			"DEVTYPE=usb_interface\nDRIVER=uvcvideo\n",
+			false,
+		},
+		{
+			"empty uevent",
+			"",
+			false,
+		},
+		{
+			"malformed PRODUCT (one field)",
+			"PRODUCT=328f\n",
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := hasPixyProduct([]byte(tc.uevent))
+			if got != tc.matches {
+				t.Errorf("hasPixyProduct(%q) = %v, want %v", tc.uevent, got, tc.matches)
+			}
+		})
+	}
+}
+
 func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 	t.Parallel()
 
@@ -1324,8 +1389,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 	createFakeVideo4linux(t, root, []fakeVideoDev{
 		{
 			name:    testVideoDev2,
-			vendor:  pixyVendor,
-			product: pixyProduct,
+			product: pixyUeventProduct,
 			index:   "0",
 		},
 	})
