@@ -9,12 +9,12 @@
 
 ### Bugs Fixed (4)
 
-| # | File | Bug | Severity |
-|---|------|-----|----------|
-| 1 | `hid.go:132` | `%w` wrapping nil error produced garbled `%!w(<nil>)` — when `writeErr == nil && written == 0`, `fmt.Errorf("...%w", nil)` yields a non-nil error containing `%!w(<nil>)` | Critical |
-| 2 | `probe.go:76` | `return false` on malformed HID_ID killed entire device probe — should be `continue` to try next line | High |
-| 3 | `flake.nix:61` | Invalid `env` attribute in app definition — `nix flake check` errored on unsupported attribute; debug mode was never actually set | High |
-| 4 | `package.nix:22` | Version `"0.2.0"` hardcoded in both `version` attr and `ldflags` — drift risk; consolidated via `let version = "0.2.0"; in` | Medium |
+| #   | File             | Bug                                                                                                                                                                       | Severity |
+| --- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | `hid.go:132`     | `%w` wrapping nil error produced garbled `%!w(<nil>)` — when `writeErr == nil && written == 0`, `fmt.Errorf("...%w", nil)` yields a non-nil error containing `%!w(<nil>)` | Critical |
+| 2   | `probe.go:76`    | `return false` on malformed HID_ID killed entire device probe — should be `continue` to try next line                                                                     | High     |
+| 3   | `flake.nix:61`   | Invalid `env` attribute in app definition — `nix flake check` errored on unsupported attribute; debug mode was never actually set                                         | High     |
+| 4   | `package.nix:22` | Version `"0.2.0"` hardcoded in both `version` attr and `ldflags` — drift risk; consolidated via `let version = "0.2.0"; in`                                               | Medium   |
 
 ### Skills Executed (15/15)
 
@@ -22,13 +22,13 @@ All 15 skills were run to completion with detailed findings documented in `docs/
 
 ### Documentation Updated (5 files)
 
-| File | Change |
-|------|--------|
-| `AGENTS.md` | Removed fabricated `autoTracking`+`autoPrivacy` claim — replaced with correct `auto` enum description |
-| `FEATURES.md` | Fixed feature count from 43 to 44 (actual row count) |
-| `TODO_LIST.md` | Added 19 new TODO items from audit, fixed SUPERB_ROADMAP.md path, updated dates/counts |
-| `CHANGELOG.md` | Fixed behavior_test count (11→14), added bug fix entries, added branded types entry |
-| `package.nix` | Version deduplication via `let version` binding |
+| File           | Change                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`    | Removed fabricated `autoTracking`+`autoPrivacy` claim — replaced with correct `auto` enum description |
+| `FEATURES.md`  | Fixed feature count from 43 to 44 (actual row count)                                                  |
+| `TODO_LIST.md` | Added 19 new TODO items from audit, fixed SUPERB_ROADMAP.md path, updated dates/counts                |
+| `CHANGELOG.md` | Fixed behavior_test count (11→14), added bug fix entries, added branded types entry                   |
+| `package.nix`  | Version deduplication via `let version` binding                                                       |
 
 ### Planning Artifacts
 
@@ -46,13 +46,13 @@ All 15 skills were run to completion with detailed findings documented in `docs/
 
 ## B) PARTIALLY DONE 🔶
 
-| Item | What's Done | What's Left |
-|------|-------------|-------------|
-| **code-quality-scan** | Build, lint, duplication analysis complete | 7 duplication patterns identified but not consolidated (inline lock access, save-state pattern, PTZ validation duplication, HID preamble duplication) |
-| **docs-freshness-check** | All 6 docs audited, stale items identified, AGENTS.md fix applied | `docs/SUPERB_ROADMAP.md` identified as 30% fresh — needs archive or full rewrite |
-| **nix-review** | 9 findings documented, 2 fixed (flake.nix env, package.nix version) | NixOS module missing systemd hardening; module references `pkgs.emeet-pixyd` without overlay injection (critical for standalone use) |
-| **bdd-testing** | Review complete, false positives identified | 7 false-positive tests identified but not fixed (they still pass regardless of outcome) |
-| **frontend-design** | Full review with 10 priority fixes documented | No frontend code changed — fixes are planned but not implemented |
+| Item                     | What's Done                                                         | What's Left                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **code-quality-scan**    | Build, lint, duplication analysis complete                          | 7 duplication patterns identified but not consolidated (inline lock access, save-state pattern, PTZ validation duplication, HID preamble duplication) |
+| **docs-freshness-check** | All 6 docs audited, stale items identified, AGENTS.md fix applied   | `docs/SUPERB_ROADMAP.md` identified as 30% fresh — needs archive or full rewrite                                                                      |
+| **nix-review**           | 9 findings documented, 2 fixed (flake.nix env, package.nix version) | NixOS module missing systemd hardening; module references `pkgs.emeet-pixyd` without overlay injection (critical for standalone use)                  |
+| **bdd-testing**          | Review complete, false positives identified                         | 7 false-positive tests identified but not fixed (they still pass regardless of outcome)                                                               |
+| **frontend-design**      | Full review with 10 priority fixes documented                       | No frontend code changed — fixes are planned but not implemented                                                                                      |
 
 ---
 
@@ -124,14 +124,15 @@ These are TODO items from the audit that were identified but deferred for priori
 **File:** `docs/SUPERB_ROADMAP.md`
 **Generated:** 2026-04-20 (22+ days old)
 **Problem:** Every metric is wrong:
-  - Says "120 test functions" — actual is 245
-  - Says "63.4% coverage" — actual is 71.7% / 78.4%
-  - Says "~73 linter warnings" — actual is 0
-  - Source file table is completely wrong (doesn't list extracted files)
-  - Dependencies table has wrong versions
-  - Multiple roadmap items completed but not marked
-**Severity:** Medium — could mislead anyone using it as reference
-**Fix:** Archive to `docs/status/` or do a full rewrite
+
+- Says "120 test functions" — actual is 245
+- Says "63.4% coverage" — actual is 71.7% / 78.4%
+- Says "~73 linter warnings" — actual is 0
+- Source file table is completely wrong (doesn't list extracted files)
+- Dependencies table has wrong versions
+- Multiple roadmap items completed but not marked
+  **Severity:** Medium — could mislead anyone using it as reference
+  **Fix:** Archive to `docs/status/` or do a full rewrite
 
 ### 3. NixOS Module Broken for Standalone Use
 
@@ -195,33 +196,33 @@ These are TODO items from the audit that were identified but deferred for priori
 
 Sorted by impact × effort (Pareto):
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Move PTZ limits to `internal/pixy/` shared constants (split brain) | High | 15min | Split Brain |
-| 2 | Fix `autoManage` — conditional `saveState` only when changed | High | 15min | Performance |
-| 3 | Validate loaded state in `loadState()` | High | 15min | Correctness |
-| 4 | Fix false-positive `TestHandleCommandSyncWithDevice` | High | 10min | Test Quality |
-| 5 | Fix `uevent.go` — retry on transient read errors | High | 30min | Reliability |
-| 6 | Remove `, change` from PTZ slider hx-trigger | Medium | 5min | Frontend |
-| 7 | Add `role="alert"` to error banners | Medium | 5min | Accessibility |
-| 8 | Add `extractJPEGFrame` max-iterations guard | Medium | 10min | Robustness |
-| 9 | Suppress toast spam during PTZ slider drag | Medium | 15min | Frontend |
-| 10 | Fix `touch-action: none` → `pan-y` for mobile | Medium | 5min | Mobile |
-| 11 | Migrate to `encoding/json/v2` | Medium | 30min | Go Policy |
-| 12 | Replace `handleCommand(string) string` with `CommandResult` | Very High | 60min | Architecture |
-| 13 | Consolidate PTZ into single `ptz.go` | High | 45min | Architecture |
-| 14 | Consolidate 9 fn pointers into `Dependencies` interface | High | 45min | Architecture |
-| 15 | Add systemd hardening to NixOS module | High | 30min | Security |
-| 16 | Fix NixOS module package reference (overlay or package option) | High | 30min | Nix |
-| 17 | Fix remaining false-positive tests (6 more) | Medium | 30min | Test Quality |
-| 18 | Archive/rewrite `docs/SUPERB_ROADMAP.md` | Medium | 30min | Docs |
-| 19 | Add missing behavioral tests (hot-unplug, auto mode switch) | High | 90min | Testing |
-| 20 | Fix flaky `TestHandleStream_NoFFmpeg` | Medium | 15min | Test Quality |
-| 21 | Extract `AutoManager` sub-struct from Daemon | High | 60min | Architecture |
-| 22 | Centralize state mutation + persistence | High | 60min | Architecture |
-| 23 | Add `cockroachdb/errors` + `uniflow` | Medium | 45min | Go Policy |
-| 24 | Mobile responsiveness (hide .kbd, increase touch targets, center toast) | Medium | 30min | Frontend |
-| 25 | Add test/lint checks to `flake.nix` checks output | Low | 30min | Nix |
+| #   | Task                                                                    | Impact    | Effort | Category      |
+| --- | ----------------------------------------------------------------------- | --------- | ------ | ------------- |
+| 1   | Move PTZ limits to `internal/pixy/` shared constants (split brain)      | High      | 15min  | Split Brain   |
+| 2   | Fix `autoManage` — conditional `saveState` only when changed            | High      | 15min  | Performance   |
+| 3   | Validate loaded state in `loadState()`                                  | High      | 15min  | Correctness   |
+| 4   | Fix false-positive `TestHandleCommandSyncWithDevice`                    | High      | 10min  | Test Quality  |
+| 5   | Fix `uevent.go` — retry on transient read errors                        | High      | 30min  | Reliability   |
+| 6   | Remove `, change` from PTZ slider hx-trigger                            | Medium    | 5min   | Frontend      |
+| 7   | Add `role="alert"` to error banners                                     | Medium    | 5min   | Accessibility |
+| 8   | Add `extractJPEGFrame` max-iterations guard                             | Medium    | 10min  | Robustness    |
+| 9   | Suppress toast spam during PTZ slider drag                              | Medium    | 15min  | Frontend      |
+| 10  | Fix `touch-action: none` → `pan-y` for mobile                           | Medium    | 5min   | Mobile        |
+| 11  | Migrate to `encoding/json/v2`                                           | Medium    | 30min  | Go Policy     |
+| 12  | Replace `handleCommand(string) string` with `CommandResult`             | Very High | 60min  | Architecture  |
+| 13  | Consolidate PTZ into single `ptz.go`                                    | High      | 45min  | Architecture  |
+| 14  | Consolidate 9 fn pointers into `Dependencies` interface                 | High      | 45min  | Architecture  |
+| 15  | Add systemd hardening to NixOS module                                   | High      | 30min  | Security      |
+| 16  | Fix NixOS module package reference (overlay or package option)          | High      | 30min  | Nix           |
+| 17  | Fix remaining false-positive tests (6 more)                             | Medium    | 30min  | Test Quality  |
+| 18  | Archive/rewrite `docs/SUPERB_ROADMAP.md`                                | Medium    | 30min  | Docs          |
+| 19  | Add missing behavioral tests (hot-unplug, auto mode switch)             | High      | 90min  | Testing       |
+| 20  | Fix flaky `TestHandleStream_NoFFmpeg`                                   | Medium    | 15min  | Test Quality  |
+| 21  | Extract `AutoManager` sub-struct from Daemon                            | High      | 60min  | Architecture  |
+| 22  | Centralize state mutation + persistence                                 | High      | 60min  | Architecture  |
+| 23  | Add `cockroachdb/errors` + `uniflow`                                    | Medium    | 45min  | Go Policy     |
+| 24  | Mobile responsiveness (hide .kbd, increase touch targets, center toast) | Medium    | 30min  | Frontend      |
+| 25  | Add test/lint checks to `flake.nix` checks output                       | Low       | 30min  | Nix           |
 
 ---
 
@@ -241,16 +242,16 @@ Which approach do you prefer? This determines how users consume the NixOS module
 
 ## Metrics Snapshot
 
-| Metric | Before Audit | After Audit |
-|--------|-------------|-------------|
-| Bugs fixed | — | 4 (hid.go, probe.go, flake.nix, package.nix) |
-| Lint issues | 0 | 0 |
-| Test coverage (main) | 71.7% | 71.7% |
-| Test coverage (pixy) | 78.4% | 78.4% |
-| TODO items | 42 (12 DONE) | 61 (16 DONE) |
-| Features | 43 (claimed) | 44 (corrected) |
-| Docs accuracy | ~88% | ~95% |
-| `nix flake check` | ❌ (env error) | ✅ (all checks passed) |
+| Metric               | Before Audit   | After Audit                                  |
+| -------------------- | -------------- | -------------------------------------------- |
+| Bugs fixed           | —              | 4 (hid.go, probe.go, flake.nix, package.nix) |
+| Lint issues          | 0              | 0                                            |
+| Test coverage (main) | 71.7%          | 71.7%                                        |
+| Test coverage (pixy) | 78.4%          | 78.4%                                        |
+| TODO items           | 42 (12 DONE)   | 61 (16 DONE)                                 |
+| Features             | 43 (claimed)   | 44 (corrected)                               |
+| Docs accuracy        | ~88%           | ~95%                                         |
+| `nix flake check`    | ❌ (env error) | ✅ (all checks passed)                       |
 
 ---
 

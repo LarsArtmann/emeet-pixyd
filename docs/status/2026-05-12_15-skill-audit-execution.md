@@ -13,15 +13,15 @@ Executed the full 15-skill audit action plan. 27 of 61 TODO items are now DONE (
 
 ## Commits (7 total)
 
-| Commit   | Description |
-|----------|-------------|
+| Commit    | Description                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------- |
 | `6545105` | Fix 4 critical bugs: HID nil error wrap, probe continue, flake.nix env, package.nix version |
-| `7bb0fa9` | Move PTZ limits to shared constants in `internal/pixy/` |
-| `2a3f0a8` | Only save state in `autoManage` when something changed |
-| `9af6989` | Batch: state validation, JPEG guard, uevent retry, stream cleanup, frontend fixes |
-| `dc6d0b8` | NixOS systemd hardening |
-| `5912ef2` | Fix false-positive tests, extract response constants |
-| `999bcc4` | Update TODO_LIST, CHANGELOG, AGENTS.md |
+| `7bb0fa9` | Move PTZ limits to shared constants in `internal/pixy/`                                     |
+| `2a3f0a8` | Only save state in `autoManage` when something changed                                      |
+| `9af6989` | Batch: state validation, JPEG guard, uevent retry, stream cleanup, frontend fixes           |
+| `dc6d0b8` | NixOS systemd hardening                                                                     |
+| `5912ef2` | Fix false-positive tests, extract response constants                                        |
+| `999bcc4` | Update TODO_LIST, CHANGELOG, AGENTS.md                                                      |
 
 ---
 
