@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -74,8 +75,8 @@ func Chain(
 	h http.Handler,
 	mws ...func(http.Handler) http.Handler,
 ) http.Handler {
-	for i := len(mws) - 1; i >= 0; i-- {
-		h = mws[i](h)
+	for _, v := range slices.Backward(mws) {
+		h = v(h)
 	}
 	return h
 }
