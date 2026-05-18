@@ -3,7 +3,7 @@ module github.com/LarsArtmann/emeet-pixyd
 go 1.26.2
 
 require (
-	github.com/a-h/templ v0.3.1001
+	github.com/a-h/templ v0.3.1020
 	github.com/coreos/go-systemd/v22 v22.7.0
 )
 
@@ -14,7 +14,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.65.0
 	go.opentelemetry.io/otel/metric v1.43.0
 	go.opentelemetry.io/otel/sdk/metric v1.43.0
-	golang.org/x/sys v0.43.0
+	golang.org/x/sys v0.44.0
 )
 
 require (
