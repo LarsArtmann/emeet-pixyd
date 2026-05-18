@@ -13,3 +13,5 @@ node_modules/
 /report/jscpd-report.json
 # Add pattern for Templ generated files
 *_templ.go
+# Sensitive files
+*.db
