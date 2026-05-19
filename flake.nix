@@ -70,6 +70,8 @@
           golangci-lint
           templ
         ];
+
+        GOWORK = "off";
       };
     });
 
