@@ -8,9 +8,9 @@ If a word means something different to a developer than to a customer, define it
 
 ## Glossary
 
-| Term | Definition | Context |
-|------|-----------|---------|
-| . | The project/product name | What we call this system |
+| Term         | Definition               | Context                        |
+| ------------ | ------------------------ | ------------------------------ |
+| .            | The project/product name | What we call this system       |
 | Example Term | A placeholder definition | Replace with your actual terms |
 
 ## Entities
@@ -66,6 +66,7 @@ Subsystems with distinct vocabulary (e.g., Billing vs. Shipping).
 ---
 
 > **How to use this file:**
+>
 > - Keep terms concise — one clear sentence per definition
 > - Update when new domain concepts emerge
 > - Use these terms consistently in code, docs, and conversations
