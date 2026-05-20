@@ -57,8 +57,8 @@ func TestNewSourceID(t *testing.T) {
 	if sid.IsZero() {
 		t.Errorf("NewSourceID(%q).IsZero() = true, want false", "42")
 	}
-	if sid.String() != "42" {
-		t.Errorf("NewSourceID(%q).String() = %q, want %q", "42", sid.String(), "42")
+	if sid.Get() != "42" {
+		t.Errorf("NewSourceID(%q).Get() = %q, want %q", "42", sid.Get(), "42")
 	}
 }
 
