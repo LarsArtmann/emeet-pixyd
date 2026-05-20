@@ -6,6 +6,7 @@ import (
 
 type pidBrand struct{}
 
+func (pidBrand) Name() string { return "PID" }
 // PID is a branded process identifier.
 type PID = id.ID[pidBrand, int]
 
@@ -14,6 +15,7 @@ func NewPID(v int) PID { return id.NewID[pidBrand](v) }
 
 type sourceIDBrand struct{}
 
+func (sourceIDBrand) Name() string { return "SourceID" }
 // SourceID is a branded PipeWire audio source identifier.
 type SourceID = id.ID[sourceIDBrand, string]
 
