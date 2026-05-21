@@ -874,8 +874,8 @@ func TestSocket_AudioInvalidMode(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "audio badmode")
-	if resp != "usage: audio [nc|live|org]" {
-		t.Errorf("expected usage message, got: %s", resp)
+	if !strings.HasPrefix(resp, "error: audio badmode:") {
+		t.Errorf("expected error starting with 'error: audio badmode:', got: %s", resp)
 	}
 }
 
@@ -1011,7 +1011,7 @@ func TestHandleCommand_StatusFormat(t *testing.T) {
 
 func TestHandleCommand_AudioUsage(t *testing.T) {
 	t.Parallel()
-	assertCommandResponse(t, "audio badmode", "usage:", "response for bad audio mode")
+	assertCommandResponse(t, "audio badmode", "error:", "response for bad audio mode")
 }
 
 func TestHandleCommand_PTZUsage(t *testing.T) {

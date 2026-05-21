@@ -17,7 +17,6 @@ const (
 	respPrivacyOn      = "privacy on"
 	respTrackingOff    = "tracking off"
 	respAutoModeOff    = "auto mode: off"
-	respAudioUsage     = "usage: audio [nc|live|org]"
 	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
 	respDeviceNotFound = "device not found"
 
@@ -155,7 +154,7 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 
 		mode, parseErr = pixy.ParseAudioMode(parts[1])
 		if parseErr != nil {
-			return respAudioUsage
+			return fmt.Errorf("error: audio %s: %w", parts[1], parseErr).Error()
 		}
 	}
 

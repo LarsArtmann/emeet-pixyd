@@ -500,8 +500,9 @@ func TestHandleCommandAudioInvalid(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "audio xyz")
-	if result != respAudioUsage {
-		t.Errorf("expected usage for invalid mode, got: %s", result)
+	if result == "" || !strings.HasPrefix(result, "error: audio xyz:") {
+		t.Errorf("expected error starting with 'error: audio xyz:' for invalid mode, got: %s",
+			result)
 	}
 }
 

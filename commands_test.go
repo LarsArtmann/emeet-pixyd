@@ -350,7 +350,7 @@ func TestHandleAudioCommand_InvalidMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	resp := d.handleAudioCommand(context.Background(), []string{"audio", "invalid"})
-	assertCommandContains(t, resp, "usage:", "response")
+	assertCommandContains(t, resp, "error:", "response")
 }
 
 func TestHandleAudioCommand_NextMode(t *testing.T) {
