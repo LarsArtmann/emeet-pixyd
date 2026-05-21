@@ -130,7 +130,7 @@ func (d *Daemon) handleTrackingCommand(
 	label string,
 ) string {
 	if err := d.setTrackingFn(ctx, state); err != nil {
-		return (&CommandError{Op: label + " " + string(state), Err: err}).Error()
+		return fmt.Errorf("error: %s %s: %w", label, state, err).Error()
 	}
 
 	if state == pixy.StateTracking {
@@ -161,7 +161,7 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 
 	audioErr := d.setAudioFn(ctx, mode)
 	if audioErr != nil {
-		return (&CommandError{Op: "audio " + string(mode), Err: audioErr}).Error()
+		return fmt.Errorf("error: audio %s: %w", mode, audioErr).Error()
 	}
 
 	return "audio: " + string(mode)
