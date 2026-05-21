@@ -32,7 +32,8 @@ func TestV4L2Set_CommandFormat(t *testing.T) {
 func TestV4L2SetMultiple_CommandFormat(t *testing.T) {
 	t.Parallel()
 
-	cmd := exec.CommandContext(context.Background(), "v4l2-ctl",
+	cmd := exec.CommandContext(
+		context.Background(), "v4l2-ctl",
 		"-d", "/dev/video0",
 		"--set-ctrl=pan_absolute=0",
 		"--set-ctrl=tilt_absolute=0",

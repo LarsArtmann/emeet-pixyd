@@ -36,7 +36,8 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 }
 
 func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
-	return exec.CommandContext(ctx,
+	return exec.CommandContext(
+		ctx,
 		"ffmpeg",
 		"-f", "v4l2",
 		"-input_format", "mjpeg",

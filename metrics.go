@@ -43,17 +43,20 @@ func registerMetrics() {
 		}
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
 		meter := mp.Meter("emeet-pixyd")
-		if metricInCall, err = meter.Float64Gauge("emeet_pixyd_in_call",
+		if metricInCall, err = meter.Float64Gauge(
+			"emeet_pixyd_in_call",
 			metric.WithDescription("Whether the camera is currently in a call (1=yes, 0=no)"),
 		); err != nil {
 			slog.Error("failed to create in_call gauge", "error", err)
 		}
-		if metricAutoMode, err = meter.Float64Gauge("emeet_pixyd_auto_mode",
+		if metricAutoMode, err = meter.Float64Gauge(
+			"emeet_pixyd_auto_mode",
 			metric.WithDescription("Whether auto-management mode is enabled (1=yes, 0=no)"),
 		); err != nil {
 			slog.Error("failed to create auto_mode gauge", "error", err)
 		}
-		if metricCameraState, err = meter.Float64Gauge("emeet_pixyd_camera_state",
+		if metricCameraState, err = meter.Float64Gauge(
+			"emeet_pixyd_camera_state",
 			metric.WithDescription("Current camera state as a gauge per state label (1=active)"),
 		); err != nil {
 			slog.Error("failed to create camera_state gauge", "error", err)
