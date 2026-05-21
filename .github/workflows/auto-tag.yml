@@ -1,0 +1,73 @@
+name: Auto-tag on version change
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from flake.nix
+        id: version
+        run: |
+          # Try multiple version locations in order of preference
+          version=""
+
+          # 1. Direct version = "X.Y.Z" in flake.nix (most common)
+          if [ -f flake.nix ]; then
+            version=$(grep -oP 'version\s*=\s*"\K[^"]+' flake.nix | head -1)
+          fi
+
+          # 2. Version in nix/packages/default.nix (flake-parts pattern)
+          if [ -z "$version" ] && [ -f nix/packages/default.nix ]; then
+            version=$(grep -oP 'version\s*=\s*"\K[^"]+' nix/packages/default.nix | head -1)
+          fi
+
+          # 3. Version in package.nix (callPackage pattern)
+          if [ -z "$version" ] && [ -f package.nix ]; then
+            version=$(grep -oP 'version\s*=\s*"\K[^"]+' package.nix | head -1)
+          fi
+
+          if [ -z "$version" ]; then
+            echo "No version found, skipping"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+          echo "found=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag if missing
+        if: steps.version.outputs.found == 'true'
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          version="${{ steps.version.outputs.version }}"
+
+          # Skip unstable/dev versions
+          if echo "$version" | grep -qE 'unstable|dev|dirty|0-unstable'; then
+            echo "Version '$version' is unstable/dev, skipping tag"
+            exit 0
+          fi
+
+          # Check if tag already exists
+          if git tag -l "$tag" | grep -q .; then
+            echo "Tag $tag already exists"
+            exit 0
+          fi
+
+          # Create annotated tag
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "$tag"
+          git push origin "$tag"
+          echo "Created tag $tag"
