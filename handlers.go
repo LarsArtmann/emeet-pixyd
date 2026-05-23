@@ -205,8 +205,13 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	}
 	resp := s.daemon.handleCommand(request.Context(), cmd)
 	slog.Debug("web audio", "cmd", cmd, "response", resp)
+
 	status := s.getWebStatusWithPTZ(request.Context())
-	applyResponseToStatus(resp, &status, toastAudioChanged, toastTypeSuccess)
+	toast := toastAudioChanged
+	if !IsCommandErrorResponse(resp) {
+		toast = "Audio: " + string(status.Audio)
+	}
+	applyResponseToStatus(resp, &status, toast, toastTypeSuccess)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
