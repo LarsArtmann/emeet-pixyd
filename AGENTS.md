@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-05-12
+**Updated:** 2026-05-24
 
 ---
 
@@ -76,7 +76,7 @@ main() → NewDaemon() → Run()
 | File               | Purpose                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
-| `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch)                                                                         |
+| `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`             |
 | `handlers.go`      | HTTP routing, web handlers, web UI                                                                                                            |
 | `metrics.go`       | OTel metrics registration, `updateMetrics()`, `init()`                                                                                        |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
@@ -227,6 +227,17 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Uevent retry**: Transient read errors use `continue` instead of `return` to keep the hotplug listener alive.
 - **Auto-manage conditional save**: `autoManage` only calls `saveStateOrLog` when `handleCallStart` or `handleCallEnd` actually triggered a state change.
 - **Benchmarks**: 4 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`.
+- **`ParseAudioMode` accepts full names**: Both `org` (shorthand) and `original` (full name) are accepted. This lets users type `audio original` on the CLI.
+- **`Config.Validate()` checks enum fields**: Validates `AutoMode` and `DefaultAudio` in addition to StateDir, PollInterval, DebounceCount, and WebAddr. Invalid enum values prevent the daemon from starting.
+- **Bare `auto` command shows current mode**: `auto` without arguments reports the current auto mode instead of silently setting it to full. Use `auto-on`, `auto-off`, or `auto <mode>` to change.
+- **`--version` flag**: `emeet-pixyd --version` prints the version from CLI. The running daemon also responds to `version` via Unix socket command.
+- **`/api/health` endpoint**: Returns JSON with `status`, `camera`, and `version`. Returns 503 when device is offline, 200 when online.
+- **`AutoMode.Toggle()` method**: Domain type method encapsulates toggle logic (off→full, on→off). Used by `handleAutoCommand`.
+- **`handleCommand` refactored**: Query commands (waybar, version, sync, probe, device) extracted into `handleQueryCommand()`. Toggle-privacy extracted into `handleTogglePrivacy()`. Reduces cyclomatic complexity.
+- **`device` command shows both paths**: Output now includes both `/dev/videoX` and `/dev/hidrawY`.
+- **Audio toast shows mode name**: Web UI shows "Audio: nc" instead of generic "Audio mode changed".
+- **Temp state file cleanup**: `loadState()` removes leftover `.tmp` files from crashed writes.
+- **justfile removed**: Deprecated in favor of flake.nix. No justfile in the project.
 
 ---
 
