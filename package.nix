@@ -16,13 +16,17 @@ buildGoModule {
   vendorHash = "sha256-LdB/PtHu4QJH7y2QLHxs5zHuvcgJpW4KT9W9Rf4324Q=";
   proxyVendor = true;
 
-  nativeBuildInputs = [templ];
+  nativeBuildInputs = [ templ ];
 
   preBuild = ''
     templ generate
   '';
 
-  ldflags = ["-s" "-w" "-X main.buildVersion=${version}"];
+  ldflags = [
+    "-s"
+    "-w"
+    "-X main.buildVersion=${version}"
+  ];
 
   postInstall = ''
     ln -s $out/bin/emeet-pixyd $out/bin/emeet-pixy

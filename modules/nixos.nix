@@ -3,9 +3,11 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.hardware.emeet-pixy;
-in {
+in
+{
   options.hardware.emeet-pixy = {
     enable = lib.mkEnableOption "EMEET PIXY webcam auto-activation daemon";
 
@@ -20,7 +22,12 @@ in {
     };
 
     auto = lib.mkOption {
-      type = lib.types.enum ["off" "full" "tracking-only" "privacy-only"];
+      type = lib.types.enum [
+        "off"
+        "full"
+        "tracking-only"
+        "privacy-only"
+      ];
       default = "full";
       description = ''
         Automatic camera management strategy:
@@ -32,7 +39,11 @@ in {
     };
 
     defaultAudio = lib.mkOption {
-      type = lib.types.enum ["nc" "live" "org"];
+      type = lib.types.enum [
+        "nc"
+        "live"
+        "org"
+      ];
       default = "nc";
       description = "Default audio mode (nc=noise cancel, live, org=original)";
     };
@@ -62,40 +73,51 @@ in {
 
     systemd.user.services.emeet-pixyd = {
       description = "EMEET PIXY Webcam Auto-Activation Daemon";
-      after = ["pipewire.service" "graphical-session.target"];
-      wants = ["pipewire.service"];
-      partOf = ["graphical-session.target"];
-      wantedBy = ["graphical-session.target"];
+      after = [
+        "pipewire.service"
+        "graphical-session.target"
+      ];
+      wants = [ "pipewire.service" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
 
-      serviceConfig = let
-        envVars =
-          {
+      serviceConfig =
+        let
+          envVars = {
             EMEET_PIXYD_AUTO = cfg.auto;
             EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
           }
           // lib.optionalAttrs cfg.debug {
             EMEET_PIXYD_DEBUG = "true";
           };
-      in {
-        Type = "notify";
-        ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
-        Restart = "on-failure";
-        RestartSec = "3";
-        WatchdogSec = "30";
-        OOMScoreAdjust = -100;
+        in
+        {
+          Type = "notify";
+          ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
+          Restart = "on-failure";
+          RestartSec = "3";
+          WatchdogSec = "30";
+          OOMScoreAdjust = -100;
 
-        ProtectSystem = "strict";
-        PrivateTmp = true;
-        NoNewPrivileges = true;
-        RestrictAddressFamilies = ["AF_UNIX" "AF_NETLINK" "AF_INET"];
-        MemoryMax = "256M";
+          ProtectSystem = "strict";
+          PrivateTmp = true;
+          NoNewPrivileges = true;
+          RestrictAddressFamilies = [
+            "AF_UNIX"
+            "AF_NETLINK"
+            "AF_INET"
+          ];
+          MemoryMax = "256M";
 
-        Environment = lib.concatStringsSep " " (
-          lib.mapAttrsToList (k: v: "${k}=${v}") envVars
-        );
-      };
+          Environment = lib.concatStringsSep " " (lib.mapAttrsToList (k: v: "${k}=${v}") envVars);
+        };
 
-      path = [pkgs.v4l-utils pkgs.wireplumber pkgs.libnotify pkgs.ffmpeg-headless];
+      path = [
+        pkgs.v4l-utils
+        pkgs.wireplumber
+        pkgs.libnotify
+        pkgs.ffmpeg-headless
+      ];
     };
   };
 }
