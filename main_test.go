@@ -30,11 +30,14 @@ const (
 )
 
 func defaultTestConfig(dir string) pixy.Config {
-	//nolint:exhaustruct
 	return pixy.Config{
 		StateDir:      dir,
 		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
+		WebAddr:       testWebAddr,
+		AutoMode:      pixy.AutoFull,
+		DefaultAudio:  pixy.AudioNC,
+		Debug:         false,
 	}
 }
 

@@ -65,15 +65,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdPrivacy)
 
 	case cmdTogglePrivacy:
-		d.mu.RLock()
-		camera := d.state.Camera
-		d.mu.RUnlock()
-
-		if camera == pixy.StatePrivacy {
-			return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTogglePrivacy)
-		}
-
-		return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdTogglePrivacy)
+		return d.handleTogglePrivacy(ctx)
 
 	case cmdAudio:
 		return d.handleAudioCommand(ctx, parts)
@@ -87,6 +79,16 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
 
+	case axisPan, axisTilt, axisZoom:
+		return d.handlePTZCommand(ctx, parts)
+
+	default:
+		return d.handleQueryCommand(ctx, parts)
+	}
+}
+
+func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string {
+	switch parts[0] {
 	case cmdWaybar:
 		return d.waybarOutput()
 
@@ -108,9 +110,6 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 
 		return respDeviceNotFound
 
-	case axisPan, axisTilt, axisZoom:
-		return d.handlePTZCommand(ctx, parts)
-
 	case cmdDevice:
 		d.mu.RLock()
 		dev := d.videoDev
@@ -129,6 +128,18 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	default:
 		return "unknown command: " + parts[0]
 	}
+}
+
+func (d *Daemon) handleTogglePrivacy(ctx context.Context) string {
+	d.mu.RLock()
+	camera := d.state.Camera
+	d.mu.RUnlock()
+
+	if camera == pixy.StatePrivacy {
+		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTogglePrivacy)
+	}
+
+	return d.handleTrackingCommand(ctx, pixy.StatePrivacy, cmdTogglePrivacy)
 }
 
 func (d *Daemon) handleTrackingCommand(

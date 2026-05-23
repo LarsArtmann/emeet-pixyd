@@ -136,7 +136,7 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 		responseWriter.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	fmt.Fprintf(responseWriter, `{"status":"%s","camera":"%s","version":"%s"}`,
+	_, _ = fmt.Fprintf(responseWriter, `{"status":"%s","camera":"%s","version":"%s"}`,
 		boolStr(online, "ok", "offline"),
 		camera,
 		buildVersion,

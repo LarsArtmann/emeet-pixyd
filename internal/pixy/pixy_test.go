@@ -389,8 +389,16 @@ func TestConfigValidate(t *testing.T) {
 		{"zero debounce", func(c *Config) { c.DebounceCount = 0 }, ErrDebounceCountZero},
 		{"negative debounce", func(c *Config) { c.DebounceCount = -1 }, ErrDebounceCountZero},
 		{"empty web addr", func(c *Config) { c.WebAddr = "" }, ErrWebAddrEmpty},
-		{"invalid auto mode", func(c *Config) { c.AutoMode = AutoMode("bogus") }, ErrInvalidAutoMode},
-		{"invalid default audio", func(c *Config) { c.DefaultAudio = AudioMode("bogus") }, ErrInvalidDefaultAudio},
+		{
+			"invalid auto mode",
+			func(c *Config) { c.AutoMode = AutoMode("bogus") },
+			ErrInvalidAutoMode,
+		},
+		{
+			"invalid default audio",
+			func(c *Config) { c.DefaultAudio = AudioMode("bogus") },
+			ErrInvalidDefaultAudio,
+		},
 	}
 
 	for _, tc := range tests {

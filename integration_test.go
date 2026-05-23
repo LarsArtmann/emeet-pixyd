@@ -756,15 +756,14 @@ func shortSocketDir(t *testing.T) string {
 
 func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 	t.Helper()
-	//nolint:exhaustruct
 	cfg := pixy.Config{
-		StateDir: shortSocketDir(t),
-
-		PollInterval: 2 * time.Second,
-
+		StateDir:      shortSocketDir(t),
+		PollInterval:  2 * time.Second,
 		DebounceCount: 3,
-
-		WebAddr: testWebAddr,
+		WebAddr:       testWebAddr,
+		AutoMode:      pixy.AutoFull,
+		DefaultAudio:  pixy.AudioNC,
+		Debug:         false,
 	}
 	daemon, daemonErr := NewDaemon(cfg)
 	if daemonErr != nil {
