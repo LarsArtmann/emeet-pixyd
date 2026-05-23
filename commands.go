@@ -228,7 +228,11 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 		}
 		d.mu.RUnlock()
 	default:
-		mode = pixy.AutoFull
+		d.mu.RLock()
+		mode = d.state.AutoMode
+		d.mu.RUnlock()
+
+		return "auto mode: " + mode.String()
 	}
 
 	d.mu.Lock()

@@ -256,6 +256,19 @@ func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
+func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
+		d.state.AutoMode = pixy.AutoTrackingOnly
+	})
+
+	resp := d.handleAutoCommand([]string{cmdAuto})
+	notError(t, resp)
+	assertCommandContains(t, resp, "tracking-only", "response")
+	assertAutoModeEquals(t, d, pixy.AutoTrackingOnly)
+}
+
 // ---------------------------------------------------------------------------
 // handleGestureCommand tests
 // ---------------------------------------------------------------------------
