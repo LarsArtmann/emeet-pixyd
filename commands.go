@@ -225,11 +225,7 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 		mode = pixy.AutoOff
 	case cmdToggleAuto:
 		d.mu.RLock()
-		if d.state.AutoMode.IsOff() {
-			mode = pixy.AutoFull
-		} else {
-			mode = pixy.AutoOff
-		}
+		mode = d.state.AutoMode.Toggle()
 		d.mu.RUnlock()
 	default:
 		d.mu.RLock()

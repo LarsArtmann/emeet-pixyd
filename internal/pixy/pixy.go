@@ -162,6 +162,14 @@ func (m AutoMode) Valid() bool {
 // IsOff reports whether auto-management is completely disabled.
 func (m AutoMode) IsOff() bool { return m == AutoOff }
 
+// Toggle returns AutoFull if auto is off, or AutoOff if auto is on.
+func (m AutoMode) Toggle() AutoMode {
+	if m.IsOff() {
+		return AutoFull
+	}
+	return AutoOff
+}
+
 // ActivatesTracking reports whether this mode activates face tracking on call start.
 func (m AutoMode) ActivatesTracking() bool {
 	return m == AutoFull || m == AutoTrackingOnly
