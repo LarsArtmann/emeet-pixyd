@@ -16,6 +16,9 @@ type stateSetter func(d *Daemon)
 func (d *Daemon) loadState() {
 	data, err := os.ReadFile(d.config.StateFile())
 	if err != nil {
+		if !os.IsNotExist(err) {
+			_ = os.Remove(d.config.StateFile() + ".tmp")
+		}
 		return
 	}
 
