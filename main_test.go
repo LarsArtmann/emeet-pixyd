@@ -894,6 +894,7 @@ func TestParseAudioMode(t *testing.T) {
 		{"nc", pixy.AudioNC, false},
 		{audioModeLive, pixy.AudioLive, false},
 		{audioModeOrg, pixy.AudioOriginal, false},
+		{"original", pixy.AudioOriginal, false},
 		{testStrUnknown, "", true},
 		{"", "", true},
 	}

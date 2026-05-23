@@ -125,7 +125,7 @@ func ParseAudioMode(rawInput string) (AudioMode, error) {
 		return AudioNC, nil
 	case "live":
 		return AudioLive, nil
-	case "org":
+	case "org", string(AudioOriginal):
 		return AudioOriginal, nil
 	default:
 		return "", fmt.Errorf("invalid audio mode: %q: %w", rawInput, ErrInvalidAudioMode)

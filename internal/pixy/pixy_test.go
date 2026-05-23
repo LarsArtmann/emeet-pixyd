@@ -143,7 +143,7 @@ func TestParseAudioMode(t *testing.T) {
 		{"unknown", "", true},
 		{"", "", true},
 		{"NC", "", true},
-		{"original", "", true},
+		{"ORIGINAL", "", true},
 	}
 
 	for _, tc := range tests {
