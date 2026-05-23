@@ -349,6 +349,10 @@ var (
 	ErrDebounceCountZero = errors.New("debounce count must be positive")
 	// ErrWebAddrEmpty is returned when Config.WebAddr is empty.
 	ErrWebAddrEmpty = errors.New("web address must not be empty")
+	// ErrInvalidAutoMode is returned when Config.AutoMode is not a valid mode.
+	ErrInvalidAutoMode = errors.New("invalid auto mode in config")
+	// ErrInvalidDefaultAudio is returned when Config.DefaultAudio is not a valid mode.
+	ErrInvalidDefaultAudio = errors.New("invalid default audio mode in config")
 )
 
 // Validate checks that all required config fields are set and sane.
@@ -367,6 +371,14 @@ func (c Config) Validate() error {
 
 	if c.WebAddr == "" {
 		return ErrWebAddrEmpty
+	}
+
+	if !c.AutoMode.Valid() {
+		return fmt.Errorf("config auto mode %q: %w", c.AutoMode, ErrInvalidAutoMode)
+	}
+
+	if !c.DefaultAudio.Valid() {
+		return fmt.Errorf("config default audio %q: %w", c.DefaultAudio, ErrInvalidDefaultAudio)
 	}
 
 	return nil
