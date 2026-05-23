@@ -835,8 +835,8 @@ func TestSocket_DeviceCommand(t *testing.T) {
 	daemon, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), cmdDevice)
 	if daemon.videoDev != "" {
-		if resp != daemon.videoDev {
-			t.Errorf("expected %s, got: %s", daemon.videoDev, resp)
+		if !strings.Contains(resp, daemon.videoDev) {
+			t.Errorf("expected response containing %s, got: %s", daemon.videoDev, resp)
 		}
 	} else {
 		if resp != "device not found" {
@@ -1048,6 +1048,7 @@ func TestHandleCommand_Device(t *testing.T) {
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), cmdDevice)
 	assertCommandContains(t, resp, "/dev/video", "response")
+	assertCommandContains(t, resp, "/dev/hidraw", "response")
 }
 
 func TestHandleCommand_DeviceNotFound(t *testing.T) {

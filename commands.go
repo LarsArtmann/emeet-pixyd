@@ -114,9 +114,13 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case cmdDevice:
 		d.mu.RLock()
 		dev := d.videoDev
+		hid := d.hidrawDev
 		d.mu.RUnlock()
 
 		if dev != "" {
+			if hid != "" {
+				return dev + " " + hid
+			}
 			return dev
 		}
 
