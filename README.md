@@ -93,9 +93,10 @@ Run without arguments to start the daemon, or pass a command to communicate via 
 
 ```
 emeet-pixy status           # Full status (camera, audio, gesture, PTZ, in-call, auto)
-emeet-pixy toggle-privacy   # Toggle privacy mode
 emeet-pixy track            # Enable face tracking
 emeet-pixy idle             # Set camera to idle
+emeet-pixy privacy          # Enable privacy mode
+emeet-pixy toggle-privacy   # Toggle privacy mode
 emeet-pixy center           # Center camera (pan=0, tilt=0, zoom=100)
 emeet-pixy audio [mode]     # Cycle or set audio mode (nc, live, org)
 emeet-pixy gesture-on       # Enable gesture control
@@ -105,8 +106,8 @@ emeet-pixy auto [mode]      # Set auto mode (off, full, tracking-only, privacy-o
 emeet-pixy auto-on          # Enable full auto mode
 emeet-pixy auto-off         # Disable auto mode
 emeet-pixy toggle-auto      # Toggle auto mode
-emeet-pixy pan <value>      # Set pan (-170 to 170)
-emeet-pixy tilt <value>     # Set tilt (-30 to 30)
+emeet-pixy pan <value>      # Set pan (−170 to 170)
+emeet-pixy tilt <value>     # Set tilt (−30 to 30)
 emeet-pixy zoom <value>     # Set zoom (100 to 400)
 emeet-pixy sync             # Sync daemon state from camera hardware
 emeet-pixy probe            # Re-detect device (video + hidraw)
@@ -143,15 +144,15 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 
 All config is via environment variables (no CLI flags — `os.Args` is reserved for socket commands):
 
-| Variable                     | Default            | Description                                       |
-| ---------------------------- | ------------------ | ------------------------------------------------- |
-| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)     |
-| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)            |
-| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)     |
-| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change             |
-| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`         |
-| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only |
-| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                 |
+| Variable                     | Default            | Description                                                                 |
+| ---------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)                               |
+| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)                                      |
+| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)                               |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change                                       |
+| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`                                   |
+| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                           |
 
 ### NixOS Module Options
 
@@ -178,33 +179,44 @@ The daemon integrates with these Linux tools (all provided by the NixOS module):
 
 ```
 main() → NewDaemon() → Run()
-  ├── Unix socket listener    Command routing (status, track, privacy, …)
+  ├── Unix socket listener    Command routing (status, track, privacy, PTZ, …)
   ├── HTTP server              Web UI + API + Prometheus /metrics
-  ├── Polling ticker (2s)      /proc scanning for call detection
+  ├── Polling ticker (2s)      /proc scanning → call detection + debounce
   ├── Netlink uevent listener  USB hotplug detection
   └── systemd sd_notify        READY=1 + WATCHDOG=1
 ```
 
+### Source Layout
+
 ```
-main.go           Entry point, daemon lifecycle, signal handling
-commands.go       Command routing (socket + CLI)
-handlers.go       HTTP handlers, web UI
-metrics.go        OTel metrics registration and updates
-stream.go         MJPEG streaming, snapshot, JPEG frame extraction
-middleware.go      Security headers, request ID, caching, PTZ validation
-hid.go            HID bidirectional communication (config/query)
-v4l2.go           V4L2 pan/tilt/zoom via v4l2-ctl
-process.go        /proc scanning for call detection, PipeWire, notifications
-uevent.go         Netlink uevent listener for hotplug
-auto.go           Auto-manage loop, call start/end, debounce
-state.go          State persistence (JSON, atomic write)
-probe.go          Device probing (sysfs walks for video4linux + hidraw)
-errors.go         CommandError type, sentinel errors
-web_types.go      webStatus struct for web UI
-templates.templ   HTML templates (compiled via templ)
-internal/pixy/    Shared types: Config, State, CameraState, AudioMode, constants
-static/           Frontend assets (HTMX, app.js, style.css) — go:embed
+main.go             Entry point, daemon lifecycle, signal handling, status/waybar output
+commands.go         Command routing (socket + CLI), PTZ/audio/auto/gesture handlers
+handlers.go         HTTP routing, web handlers, toast propagation
+metrics.go          OTel metrics registration and updates
+stream.go           MJPEG streaming, snapshot, JPEG frame extraction
+middleware.go       Security headers, request ID, caching FS, PTZ axis validation
+hid.go              HID bidirectional communication (config/query over hidraw)
+v4l2.go             V4L2 pan/tilt/zoom control via v4l2-ctl
+process.go          /proc scanning for call detection, PipeWire, notifications
+uevent.go           Netlink uevent listener for hotplug
+uevent_linux.go     Low-level unix.Socket for netlink
+auto.go             Auto-manage loop, call start/end, debounce logic
+state.go            State persistence (JSON, atomic write via tmpfile + rename)
+probe.go            Device probing (sysfs walks for video4linux + hidraw)
+errors.go           CommandError type, exported sentinel errors
+web_types.go        webStatus struct shared between handlers and templates
+templates.templ     HTML templates (compiled via templ generate)
+internal/pixy/      Shared types: Config, State, CameraState, AudioMode, PID, SourceID, PTZ constants
+static/             Frontend assets (HTMX, app.js, style.css) — go:embed
 ```
+
+### Key Design Decisions
+
+- **HID protocol**: Commands are 9-byte config reports followed by a commit report with a 200ms inter-report delay. Responses are 64-byte reads parsed by byte position.
+- **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. Loaded state always wins over defaults.
+- **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles × 2s = 6s).
+- **Dependency injection**: All external interactions (HID, v4l2, PipeWire, notifications) are function fields on `Daemon`, enabling full test injectability without interfaces.
+- **Branded types**: `PID` and `SourceID` use phantom-type branding to prevent mixing process IDs and PipeWire source IDs at compile time.
 
 ## Troubleshooting
 
