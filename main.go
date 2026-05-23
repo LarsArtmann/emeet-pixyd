@@ -612,6 +612,15 @@ func main() {
 	}
 
 	if len(os.Args) > 1 {
+		if os.Args[1] == "--version" || os.Args[1] == "-v" {
+			_, printErr := fmt.Fprintln(os.Stdout, "emeet-pixyd", buildVersion)
+			if printErr != nil {
+				slog.Debug("failed to print version", "error", printErr)
+			}
+
+			return
+		}
+
 		cmd := strings.Join(os.Args[1:], " ")
 
 		resp, err := sendCommand(cfg, cmd)

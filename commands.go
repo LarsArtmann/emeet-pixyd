@@ -34,6 +34,7 @@ const (
 	cmdAudio         = "audio"
 	cmdCenter        = "center"
 	cmdAuto          = "auto"
+	cmdVersion       = "version"
 	cmdSync          = "sync"
 	cmdProbe         = "probe"
 	cmdWaybar        = "waybar"
@@ -88,6 +89,9 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 
 	case cmdWaybar:
 		return d.waybarOutput()
+
+	case cmdVersion:
+		return "emeet-pixyd " + buildVersion
 
 	case cmdSync:
 		return d.syncState(ctx)
