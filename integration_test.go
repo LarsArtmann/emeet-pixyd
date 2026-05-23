@@ -617,6 +617,29 @@ func TestWeb_UnknownRouteReturns404(t *testing.T) {
 	assertStatusCode(t, resp, http.StatusNotFound)
 }
 
+func TestWeb_HealthEndpoint(t *testing.T) {
+	t.Parallel()
+	daemon := newIntegrationDaemon(t)
+	server := newTestWebServer(t, daemon)
+	resp := get(t, server.URL+"/api/health")
+	defer resp.Body.Close() //nolint:errcheck
+	assertStatusCode(t, resp, http.StatusServiceUnavailable)
+	body := getBody(t, resp)
+	assertContains(t, body, `"status":"offline"`, "health response")
+	assertContains(t, body, `"version":"dev"`, "health version")
+}
+
+func TestWeb_HealthEndpointOnline(t *testing.T) {
+	t.Parallel()
+	daemon := newDaemonWithDevice(t)
+	server := newTestWebServer(t, daemon)
+	resp := get(t, server.URL+"/api/health")
+	defer resp.Body.Close() //nolint:errcheck
+	assertStatusCode(t, resp, http.StatusOK)
+	body := getBody(t, resp)
+	assertContains(t, body, `"status":"ok"`, "health response")
+}
+
 // ---------- webStatus mapping ----------
 
 func TestWeb_WebStatusOfflineNoDevice(t *testing.T) {

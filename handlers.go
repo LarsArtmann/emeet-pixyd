@@ -125,6 +125,24 @@ func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *htt
 	templ.Handler(page(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
+func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Request) {
+	s.daemon.mu.RLock()
+	online := s.daemon.videoDev != ""
+	camera := s.daemon.state.Camera
+	s.daemon.mu.RUnlock()
+
+	responseWriter.Header().Set("Content-Type", "application/json")
+	if !online {
+		responseWriter.WriteHeader(http.StatusServiceUnavailable)
+	}
+
+	fmt.Fprintf(responseWriter, `{"status":"%s","camera":"%s","version":"%s"}`,
+		boolStr(online, "ok", "offline"),
+		camera,
+		buildVersion,
+	)
+}
+
 func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
@@ -306,6 +324,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
+	mux.HandleFunc("GET /api/health", server.handleHealth)
 	mux.HandleFunc("POST /api/track", server.action(cmdTrack))
 	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))
