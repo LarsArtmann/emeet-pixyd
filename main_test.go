@@ -1346,9 +1346,9 @@ func TestHasPixyProduct(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := hasPixyProduct([]byte(tc.uevent))
+			got := matchesPixyID([]byte(tc.uevent), "PRODUCT=", "/", 0, 1)
 			if got != tc.matches {
-				t.Errorf("hasPixyProduct(%q) = %v, want %v", tc.uevent, got, tc.matches)
+				t.Errorf("matchesPixyID(%q) = %v, want %v", tc.uevent, got, tc.matches)
 			}
 		})
 	}

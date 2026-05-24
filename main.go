@@ -60,13 +60,10 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		return nil, fmt.Errorf("validate config: %w", err)
 	}
 
-	//nolint:exhaustruct
+	//nolint:exhaustruct // remaining fields set below or zero-valued
 	d := &Daemon{
-		mu:              sync.RWMutex{},
 		config:          cfg,
 		state:           pixy.DefaultState(),
-		videoDev:        "",
-		hidrawDev:       "",
 		streamSema:      make(chan struct{}, 1),
 		isCameraInUseFn: isCameraInUse,
 		findSourceFn:    findPixySource,
@@ -78,6 +75,8 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.setGestureFn = d.setGesture
 	d.centerCameraFn = d.centerCamera
 	d.v4l2SetFn = v4l2Set
+	// Config values override defaults before loading persisted state;
+	// persisted state (if valid) wins, ensuring user overrides survive restarts.
 	d.state.AutoMode = cfg.AutoMode
 	d.state.Audio = cfg.DefaultAudio
 	registerMetrics()
@@ -167,13 +166,16 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 		return fmt.Errorf("centerCamera: %w", pixy.ErrPIXYNotConnected)
 	}
 
-	err := v4l2SetMultiple(ctx, videoDev, map[string]string{
+	controls := map[string]string{
 		"pan_absolute":  "0",
 		"tilt_absolute": "0",
 		"zoom_absolute": "100",
-	})
-	if err != nil {
-		return fmt.Errorf("centerCamera: %w", err)
+	}
+	for ctrl, val := range controls {
+		err := d.v4l2SetFn(ctx, videoDev, ctrl, val)
+		if err != nil {
+			return fmt.Errorf("centerCamera %s=%s: %w", ctrl, val, err)
+		}
 	}
 
 	return nil
@@ -366,7 +368,7 @@ func (d *Daemon) waybarOutput() string {
 		text = "OFF"
 	case pixy.StateIdle:
 		icon = "\uf03d"
-		class = cmdIdle
+		class = string(pixy.StateIdle)
 		text = "IDLE"
 	case pixy.StateOffline:
 		icon = "\uf00d"
@@ -598,6 +600,55 @@ func exitWithDaemonError(err error) {
 	}
 }
 
+func handleFlag() bool {
+	if len(os.Args) < 2 {
+		return false
+	}
+
+	switch os.Args[1] {
+	case "--version", "-v":
+		_, printErr := fmt.Fprintln(os.Stdout, "emeet-pixyd", buildVersion)
+		if printErr != nil {
+			slog.Debug("failed to print version", "error", printErr)
+		}
+
+		return true
+	case "--help", "-h":
+		_, _ = fmt.Fprintln(os.Stdout, `Usage: emeet-pixyd [command]
+
+Run without arguments to start the daemon.
+Run with a command to send it to a running daemon via Unix socket.
+
+Commands:
+  status            Show current camera status
+  waybar            Output waybar-compatible JSON
+  version           Print version
+  sync              Sync state from hardware
+  probe             Re-probe for device
+  device            Show device paths
+  track             Enable tracking mode
+  idle              Set idle mode
+  privacy           Enable privacy mode
+  toggle-privacy    Toggle privacy on/off
+  center            Center camera (pan/tilt/zoom reset)
+  audio [mode]      Cycle or set audio mode (nc, live, org/original)
+  gesture-on        Enable gesture control
+  gesture-off       Disable gesture control
+  toggle-gesture    Toggle gesture control
+  auto              Show current auto mode
+  auto-on           Enable auto mode (full)
+  auto-off          Disable auto mode
+  toggle-auto       Toggle auto mode
+  pan <degrees>     Set pan position
+  tilt <degrees>    Set tilt position
+  zoom <value>      Set zoom level`)
+
+		return true
+	default:
+		return false
+	}
+}
+
 func main() {
 	cfg := pixy.ConfigFromEnv()
 
@@ -605,16 +656,11 @@ func main() {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
 
+	if handleFlag() {
+		return
+	}
+
 	if len(os.Args) > 1 {
-		if os.Args[1] == "--version" || os.Args[1] == "-v" {
-			_, printErr := fmt.Fprintln(os.Stdout, "emeet-pixyd", buildVersion)
-			if printErr != nil {
-				slog.Debug("failed to print version", "error", printErr)
-			}
-
-			return
-		}
-
 		cmd := strings.Join(os.Args[1:], " ")
 
 		resp, err := sendCommand(cfg, cmd)

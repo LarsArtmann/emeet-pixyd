@@ -451,10 +451,6 @@ func TestCachingFS(t *testing.T) {
 	if cc != "public, max-age=604800" {
 		t.Errorf("Cache-Control = %q, want public max-age 7d", cc)
 	}
-	xcto := rec.Header().Get("X-Content-Type-Options")
-	if xcto != "nosniff" {
-		t.Errorf("X-Content-Type-Options = %q, want nosniff", xcto)
-	}
 }
 
 func BenchmarkExtractJPEGFrame(b *testing.B) {

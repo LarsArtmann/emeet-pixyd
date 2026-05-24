@@ -135,7 +135,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string 
 		return respDeviceNotFound
 	}
 
-	panic("unreachable: handleQueryCommand called with non-query command " + parts[0])
+	return errorPrefix + "unknown query command: " + parts[0]
 }
 
 func (d *Daemon) handleTogglePrivacy(ctx context.Context) string {
@@ -156,7 +156,7 @@ func (d *Daemon) handleTrackingCommand(
 	label string,
 ) string {
 	if err := d.setTrackingFn(ctx, state); err != nil {
-		return fmt.Errorf("error: %s %s: %w", label, state, err).Error()
+		return fmt.Errorf("%s%s %s: %w", errorPrefix, label, state, err).Error()
 	}
 
 	if state == pixy.StateTracking {
@@ -181,13 +181,13 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 
 		mode, parseErr = pixy.ParseAudioMode(parts[1])
 		if parseErr != nil {
-			return fmt.Errorf("error: audio %s: %w", parts[1], parseErr).Error()
+			return fmt.Errorf("%saudio %s: %w", errorPrefix, parts[1], parseErr).Error()
 		}
 	}
 
 	audioErr := d.setAudioFn(ctx, mode)
 	if audioErr != nil {
-		return fmt.Errorf("error: audio %s: %w", mode, audioErr).Error()
+		return fmt.Errorf("%saudio %s: %w", errorPrefix, mode, audioErr).Error()
 	}
 
 	return "audio: " + string(mode)

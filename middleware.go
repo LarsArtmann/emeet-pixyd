@@ -17,7 +17,6 @@ type cachingFS struct {
 func (c cachingFS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().
 		Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int64(staticCacheMaxAge.Seconds())))
-	w.Header().Set("X-Content-Type-Options", "nosniff")
 	c.handler.ServeHTTP(w, r)
 }
 

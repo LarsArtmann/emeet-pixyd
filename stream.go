@@ -48,6 +48,11 @@ func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
 }
 
 func cleanupFFmpeg(cmd *exec.Cmd) {
+	if cmd.Process == nil {
+		_ = cmd.Wait()
+
+		return
+	}
 	_ = cmd.Process.Signal(syscall.SIGTERM)
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()

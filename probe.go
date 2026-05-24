@@ -23,6 +23,30 @@ func isPixyName(name string) bool {
 		strings.Contains(name, "PIXY")
 }
 
+func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx int) bool {
+	for line := range strings.SplitSeq(string(ueventData), "\n") {
+		value, ok := strings.CutPrefix(line, prefix)
+		if !ok {
+			continue
+		}
+
+		parts := strings.Split(value, sep)
+		if len(parts) <= max(vendorIdx, productIdx) {
+			return false
+		}
+
+		vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
+		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
+		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
+		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
+
+		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
+			vendor == expectedVendor && product == expectedProduct
+	}
+
+	return false
+}
+
 func probeVideo4linux(sysfsPath string) string {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
@@ -49,60 +73,12 @@ func probeVideo4linux(sysfsPath string) string {
 			continue
 		}
 
-		if hasPixyProduct(ueventData) {
+		if matchesPixyID(ueventData, "PRODUCT=", "/", 0, 1) {
 			return videoPath
 		}
 	}
 
 	return ""
-}
-
-func hasPixyProduct(ueventData []byte) bool {
-	for line := range strings.SplitSeq(string(ueventData), "\n") {
-		product, ok := strings.CutPrefix(line, "PRODUCT=")
-		if !ok {
-			continue
-		}
-
-		parts := strings.Split(product, "/")
-		if len(parts) < 2 {
-			return false
-		}
-
-		vendor, vErr := strconv.ParseInt(parts[0], 16, 0)
-		prod, pErr := strconv.ParseInt(parts[1], 16, 0)
-		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
-		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
-
-		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
-			vendor == expectedVendor && prod == expectedProduct
-	}
-
-	return false
-}
-
-func hasPixyVendorProduct(ueventData []byte) bool {
-	for line := range strings.SplitSeq(string(ueventData), "\n") {
-		hidID, ok := strings.CutPrefix(line, "HID_ID=")
-		if !ok {
-			continue
-		}
-
-		parts := strings.Split(hidID, ":")
-		if len(parts) != 3 {
-			continue
-		}
-
-		vendor, vErr := strconv.ParseInt(parts[1], 16, 0)
-		product, pErr := strconv.ParseInt(parts[2], 16, 0)
-		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
-		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
-
-		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
-			vendor == expectedVendor && product == expectedProduct
-	}
-
-	return false
 }
 
 func probeHidraw(sysfsPath string) string {
@@ -125,7 +101,7 @@ func probeHidraw(sysfsPath string) string {
 
 		for line := range strings.SplitSeq(string(ueventData), "\n") {
 			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-				if isPixyName(hidName) && hasPixyVendorProduct(ueventData) {
+				if isPixyName(hidName) && matchesPixyID(ueventData, "HID_ID=", ":", 1, 2) {
 					return hidrawPath
 				}
 			}
@@ -145,8 +121,13 @@ func probeDevices() probeResult {
 		VideoDev:  probeVideo4linux("/sys/class/video4linux"),
 		HidrawDev: probeHidraw("/sys/class/hidraw"),
 	}
-	if result.VideoDev != "" && result.HidrawDev != "" {
+	switch {
+	case result.VideoDev != "" && result.HidrawDev != "":
 		slog.Info("found PIXY device", "video", result.VideoDev, "hidraw", result.HidrawDev)
+	case result.VideoDev != "" && result.HidrawDev == "":
+		slog.Warn("partial PIXY device: video found but no hidraw", "video", result.VideoDev)
+	case result.VideoDev == "" && result.HidrawDev != "":
+		slog.Warn("partial PIXY device: hidraw found but no video", "hidraw", result.HidrawDev)
 	}
 
 	return result

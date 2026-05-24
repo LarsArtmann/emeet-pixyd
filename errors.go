@@ -7,18 +7,20 @@ import (
 	"strings"
 )
 
+const errorPrefix = "error: "
+
 // CommandError wraps a command operation error with a descriptive label.
 type CommandError struct {
 	Op  string // label for the operation that failed
 	Err error
 }
 
-func (e *CommandError) Error() string { return "error: " + e.Op + ": " + e.Err.Error() }
+func (e *CommandError) Error() string { return errorPrefix + e.Op + ": " + e.Err.Error() }
 
 func (e *CommandError) Unwrap() error { return e.Err }
 
 // IsCommandErrorResponse reports whether s is a command error response string.
-func IsCommandErrorResponse(s string) bool { return strings.HasPrefix(s, "error: ") }
+func IsCommandErrorResponse(s string) bool { return strings.HasPrefix(s, errorPrefix) }
 
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.

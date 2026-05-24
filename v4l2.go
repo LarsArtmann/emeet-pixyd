@@ -30,22 +30,6 @@ func v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 	return nil
 }
 
-func v4l2SetMultiple(ctx context.Context, dev string, controls map[string]string) error {
-	args := make([]string, 2, 2+len(controls))
-	args[0] = "-d"
-	args[1] = dev
-	for ctrl, value := range controls {
-		args = append(args, "--set-ctrl="+ctrl+"="+value)
-	}
-
-	err := exec.CommandContext(ctx, "v4l2-ctl", args...).Run()
-	if err != nil {
-		return fmt.Errorf("v4l2SetMultiple on %s: %w", dev, err)
-	}
-
-	return nil
-}
-
 func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
 	out, err := exec.CommandContext(
 		ctx, "v4l2-ctl", "-d", dev,

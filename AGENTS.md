@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-05-24
+**Updated:** 2026-05-24 (Round 5)
 
 ---
 
@@ -32,6 +32,7 @@ nix fmt                            # alejandra for .nix files
 # Run daemon
 nix run                            # or ./emeet-pixyd
 emeet-pixyd status                  # send command via unix socket
+emeet-pixyd --help                  # show CLI usage
 ```
 
 ### CI
@@ -82,7 +83,7 @@ main() → NewDaemon() → Run()
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
-| `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                                                                          |
+| `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess, `parsePTZValues`          |
 | `process.go`       | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications                                                    |
 | `uevent.go`        | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)                                                       |
 | `uevent_linux.go`  | Low-level `unix.Socket` call for netlink                                                                                                      |
@@ -205,7 +206,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
 - **Lint is clean (0 issues)**: Linters that produced only false positives (`contextcheck`, `exhaustruct`, `gochecknoinits`, `gochecknoglobals`, `paralleltest`) have been removed from `.golangci.yml` `linters.enable`. `contextcheck` flagged templ-generated `ServeHTTP` calls and `updateMetrics`; `exhaustruct` flagged intentional partial struct initializations throughout; `gochecknoinits` was removed after eliminating the last `init()` in `metrics.go`; `gochecknoglobals` flags the OTel metric variables; `paralleltest` flagged `TestUpdateMetrics` which must be serial (global metrics state). Go 1.22+ eliminates the need for `tc := tc` loop variable capture (`copyloopvar` handles it). Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706).
 - **`init()` eliminated from `metrics.go`**: OTel metrics registration is now lazy via `sync.Once` in `registerMetrics()`, called from `NewDaemon()` and `updateMetrics()`. No `init()` functions exist anywhere in the codebase.
-- **Error consolidation**: Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) live in `errors.go`. The unexported duplicates in `commands.go` were removed. All code references the exported versions.
+- **`errorPrefix` constant**: `"error: "` is a named constant in `errors.go` used by `CommandError.Error()`, `IsCommandErrorResponse()`, and all `fmt.Errorf` error formatting in `commands.go`.
 - **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
 - **Test coverage for auto/process**: `auto_test.go` tests `handleCallStart`, `handleCallEnd`, `autoManage` state transitions. `process_test.go` tests `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc` filesystem.
@@ -230,12 +231,17 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **NixOS systemd hardening**: `ProtectSystem=strict`, `PrivateTmp=true`, `NoNewPrivileges=true`, `RestrictAddressFamilies=[AF_UNIX AF_NETLINK AF_INET]`, `MemoryMax=256M`.
 - **JPEG max-iterations**: `extractJPEGFrame` has a 10M iteration guard to prevent infinite loops on corrupt streams.
 - **Uevent retry**: Transient read errors use `continue` instead of `return` to keep the hotplug listener alive.
-- **Auto-manage conditional save**: `autoManage` only calls `saveStateOrLog` when `handleCallStart` or `handleCallEnd` actually triggered a state change.
+- **Debounce counters capped**: `autoManage` caps `debounceInUse` and `debounceIdle` at `debounceCount` to prevent unbounded growth.
+- **`centerCamera` uses DI**: `centerCamera()` calls `d.v4l2SetFn()` per-axis instead of `v4l2SetMultiple` directly — fully testable via `withNoopV4L2()`.
+- **`cleanupFFmpeg` nil guard**: Checks `cmd.Process == nil` before signaling to prevent panic when ffmpeg failed to start.
+- **`matchesPixyID` unified probe helper**: Single function replaces `hasPixyProduct` and `hasPixyVendorProduct`. Takes prefix, separator, and vendor/product index parameters to handle both `PRODUCT=vendor/product/version` and `HID_ID=bus:vendor:product`.
+- **Partial device match logging**: `probeDevices()` logs a warning when only video or only hidraw is found (partial match).
+- **`v4l2SetMultiple` removed**: Center camera now uses per-axis `v4l2SetFn` calls. The batch function is no longer needed.
 - **Benchmarks**: 4 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`.
 - **`ParseAudioMode` accepts full names**: Both `org` (shorthand) and `original` (full name) are accepted. This lets users type `audio original` on the CLI.
 - **`Config.Validate()` checks enum fields**: Validates `AutoMode` and `DefaultAudio` in addition to StateDir, PollInterval, DebounceCount, and WebAddr. Invalid enum values prevent the daemon from starting.
 - **Bare `auto` command shows current mode**: `auto` without arguments reports the current auto mode instead of silently setting it to full. Use `auto-on`, `auto-off`, or `auto <mode>` to change.
-- **`--version` flag**: `emeet-pixyd --version` prints the version from CLI. The running daemon also responds to `version` via Unix socket command.
+- **`--version` and `--help` flags**: `emeet-pixyd --version` prints version, `emeet-pixyd --help` prints usage. Both handled by `handleFlag()` before CLI command dispatch.
 - **`/api/health` endpoint**: Returns JSON with `status`, `camera`, and `version`. Returns 503 when device is offline, 200 when online.
 - **`AutoMode.Toggle()` method**: Domain type method encapsulates toggle logic (off→full, on→off). Used by `handleAutoCommand`.
 - **`handleCommand` refactored**: Query commands (waybar, version, sync, probe, device) extracted into `handleQueryCommand()`. Toggle-privacy extracted into `handleTogglePrivacy()`. Reduces cyclomatic complexity.

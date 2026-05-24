@@ -64,9 +64,7 @@ func cameraHIDByte(s pixy.CameraState) byte {
 		return hidByteTracking
 	case pixy.StatePrivacy:
 		return hidBytePrivacy
-	case pixy.StateIdle:
-		return hidByteIdle
-	case pixy.StateOffline:
+	case pixy.StateIdle, pixy.StateOffline:
 		return hidByteIdle
 	default:
 		return hidByteIdle

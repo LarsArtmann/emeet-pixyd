@@ -88,12 +88,19 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	inUse := d.isCameraInUseFn(videoDev)
 
 	d.mu.Lock()
+	debounceCount := d.config.DebounceCount
 	if inUse {
 		d.debounceIdle = 0
 		d.debounceInUse++
+		if d.debounceInUse > debounceCount {
+			d.debounceInUse = debounceCount
+		}
 	} else {
 		d.debounceInUse = 0
 		d.debounceIdle++
+		if d.debounceIdle > debounceCount {
+			d.debounceIdle = debounceCount
+		}
 	}
 
 	debounceInUse := d.debounceInUse
@@ -101,7 +108,6 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	inCall := d.state.InCall
 	camera := d.state.Camera
 	autoMode = d.state.AutoMode
-	debounceCount := d.config.DebounceCount
 	d.mu.Unlock()
 
 	changed := false
