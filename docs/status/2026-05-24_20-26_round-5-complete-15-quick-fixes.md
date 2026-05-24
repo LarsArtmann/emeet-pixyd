@@ -18,37 +18,37 @@ Round 5 applied **15 targeted quality fixes** identified in the deep codebase au
 
 15 code quality fixes applied, all verified:
 
-| # | Item | Impact | Files |
-|---|------|--------|-------|
-| 1 | Replace `panic("unreachable")` in `handleQueryCommand` with error return | 🔴 Prevents runtime crash on new query commands | `commands.go` |
-| 2 | Add nil `Process` guard in `cleanupFFmpeg` | 🔴 Prevents panic when ffmpeg failed to start | `stream.go` |
-| 3 | Cap debounce counters at `debounceCount` | 🟡 Prevents unbounded counter growth | `auto.go` |
-| 4 | Extract `"error: "` to `errorPrefix` named constant | 🟢 Code clarity, single source of truth | `errors.go`, `commands.go` |
-| 5 | Explicit `StateIdle`/`StateOffline` cases in `cameraHIDByte` | 🟢 Satisfies `exhaustive` linter | `hid.go` |
-| 6 | Remove redundant zero-value initializations in `NewDaemon` | 🟢 Cleaner struct literal | `main.go` |
-| 7 | Remove duplicate `X-Content-Type-Options` from `cachingFS` | 🟢 Eliminates duplicate header (securityMiddleware sets it) | `middleware.go` |
-| 8 | Remove `v4l2SetMultiple` (unused after centerCamera DI fix) | 🟢 Dead code removal, -16 lines | `v4l2.go` |
-| 9 | Consolidate `hasPixyProduct`/`hasPixyVendorProduct` into `matchesPixyID` | 🟢 Deduplication, single parametric helper | `probe.go`, `main_test.go` |
-| 10 | Fix waybar idle class to use `string(pixy.StateIdle)` instead of `cmdIdle` | 🟢 Semantic correctness (values matched by coincidence) | `main.go` |
-| 11 | Document config overrides persisted state in `NewDaemon` | 🟢 Documentation | `main.go` |
-| 12 | Add logging for partial device matches in `probeDevices` | 🟢 Debuggability (video found but no hidraw, or vice versa) | `probe.go` |
-| 13 | Fix `centerCamera` to use `v4l2SetFn` DI instead of direct `v4l2SetMultiple` | 🟡 Testability — now fully mockable via `withNoopV4L2()` | `main.go` |
-| 14 | Add `--help`/`-h` flag via extracted `handleFlag()` function | 🟡 UX — users can now discover available commands | `main.go` |
-| 15 | Refactor nested flag handling into `handleFlag()` | 🟢 Reduces cyclomatic complexity, satisfies `nestif` linter | `main.go` |
+| #   | Item                                                                         | Impact                                                      | Files                      |
+| --- | ---------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------- |
+| 1   | Replace `panic("unreachable")` in `handleQueryCommand` with error return     | 🔴 Prevents runtime crash on new query commands             | `commands.go`              |
+| 2   | Add nil `Process` guard in `cleanupFFmpeg`                                   | 🔴 Prevents panic when ffmpeg failed to start               | `stream.go`                |
+| 3   | Cap debounce counters at `debounceCount`                                     | 🟡 Prevents unbounded counter growth                        | `auto.go`                  |
+| 4   | Extract `"error: "` to `errorPrefix` named constant                          | 🟢 Code clarity, single source of truth                     | `errors.go`, `commands.go` |
+| 5   | Explicit `StateIdle`/`StateOffline` cases in `cameraHIDByte`                 | 🟢 Satisfies `exhaustive` linter                            | `hid.go`                   |
+| 6   | Remove redundant zero-value initializations in `NewDaemon`                   | 🟢 Cleaner struct literal                                   | `main.go`                  |
+| 7   | Remove duplicate `X-Content-Type-Options` from `cachingFS`                   | 🟢 Eliminates duplicate header (securityMiddleware sets it) | `middleware.go`            |
+| 8   | Remove `v4l2SetMultiple` (unused after centerCamera DI fix)                  | 🟢 Dead code removal, -16 lines                             | `v4l2.go`                  |
+| 9   | Consolidate `hasPixyProduct`/`hasPixyVendorProduct` into `matchesPixyID`     | 🟢 Deduplication, single parametric helper                  | `probe.go`, `main_test.go` |
+| 10  | Fix waybar idle class to use `string(pixy.StateIdle)` instead of `cmdIdle`   | 🟢 Semantic correctness (values matched by coincidence)     | `main.go`                  |
+| 11  | Document config overrides persisted state in `NewDaemon`                     | 🟢 Documentation                                            | `main.go`                  |
+| 12  | Add logging for partial device matches in `probeDevices`                     | 🟢 Debuggability (video found but no hidraw, or vice versa) | `probe.go`                 |
+| 13  | Fix `centerCamera` to use `v4l2SetFn` DI instead of direct `v4l2SetMultiple` | 🟡 Testability — now fully mockable via `withNoopV4L2()`    | `main.go`                  |
+| 14  | Add `--help`/`-h` flag via extracted `handleFlag()` function                 | 🟡 UX — users can now discover available commands           | `main.go`                  |
+| 15  | Refactor nested flag handling into `handleFlag()`                            | 🟢 Reduces cyclomatic complexity, satisfies `nestif` linter | `main.go`                  |
 
 ### Quality Metrics (Current)
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Build | ✅ Clean | 0 errors |
-| Lint (golangci-lint v2, 2m timeout) | ✅ 0 issues | Clean |
-| Tests (race detector) | ✅ 256 PASS | 0 FAIL (1 flaky pre-existing) |
-| Benchmarks | ✅ 7 passing | All green |
-| Source lines (non-test) | 3,277 | Net -21 from Round 4 |
-| Test lines | 6,032 | 1.84:1 test:source ratio |
-| Source files | 19 | — |
-| Test files | 14 | — |
-| Total Go files | 33 | — |
+| Metric                              | Value        | Status                        |
+| ----------------------------------- | ------------ | ----------------------------- |
+| Build                               | ✅ Clean     | 0 errors                      |
+| Lint (golangci-lint v2, 2m timeout) | ✅ 0 issues  | Clean                         |
+| Tests (race detector)               | ✅ 256 PASS  | 0 FAIL (1 flaky pre-existing) |
+| Benchmarks                          | ✅ 7 passing | All green                     |
+| Source lines (non-test)             | 3,277        | Net -21 from Round 4          |
+| Test lines                          | 6,032        | 1.84:1 test:source ratio      |
+| Source files                        | 19           | —                             |
+| Test files                          | 14           | —                             |
+| Total Go files                      | 33           | —                             |
 
 ### Feature Delivery (44/44 — 100%)
 
@@ -56,13 +56,13 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Unchanged since Round
 
 ### TODO List Progress
 
-| Status | Count | Percentage |
-|--------|-------|------------|
-| ✅ DONE | 32 | 52.5% |
-| 🔶 PARTIAL | 0 | 0% |
-| ❌ SKIP | 1 | 1.6% |
-| ⬜ TODO | 28 | 45.9% |
-| **Total** | **61** | **100% |
+| Status     | Count  | Percentage |
+| ---------- | ------ | ---------- |
+| ✅ DONE    | 32     | 52.5%      |
+| 🔶 PARTIAL | 0      | 0%         |
+| ❌ SKIP    | 1      | 1.6%       |
+| ⬜ TODO    | 28     | 45.9%      |
+| **Total**  | **61** | \*\*100%   |
 
 ---
 
@@ -77,18 +77,21 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Unchanged since Round
 28 items remain in `TODO_LIST.md`. Grouped by category (unchanged from Round 5 planning):
 
 ### Code Quality
+
 - #14: Structured log levels audit
 - #15: Graceful degradation for missing optional deps
 - #40: Update `SUPERB_ROADMAP.md` (many items completed)
 - #61: Archive or rewrite `SUPERB_ROADMAP.md`
 
 ### Observability
+
 - #16: Additional Prometheus metrics (stream, command counters, probe, uevent)
 - #17: Circuit breaker for HID failures
 - #18: Stream health monitoring
 - #20: Continuous fuzz in CI
 
 ### Architecture (Higher effort)
+
 - #21: Extract `Commander` interface for shell commands
 - #22: Extract `HIDDevice` interface for HID I/O
 - #23: Extract `ProcessInspector` interface for `/proc`
@@ -98,6 +101,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Unchanged since Round
 - #53: Consolidate PTZ logic into single `ptz.go`
 
 ### Web UI
+
 - #26: Mobile-responsive layout
 - #27: WebSocket for live state updates
 - #28: Keyboard shortcuts for PTZ (arrow keys, +/- zoom)
@@ -105,6 +109,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Unchanged since Round
 - #30: Camera preset support
 
 ### Testing
+
 - #31: Integration test harness with fake devices
 - #32: Test coverage for `stream.go`, `process.go`, `hid.go` real hardware paths
 - #33: Surface auto-manage errors to web UI
@@ -112,6 +117,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Unchanged since Round
 - #35: Integration test with real hardware (build tag guarded)
 
 ### Other
+
 - #42: PTZ readback accuracy (delay or in-memory "last set")
 
 ---
@@ -149,6 +155,7 @@ All 15 items from the status report Section E audit are now complete. No new aud
 ### Flaky Test Investigation (New)
 
 The parallel test flakiness (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) should be investigated. Root cause is likely:
+
 - Shared ephemeral ports or socket paths between parallel tests
 - Timing-sensitive assertions on HTTP/stream endpoints
 - Possible fix: use isolated port ranges per test or add retry logic
@@ -174,58 +181,58 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Flaky Test Fix (30 min)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Fix `TestHandleStream_NoFFmpeg` and `TestSocket_StatusCommand` parallel flakiness | 🔴 CI reliability | 30 min |
+| #   | Item                                                                              | Impact            | Effort |
+| --- | --------------------------------------------------------------------------------- | ----------------- | ------ |
+| 1   | Fix `TestHandleStream_NoFFmpeg` and `TestSocket_StatusCommand` parallel flakiness | 🔴 CI reliability | 30 min |
 
 ### Tier 2: Code Quality (1-2 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 2 | Structured log levels audit (#14) — standardize Debug/Info/Warn/Error usage | 🟢 Observability | 30 min |
-| 3 | Graceful degradation for missing optional deps (#15) | 🟢 Robustness | 30 min |
-| 4 | Update/archive `SUPERB_ROADMAP.md` (#40, #61) | 🟢 Doc accuracy | 20 min |
+| #   | Item                                                                        | Impact           | Effort |
+| --- | --------------------------------------------------------------------------- | ---------------- | ------ |
+| 2   | Structured log levels audit (#14) — standardize Debug/Info/Warn/Error usage | 🟢 Observability | 30 min |
+| 3   | Graceful degradation for missing optional deps (#15)                        | 🟢 Robustness    | 30 min |
+| 4   | Update/archive `SUPERB_ROADMAP.md` (#40, #61)                               | 🟢 Doc accuracy  | 20 min |
 
 ### Tier 3: Observability (2-3 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 5 | Additional Prometheus metrics — stream duration, frames served (#16) | 🟢 Observability | 1h |
-| 6 | Command counter metrics (#16) | 🟢 Observability | 30 min |
-| 7 | Circuit breaker for HID failures (#17) | 🟡 Reliability | 1h |
-| 8 | Stream health monitoring (#18) | 🟡 Reliability | 1h |
-| 9 | Continuous fuzz in CI (#20) | 🟢 Robustness | 30 min |
+| #   | Item                                                                 | Impact           | Effort |
+| --- | -------------------------------------------------------------------- | ---------------- | ------ |
+| 5   | Additional Prometheus metrics — stream duration, frames served (#16) | 🟢 Observability | 1h     |
+| 6   | Command counter metrics (#16)                                        | 🟢 Observability | 30 min |
+| 7   | Circuit breaker for HID failures (#17)                               | 🟡 Reliability   | 1h     |
+| 8   | Stream health monitoring (#18)                                       | 🟡 Reliability   | 1h     |
+| 9   | Continuous fuzz in CI (#20)                                          | 🟢 Robustness    | 30 min |
 
 ### Tier 4: Architecture (3-6 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 10 | Consolidate 9 function pointers into `Dependencies` interface (#51) | 🔴 Compile-time safety | 2-3h |
-| 11 | Replace `handleCommand(string) string` with typed `CommandResult` (#52) | 🔴 Type safety | 2-3h |
-| 12 | Consolidate PTZ logic into single `ptz.go` (#53) | 🟡 Maintainability | 1h |
-| 13 | Extract `Commander` interface for shell commands (#21) | 🟡 Testability | 1h |
-| 14 | Extract `HIDDevice` interface for HID I/O (#22) | 🟡 Testability | 1h |
-| 15 | Extract `ProcessInspector` interface for `/proc` (#23) | 🟡 Testability | 30 min |
-| 16 | Extract `UeventListener` interface for netlink (#24) | 🟡 Testability | 30 min |
+| #   | Item                                                                    | Impact                 | Effort |
+| --- | ----------------------------------------------------------------------- | ---------------------- | ------ |
+| 10  | Consolidate 9 function pointers into `Dependencies` interface (#51)     | 🔴 Compile-time safety | 2-3h   |
+| 11  | Replace `handleCommand(string) string` with typed `CommandResult` (#52) | 🔴 Type safety         | 2-3h   |
+| 12  | Consolidate PTZ logic into single `ptz.go` (#53)                        | 🟡 Maintainability     | 1h     |
+| 13  | Extract `Commander` interface for shell commands (#21)                  | 🟡 Testability         | 1h     |
+| 14  | Extract `HIDDevice` interface for HID I/O (#22)                         | 🟡 Testability         | 1h     |
+| 15  | Extract `ProcessInspector` interface for `/proc` (#23)                  | 🟡 Testability         | 30 min |
+| 16  | Extract `UeventListener` interface for netlink (#24)                    | 🟡 Testability         | 30 min |
 
 ### Tier 5: Web UI & UX (3-4 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 17 | Keyboard shortcuts for PTZ — arrow keys, +/- for zoom (#28) | 🟡 UX | 30 min |
-| 18 | Mobile-responsive web UI layout (#26) | 🟡 UX | 1h |
-| 19 | PTZ relative mode — `pan+10`, `tilt-5` (#29) | 🟡 UX | 1h |
-| 20 | WebSocket for live state updates (#27) | 🟢 Real-time UX | 2h |
-| 21 | Camera preset support (#30) | 🟢 UX power feature | 2h |
+| #   | Item                                                        | Impact              | Effort |
+| --- | ----------------------------------------------------------- | ------------------- | ------ |
+| 17  | Keyboard shortcuts for PTZ — arrow keys, +/- for zoom (#28) | 🟡 UX               | 30 min |
+| 18  | Mobile-responsive web UI layout (#26)                       | 🟡 UX               | 1h     |
+| 19  | PTZ relative mode — `pan+10`, `tilt-5` (#29)                | 🟡 UX               | 1h     |
+| 20  | WebSocket for live state updates (#27)                      | 🟢 Real-time UX     | 2h     |
+| 21  | Camera preset support (#30)                                 | 🟢 UX power feature | 2h     |
 
 ### Tier 6: Testing & Robustness (3-5 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 22 | Integration test harness with fake devices (#31) | 🟡 Test coverage | 2-3h |
-| 23 | Surface auto-manage errors to web UI (#33) | 🟡 UX/Debugging | 30 min |
-| 24 | PTZ readback accuracy — in-memory "last set" (#42) | 🟡 Correctness | 1h |
-| 25 | Integration test with real hardware, build tag guarded (#35) | 🟡 Hardware validation | 2h |
+| #   | Item                                                         | Impact                 | Effort |
+| --- | ------------------------------------------------------------ | ---------------------- | ------ |
+| 22  | Integration test harness with fake devices (#31)             | 🟡 Test coverage       | 2-3h   |
+| 23  | Surface auto-manage errors to web UI (#33)                   | 🟡 UX/Debugging        | 30 min |
+| 24  | PTZ readback accuracy — in-memory "last set" (#42)           | 🟡 Correctness         | 1h     |
+| 25  | Integration test with real hardware, build tag guarded (#35) | 🟡 Hardware validation | 2h     |
 
 ---
 
@@ -234,6 +241,7 @@ Prioritized by impact × effort (Pareto order):
 **Is the physical PIXY hardware currently connected to this machine?**
 
 Several items depend on knowing this:
+
 - `TestAutoManage_NoDevice_Returns` skips when device is present (detected at runtime)
 - PTZ readback accuracy testing (#42) requires real hardware to validate delay timing
 - The `process_test.go` tests use real `/proc` — they pass regardless, but real hardware testing would be more valuable

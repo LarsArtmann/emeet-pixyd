@@ -25,37 +25,37 @@
 
 ## Phase 2: Decomposition (P1)
 
-| #   | Status  | Task                                                                                   | Source        |
-| --- | ------- | -------------------------------------------------------------------------------------- | ------------- |
-| 6   | ✅ DONE | Decompose `Run()` into focused helpers                                                 | Roadmap 2.1   |
-| 7   | ✅ DONE | pprof endpoint gated behind `Config.Debug`                                             | Roadmap 4.3   |
-| 8   | ✅ DONE | Keyboard shortcuts in web UI (T/I/P/C)                                                 | Roadmap 5.2   |
-| 9   | ✅ DONE | `AutoMode`/`DefaultAudio` from env vars                                                | Quality sweep |
-| 10  | ✅ DONE | Uevent context cancellation (goroutine leak fix)                                       | Quality sweep |
-| 11  | ✅ DONE | Device name matching shared `isPixyName()` helper                                      | Quality sweep |
-| 12  | ✅ DONE | Error var consolidation (no duplicates)                                                | Quality sweep |
-| 13  | ✅ DONE | Eliminate `init()` for Prometheus metrics — lazy registration via `sync.Once`                      | Roadmap 2.2   |
-| 14  | ⬜ TODO | Structured log levels audit (standardize Debug/Info/Warn/Error usage)                  | Roadmap 4.2   |
-| 15  | ⬜ TODO | Graceful degradation for missing optional deps (cache availability at startup)         | Roadmap 3.1   |
+| #   | Status  | Task                                                                           | Source        |
+| --- | ------- | ------------------------------------------------------------------------------ | ------------- |
+| 6   | ✅ DONE | Decompose `Run()` into focused helpers                                         | Roadmap 2.1   |
+| 7   | ✅ DONE | pprof endpoint gated behind `Config.Debug`                                     | Roadmap 4.3   |
+| 8   | ✅ DONE | Keyboard shortcuts in web UI (T/I/P/C)                                         | Roadmap 5.2   |
+| 9   | ✅ DONE | `AutoMode`/`DefaultAudio` from env vars                                        | Quality sweep |
+| 10  | ✅ DONE | Uevent context cancellation (goroutine leak fix)                               | Quality sweep |
+| 11  | ✅ DONE | Device name matching shared `isPixyName()` helper                              | Quality sweep |
+| 12  | ✅ DONE | Error var consolidation (no duplicates)                                        | Quality sweep |
+| 13  | ✅ DONE | Eliminate `init()` for Prometheus metrics — lazy registration via `sync.Once`  | Roadmap 2.2   |
+| 14  | ⬜ TODO | Structured log levels audit (standardize Debug/Info/Warn/Error usage)          | Roadmap 4.2   |
+| 15  | ⬜ TODO | Graceful degradation for missing optional deps (cache availability at startup) | Roadmap 3.1   |
 
 ## Phase 3: Observability (P1-P2)
 
-| #   | Status  | Task                                                                                     | Source      |
-| --- | ------- | ---------------------------------------------------------------------------------------- | ----------- |
-| 16  | ⬜ TODO | Additional Prometheus metrics (stream duration, frames, command counters, probe, uevent) | Roadmap 4.1 |
-| 17  | ⬜ TODO | Circuit breaker for HID failures (stop retrying after N consecutive failures)            | Roadmap 3.2 |
-| 18  | ⬜ TODO | Stream health monitoring (frame counter, uptime metric)                                  | Roadmap 3.3 |
+| #   | Status  | Task                                                                                             | Source      |
+| --- | ------- | ------------------------------------------------------------------------------------------------ | ----------- |
+| 16  | ⬜ TODO | Additional Prometheus metrics (stream duration, frames, command counters, probe, uevent)         | Roadmap 4.1 |
+| 17  | ⬜ TODO | Circuit breaker for HID failures (stop retrying after N consecutive failures)                    | Roadmap 3.2 |
+| 18  | ⬜ TODO | Stream health monitoring (frame counter, uptime metric)                                          | Roadmap 3.3 |
 | 19  | ✅ DONE | Benchmark suite (7 benchmarks: JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced) | Roadmap 6.3 |
-| 20  | ⬜ TODO | Continuous fuzz in CI (60s per test, store corpus, fail on crash)                        | Roadmap 6.2 |
+| 20  | ⬜ TODO | Continuous fuzz in CI (60s per test, store corpus, fail on crash)                                | Roadmap 6.2 |
 
 ## Phase 4: Architecture (P2-P3)
 
-| #   | Status     | Task                                                                                    | Source            |
-| --- | ---------- | --------------------------------------------------------------------------------------- | ----------------- |
-| 21  | ⬜ TODO    | Extract `Commander` interface for shell commands (wpctl, notify-send, ffmpeg, v4l2-ctl) | Roadmap 1.1       |
-| 22  | ⬜ TODO    | Extract `HIDDevice` interface for HID I/O                                               | Roadmap 1.2       |
-| 23  | ⬜ TODO    | Extract `ProcessInspector` interface for /proc traversal                                | Roadmap 1.3       |
-| 24  | ⬜ TODO    | Extract `UeventListener` interface for netlink                                          | Roadmap 1.4       |
+| #   | Status  | Task                                                                                     | Source            |
+| --- | ------- | ---------------------------------------------------------------------------------------- | ----------------- |
+| 21  | ⬜ TODO | Extract `Commander` interface for shell commands (wpctl, notify-send, ffmpeg, v4l2-ctl)  | Roadmap 1.1       |
+| 22  | ⬜ TODO | Extract `HIDDevice` interface for HID I/O                                                | Roadmap 1.2       |
+| 23  | ⬜ TODO | Extract `ProcessInspector` interface for /proc traversal                                 | Roadmap 1.3       |
+| 24  | ⬜ TODO | Extract `UeventListener` interface for netlink                                           | Roadmap 1.4       |
 | 25  | ✅ DONE | `probeDevices()` — pure function returning `probeResult`, applied via `applyProbeResult` | Quality sweep 4.1 |
 
 ## Phase 5: Web UI (P2-P3)
@@ -83,11 +83,11 @@
 | #   | Status  | Task                                                                                  | Source     |
 | --- | ------- | ------------------------------------------------------------------------------------- | ---------- |
 | 36  | ✅ DONE | Extract toast type from `actionToast`, propagate through `applyResponseToStatus`      | Review L2  |
-| 37  | ✅ DONE | Extract `lastFrame`/`ptzCache` into named types in `cache.go`                           | Review M1  |
+| 37  | ✅ DONE | Extract `lastFrame`/`ptzCache` into named types in `cache.go`                         | Review M1  |
 | 38  | ✅ DONE | Moved `streamBufSize`/`ffmpegShutdownTimeout` constants from handlers.go to stream.go | Review L12 |
 | 39  | ✅ DONE | Removed decorative blank lines in stream.go select/case blocks                        | Review M5  |
 | 40  | ⬜ TODO | Update `SUPERB_ROADMAP.md` — many items completed                                     | Review M4  |
-| 41  | ✅ DONE | Consolidate PTZ axis dispatch into `ptzAxes` lookup table                               | Review     |
+| 41  | ✅ DONE | Consolidate PTZ axis dispatch into `ptzAxes` lookup table                             | Review     |
 | 42  | ⬜ TODO | PTZ readback accuracy — delay before readback or maintain in-memory "last set" value  | Status E.1 |
 
 ## Phase 8: From 15-Skill Comprehensive Audit (2026-05-12)
@@ -108,7 +108,7 @@
 | 54  | ✅ DONE | Added systemd hardening to NixOS module (ProtectSystem, PrivateTmp, NoNewPrivileges, MemoryMax)  | Nix Review H2   |
 | 55  | ✅ DONE | Fixed false-positive tests — proper assertions for sync/toggle-privacy commands                  | BDD Review P0   |
 | 56  | ✅ DONE | Removed `, change` from PTZ slider hx-trigger (was doubling requests)                            | Frontend Review |
-| 57  | ✅ DONE | Suppress toast spam during PTZ slider drag (empty toast on success)                     | Frontend Review |
+| 57  | ✅ DONE | Suppress toast spam during PTZ slider drag (empty toast on success)                              | Frontend Review |
 | 58  | ✅ DONE | Added `role="alert"` to error banners for screen reader announcement                             | Frontend A11y   |
 | 59  | ❌ SKIP | `encoding/json/v2` not available in Go 1.26.2 stdlib — revisit when landed                       | How-to-Go       |
 | 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream   | Self-Review 4.8 |

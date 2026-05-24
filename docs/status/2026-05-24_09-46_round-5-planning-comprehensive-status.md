@@ -18,57 +18,57 @@ The project is in **excellent shape**. Feature-complete (44/44 features), 0 buil
 
 All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero broken, zero planned.
 
-| Category | Features | Status |
-|----------|----------|--------|
-| Camera Control | 8 (tracking, idle, privacy, toggle, center, PTZ web, PTZ CLI, PTZ sliders) | ✅ |
-| Audio | 3 (modes, cycle, PipeWire switching) | ✅ |
-| Auto-Management | 6 (detection, full, tracking-only, privacy-only, off, debounce) | ✅ |
-| Gesture Control | 1 | ✅ |
-| Web UI | 9 (MJPEG, snapshot, HTMX, toasts, shortcuts, offline banner, PTZ feedback, theme, security) | ✅ |
-| CLI / Socket | 7 (socket, status, sync, probe, device, waybar, version) | ✅ |
-| Desktop Notifications | 1 | ✅ |
-| Device Management | 2 (probing, hotplug) | ✅ |
-| State Persistence | 2 (JSON, SIGHUP) | ✅ |
-| Monitoring | 3 (Prometheus, pprof, systemd) | ✅ |
-| HID | 2 (config+commit, state query) | ✅ |
-| NixOS | 1 | ✅ |
-| Nix Build | 1 | ✅ |
+| Category              | Features                                                                                    | Status |
+| --------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| Camera Control        | 8 (tracking, idle, privacy, toggle, center, PTZ web, PTZ CLI, PTZ sliders)                  | ✅     |
+| Audio                 | 3 (modes, cycle, PipeWire switching)                                                        | ✅     |
+| Auto-Management       | 6 (detection, full, tracking-only, privacy-only, off, debounce)                             | ✅     |
+| Gesture Control       | 1                                                                                           | ✅     |
+| Web UI                | 9 (MJPEG, snapshot, HTMX, toasts, shortcuts, offline banner, PTZ feedback, theme, security) | ✅     |
+| CLI / Socket          | 7 (socket, status, sync, probe, device, waybar, version)                                    | ✅     |
+| Desktop Notifications | 1                                                                                           | ✅     |
+| Device Management     | 2 (probing, hotplug)                                                                        | ✅     |
+| State Persistence     | 2 (JSON, SIGHUP)                                                                            | ✅     |
+| Monitoring            | 3 (Prometheus, pprof, systemd)                                                              | ✅     |
+| HID                   | 2 (config+commit, state query)                                                              | ✅     |
+| NixOS                 | 1                                                                                           | ✅     |
+| Nix Build             | 1                                                                                           | ✅     |
 
 ### Quality Metrics (Current)
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| Build | ✅ Clean | 0 errors |
-| Lint (golangci-lint v2, 2m timeout) | ✅ 0 issues | Clean |
-| Tests (race detector) | ✅ 256 PASS | 0 FAIL |
-| Benchmarks | ✅ 7 passing | All green |
-| Source lines (non-test) | 3,256 | — |
-| Test lines | 6,036 | 1.85:1 test:source ratio |
-| Test files | 12 | — |
+| Metric                              | Value        | Status                   |
+| ----------------------------------- | ------------ | ------------------------ |
+| Build                               | ✅ Clean     | 0 errors                 |
+| Lint (golangci-lint v2, 2m timeout) | ✅ 0 issues  | Clean                    |
+| Tests (race detector)               | ✅ 256 PASS  | 0 FAIL                   |
+| Benchmarks                          | ✅ 7 passing | All green                |
+| Source lines (non-test)             | 3,256        | —                        |
+| Test lines                          | 6,036        | 1.85:1 test:source ratio |
+| Test files                          | 12           | —                        |
 
 ### Round 4 Completions (Today, 2026-05-24)
 
 7 items completed in the previous session:
 
-| # | Item | Commit |
-|---|------|--------|
-| 13 | `init()` elimination — lazy OTel registration via `sync.Once` | `0f1d710` |
-| 19 | Benchmark suite — 7 benchmarks (JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced) | `71ec956` |
-| 25 | `probeDevices()` pure function returning `probeResult` | `d4dae5e` |
-| 37 | Named cache types (`lastFrameCache`, `ptzCache`) in `cache.go` | `edacfd3` |
-| 41 | PTZ axis dispatch into `ptzAxes` lookup table | `5e7bf44` |
-| 57 | Toast spam suppression during PTZ slider drag | `e60c37a` |
-| + | `PTZValues.Clamp()` method for type-safe clamping | `9c6161c` |
+| #   | Item                                                                                              | Commit    |
+| --- | ------------------------------------------------------------------------------------------------- | --------- |
+| 13  | `init()` elimination — lazy OTel registration via `sync.Once`                                     | `0f1d710` |
+| 19  | Benchmark suite — 7 benchmarks (JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced) | `71ec956` |
+| 25  | `probeDevices()` pure function returning `probeResult`                                            | `d4dae5e` |
+| 37  | Named cache types (`lastFrameCache`, `ptzCache`) in `cache.go`                                    | `edacfd3` |
+| 41  | PTZ axis dispatch into `ptzAxes` lookup table                                                     | `5e7bf44` |
+| 57  | Toast spam suppression during PTZ slider drag                                                     | `e60c37a` |
+| +   | `PTZValues.Clamp()` method for type-safe clamping                                                 | `9c6161c` |
 
 ### TODO List Progress
 
-| Status | Count | Percentage |
-|--------|-------|------------|
-| ✅ DONE | 32 | 52.5% |
-| 🔶 PARTIAL | 0 | 0% |
-| ❌ SKIP | 1 | 1.6% |
-| ⬜ TODO | 28 | 45.9% |
-| **Total** | **61** | **100%** |
+| Status     | Count  | Percentage |
+| ---------- | ------ | ---------- |
+| ✅ DONE    | 32     | 52.5%      |
+| 🔶 PARTIAL | 0      | 0%         |
+| ❌ SKIP    | 1      | 1.6%       |
+| ⬜ TODO    | 28     | 45.9%      |
+| **Total**  | **61** | **100%**   |
 
 ### Build & Infrastructure
 
@@ -89,18 +89,21 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero br
 28 items remain in `TODO_LIST.md`. Grouped by category:
 
 ### Code Quality (Low-hanging fruit)
+
 - #14: Structured log levels audit
 - #15: Graceful degradation for missing optional deps
 - #40: Update `SUPERB_ROADMAP.md` (many items completed)
 - #61: Archive or rewrite `SUPERB_ROADMAP.md`
 
 ### Observability
+
 - #16: Additional Prometheus metrics (stream, command counters, probe, uevent)
 - #17: Circuit breaker for HID failures
 - #18: Stream health monitoring
 - #20: Continuous fuzz in CI
 
 ### Architecture (Higher effort)
+
 - #21: Extract `Commander` interface for shell commands
 - #22: Extract `HIDDevice` interface for HID I/O
 - #23: Extract `ProcessInspector` interface for `/proc`
@@ -110,6 +113,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero br
 - #53: Consolidate PTZ logic into single `ptz.go`
 
 ### Web UI
+
 - #26: Mobile-responsive layout
 - #27: WebSocket for live state updates
 - #28: Keyboard shortcuts for PTZ (arrow keys, +/- zoom)
@@ -117,6 +121,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero br
 - #30: Camera preset support
 
 ### Testing
+
 - #31: Integration test harness with fake devices
 - #32: Test coverage for `stream.go`, `process.go`, `hid.go` real hardware paths
 - #33: Surface auto-manage errors to web UI
@@ -124,6 +129,7 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero br
 - #35: Integration test with real hardware (build tag guarded)
 
 ### Other
+
 - #42: PTZ readback accuracy (delay or in-memory "last set")
 
 ---
@@ -179,43 +185,43 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Quick Fixes (30 min total, high confidence)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Replace `panic("unreachable")` in `handleQueryCommand` with error return | 🔴 Prevents runtime crash | 2 min |
-| 2 | Add nil Process guard in `cleanupFFmpeg` | 🔴 Prevents panic | 2 min |
-| 3 | Cap debounce counters at `debounceCount` | 🟡 Prevents counter overflow | 2 min |
-| 4 | Extract `"error: "` to named constant in `errors.go` | 🟢 Code clarity | 1 min |
-| 5 | Remove dead `StateOffline` case in `cameraHIDByte` | 🟢 Dead code removal | 1 min |
-| 6 | Remove redundant zero-value initializations in `NewDaemon` | 🟢 Code clarity | 2 min |
-| 7 | Remove duplicate `X-Content-Type-Options` from `cachingFS` | 🟢 Correctness | 1 min |
-| 8 | Use sorted iteration in `v4l2SetMultiple` | 🟢 Determinism | 3 min |
-| 9 | Consolidate `hasPixyProduct`/`hasPixyVendorProduct` | 🟢 Dedup | 5 min |
-| 10 | Fix waybar idle class to use `string(pixy.StateIdle)` | 🟢 Type consistency | 2 min |
-| 11 | Remove stale `exhaustruct` nolint from `NewDaemon` | 🟢 Cleanup | 1 min |
-| 12 | Document config overrides persisted state in `NewDaemon` | 🟢 Documentation | 2 min |
-| 13 | Add logging for partial device matches in `probeDevices` | 🟢 Debuggability | 3 min |
+| #   | Item                                                                     | Impact                       | Effort |
+| --- | ------------------------------------------------------------------------ | ---------------------------- | ------ |
+| 1   | Replace `panic("unreachable")` in `handleQueryCommand` with error return | 🔴 Prevents runtime crash    | 2 min  |
+| 2   | Add nil Process guard in `cleanupFFmpeg`                                 | 🔴 Prevents panic            | 2 min  |
+| 3   | Cap debounce counters at `debounceCount`                                 | 🟡 Prevents counter overflow | 2 min  |
+| 4   | Extract `"error: "` to named constant in `errors.go`                     | 🟢 Code clarity              | 1 min  |
+| 5   | Remove dead `StateOffline` case in `cameraHIDByte`                       | 🟢 Dead code removal         | 1 min  |
+| 6   | Remove redundant zero-value initializations in `NewDaemon`               | 🟢 Code clarity              | 2 min  |
+| 7   | Remove duplicate `X-Content-Type-Options` from `cachingFS`               | 🟢 Correctness               | 1 min  |
+| 8   | Use sorted iteration in `v4l2SetMultiple`                                | 🟢 Determinism               | 3 min  |
+| 9   | Consolidate `hasPixyProduct`/`hasPixyVendorProduct`                      | 🟢 Dedup                     | 5 min  |
+| 10  | Fix waybar idle class to use `string(pixy.StateIdle)`                    | 🟢 Type consistency          | 2 min  |
+| 11  | Remove stale `exhaustruct` nolint from `NewDaemon`                       | 🟢 Cleanup                   | 1 min  |
+| 12  | Document config overrides persisted state in `NewDaemon`                 | 🟢 Documentation             | 2 min  |
+| 13  | Add logging for partial device matches in `probeDevices`                 | 🟢 Debuggability             | 3 min  |
 
 ### Tier 2: Testability & UX (1-2 hours)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 14 | Fix `centerCamera` to use `v4l2SetFn` DI | 🟡 Testability | 15 min |
-| 15 | Add `--help`/`-h` flag to CLI | 🟡 UX | 15 min |
-| 16 | Update/archive `SUPERB_ROADMAP.md` (items #40, #61) | 🟢 Doc accuracy | 20 min |
+| #   | Item                                                | Impact          | Effort |
+| --- | --------------------------------------------------- | --------------- | ------ |
+| 14  | Fix `centerCamera` to use `v4l2SetFn` DI            | 🟡 Testability  | 15 min |
+| 15  | Add `--help`/`-h` flag to CLI                       | 🟡 UX           | 15 min |
+| 16  | Update/archive `SUPERB_ROADMAP.md` (items #40, #61) | 🟢 Doc accuracy | 20 min |
 
 ### Tier 3: Architecture (future sessions)
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 17 | Consolidate 9 function pointers into `Dependencies` interface | 🔴 Compile-time safety | 2-3h |
-| 18 | Replace `handleCommand(string) string` with typed `CommandResult` | 🔴 Type safety | 2-3h |
-| 19 | Consolidate PTZ logic into `ptz.go` | 🟡 Maintainability | 1h |
-| 20 | Extract `Commander` interface for shell commands | 🟡 Testability | 1h |
-| 21 | Mobile-responsive web UI layout | 🟡 UX | 1h |
-| 22 | WebSocket for live state updates | 🟢 Real-time UX | 2h |
-| 23 | Additional Prometheus metrics | 🟢 Observability | 1h |
-| 24 | Circuit breaker for HID failures | 🟢 Reliability | 1h |
-| 25 | Integration test harness with fake devices | 🟡 Test coverage | 2-3h |
+| #   | Item                                                              | Impact                 | Effort |
+| --- | ----------------------------------------------------------------- | ---------------------- | ------ |
+| 17  | Consolidate 9 function pointers into `Dependencies` interface     | 🔴 Compile-time safety | 2-3h   |
+| 18  | Replace `handleCommand(string) string` with typed `CommandResult` | 🔴 Type safety         | 2-3h   |
+| 19  | Consolidate PTZ logic into `ptz.go`                               | 🟡 Maintainability     | 1h     |
+| 20  | Extract `Commander` interface for shell commands                  | 🟡 Testability         | 1h     |
+| 21  | Mobile-responsive web UI layout                                   | 🟡 UX                  | 1h     |
+| 22  | WebSocket for live state updates                                  | 🟢 Real-time UX        | 2h     |
+| 23  | Additional Prometheus metrics                                     | 🟢 Observability       | 1h     |
+| 24  | Circuit breaker for HID failures                                  | 🟢 Reliability         | 1h     |
+| 25  | Integration test harness with fake devices                        | 🟡 Test coverage       | 2-3h   |
 
 ---
 
@@ -224,6 +230,7 @@ Prioritized by impact × effort (Pareto order):
 **Is the physical PIXY hardware currently connected to this machine?**
 
 Several items depend on knowing this:
+
 - `TestProbeDevices_*` tests behave differently with/without hardware (handled gracefully but affects CI)
 - PTZ readback accuracy testing (#42) requires real hardware to validate delay timing
 - The `process_test.go` tests use real `/proc` — they pass regardless, but real hardware testing would be more valuable

@@ -79,11 +79,11 @@ main() → NewDaemon() → Run()
 | `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, web UI                                                                                                            |
-| `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                |
+| `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                 |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
-| `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess, `parsePTZValues`          |
+| `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess, `parsePTZValues`                                                                        |
 | `process.go`       | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications                                                    |
 | `uevent.go`        | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)                                                       |
 | `uevent_linux.go`  | Low-level `unix.Socket` call for netlink                                                                                                      |
