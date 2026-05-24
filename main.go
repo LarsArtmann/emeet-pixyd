@@ -233,7 +233,7 @@ func (d *Daemon) syncState(ctx context.Context) string {
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
-		return "error: PIXY not connected"
+		return (&CommandError{Op: cmdSync, Err: pixy.ErrPIXYNotConnected}).Error()
 	}
 
 	tracking, trackingErr := d.queryTracking(ctx)
