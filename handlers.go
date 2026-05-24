@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -134,12 +135,22 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 		responseWriter.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	_, _ = fmt.Fprintf(
-		responseWriter, `{"status":"%s","camera":"%s","version":"%s"}`,
-		boolStr(online, "ok", "offline"),
-		camera,
-		buildVersion,
-	)
+	data, err := json.Marshal(healthResponse{
+		Status:  boolStr(online, "ok", "offline"),
+		Camera:  camera,
+		Version: buildVersion,
+	})
+	if err != nil {
+		slog.Error("failed to marshal health response", "error", err)
+		return
+	}
+	_, _ = responseWriter.Write(data)
+}
+
+type healthResponse struct {
+	Status  string           `json:"status"`
+	Camera  pixy.CameraState `json:"camera"`
+	Version string           `json:"version"`
 }
 
 func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, request *http.Request) {
