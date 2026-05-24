@@ -568,8 +568,10 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 		t.Error("slider response should NOT contain stale cache value 0")
 	}
 
-	// And a success toast is shown
-	assertCommandContains(t, html, "Pan set to 50", "response")
+	// And no success toast is shown (PTZ toasts suppressed to avoid slider spam)
+	if strings.Contains(html, "Pan set to 50") {
+		t.Error("PTZ success toast should be suppressed")
+	}
 
 	// And the PTZ cache is invalidated
 	d.ptzCache.mu.RLock()

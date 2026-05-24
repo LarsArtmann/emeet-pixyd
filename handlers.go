@@ -292,7 +292,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
 		info.Label, axis, info.Min, info.Max, intVal, info.Unit,
-		fmt.Sprintf("%s set to %d", info.Label, intVal), toastTypeSuccess,
+		"", "",
 	)).ServeHTTP(responseWriter, request)
 }
 
