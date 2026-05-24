@@ -43,9 +43,6 @@ const (
 )
 
 func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
-	d.cmdMu.Lock()
-	defer d.cmdMu.Unlock()
-
 	parts := strings.Fields(cmd)
 	if len(parts) == 0 {
 		return d.getStatus(ctx)
@@ -55,6 +52,18 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 	case cmdStatus:
 		return d.getStatus(ctx)
 
+	case cmdWaybar, cmdVersion, cmdSync, cmdProbe, cmdDevice:
+		return d.handleQueryCommand(ctx, parts)
+
+	default:
+		d.cmdMu.Lock()
+		defer d.cmdMu.Unlock()
+		return d.handleMutatingCommand(ctx, parts)
+	}
+}
+
+func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) string {
+	switch parts[0] {
 	case cmdTrack:
 		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTrack)
 
@@ -83,7 +92,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
 		return d.handlePTZCommand(ctx, parts)
 
 	default:
-		return d.handleQueryCommand(ctx, parts)
+		return "unknown command: " + parts[0]
 	}
 }
 
@@ -124,10 +133,9 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string 
 		}
 
 		return respDeviceNotFound
-
-	default:
-		return "unknown command: " + parts[0]
 	}
+
+	panic("unreachable: handleQueryCommand called with non-query command " + parts[0])
 }
 
 func (d *Daemon) handleTogglePrivacy(ctx context.Context) string {
