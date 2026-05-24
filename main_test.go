@@ -146,8 +146,6 @@ func withAudioState(mode pixy.AudioMode) testDaemonOption {
 	return func(d *Daemon) { d.state.Audio = mode }
 }
 
-
-
 func noopFindSourceFn(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil }
 
 func noopSetSourceFn(context.Context, pixy.SourceID) {}
