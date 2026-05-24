@@ -78,9 +78,9 @@ main() → NewDaemon() → Run()
 | `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, web UI                                                                                                            |
-| `metrics.go`       | OTel metrics registration, `updateMetrics()`, `init()`                                                                                        |
+| `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
-| `middleware.go`    | Security headers, request ID, caching FS, PTZ axis validation                                                                                 |
+| `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
 | `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess                                                                                          |
 | `process.go`       | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications                                                    |
@@ -88,10 +88,11 @@ main() → NewDaemon() → Run()
 | `uevent_linux.go`  | Low-level `unix.Socket` call for netlink                                                                                                      |
 | `auto.go`          | Auto-manage loop, call start/end handling, debounce logic                                                                                     |
 | `state.go`         | State persistence (JSON load/save, atomic write)                                                                                              |
-| `probe.go`         | Device probing (sysfs walks for video4linux + hidraw)                                                                                         |
+| `probe.go`         | Device probing — pure `probeDevices()` returns `probeResult`, `applyProbeResult()` applies to Daemon                                          |
 | `web_types.go`     | `webStatus` struct shared between handlers and templates                                                                                      |
 | `templates.templ`  | HTML templates (compiled via `templ generate`)                                                                                                |
 | `errors.go`        | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                                                   |
+| `cache.go`         | Named cache types: `lastFrameCache` (Get/Set), `ptzCache` (Get/Set/Invalidate) with encapsulated mutex access                                 |
 | `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand`                                      |
 | `static/`          | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                                                                         |
 | `behavior_test.go` | BDD-style behavioral tests: full auto lifecycle, debounce flip-flop, PTZ clamping, waybar tooltip, privacy toggle, audio cycle, state restart |
@@ -202,8 +203,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Binary symlink**: `package.nix` creates `emeet-pixy` symlink pointing to `emeet-pixyd` for CLI usage
 - **Gosec exclusions are intentional**: `.golangci.yml` excludes G304 (file inclusion), G204 (subprocess launch), G706 (log injection), G115 (integer overflow) because this hardware daemon inherently opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpeg`/`v4l2-ctl`/`wpctl`. These are not fixable — suppressing in config is cleaner than per-site `//nolint` comments.
 - **`linters.enable` blocks `issues.exclude-rules`** in golangci-lint v2.11.4. Use `linters.disable` + `issues.exclude-rules` together; the former enables all other linters while the latter can suppress specific issues.
-- **Lint is clean (0 issues)**: Linters that produced only false positives (`contextcheck`, `exhaustruct`, `gochecknoinits`, `gochecknoglobals`, `paralleltest`) have been removed from `.golangci.yml` `linters.enable`. `contextcheck` flagged templ-generated `ServeHTTP` calls and `updateMetrics`; `exhaustruct` flagged intentional partial struct initializations throughout; `gochecknoinits` flagged the required OTel `init()` in `handlers.go`; `gochecknoglobals` flagged the OTel metric variables; `paralleltest` flagged `TestUpdateMetrics` which must be serial (global metrics state). Go 1.22+ eliminates the need for `tc := tc` loop variable capture (`copyloopvar` handles it). Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706).
-- **`init()` is in `metrics.go`**: The OTel metrics `init()` was moved from `handlers.go` to `metrics.go` during handler extraction. `gochecknoinits` flags it there.
+- **Lint is clean (0 issues)**: Linters that produced only false positives (`contextcheck`, `exhaustruct`, `gochecknoinits`, `gochecknoglobals`, `paralleltest`) have been removed from `.golangci.yml` `linters.enable`. `contextcheck` flagged templ-generated `ServeHTTP` calls and `updateMetrics`; `exhaustruct` flagged intentional partial struct initializations throughout; `gochecknoinits` was removed after eliminating the last `init()` in `metrics.go`; `gochecknoglobals` flags the OTel metric variables; `paralleltest` flagged `TestUpdateMetrics` which must be serial (global metrics state). Go 1.22+ eliminates the need for `tc := tc` loop variable capture (`copyloopvar` handles it). Gosec excludes cover hardware-daemon patterns (G104, G107, G115, G204, G301, G304, G306, G702, G706).
+- **`init()` eliminated from `metrics.go`**: OTel metrics registration is now lazy via `sync.Once` in `registerMetrics()`, called from `NewDaemon()` and `updateMetrics()`. No `init()` functions exist anywhere in the codebase.
 - **Error consolidation**: Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) live in `errors.go`. The unexported duplicates in `commands.go` were removed. All code references the exported versions.
 - **pprof gated behind `Debug` config**: Pprof endpoints (`/debug/pprof/*`) are only registered when `Config.Debug` is `true`. Default is `false`. The NixOS module exposes `hardware.emeet-pixy.debug` option.
 - **`t.Parallel()` in all tests**: All test functions in `integration_test.go` and subtests call `t.Parallel()`. No `tc := tc` captures needed (Go 1.22+ loop variable semantics).
@@ -219,6 +220,10 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Response string constants**: `respTrackingOn`, `respPrivacyOn`, `respTrackingOff`, `respAutoModeOff`, `respAudioUsage`, `respAutoUsage`, `respDeviceNotFound` in `commands.go`. All command handlers return these constants instead of inline strings.
 - **`TestHandleCommandTogglePrivacy` tests mock behavior**: The test uses `withCaptureTrackingSlice` to verify the DI function was called with the correct argument, and asserts the exact response string (`respTrackingOn`). It does NOT assert `d.state.Camera` because the mock bypasses `setDeviceState` (which is the only path that mutates daemon state via the `stateSetter` callback).
 - **PTZ shared constants**: `pixy.PanMin`, `pixy.PanMax`, `pixy.TiltMin`, `pixy.TiltMax`, `pixy.ZoomMin`, `pixy.ZoomMax`, `pixy.ZoomDefault` in `internal/pixy/pixy.go`. Used by `handlers.go` and `templates.templ`.
+- **PTZ axis lookup table**: `ptzAxes` map in `handlers.go` replaces 4 scattered switch-based functions (`ptzLimits`, `ptzAxisLabel`, `ptzAxisUnit`, `ptzAxisValid`). Each entry is a `ptzAxisInfo{Min, Max, Label, Unit}`.
+- **`PTZValues.Clamp()`**: Domain method in `internal/pixy/pixy.go` clamps all three axes in one call. Returns a new `PTZValues` without mutating the receiver.
+- **`probeResult` struct**: `probeDevices()` in `probe.go` is a pure function returning `probeResult{VideoDev, HidrawDev}`. `Daemon.applyProbeResult()` applies it under lock.
+- **Named cache types**: `lastFrameCache` and `ptzCache` in `cache.go` are named types with `Get()`/`Set()`/`Invalidate()` methods, replacing anonymous embedded structs with direct mutex access.
 - **State validation**: `loadState()` calls `loaded.Valid()` to reject garbage enum values. `pixy.State.Valid()` checks Camera, Audio, and Auto fields.
 - **Stream constants**: `streamBufSize` and `ffmpegShutdownTimeout` live in `stream.go`, not `handlers.go`.
 - **Toast constants**: `toastAudioChanged`, `toastGestureToggled`, `toastAutoToggled` in `handlers.go`.
@@ -238,6 +243,10 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Audio toast shows mode name**: Web UI shows "Audio: nc" instead of generic "Audio mode changed".
 - **Temp state file cleanup**: `loadState()` removes leftover `.tmp` files from crashed writes.
 - **justfile removed**: Deprecated in favor of flake.nix. No justfile in the project.
+- **PTZ success toasts suppressed**: `handlePTZ` passes empty toast on success to avoid visual spam during slider drag. Error toasts still shown.
+- **`TestAutoManage_NoDevice_Returns` skips when device present**: Detects real hardware via `probeVideo4linux()` and `t.Skip()` if found.
+- **No `init()` functions**: All `init()` functions eliminated. Metrics registration is lazy via `sync.Once` in `registerMetrics()`, called from `NewDaemon()` and `updateMetrics()`.
+- **`handleHealth` uses typed struct**: `healthResponse` struct with `json.Marshal` instead of `fmt.Fprintf` JSON template — proper escaping.
 
 ### External Libraries Considered
 
