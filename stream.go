@@ -20,10 +20,7 @@ const (
 )
 
 func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
-	s.daemon.lastFrame.RLock()
-	frame := s.daemon.lastFrame.data
-	s.daemon.lastFrame.RUnlock()
-
+	frame := s.daemon.lastFrame.Get()
 	if len(frame) == 0 {
 		http.Error(responseWriter, "no frame available", http.StatusServiceUnavailable)
 
@@ -123,9 +120,7 @@ func (s *webServer) handleStream(
 			return
 		}
 
-		s.daemon.lastFrame.Lock()
-		s.daemon.lastFrame.data = frame
-		s.daemon.lastFrame.Unlock()
+		s.daemon.lastFrame.Set(frame)
 
 		_, headerErr := fmt.Fprintf(
 			responseWriter,

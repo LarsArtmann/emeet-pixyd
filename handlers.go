@@ -94,23 +94,16 @@ func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
 	}
 	dev := status.Device
 
-	now := time.Now()
-	s.daemon.ptzCache.mu.RLock()
-	if now.Before(s.daemon.ptzCache.expiresAt) {
-		status.Pan = s.daemon.ptzCache.values.Pan
-		status.Tilt = s.daemon.ptzCache.values.Tilt
-		status.Zoom = s.daemon.ptzCache.values.Zoom
-		s.daemon.ptzCache.mu.RUnlock()
+	if values, valid := s.daemon.ptzCache.Get(); valid {
+		status.Pan = values.Pan
+		status.Tilt = values.Tilt
+		status.Zoom = values.Zoom
 
 		return status
 	}
-	s.daemon.ptzCache.mu.RUnlock()
 
 	ptz := parsePTZValues(ctx, dev)
-	s.daemon.ptzCache.mu.Lock()
-	s.daemon.ptzCache.values = ptz
-	s.daemon.ptzCache.expiresAt = now.Add(ptzCacheTTL)
-	s.daemon.ptzCache.mu.Unlock()
+	s.daemon.ptzCache.Set(ptz, ptzCacheTTL)
 
 	status.Pan = ptz.Pan
 	status.Tilt = ptz.Tilt
@@ -285,9 +278,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 }
 
 func (s *webServer) invalidatePTZCache() {
-	s.daemon.ptzCache.mu.Lock()
-	s.daemon.ptzCache.expiresAt = time.Time{}
-	s.daemon.ptzCache.mu.Unlock()
+	s.daemon.ptzCache.Invalidate()
 }
 
 func ptzAxisLabel(axis string) string {

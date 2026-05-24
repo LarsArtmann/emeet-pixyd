@@ -37,16 +37,9 @@ type Daemon struct {
 	debounceIdle  int
 	lastSyncedAt  time.Time
 
-	lastFrame struct {
-		sync.RWMutex
-		data []byte
-	}
+	lastFrame lastFrameCache
 
-	ptzCache struct {
-		mu        sync.RWMutex
-		values    pixy.PTZValues
-		expiresAt time.Time
-	}
+	ptzCache ptzCache
 
 	streamSema chan struct{}
 

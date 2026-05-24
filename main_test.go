@@ -41,8 +41,6 @@ func defaultTestConfig(dir string) pixy.Config {
 	}
 }
 
-
-
 type testDaemonOption func(*Daemon)
 
 func withInCall(inCall bool) testDaemonOption {
