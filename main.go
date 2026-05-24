@@ -80,6 +80,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.v4l2SetFn = v4l2Set
 	d.state.AutoMode = cfg.AutoMode
 	d.state.Audio = cfg.DefaultAudio
+	registerMetrics()
 	d.loadState()
 	d.applyProbeResult(probeDevices())
 

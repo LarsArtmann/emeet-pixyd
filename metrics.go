@@ -20,18 +20,11 @@ var (
 	metricInCall      metric.Float64Gauge
 	metricAutoMode    metric.Float64Gauge
 	metricCameraState metric.Float64Gauge
+	metricsRegistered sync.Once
 )
 
-//nolint:gochecknoglobals
-var metricsOnce sync.Once
-
-//nolint:gochecknoinits
-func init() {
-	registerMetrics()
-}
-
 func registerMetrics() {
-	metricsOnce.Do(func() {
+	metricsRegistered.Do(func() {
 		var err error
 		promExporter, err = prometheus.New(
 			prometheus.WithoutScopeInfo(),
@@ -65,6 +58,7 @@ func registerMetrics() {
 }
 
 func updateMetrics(state pixy.State) {
+	registerMetrics()
 	ctx := context.Background()
 	if state.InCall {
 		metricInCall.Record(ctx, 1)
