@@ -41,11 +41,7 @@ func defaultTestConfig(dir string) pixy.Config {
 	}
 }
 
-func testConfig(dir string) pixy.Config {
-	cfg := defaultTestConfig(dir)
-	cfg.WebAddr = testWebAddr
-	return cfg
-}
+func testConfig(dir string) pixy.Config { return defaultTestConfig(dir) }
 
 type testDaemonOption func(*Daemon)
 
@@ -139,7 +135,6 @@ func withFindSource(id string) testDaemonOption {
 func withConfig(dir string) testDaemonOption {
 	return func(d *Daemon) {
 		d.config = defaultTestConfig(dir)
-		d.config.WebAddr = "127.0.0.1:0"
 	}
 }
 
@@ -151,9 +146,7 @@ func withAudioState(mode pixy.AudioMode) testDaemonOption {
 	return func(d *Daemon) { d.state.Audio = mode }
 }
 
-func withTestConfig(tmpDir string) testDaemonOption {
-	return func(d *Daemon) { d.config = testConfig(tmpDir) }
-}
+
 
 func noopFindSourceFn(context.Context) (pixy.SourceID, error) { return pixy.SourceID{}, nil }
 
