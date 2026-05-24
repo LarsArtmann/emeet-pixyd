@@ -267,7 +267,6 @@ const testStateDir = "/tmp/test"
 func TestConfig_StateFile(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	c := Config{StateDir: testStateDir}
 
 	want := testStateDir + "/state.json"
@@ -279,7 +278,6 @@ func TestConfig_StateFile(t *testing.T) {
 func TestConfig_SocketPath(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	c := Config{StateDir: testStateDir}
 
 	want := testStateDir + "/control.sock"
@@ -354,7 +352,6 @@ func TestSendCommand_EndToEnd(t *testing.T) {
 func TestConfigValidate(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	valid := Config{
 		StateDir:      testStateDir,
 		PollInterval:  time.Second,

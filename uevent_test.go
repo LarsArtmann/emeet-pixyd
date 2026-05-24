@@ -35,29 +35,29 @@ func TestParseUevent(t *testing.T) {
 		{
 			name:  "empty input",
 			input: "",
-			//nolint:exhaustruct
+
 			want: uevent{},
 		},
 		{
 			name:  "no equals sign",
 			input: "GARBAGE\nANOTHER",
-			//nolint:exhaustruct
+
 			want: uevent{},
 		},
 		{
 			name:  "partial keys only",
 			input: "ACTION=add\nMAJOR=81",
-			want:  uevent{Action: ueventAdd}, //nolint:exhaustruct
+			want:  uevent{Action: ueventAdd},
 		},
 		{
 			name:  "extra newlines",
 			input: "\nACTION=add\n\nSUBSYSTEM=hidraw\n\n",
-			want:  uevent{Action: ueventAdd, Subsys: "hidraw"}, //nolint:exhaustruct
+			want:  uevent{Action: ueventAdd, Subsys: "hidraw"},
 		},
 		{
 			name:  "value contains equals",
 			input: "ACTION=add\nDEVPATH=/path/with=equals",
-			want:  uevent{Action: "add", DevPath: "/path/with=equals"}, //nolint:exhaustruct
+			want:  uevent{Action: "add", DevPath: "/path/with=equals"},
 		},
 		{
 			name:  "change action ignored",
@@ -83,13 +83,11 @@ func TestIsRelevantUevent(t *testing.T) {
 	// The nolint suppresses exhaustruct warnings: test cases intentionally
 	// omit DevPath since isRelevantUevent only inspects Action and Subsys.
 	ueventCase := func(action, subsys string) uevent {
-		//nolint:exhaustruct
 		return uevent{Action: action, Subsys: subsys}
 	}
 	// ueventCaseEmpty returns an empty uevent, suppressing the exhaustruct warning
 	// for intentionally partial struct literals in tests.
 	ueventCaseEmpty := func() uevent {
-		//nolint:exhaustruct
 		return uevent{}
 	}
 	tests := []struct {

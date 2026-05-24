@@ -76,7 +76,7 @@ main() → NewDaemon() → Run()
 | File               | Purpose                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
-| `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`             |
+| `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, web UI                                                                                                            |
 | `metrics.go`       | OTel metrics registration, `updateMetrics()`, `init()`                                                                                        |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |

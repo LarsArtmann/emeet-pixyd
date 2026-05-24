@@ -659,7 +659,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 	daemon.state.InCall = true
 	webSrv := &webServer{daemon: daemon}
 	status := webSrv.getWebStatus()
-	//nolint:exhaustruct
+
 	assertWebStatusField(t, status, webStatusCheck{
 		Camera: ptr(pixy.StateTracking),
 

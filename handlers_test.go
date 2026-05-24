@@ -247,7 +247,6 @@ func TestPTZAxisUnit(t *testing.T) {
 func TestPTZAxisValue(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	status := webStatus{PTZValues: pixy.PTZValues{Pan: -10, Tilt: 5, Zoom: 200}}
 	if got := ptzAxisValue(axisPan, status); got != -10 {
 		t.Errorf("pan value = %d, want -10", got)
@@ -525,7 +524,6 @@ func TestLoggingMiddleware_DefaultStatusOK(t *testing.T) {
 func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()
 
-	//nolint:exhaustruct
 	state := pixy.State{
 		Camera:   pixy.StateTracking,
 		Audio:    pixy.AudioNC,
@@ -545,7 +543,6 @@ func TestUpdateMetrics(t *testing.T) {
 		requireGaugeValue(t, "emeet_pixyd_camera_state", want, attribute.String("state", string(s)))
 	}
 
-	//nolint:exhaustruct
 	updateMetrics(pixy.State{
 		Camera:   pixy.StatePrivacy,
 		InCall:   false,

@@ -462,7 +462,6 @@ func TestActionToast_UnknownCommand(t *testing.T) {
 func TestApplyResponseToStatus_Error(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus("error: pan: bad", &status, "ignored", toastTypeError)
 	if status.Error == "" {
@@ -479,7 +478,6 @@ func TestApplyResponseToStatus_Error(t *testing.T) {
 func TestApplyResponseToStatus_Success(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus(respTrackingOn, &status, "Tracking enabled", toastTypeSuccess)
 	if status.Error != "" {
@@ -496,7 +494,6 @@ func TestApplyResponseToStatus_Success(t *testing.T) {
 func TestApplyResponseToStatus_InfoToast(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus("ok", &status, "Toggled", toastTypeInfo)
 	if status.ToastType != toastTypeInfo {
@@ -507,7 +504,6 @@ func TestApplyResponseToStatus_InfoToast(t *testing.T) {
 func TestApplyResponseToStatus_ErrorOverridesToast(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct
 	status := webStatus{}
 	applyResponseToStatus("error: something failed", &status, "Success msg", toastTypeSuccess)
 	if status.Error == "" {
@@ -603,7 +599,8 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
-	d := newTestDaemon(pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7",
+	d := newTestDaemon(
+		pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 
@@ -618,7 +615,8 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7",
+	d := newTestDaemon(
+		pixy.StateTracking, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 
@@ -633,7 +631,8 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
-	d := newTestDaemon(pixy.StateIdle, "/dev/video0", "/dev/hidraw7",
+	d := newTestDaemon(
+		pixy.StateIdle, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 
