@@ -248,7 +248,7 @@ func TestPTZAxisValue(t *testing.T) {
 	t.Parallel()
 
 	//nolint:exhaustruct
-	status := webStatus{Pan: -10, Tilt: 5, Zoom: 200}
+	status := webStatus{PTZValues: pixy.PTZValues{Pan: -10, Tilt: 5, Zoom: 200}}
 	if got := ptzAxisValue(axisPan, status); got != -10 {
 		t.Errorf("pan value = %d, want -10", got)
 	}

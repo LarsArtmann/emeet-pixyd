@@ -5,12 +5,10 @@ package main
 import "github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 
 type webStatus struct {
+	pixy.PTZValues
 	Camera     pixy.CameraState
 	Audio      pixy.AudioMode
 	Gesture    bool
-	Pan        int
-	Tilt       int
-	Zoom       int
 	InCall     bool
 	Auto       pixy.AutoMode
 	Online     bool

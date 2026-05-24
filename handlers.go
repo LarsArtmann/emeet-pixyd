@@ -68,12 +68,10 @@ func (s *webServer) getWebStatus() webStatus {
 	defer s.daemon.mu.RUnlock()
 	//nolint:exhaustruct
 	status := webStatus{
+		PTZValues:  pixy.PTZValues{},
 		Camera:     s.daemon.state.Camera,
 		Audio:      s.daemon.state.Audio,
 		Gesture:    s.daemon.state.Gesture,
-		Pan:        0,
-		Tilt:       0,
-		Zoom:       0,
 		InCall:     s.daemon.state.InCall,
 		Auto:       s.daemon.state.AutoMode,
 		Online:     s.daemon.videoDev != "",
