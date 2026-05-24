@@ -657,3 +657,55 @@ func TestHandleMutatingCommand_Unknown(t *testing.T) {
 		t.Errorf("expected unknown command response, got: %s", resp)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// handleCommand routing tests (query vs mutating)
+// ---------------------------------------------------------------------------
+
+func TestHandleCommand_QueryNoLock(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	tests := []struct {
+		cmd    string
+		substr string
+	}{
+		{cmdVersion, "emeet-pixyd "},
+		{cmdWaybar, `"class"`},
+		{cmdDevice, respDeviceNotFound},
+		{cmdStatus, "camera="},
+	}
+	for _, tc := range tests {
+		t.Run(tc.cmd, func(t *testing.T) {
+			t.Parallel()
+
+			resp := d.handleCommand(context.Background(), tc.cmd)
+			assertCommandContains(t, resp, tc.substr, "response")
+		})
+	}
+}
+
+func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonWithDevice(pixy.StatePrivacy)
+	d.config = defaultTestConfig(t.TempDir())
+
+	resp := d.handleCommand(context.Background(), cmdAutoOff)
+	notError(t, resp)
+	assertAutoModeEquals(t, d, pixy.AutoOff)
+
+	resp = d.handleCommand(context.Background(), cmdAutoOn)
+	notError(t, resp)
+	assertAutoModeEquals(t, d, pixy.AutoFull)
+}
+
+func TestHandleCommand_EmptyCommandReturnsStatus(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleCommand(context.Background(), "")
+	assertCommandContains(t, resp, "camera=", "status response")
+}
