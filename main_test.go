@@ -203,6 +203,11 @@ func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 		findSourceFn:    noopFindSourceFn,
 		setSourceFn:     noopSetSourceFn,
 		notifyFn:        noopNotifyFn,
+		setTrackingFn:   func(_ context.Context, _ pixy.CameraState) error { return nil },
+		setAudioFn:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
+		setGestureFn:    func(_ context.Context, _ bool) error { return nil },
+		centerCameraFn:  func(_ context.Context) error { return nil },
+		v4l2SetFn:       func(_ context.Context, _, _, _ string) error { return nil },
 	}
 }
 
@@ -226,6 +231,9 @@ func newTestDaemon(
 			PollInterval:  2 * time.Second,
 			DebounceCount: 3,
 			WebAddr:       "127.0.0.1:0",
+			AutoMode:      pixy.AutoFull,
+			DefaultAudio:  pixy.AudioNC,
+			Debug:         false,
 		},
 		videoDev:        videoDev,
 		hidrawDev:       hidrawDev,
