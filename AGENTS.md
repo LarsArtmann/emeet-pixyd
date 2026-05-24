@@ -142,7 +142,7 @@ Daemon uses function fields for external dependencies, enabling test injectabili
 ### Concurrency Model
 
 - `Daemon.mu` (`sync.RWMutex`) — protects `state`, `videoDev`, `hidrawDev`, debounce counters
-- `Daemon.cmdMu` (`sync.Mutex`) — serializes commands (prevents concurrent HID writes)
+- `Daemon.cmdMu` (`sync.Mutex`) — serializes **mutating** commands only (track, idle, privacy, toggle-privacy, audio, gesture, center, auto, PTZ). Query commands (waybar, version, sync, probe, device, status) bypass cmdMu for concurrent read access.
 - `Daemon.streamSema` (chan, cap 1) — limits to one MJPEG stream
 - `Daemon.lastFrame` — has its own `sync.RWMutex`
 - `Daemon.ptzCache` — has its own `sync.RWMutex`, 2-second TTL
@@ -238,6 +238,11 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **Audio toast shows mode name**: Web UI shows "Audio: nc" instead of generic "Audio mode changed".
 - **Temp state file cleanup**: `loadState()` removes leftover `.tmp` files from crashed writes.
 - **justfile removed**: Deprecated in favor of flake.nix. No justfile in the project.
+
+### External Libraries Considered
+
+- **`cqrs-htmx`** (same author): Server-side CQRS + HTMX wiring library. Evaluated for reuse — not adopted because emeet-pixyd has no CQRS pattern, no auth, no sessions, no CSRF needs. The few overlapping utilities (security headers, Chain, WriteJSON) are trivial and already exist in `middleware.go`. Importing would pull ~30 transitive deps (Casbin, gorilla/csrf, go-cqrs-lite) for zero used features.
+- **`templ-components`** (same author): Tailwind CSS component library for templ. Not adopted because emeet-pixyd uses hand-crafted custom CSS (glass morphism dark theme with CSS variables), not Tailwind. The UI is a purpose-built hardware control panel with 6 cards — generic component library overhead is unjustified.
 
 ---
 
