@@ -41,7 +41,7 @@ func defaultTestConfig(dir string) pixy.Config {
 	}
 }
 
-func testConfig(dir string) pixy.Config { return defaultTestConfig(dir) }
+
 
 type testDaemonOption func(*Daemon)
 
@@ -353,7 +353,7 @@ func TestStateDefaults(t *testing.T) {
 func TestStateSaveLoad(t *testing.T) {
 	t.Parallel()
 
-	cfg := testConfig(t.TempDir())
+	cfg := defaultTestConfig(t.TempDir())
 
 	d := &Daemon{
 		mu:     sync.RWMutex{},
@@ -417,7 +417,7 @@ func TestStateSaveLoad(t *testing.T) {
 func TestStateFileCorrupt(t *testing.T) {
 	t.Parallel()
 
-	cfg := testConfig(t.TempDir())
+	cfg := defaultTestConfig(t.TempDir())
 
 	err := os.WriteFile(cfg.StateFile(), []byte("not json"), pixy.PermissionStateFile)
 	if err != nil {
@@ -436,7 +436,7 @@ func TestStateFileCorrupt(t *testing.T) {
 func TestStateFileMissing(t *testing.T) {
 	t.Parallel()
 
-	cfg := testConfig("/nonexistent")
+	cfg := defaultTestConfig("/nonexistent")
 	d := testDaemonNoDevice()
 	d.config = cfg
 	d.loadState()
@@ -470,7 +470,7 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonWithDevice(pixy.StatePrivacy)
-	d.config = testConfig(t.TempDir())
+	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), "auto-off")
 	if result != respAutoModeOff {
@@ -812,7 +812,7 @@ func TestHandleCommandSyncWithDevice(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonWithDevice(pixy.StatePrivacy)
-	d.config = testConfig(t.TempDir())
+	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), cmdSync)
 	if IsCommandErrorResponse(result) {

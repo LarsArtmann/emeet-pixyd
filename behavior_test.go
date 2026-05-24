@@ -336,7 +336,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	cfg := testConfig(dir)
+	cfg := defaultTestConfig(dir)
 
 	// Given a daemon with specific state
 	original := pixy.State{
