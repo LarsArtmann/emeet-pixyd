@@ -1,6 +1,6 @@
 module github.com/LarsArtmann/emeet-pixyd
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/a-h/templ v0.3.1020
@@ -23,6 +23,8 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/larsartmann/go-error-family v0.1.1 // indirect
+	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect

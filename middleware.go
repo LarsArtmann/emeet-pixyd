@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 	"time"
+
+	"github.com/larsartmann/httputil"
 )
 
 type cachingFS struct {
@@ -65,10 +66,7 @@ func Chain(
 	h http.Handler,
 	mws ...func(http.Handler) http.Handler,
 ) http.Handler {
-	for _, v := range slices.Backward(mws) {
-		h = v(h)
-	}
-	return h
+	return httputil.Chain(h, mws...)
 }
 
 func requestIDMiddleware(next http.Handler) http.Handler {
