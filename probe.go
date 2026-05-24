@@ -135,13 +135,28 @@ func probeHidraw(sysfsPath string) string {
 	return ""
 }
 
-func (d *Daemon) probeDevices() {
-	d.videoDev = probeVideo4linux("/sys/class/video4linux")
-	d.hidrawDev = probeHidraw("/sys/class/hidraw")
+type probeResult struct {
+	VideoDev  string
+	HidrawDev string
+}
 
-	if d.videoDev != "" && d.hidrawDev != "" {
-		slog.Info("found PIXY device", "video", d.videoDev, "hidraw", d.hidrawDev)
+func probeDevices() probeResult {
+	result := probeResult{
+		VideoDev:  probeVideo4linux("/sys/class/video4linux"),
+		HidrawDev: probeHidraw("/sys/class/hidraw"),
+	}
+	if result.VideoDev != "" && result.HidrawDev != "" {
+		slog.Info("found PIXY device", "video", result.VideoDev, "hidraw", result.HidrawDev)
+	}
 
+	return result
+}
+
+func (d *Daemon) applyProbeResult(r probeResult) {
+	d.videoDev = r.VideoDev
+	d.hidrawDev = r.HidrawDev
+
+	if r.VideoDev != "" && r.HidrawDev != "" {
 		if d.state.Camera == pixy.StateOffline {
 			d.state.Camera = pixy.StatePrivacy
 		}

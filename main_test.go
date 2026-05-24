@@ -1368,7 +1368,7 @@ func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 			t.Parallel()
 
 			d := newTestDaemon(tc.initialCamera, "", "")
-			d.probeDevices()
+			d.applyProbeResult(probeDevices())
 
 			hasDev := d.videoDev != ""
 			isOffline := d.state.Camera == pixy.StateOffline

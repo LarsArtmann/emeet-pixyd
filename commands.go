@@ -109,7 +109,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string 
 
 	case cmdProbe:
 		d.mu.Lock()
-		d.probeDevices()
+		d.applyProbeResult(probeDevices())
 		dev := d.videoDev
 		d.mu.Unlock()
 

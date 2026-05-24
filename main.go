@@ -81,7 +81,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.state.AutoMode = cfg.AutoMode
 	d.state.Audio = cfg.DefaultAudio
 	d.loadState()
-	d.probeDevices()
+	d.applyProbeResult(probeDevices())
 
 	return d, nil
 }
@@ -102,7 +102,7 @@ func (d *Daemon) setDeviceState(
 	err := hidSend(hidrawDev, configBytes)
 	if err != nil {
 		d.mu.Lock()
-		d.probeDevices()
+		d.applyProbeResult(probeDevices())
 		d.mu.Unlock()
 
 		return fmt.Errorf("setDeviceState send config via %s: %w", hidrawDev, err)
@@ -574,7 +574,7 @@ func (d *Daemon) Run() {
 			d.cmdMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			d.probeDevices()
+			d.applyProbeResult(probeDevices())
 			newVideo := d.videoDev
 			d.mu.Unlock()
 			if oldVideo == "" && newVideo != "" {

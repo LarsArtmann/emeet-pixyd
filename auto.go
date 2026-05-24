@@ -72,7 +72,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 
 	if videoDev == "" {
 		d.mu.Lock()
-		d.probeDevices()
+		d.applyProbeResult(probeDevices())
 		videoDev = d.videoDev
 		d.mu.Unlock()
 
