@@ -166,7 +166,12 @@ templ statusPanel(s webStatus) {
 				></button>
 			</div>
 			<div class="toggle-row">
-				<span class="toggle-label" id="auto-label">Auto Mode</span>
+				<span class="toggle-label" id="auto-label">
+					Auto Mode
+					if !s.Auto.IsOff() {
+						<span class="meta">{ s.Auto.String() }</span>
+					}
+				</span>
 				<button
 					class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
 					hx-post="/api/auto"
@@ -198,7 +203,9 @@ templ statusPanel(s webStatus) {
 				<button class="btn" hx-post="/api/probe" hx-target="#status-panel" aria-label="Probe devices">&#x1F50D; Probe</button>
 			</div>
 			if s.LastSynced != "" {
-				<div class="last-synced">Last synced: { s.LastSynced }</div>
+				<div class="last-synced">Last synced: { s.LastSynced } · v{ s.Version }</div>
+			} else if s.Version != "" {
+				<div class="last-synced">v{ s.Version }</div>
 			}
 		</div>
 	</div>
