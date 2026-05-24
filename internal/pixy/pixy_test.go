@@ -540,3 +540,32 @@ func TestConfigFromEnv_InvalidAudioIgnored(t *testing.T) {
 		t.Errorf("DefaultAudio = %q, want default %q", cfg.DefaultAudio, AudioNC)
 	}
 }
+
+func TestPTZValues_Clamp(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		ptz  PTZValues
+		want PTZValues
+	}{
+		{"within limits", PTZValues{Pan: 0, Tilt: 0, Zoom: 200}, PTZValues{Pan: 0, Tilt: 0, Zoom: 200}},
+		{"pan over max", PTZValues{Pan: 500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMax, Tilt: 0, Zoom: 100}},
+		{"pan under min", PTZValues{Pan: -500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMin, Tilt: 0, Zoom: 100}},
+		{"tilt over max", PTZValues{Pan: 0, Tilt: 100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltMax, Zoom: 100}},
+		{"tilt under min", PTZValues{Pan: 0, Tilt: -100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltMin, Zoom: 100}},
+		{"zoom under min", PTZValues{Pan: 0, Tilt: 0, Zoom: 0}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomMin}},
+		{"zoom over max", PTZValues{Pan: 0, Tilt: 0, Zoom: 500}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomMax}},
+		{
+			"all clamped",
+			PTZValues{Pan: -999, Tilt: 999, Zoom: 999},
+			PTZValues{Pan: PanMin, Tilt: TiltMax, Zoom: ZoomMax},
+		},
+	}
+	for _, tc := range tests {
+		got := tc.ptz.Clamp()
+		if got != tc.want {
+			t.Errorf("%s: Clamp() = %+v, want %+v", tc.name, got, tc.want)
+		}
+	}
+}

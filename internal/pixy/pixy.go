@@ -265,6 +265,14 @@ type PTZValues struct {
 	Zoom int
 }
 
+func (p PTZValues) Clamp() PTZValues {
+	return PTZValues{
+		Pan:  max(PanMin, min(PanMax, p.Pan)),
+		Tilt: max(TiltMin, min(TiltMax, p.Tilt)),
+		Zoom: max(ZoomMin, min(ZoomMax, p.Zoom)),
+	}
+}
+
 // PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
 const (
 	PanMin  = -170
