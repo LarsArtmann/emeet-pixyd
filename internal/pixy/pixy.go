@@ -119,8 +119,9 @@ func (m AudioMode) Next() AudioMode {
 }
 
 // ParseAudioMode maps a CLI shorthand ("nc", "live", "org") to an AudioMode.
+// Input is case-insensitive.
 func ParseAudioMode(rawInput string) (AudioMode, error) {
-	switch rawInput {
+	switch strings.ToLower(strings.TrimSpace(rawInput)) {
 	case "nc":
 		return AudioNC, nil
 	case "live":
@@ -216,8 +217,9 @@ func ParseAutoMode(rawInput string) (AutoMode, error) {
 }
 
 // ParseCameraState maps a string to a CameraState.
+// Input is case-insensitive.
 func ParseCameraState(rawInput string) (CameraState, error) {
-	switch rawInput {
+	switch strings.ToLower(strings.TrimSpace(rawInput)) {
 	case string(StateIdle):
 		return StateIdle, nil
 	case string(StateTracking):

@@ -898,6 +898,8 @@ func TestParseAudioMode(t *testing.T) {
 		{audioModeLive, pixy.AudioLive, false},
 		{audioModeOrg, pixy.AudioOriginal, false},
 		{"original", pixy.AudioOriginal, false},
+		{"NC", pixy.AudioNC, false},
+		{"LIVE", pixy.AudioLive, false},
 		{testStrUnknown, "", true},
 		{"", "", true},
 	}
@@ -914,6 +916,8 @@ func TestParseCameraState(t *testing.T) {
 		{"offline", pixy.StateOffline, false},
 		{testStrUnknown, "", true},
 		{"", "", true},
+		{"PRIVACY", pixy.StatePrivacy, false},
+		{"Tracking", pixy.StateTracking, false},
 	}
 	runParseTests(t, "pixy.ParseCameraState", pixy.ParseCameraState, tests)
 }

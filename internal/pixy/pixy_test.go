@@ -142,8 +142,9 @@ func TestParseAudioMode(t *testing.T) {
 		{"org", AudioOriginal, false},
 		{"unknown", "", true},
 		{"", "", true},
-		{"NC", "", true},
-		{"ORIGINAL", "", true},
+		{"NC", AudioNC, false},
+		{"ORIGINAL", AudioOriginal, false},
+		{"Live", AudioLive, false},
 	}
 
 	for _, tc := range tests {
@@ -195,8 +196,9 @@ func TestParseCameraState(t *testing.T) {
 		{"offline", StateOffline, false},
 		{"unknown", "", true},
 		{"", "", true},
-		{"IDLE", "", true},
-		{"Offline", "", true},
+		{"IDLE", StateIdle, false},
+		{"Offline", StateOffline, false},
+		{"PRIVACY", StatePrivacy, false},
 	}
 
 	for _, tc := range tests {
