@@ -520,3 +520,141 @@ func TestApplyResponseToStatus_ErrorOverridesToast(t *testing.T) {
 		t.Error("ToastType should not be set when response is an error")
 	}
 }
+
+// ---------------------------------------------------------------------------
+// handleQueryCommand tests
+// ---------------------------------------------------------------------------
+
+func TestHandleQueryCommand_Version(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdVersion})
+	if !strings.HasPrefix(resp, "emeet-pixyd ") {
+		t.Errorf("expected version prefix, got: %s", resp)
+	}
+}
+
+func TestHandleQueryCommand_Waybar(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdWaybar})
+	if !strings.Contains(resp, `"class"`) {
+		t.Errorf("expected JSON with 'class' key, got: %s", resp)
+	}
+}
+
+func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
+	if resp != respDeviceNotFound {
+		t.Errorf("expected %q, got: %s", respDeviceNotFound, resp)
+	}
+}
+
+func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonWithDevice(pixy.StateTracking)
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
+	if !strings.Contains(resp, "/dev/video") {
+		t.Errorf("expected device path, got: %s", resp)
+	}
+}
+
+func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdSync})
+	if !IsCommandErrorResponse(resp) {
+		t.Errorf("expected error response for sync without device, got: %s", resp)
+	}
+}
+
+func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StateOffline, "", "")
+
+	resp := d.handleQueryCommand(context.Background(), []string{cmdProbe})
+	// probeDevices() scans real sysfs, so this test is flaky when a PIXY is connected.
+	if resp == respDeviceNotFound {
+		return
+	}
+	if !strings.Contains(resp, "/dev/video") {
+		t.Errorf("expected device path or %q, got: %s", respDeviceNotFound, resp)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// handleTogglePrivacy tests
+// ---------------------------------------------------------------------------
+
+func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
+	t.Parallel()
+
+	var stateArg pixy.CameraState
+	d := newTestDaemon(pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7",
+		withCaptureTracking(&stateArg),
+	)
+
+	resp := d.handleTogglePrivacy(context.Background())
+	notError(t, resp)
+	if stateArg != pixy.StateTracking {
+		t.Errorf("toggle from privacy should set tracking, got: %s", stateArg)
+	}
+}
+
+func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
+	t.Parallel()
+
+	var stateArg pixy.CameraState
+	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7",
+		withCaptureTracking(&stateArg),
+	)
+
+	resp := d.handleTogglePrivacy(context.Background())
+	notError(t, resp)
+	if stateArg != pixy.StatePrivacy {
+		t.Errorf("toggle from tracking should set privacy, got: %s", stateArg)
+	}
+}
+
+func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
+	t.Parallel()
+
+	var stateArg pixy.CameraState
+	d := newTestDaemon(pixy.StateIdle, "/dev/video0", "/dev/hidraw7",
+		withCaptureTracking(&stateArg),
+	)
+
+	resp := d.handleTogglePrivacy(context.Background())
+	notError(t, resp)
+	if stateArg != pixy.StatePrivacy {
+		t.Errorf("toggle from idle should set privacy, got: %s", stateArg)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// handleMutatingCommand tests
+// ---------------------------------------------------------------------------
+
+func TestHandleMutatingCommand_Unknown(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+
+	resp := d.handleMutatingCommand(context.Background(), []string{"unknown-cmd"})
+	if !strings.HasPrefix(resp, "unknown command:") {
+		t.Errorf("expected unknown command response, got: %s", resp)
+	}
+}
