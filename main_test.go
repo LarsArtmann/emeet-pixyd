@@ -1433,3 +1433,29 @@ func BenchmarkWaybarOutput(b *testing.B) {
 		d.waybarOutput()
 	}
 }
+
+func BenchmarkHandleCommand_Query(b *testing.B) {
+	d := testDaemonWithDevice(pixy.StateTracking)
+	b.ResetTimer()
+	for b.Loop() {
+		d.handleCommand(context.Background(), cmdWaybar)
+	}
+}
+
+func BenchmarkHandleCommand_Mutating(b *testing.B) {
+	d := testDaemonWithDevice(pixy.StatePrivacy)
+	d.config = defaultTestConfig(b.TempDir())
+	b.ResetTimer()
+	for b.Loop() {
+		d.handleCommand(context.Background(), cmdToggleAuto)
+	}
+}
+
+func BenchmarkGetWebStatus(b *testing.B) {
+	d := testDaemonWithDevice(pixy.StateTracking)
+	srv := &webServer{daemon: d}
+	b.ResetTimer()
+	for b.Loop() {
+		srv.getWebStatus()
+	}
+}
