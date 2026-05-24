@@ -50,15 +50,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func ptzAxisValid(axis string) bool {
-	switch axis {
-	case axisPan, axisTilt, axisZoom:
-		return true
-	default:
-		return false
-	}
-}
-
 func securityMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Referrer-Policy", "no-referrer")

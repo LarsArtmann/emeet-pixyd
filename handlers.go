@@ -222,16 +222,35 @@ func clampInt(v, lo, hi int) int {
 	return max(lo, min(hi, v))
 }
 
-func ptzLimits(axis string) (int, int) {
+type ptzAxisInfo struct {
+	Min   int
+	Max   int
+	Label string
+	Unit  string
+}
+
+//nolint:gochecknoglobals
+var ptzAxes = map[string]ptzAxisInfo{
+	axisPan:  {Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0"},
+	axisTilt: {Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0"},
+	axisZoom: {Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x"},
+}
+
+func ptzAxisValid(axis string) bool {
+	_, ok := ptzAxes[axis]
+	return ok
+}
+
+func ptzAxisValue(axis string, status webStatus) int {
 	switch axis {
 	case axisPan:
-		return pixy.PanMin, pixy.PanMax
+		return status.Pan
 	case axisTilt:
-		return pixy.TiltMin, pixy.TiltMax
+		return status.Tilt
 	case axisZoom:
-		return pixy.ZoomMin, pixy.ZoomMax
+		return status.Zoom
 	default:
-		return 0, 0
+		return 0
 	}
 }
 
@@ -254,8 +273,8 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 		http.Error(responseWriter, "invalid value", http.StatusBadRequest)
 		return
 	}
-	lo, hi := ptzLimits(axis)
-	intVal = clampInt(intVal, lo, hi)
+	info := ptzAxes[axis]
+	intVal = clampInt(intVal, info.Min, info.Max)
 	resp := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", resp)
 
@@ -263,7 +282,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 		status := s.getWebStatusWithPTZ(request.Context())
 		sliderVal := ptzAxisValue(axis, status)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-			ptzAxisLabel(axis), axis, lo, hi, sliderVal, ptzAxisUnit(axis),
+			info.Label, axis, info.Min, info.Max, sliderVal, info.Unit,
 			resp, toastTypeError,
 		)).ServeHTTP(responseWriter, request)
 		return
@@ -272,46 +291,13 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	s.invalidatePTZCache()
 
 	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-		ptzAxisLabel(axis), axis, lo, hi, intVal, ptzAxisUnit(axis),
-		fmt.Sprintf("%s set to %d", ptzAxisLabel(axis), intVal), toastTypeSuccess,
+		info.Label, axis, info.Min, info.Max, intVal, info.Unit,
+		fmt.Sprintf("%s set to %d", info.Label, intVal), toastTypeSuccess,
 	)).ServeHTTP(responseWriter, request)
 }
 
 func (s *webServer) invalidatePTZCache() {
 	s.daemon.ptzCache.Invalidate()
-}
-
-func ptzAxisLabel(axis string) string {
-	switch axis {
-	case axisPan:
-		return "Pan"
-	case axisTilt:
-		return "Tilt"
-	case axisZoom:
-		return "Zoom"
-	default:
-		return axis
-	}
-}
-
-func ptzAxisUnit(axis string) string {
-	if axis == axisZoom {
-		return "x"
-	}
-	return "\u00b0"
-}
-
-func ptzAxisValue(axis string, status webStatus) int {
-	switch axis {
-	case axisPan:
-		return status.Pan
-	case axisTilt:
-		return status.Tilt
-	case axisZoom:
-		return status.Zoom
-	default:
-		return 0
-	}
 }
 
 func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {

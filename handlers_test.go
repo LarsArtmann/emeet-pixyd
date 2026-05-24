@@ -220,26 +220,28 @@ func TestPTZAxisLabel(t *testing.T) {
 		{axisPan, "Pan"},
 		{axisTilt, "Tilt"},
 		{axisZoom, "Zoom"},
-		{"unknown", "unknown"},
 	}
 	for _, tc := range tests {
-		got := ptzAxisLabel(tc.axis)
+		got := ptzAxes[tc.axis].Label
 		if got != tc.want {
-			t.Errorf("ptzAxisLabel(%q) = %q, want %q", tc.axis, got, tc.want)
+			t.Errorf("ptzAxes[%q].Label = %q, want %q", tc.axis, got, tc.want)
 		}
+	}
+	if _, ok := ptzAxes["unknown"]; ok {
+		t.Error("unknown axis should not be in ptzAxes")
 	}
 }
 
 func TestPTZAxisUnit(t *testing.T) {
 	t.Parallel()
 
-	if got := ptzAxisUnit(axisPan); got != "\u00b0" {
+	if got := ptzAxes[axisPan].Unit; got != "\u00b0" {
 		t.Errorf("pan unit = %q, want °", got)
 	}
-	if got := ptzAxisUnit(axisTilt); got != "\u00b0" {
+	if got := ptzAxes[axisTilt].Unit; got != "\u00b0" {
 		t.Errorf("tilt unit = %q, want °", got)
 	}
-	if got := ptzAxisUnit(axisZoom); got != "x" {
+	if got := ptzAxes[axisZoom].Unit; got != "x" {
 		t.Errorf("zoom unit = %q, want x", got)
 	}
 }
@@ -290,24 +292,20 @@ func TestClampInt(t *testing.T) {
 func TestPTZLimits(t *testing.T) {
 	t.Parallel()
 
-	lo, hi := ptzLimits(axisPan)
-	if lo != pixy.PanMin || hi != pixy.PanMax {
-		t.Errorf("pan limits: got %d,%d, want %d,%d", lo, hi, pixy.PanMin, pixy.PanMax)
+	if info := ptzAxes[axisPan]; info.Min != pixy.PanMin || info.Max != pixy.PanMax {
+		t.Errorf("pan limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.PanMin, pixy.PanMax)
 	}
 
-	lo, hi = ptzLimits(axisTilt)
-	if lo != pixy.TiltMin || hi != pixy.TiltMax {
-		t.Errorf("tilt limits: got %d,%d, want %d,%d", lo, hi, pixy.TiltMin, pixy.TiltMax)
+	if info := ptzAxes[axisTilt]; info.Min != pixy.TiltMin || info.Max != pixy.TiltMax {
+		t.Errorf("tilt limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.TiltMin, pixy.TiltMax)
 	}
 
-	lo, hi = ptzLimits(axisZoom)
-	if lo != pixy.ZoomMin || hi != pixy.ZoomMax {
-		t.Errorf("zoom limits: got %d,%d, want %d,%d", lo, hi, pixy.ZoomMin, pixy.ZoomMax)
+	if info := ptzAxes[axisZoom]; info.Min != pixy.ZoomMin || info.Max != pixy.ZoomMax {
+		t.Errorf("zoom limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.ZoomMin, pixy.ZoomMax)
 	}
 
-	lo, hi = ptzLimits("unknown")
-	if lo != 0 || hi != 0 {
-		t.Errorf("unknown axis: got %d,%d, want 0,0", lo, hi)
+	if _, ok := ptzAxes["unknown"]; ok {
+		t.Error("unknown axis should not be in ptzAxes")
 	}
 }
 

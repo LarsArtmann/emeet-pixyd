@@ -277,13 +277,16 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 
 	axis := parts[0]
 
-	lo, hi := ptzLimits(axis)
+	info, ok := ptzAxes[axis]
+	if !ok {
+		return fmt.Sprintf("usage: %s <value>", parts[0])
+	}
 	val, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return (&CommandError{Op: axis, Err: fmt.Errorf("%w: parse error", ErrInvalidValue)}).Error()
 	}
 
-	val = clampInt(val, lo, hi)
+	val = clampInt(val, info.Min, info.Max)
 
 	multiplier := v4l2DegreesPerUnit
 	if axis == axisZoom {
