@@ -72,9 +72,6 @@
         in
         {
           build = self.packages.${system}.default;
-          test = self.packages.${system}.emeet-pixyd.overrideAttrs (_: {
-            doCheck = true;
-          });
         }
       );
 

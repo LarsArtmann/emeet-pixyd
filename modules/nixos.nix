@@ -111,9 +111,7 @@ in
           ];
           MemoryMax = "256M";
 
-          Environment = lib.concatStringsSep " " (
-            lib.mapAttrsToList (k: v: "${k}=${v}") envVars
-          );
+          Environment = lib.concatStringsSep " " (lib.mapAttrsToList (k: v: "${k}=${v}") envVars);
         };
 
       path = [

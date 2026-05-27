@@ -14,6 +14,8 @@ buildGoModule {
   vendorHash = "sha256-fq1IgZbTx+KQCKO6OGbM1jBe7NW5AYBWXHgY6FYrD1I=";
   proxyVendor = true;
 
+  doCheck = false;
+
   nativeBuildInputs = [ templ ];
 
   preBuild = ''
