@@ -2,11 +2,9 @@
   lib,
   buildGoModule,
   src,
+  version,
   templ,
 }:
-let
-  version = "0.3.0";
-in
 buildGoModule {
   pname = "emeet-pixyd";
   inherit version;

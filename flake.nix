@@ -17,22 +17,38 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-      srcFilter =
-        path: _type:
-        let
-          b = baseNameOf path;
-        in
-        !(
-          nixpkgs.lib.hasSuffix "_test.go" b
-          || nixpkgs.lib.hasSuffix "_fuzz_test.go" b
-          || b == "package.nix"
-          || b == "flake.nix"
-          || b == "flake.lock"
-          || b == "coverage.out"
-          || b == "docs"
-          || b == ".github"
-          || b == "vendor"
-        );
+      version = self.ref or self.dirtyRef or "dev";
+
+      sourceFiles = nixpkgs.lib.fileset.unions [
+        ./go.mod
+        ./go.sum
+        ./main.go
+        ./auto.go
+        ./cache.go
+        ./commands.go
+        ./errors.go
+        ./handlers.go
+        ./hid.go
+        ./main.go
+        ./metrics.go
+        ./middleware.go
+        ./probe.go
+        ./process.go
+        ./state.go
+        ./stream.go
+        ./templates.templ
+        ./uevent.go
+        ./uevent_linux.go
+        ./v4l2.go
+        ./web_types.go
+        ./internal
+        ./static
+      ];
+
+      src = nixpkgs.lib.fileset.toSource {
+        root = ./.;
+        fileset = sourceFiles;
+      };
     in
     {
       packages = forAllSystems (
@@ -42,27 +58,30 @@
         in
         {
           emeet-pixyd = pkgs.callPackage ./package.nix {
-            src = pkgs.lib.cleanSourceWith {
-              filter = srcFilter;
-              src = ./.;
-            };
-            inherit (pkgs) templ;
+            inherit src version;
+            templ = pkgs.templ;
           };
           default = self.packages.${system}.emeet-pixyd;
         }
       );
 
-      checks = forAllSystems (system: {
-        build = self.packages.${system}.default;
-      });
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          build = self.packages.${system}.default;
+          test = self.packages.${system}.emeet-pixyd.overrideAttrs (_: {
+            doCheck = true;
+          });
+        }
+      );
 
       overlays.default = _final: prev: {
         emeet-pixyd = prev.callPackage ./package.nix {
-          src = prev.lib.cleanSourceWith {
-            filter = srcFilter;
-            src = self;
-          };
-          inherit (prev) templ;
+          inherit src version;
+          templ = prev.templ;
         };
       };
 
@@ -81,11 +100,11 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          default = pkgs.mkShell {
-            packages = with pkgs; [
-              go_1_26
-              golangci-lint
-              templ
+          default = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.go_1_26
+              pkgs.golangci-lint
+              pkgs.templ
             ];
 
             GOWORK = "off";
