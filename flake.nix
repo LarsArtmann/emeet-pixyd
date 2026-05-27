@@ -17,7 +17,7 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
-      version = self.ref or self.dirtyRef or "dev";
+      version = self.shortRev or self.dirtyRev or "dev";
 
       sourceFiles = nixpkgs.lib.fileset.unions [
         ./go.mod
@@ -29,7 +29,6 @@
         ./errors.go
         ./handlers.go
         ./hid.go
-        ./main.go
         ./metrics.go
         ./middleware.go
         ./probe.go
