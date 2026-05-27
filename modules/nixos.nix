@@ -11,6 +11,8 @@ in
   options.hardware.emeet-pixy = {
     enable = lib.mkEnableOption "EMEET PIXY webcam auto-activation daemon";
 
+    package = lib.mkPackageOption pkgs "emeet-pixyd" { };
+
     user = lib.mkOption {
       type = lib.types.str;
       default = "lars";
@@ -93,7 +95,7 @@ in
         in
         {
           Type = "notify";
-          ExecStart = "${pkgs.emeet-pixyd}/bin/emeet-pixyd";
+          ExecStart = lib.getExe cfg.package;
           Restart = "on-failure";
           RestartSec = "3";
           WatchdogSec = "30";
@@ -109,7 +111,9 @@ in
           ];
           MemoryMax = "256M";
 
-          Environment = lib.concatStringsSep " " (lib.mapAttrsToList (k: v: "${k}=${v}") envVars);
+          Environment = lib.concatStringsSep " " (
+            lib.mapAttrsToList (k: v: "${k}=${v}") envVars
+          );
         };
 
       path = [
