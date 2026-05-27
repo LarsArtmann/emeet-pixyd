@@ -8,14 +8,14 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-branded-id v0.1.0
-	github.com/larsartmann/httputil v0.0.0-20260524205403-4a82791db46e
+	github.com/larsartmann/go-branded-id v0.3.0
+	github.com/larsartmann/httputil v0.0.0-20260526092845-4c4df6dce62d
 	github.com/prometheus/client_golang v1.23.2
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.65.0
 	go.opentelemetry.io/otel/metric v1.43.0
 	go.opentelemetry.io/otel/sdk/metric v1.43.0
-	golang.org/x/sys v0.44.0
+	golang.org/x/sys v0.45.0
 )
 
 require (
@@ -24,7 +24,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.1.1 // indirect
+	github.com/larsartmann/go-error-family v0.2.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
