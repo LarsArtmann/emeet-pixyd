@@ -514,6 +514,31 @@ func TestLoggingMiddleware_DefaultStatusOK(t *testing.T) {
 	}
 }
 
+func TestLoggingMiddleware_Flusher(t *testing.T) {
+	t.Parallel()
+
+	var flushed bool
+	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		f, ok := w.(http.Flusher)
+		if !ok {
+			t.Error("responseWriter should implement http.Flusher")
+			return
+		}
+		_, _ = w.Write([]byte("chunk"))
+		f.Flush()
+		flushed = true
+	})
+
+	handler := loggingMiddleware(inner)
+	req := httptest.NewRequestWithContext(context.Background(), "GET", "/stream", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if !flushed {
+		t.Error("Flush() should delegate to underlying ResponseWriter")
+	}
+}
+
 //nolint:paralleltest
 func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()
