@@ -22,9 +22,9 @@ templ page(s webStatus) {
 				<header>
 					<h1>EMEET PIXY</h1>
 					if s.Online {
-						<span class="header-badge" style="background:rgba(63,185,80,0.15);color:var(--green)">Online</span>
+						<span class="header-badge header-badge-online">Online</span>
 					} else {
-						<span class="header-badge" style="background:rgba(248,81,73,0.15);color:var(--red)">Offline</span>
+						<span class="header-badge header-badge-offline">Offline</span>
 					}
 				</header>
 				<div class="grid">
@@ -131,7 +131,7 @@ templ statusPanel(s webStatus) {
 		if s.Error != "" {
 			<div class="error-banner" role="alert">{ s.Error }</div>
 		}
-		<div class="card" style="margin-bottom:1rem">
+		<div class="card">
 			<div class="card-title">Camera</div>
 			@stateIndicator("state", string(s.Camera))
 			<div class="btn-group">
@@ -140,7 +140,7 @@ templ statusPanel(s webStatus) {
 				@cameraBtn("btn-red", "/api/privacy", "Privacy", "P", "Enable privacy", s.Camera == pixy.StatePrivacy, s.Online)
 			</div>
 		</div>
-		<div class="card" style="margin-bottom:1rem">
+		<div class="card">
 			<div class="card-title">Audio Mode</div>
 			@stateIndicator("audio", string(s.Audio))
 			<div class="btn-group">
@@ -149,7 +149,7 @@ templ statusPanel(s webStatus) {
 				@audioBtn("", "org", "Original", "Original audio", s.Audio == pixy.AudioOriginal, s.Online)
 			</div>
 		</div>
-		<div class="card" style="margin-bottom:1rem">
+		<div class="card">
 			<div class="card-title">Settings</div>
 			<div class="toggle-row">
 				<span class="toggle-label" id="gesture-label">Gesture Control</span>
@@ -182,13 +182,13 @@ templ statusPanel(s webStatus) {
 				></button>
 			</div>
 			if s.InCall {
-				<div class="meta" style="margin-top:0.5rem">
-					<span style="color:var(--green)">&#x25CF; In call</span>
+				<div class="meta meta-call">
+					<span>&#x25CF; In call</span>
 				</div>
 			}
 		</div>
 		if s.Online {
-			<div class="card" style="margin-bottom:1rem">
+			<div class="card">
 				<div class="card-title">PTZ</div>
 				@ptzSlider("Pan", "pan", pixy.PanMin, pixy.PanMax, s.Pan, "&#176;")
 				@ptzSlider("Tilt", "tilt", pixy.TiltMin, pixy.TiltMax, s.Tilt, "&#176;")
