@@ -19,32 +19,22 @@
 
       version = self.shortRev or self.dirtyRev or "dev";
 
-      sourceFiles = nixpkgs.lib.fileset.unions [
-        ./go.mod
-        ./go.sum
-        ./main.go
-        ./auto.go
-        ./cache.go
-        ./commands.go
-        ./errors.go
-        ./handlers.go
-        ./hid.go
-        ./metrics.go
-        ./middleware.go
-        ./probe.go
-        ./process.go
-        ./state.go
-        ./stream.go
-        ./templates.templ
-        ./uevent.go
-        ./uevent_linux.go
-        ./v4l2.go
-        ./web_types.go
-        ./internal
+      lib = nixpkgs.lib;
+
+      sourceFiles = lib.fileset.unions [
+        (lib.fileset.fileFilter
+          (file:
+            (lib.hasSuffix ".go" file.name && !lib.hasSuffix "_test.go" file.name)
+            || lib.hasSuffix ".mod" file.name
+            || lib.hasSuffix ".sum" file.name
+            || lib.hasSuffix ".templ" file.name
+          )
+          ./.
+        )
         ./static
       ];
 
-      src = nixpkgs.lib.fileset.toSource {
+      src = lib.fileset.toSource {
         root = ./.;
         fileset = sourceFiles;
       };
@@ -87,6 +77,10 @@
         default = {
           type = "app";
           program = "${self.packages.${system}.default}/bin/emeet-pixyd";
+          meta = {
+            mainProgram = "emeet-pixyd";
+            description = "EMEET PIXY webcam auto-activation daemon";
+          };
         };
       });
 

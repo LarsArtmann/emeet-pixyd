@@ -15,7 +15,6 @@ in
 
     user = lib.mkOption {
       type = lib.types.str;
-      default = "lars";
       description = ''
         User that owns the runtime state directory (/run/emeet-pixyd).
         Must match the user running the graphical session, since the
