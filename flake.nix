@@ -22,15 +22,13 @@
       lib = nixpkgs.lib;
 
       sourceFiles = lib.fileset.unions [
-        (lib.fileset.fileFilter
-          (file:
-            (lib.hasSuffix ".go" file.name && !lib.hasSuffix "_test.go" file.name)
-            || lib.hasSuffix ".mod" file.name
-            || lib.hasSuffix ".sum" file.name
-            || lib.hasSuffix ".templ" file.name
-          )
-          ./.
-        )
+        (lib.fileset.fileFilter (
+          file:
+          (lib.hasSuffix ".go" file.name && !lib.hasSuffix "_test.go" file.name)
+          || lib.hasSuffix ".mod" file.name
+          || lib.hasSuffix ".sum" file.name
+          || lib.hasSuffix ".templ" file.name
+        ) ./.)
         ./static
       ];
 
