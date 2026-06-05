@@ -45,10 +45,10 @@ func TestParsePTZValue(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		input    string
-		wantVal  int
-		wantRel  bool
-		wantErr  bool
+		input   string
+		wantVal int
+		wantRel bool
+		wantErr bool
 	}{
 		{"50", 50, false, false},
 		{"-30", -30, true, false},

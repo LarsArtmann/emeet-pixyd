@@ -117,7 +117,6 @@ func recordHIDFailure(ctx context.Context) {
 }
 
 func updateMetrics(state pixy.State) {
-
 	ctx := context.Background()
 	if state.InCall {
 		metricInCall.Record(ctx, 1)
@@ -142,7 +141,6 @@ func updateMetrics(state pixy.State) {
 }
 
 func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) {
-
 	resultStr := "success"
 	if result.IsError() {
 		resultStr = "error"

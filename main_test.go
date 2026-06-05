@@ -1506,7 +1506,7 @@ type failingHID struct {
 	err error
 }
 
-func (f *failingHID) Send(_ []byte) error          { return f.err }
+func (f *failingHID) Send(_ []byte) error { return f.err }
 func (f *failingHID) SendRecv(_ context.Context, _ []byte) ([]byte, error) {
 	return nil, f.err
 }
