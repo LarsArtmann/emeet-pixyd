@@ -20,27 +20,21 @@ func (e *CommandError) Error() string { return errorPrefix + e.Op + ": " + e.Err
 
 func (e *CommandError) Unwrap() error { return e.Err }
 
-// CommandResult carries a command's outcome: success message or structured error,
-// plus optional web UI toast information.
+// CommandResult carries a command's outcome: success message or structured error.
 type CommandResult struct {
-	Message   string
-	Err       error
-	Toast     string
-	ToastType string
+	Message string
+	Err     error
 }
 
 func okResult(msg string) CommandResult {
-	//nolint:exhaustruct
 	return CommandResult{Message: msg}
 }
 
 func errResult(op string, err error) CommandResult {
-	//nolint:exhaustruct
 	return CommandResult{Err: &CommandError{Op: op, Err: err}}
 }
 
 func errResultMsg(msg string) CommandResult {
-	//nolint:exhaustruct
 	return CommandResult{Err: fmt.Errorf("%s%s", errorPrefix, msg)}
 }
 
