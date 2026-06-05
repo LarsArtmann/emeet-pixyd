@@ -21,16 +21,20 @@ func (c cachingFS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.handler.ServeHTTP(w, r)
 }
 
+//nolint:gochecknoglobals
 var loggingMiddleware httputil.Middleware = httputil.Logging(slog.Default())
 
+//nolint:gochecknoglobals
 var securityMiddleware httputil.Middleware = httputil.SecurityHeaders(httputil.SecurityHeadersConfig{
-	ContentTypeNosniff: true,
-	FrameOptions:       "DENY",
-	ReferrerPolicy:     "no-referrer",
+	ContentTypeNosniff:      true,
+	FrameOptions:            "DENY",
+	ReferrerPolicy:          "no-referrer",
+	StrictTransportSecurity: "",
 	ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
 		"style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
 })
 
+//nolint:gochecknoglobals
 var requestIDMiddleware httputil.Middleware = httputil.RequestID(httputil.RequestIDConfig{
 	HeaderName:    "X-Request-ID",
 	ForwardHeader: "X-Request-ID",
