@@ -231,9 +231,9 @@ type ptzAxisInfo struct {
 
 //nolint:gochecknoglobals
 var ptzAxes = map[string]ptzAxisInfo{
-	axisPan:  {Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0"},
-	axisTilt: {Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0"},
-	axisZoom: {Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x"},
+	pixy.AxisPan:  {Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0"},
+	pixy.AxisTilt: {Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0"},
+	pixy.AxisZoom: {Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x"},
 }
 
 func ptzAxisValid(axis string) bool {
@@ -243,11 +243,11 @@ func ptzAxisValid(axis string) bool {
 
 func ptzAxisValue(axis string, status webStatus) int {
 	switch axis {
-	case axisPan:
+	case pixy.AxisPan:
 		return status.Pan
-	case axisTilt:
+	case pixy.AxisTilt:
 		return status.Tilt
-	case axisZoom:
+	case pixy.AxisZoom:
 		return status.Zoom
 	default:
 		return 0

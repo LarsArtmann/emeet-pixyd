@@ -223,7 +223,7 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	d, v4l2Calls := newPTZCaptureDaemon()
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "200"})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "200"})
 	notError(t, resp)
 	assertV4L2Call(t, *v4l2Calls, "612000")
 
@@ -235,7 +235,7 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
 	*v4l2Calls = nil
-	resp = d.handlePTZCommand(context.Background(), []string{axisZoom, "500"})
+	resp = d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "500"})
 	notError(t, resp)
 	assertV4L2Call(t, *v4l2Calls, "400")
 }

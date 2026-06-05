@@ -14,10 +14,6 @@ import (
 
 const (
 	v4l2DegreesPerUnit = 3600
-
-	axisPan  = "pan"
-	axisTilt = "tilt"
-	axisZoom = "zoom"
 )
 
 func v4l2Set(ctx context.Context, dev, ctrl, value string) error {

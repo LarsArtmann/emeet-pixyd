@@ -18,7 +18,7 @@ import (
 func TestCommandError_Error(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: axisPan, Err: ErrInvalidValue}
+	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
 	want := "error: pan: invalid value"
 	if got := err.Error(); got != want {
 		t.Errorf("Error() = %q, want %q", got, want)
@@ -28,7 +28,7 @@ func TestCommandError_Error(t *testing.T) {
 func TestCommandError_Unwrap(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: axisPan, Err: ErrInvalidValue}
+	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
 	if got := err.Unwrap(); !errors.Is(got, ErrInvalidValue) {
 		t.Errorf("Unwrap() = %v, want ErrInvalidValue", got)
 	}
@@ -96,7 +96,7 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan})
 	if !strings.HasPrefix(resp, "usage:") {
 		t.Errorf("expected usage message, got: %s", resp)
 	}
@@ -107,7 +107,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "not-a-number"})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "not-a-number"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -119,7 +119,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -135,7 +135,7 @@ func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 		}
 	})
 
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
 	if !IsCommandErrorResponse(resp) {
 		t.Errorf("expected error response, got: %s", resp)
 	}
@@ -146,7 +146,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 
 	d, _ := newPTZCaptureDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{axisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got error: %s", resp)
 	}
@@ -158,7 +158,7 @@ func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 
 	d, setCalls := newPTZCaptureDaemon()
 
-	d.handlePTZCommand(context.Background(), []string{axisZoom, "200"})
+	d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "200"})
 	if len(*setCalls) != 1 {
 		t.Fatalf("expected 1 call, got %d", len(*setCalls))
 	}

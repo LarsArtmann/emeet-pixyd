@@ -217,9 +217,9 @@ func TestPTZAxisLabel(t *testing.T) {
 		axis string
 		want string
 	}{
-		{axisPan, "Pan"},
-		{axisTilt, "Tilt"},
-		{axisZoom, "Zoom"},
+		{pixy.AxisPan, "Pan"},
+		{pixy.AxisTilt, "Tilt"},
+		{pixy.AxisZoom, "Zoom"},
 	}
 	for _, tc := range tests {
 		got := ptzAxes[tc.axis].Label
@@ -235,13 +235,13 @@ func TestPTZAxisLabel(t *testing.T) {
 func TestPTZAxisUnit(t *testing.T) {
 	t.Parallel()
 
-	if got := ptzAxes[axisPan].Unit; got != "\u00b0" {
+	if got := ptzAxes[pixy.AxisPan].Unit; got != "\u00b0" {
 		t.Errorf("pan unit = %q, want °", got)
 	}
-	if got := ptzAxes[axisTilt].Unit; got != "\u00b0" {
+	if got := ptzAxes[pixy.AxisTilt].Unit; got != "\u00b0" {
 		t.Errorf("tilt unit = %q, want °", got)
 	}
-	if got := ptzAxes[axisZoom].Unit; got != "x" {
+	if got := ptzAxes[pixy.AxisZoom].Unit; got != "x" {
 		t.Errorf("zoom unit = %q, want x", got)
 	}
 }
@@ -250,13 +250,13 @@ func TestPTZAxisValue(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{PTZValues: pixy.PTZValues{Pan: -10, Tilt: 5, Zoom: 200}}
-	if got := ptzAxisValue(axisPan, status); got != -10 {
+	if got := ptzAxisValue(pixy.AxisPan, status); got != -10 {
 		t.Errorf("pan value = %d, want -10", got)
 	}
-	if got := ptzAxisValue(axisTilt, status); got != 5 {
+	if got := ptzAxisValue(pixy.AxisTilt, status); got != 5 {
 		t.Errorf("tilt value = %d, want 5", got)
 	}
-	if got := ptzAxisValue(axisZoom, status); got != 200 {
+	if got := ptzAxisValue(pixy.AxisZoom, status); got != 200 {
 		t.Errorf("zoom value = %d, want 200", got)
 	}
 	if got := ptzAxisValue("unknown", status); got != 0 {
@@ -292,15 +292,15 @@ func TestClampInt(t *testing.T) {
 func TestPTZLimits(t *testing.T) {
 	t.Parallel()
 
-	if info := ptzAxes[axisPan]; info.Min != pixy.PanMin || info.Max != pixy.PanMax {
+	if info := ptzAxes[pixy.AxisPan]; info.Min != pixy.PanMin || info.Max != pixy.PanMax {
 		t.Errorf("pan limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.PanMin, pixy.PanMax)
 	}
 
-	if info := ptzAxes[axisTilt]; info.Min != pixy.TiltMin || info.Max != pixy.TiltMax {
+	if info := ptzAxes[pixy.AxisTilt]; info.Min != pixy.TiltMin || info.Max != pixy.TiltMax {
 		t.Errorf("tilt limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.TiltMin, pixy.TiltMax)
 	}
 
-	if info := ptzAxes[axisZoom]; info.Min != pixy.ZoomMin || info.Max != pixy.ZoomMax {
+	if info := ptzAxes[pixy.AxisZoom]; info.Min != pixy.ZoomMin || info.Max != pixy.ZoomMax {
 		t.Errorf("zoom limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.ZoomMin, pixy.ZoomMax)
 	}
 
@@ -312,13 +312,13 @@ func TestPTZLimits(t *testing.T) {
 func TestPTZAxisValid(t *testing.T) {
 	t.Parallel()
 
-	if !ptzAxisValid(axisPan) {
+	if !ptzAxisValid(pixy.AxisPan) {
 		t.Error("pan should be valid")
 	}
-	if !ptzAxisValid(axisTilt) {
+	if !ptzAxisValid(pixy.AxisTilt) {
 		t.Error("tilt should be valid")
 	}
-	if !ptzAxisValid(axisZoom) {
+	if !ptzAxisValid(pixy.AxisZoom) {
 		t.Error("zoom should be valid")
 	}
 	if ptzAxisValid("unknown") {

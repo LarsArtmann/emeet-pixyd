@@ -285,6 +285,13 @@ const (
 	ZoomDefault = 100
 )
 
+// PTZ axis names used in CLI commands and HTTP routes.
+const (
+	AxisPan  = "pan"
+	AxisTilt = "tilt"
+	AxisZoom = "zoom"
+)
+
 // Config holds daemon configuration parameters.
 // Fields marked with env tags are read from environment variables by ConfigFromEnv().
 type Config struct {

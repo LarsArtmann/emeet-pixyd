@@ -88,7 +88,7 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) stri
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
 
-	case axisPan, axisTilt, axisZoom:
+	case pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom:
 		return d.handlePTZCommand(ctx, parts)
 
 	default:
@@ -289,7 +289,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 	val = clampInt(val, info.Min, info.Max)
 
 	multiplier := v4l2DegreesPerUnit
-	if axis == axisZoom {
+	if axis == pixy.AxisZoom {
 		multiplier = 1
 	}
 
