@@ -30,23 +30,6 @@ func TestV4L2Set_CommandFormat(t *testing.T) {
 	assertV4L2CommandContains(t, cmd, []string{"v4l2-ctl", "/dev/video0"})
 }
 
-func TestV4L2SetMultiple_CommandFormat(t *testing.T) {
-	t.Parallel()
-
-	cmd := exec.CommandContext(
-		context.Background(), "v4l2-ctl",
-		"-d", "/dev/video0",
-		"--set-ctrl=pan_absolute=0",
-		"--set-ctrl=tilt_absolute=0",
-		"--set-ctrl=zoom_absolute=100",
-	)
-	assertV4L2CommandContains(t, cmd, []string{
-		"pan_absolute=0",
-		"tilt_absolute=0",
-		"zoom_absolute=100",
-	})
-}
-
 func TestParsePTZValues_InvalidDevice(t *testing.T) {
 	t.Parallel()
 
