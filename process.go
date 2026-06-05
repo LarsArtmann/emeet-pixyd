@@ -141,6 +141,6 @@ func setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
 func notify(ctx context.Context, title, body string) {
 	err := exec.CommandContext(ctx, "notify-send", "-a", "emeet-pixyd", title, body).Run()
 	if err != nil {
-		slog.Debug("notification failed", "error", err)
+		slog.Warn("notification failed", "error", err)
 	}
 }
