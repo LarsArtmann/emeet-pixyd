@@ -78,7 +78,7 @@ main() → NewDaemon() → Run()
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
-| `handlers.go`      | HTTP routing, web handlers, HTMX response rendering                                     |
+| `handlers.go`      | HTTP routing, web handlers, HTMX response rendering                                                                                           |
 | `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                 |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
