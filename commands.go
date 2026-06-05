@@ -301,7 +301,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	info, ok := ptzAxes[axis]
 	if !ok {
-		return okResult(fmt.Sprintf("usage: %s <value>", parts[0]))
+		return errResultMsg("unknown PTZ axis: " + axis)
 	}
 
 	val, relative, parseErr := parsePTZValue(parts[1])
@@ -309,15 +309,15 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		return errResult(axis, fmt.Errorf("%w: parse error", ErrInvalidValue))
 	}
 
+	d.mu.RLock()
+	videoDev := d.videoDev
+	d.mu.RUnlock()
+
+	if videoDev == "" {
+		return errResult(axis, errors.New("device not found"))
+	}
+
 	if relative {
-		d.mu.RLock()
-		videoDev := d.videoDev
-		d.mu.RUnlock()
-
-		if videoDev == "" {
-			return errResult(axis, errors.New("device not found"))
-		}
-
 		current := d.deps.parsePTZ(ctx, videoDev)
 
 		switch axis {
@@ -335,14 +335,6 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 	multiplier := v4l2DegreesPerUnit
 	if axis == pixy.AxisZoom {
 		multiplier = 1
-	}
-
-	d.mu.RLock()
-	videoDev := d.videoDev
-	d.mu.RUnlock()
-
-	if videoDev == "" {
-		return errResult(axis, errors.New("device not found"))
 	}
 
 	v4l2Err := d.deps.v4l2Set(
