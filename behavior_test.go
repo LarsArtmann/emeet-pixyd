@@ -39,29 +39,37 @@ func postPTZFormValue(
 	path, value string,
 ) (*http.Response, string) {
 	t.Helper()
+
 	body := strings.NewReader("value=" + value)
+
 	req, reqErr := http.NewRequestWithContext(
 		context.Background(), http.MethodPost, server.URL+path, body,
 	)
 	if reqErr != nil {
 		t.Fatalf("create request: %v", reqErr)
 	}
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		t.Fatalf("POST %s: %v", path, respErr)
 	}
 	defer resp.Body.Close() //nolint:errcheck
+
 	respBody, _ := io.ReadAll(resp.Body)
+
 	return resp, string(respBody)
 }
 
 // assertV4L2Call asserts exactly one v4l2 call with the expected value.
 func assertV4L2Call(t *testing.T, v4l2Calls []struct{ axis, val string }, wantVal string) {
 	t.Helper()
+
 	if len(v4l2Calls) != 1 {
 		t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
 	}
+
 	if v4l2Calls[0].val != wantVal {
 		t.Errorf("v4l2 call val = %s, want %s", v4l2Calls[0].val, wantVal)
 	}
@@ -70,6 +78,7 @@ func assertV4L2Call(t *testing.T, v4l2Calls []struct{ axis, val string }, wantVa
 // assertDebounce asserts the debounce counters match the expected values.
 func assertDebounce(t *testing.T, d *Daemon, wantInUse, wantIdle int) {
 	t.Helper()
+
 	inUse, idle := readDebounce(d)
 	if inUse != wantInUse || idle != wantIdle {
 		t.Errorf("debounce counters: inUse=%d idle=%d, want %d/%d",
@@ -109,9 +118,11 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 
 	// Then the call starts, PipeWire source switches, and user is notified
 	assertInCall(t, d, true)
+
 	if len(setSourceCalls) == 0 || setSourceCalls[0] != "42" {
 		t.Errorf("expected PipeWire source switch to 42, got: %v", setSourceCalls)
 	}
+
 	if len(notifyBodies) == 0 {
 		t.Error("expected desktop notification")
 	}
@@ -119,15 +130,18 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	// When the camera is released for 3 consecutive poll cycles
 	d.deps.isCameraInUse = cameraNotInUseFn
 	notifyBodies = nil
+
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
 	// Then the call ends and privacy notification is sent
 	assertInCall(t, d, false)
+
 	if len(notifyBodies) == 0 {
 		t.Error("expected notification on call end")
 	}
+
 	assertCommandContains(t, notifyBodies[0], "privacy", "notification")
 }
 
@@ -155,7 +169,9 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	if resp.String() != respAutoModeOff {
 		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
+
 	assertInCall(t, d, true)
+
 	camera := readCameraState(d)
 	if camera != pixy.StateTracking {
 		t.Errorf("camera should still be tracking, got: %s", camera)
@@ -200,6 +216,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 
 	// Then no call was started
 	assertInCall(t, d, false)
+
 	if callStarted {
 		t.Error("no notification should have been sent")
 	}
@@ -277,20 +294,25 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 			d.state.AutoMode = tc.autoMode
 
 			output := d.waybarOutput()
+
 			var parsed map[string]string
-			if err := json.Unmarshal([]byte(output), &parsed); err != nil {
+			err := json.Unmarshal([]byte(output), &parsed)
+			if err != nil {
 				t.Fatalf("invalid JSON: %s", output)
 			}
 
 			if !strings.Contains(parsed["tooltip"], "EMEET PIXY") {
 				t.Error("tooltip should contain device name")
 			}
+
 			if !strings.Contains(parsed["tooltip"], string(tc.camera)) {
 				t.Errorf("tooltip should contain camera state %s", tc.camera)
 			}
+
 			if !strings.Contains(parsed["tooltip"], string(tc.audio)) {
 				t.Errorf("tooltip should contain audio mode %s", tc.audio)
 			}
+
 			if !strings.Contains(parsed["tooltip"], string(tc.autoMode)) {
 				t.Errorf("tooltip should contain auto mode %s", tc.autoMode)
 			}
@@ -349,7 +371,8 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 
 	d1 := newDaemonForStateTest(cfg, original)
 
-	if err := d1.saveState(); err != nil {
+	err := d1.saveState()
+	if err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
@@ -361,15 +384,19 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 	if d2.state.Camera != original.Camera {
 		t.Errorf("camera: got %s, want %s", d2.state.Camera, original.Camera)
 	}
+
 	if d2.state.Audio != original.Audio {
 		t.Errorf("audio: got %s, want %s", d2.state.Audio, original.Audio)
 	}
+
 	if d2.state.Gesture != original.Gesture {
 		t.Errorf("gesture: got %v, want %v", d2.state.Gesture, original.Gesture)
 	}
+
 	if d2.state.InCall != original.InCall {
 		t.Errorf("inCall: got %v, want %v", d2.state.InCall, original.InCall)
 	}
+
 	if d2.state.AutoMode != original.AutoMode {
 		t.Errorf("autoMode: got %s, want %s", d2.state.AutoMode, original.AutoMode)
 	}
@@ -383,13 +410,16 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 	t.Parallel()
 
 	var audioCalls []pixy.AudioMode
+
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			d.mu.Lock()
 			d.state.Audio = m
 			d.mu.Unlock()
+
 			audioCalls = append(audioCalls, m)
+
 			return nil
 		}
 	})
@@ -401,9 +431,11 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 
 	// Then we've cycled through all 3 modes and returned to NC
 	want := []pixy.AudioMode{pixy.AudioLive, pixy.AudioOriginal, pixy.AudioNC}
+
 	if len(audioCalls) != 3 {
 		t.Fatalf("expected 3 audio calls, got %d", len(audioCalls))
 	}
+
 	for i, w := range want {
 		if audioCalls[i] != w {
 			t.Errorf("cycle %d: got %s, want %s", i, audioCalls[i], w)
@@ -424,12 +456,15 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	var trackingCalls []pixy.CameraState
+
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			d.mu.Lock()
 			d.state.Camera = s
 			d.mu.Unlock()
+
 			trackingCalls = append(trackingCalls, s)
+
 			return nil
 		}
 	})
@@ -439,6 +474,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp)
 	}
+
 	assertCameraState(t, d, pixy.StateTracking)
 
 	// When user toggles again from tracking → should enter privacy
@@ -446,6 +482,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp)
 	}
+
 	assertCameraState(t, d, pixy.StatePrivacy)
 
 	if len(trackingCalls) != 2 {
@@ -471,6 +508,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("state file not found: %v", err)
 	}
+
 	assertCommandContains(t, string(data), "tracking-only", "state file")
 }
 
@@ -482,6 +520,7 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 	t.Parallel()
 
 	var notifyMessages []string
+
 	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
 		d.state.Camera = pixy.StatePrivacy
@@ -495,9 +534,11 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 
 	// Then InCall is set and notification sent with tracking-only mode
 	assertInCall(t, d, true)
+
 	if len(notifyMessages) == 0 {
 		t.Error("expected notification")
 	}
+
 	assertNotifyContains(t, notifyMessages, "tracking-only")
 }
 
@@ -509,6 +550,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	t.Parallel()
 
 	var notifyMessages []string
+
 	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoPrivacyOnly
 		d.state.Camera = pixy.StateIdle
@@ -529,9 +571,11 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, false)
+
 	if len(notifyMessages) == 0 {
 		t.Error("expected notification on call end")
 	}
+
 	assertNotifyContains(t, notifyMessages, "privacy")
 }
 
@@ -555,6 +599,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	)
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
+
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
@@ -564,6 +609,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 
 	// Then the response slider contains the user's value (50), not the stale cache value (0)
 	assertCommandContains(t, html, `value="50"`, "slider response")
+
 	if strings.Contains(html, `value="0"`) {
 		t.Error("slider response should NOT contain stale cache value 0")
 	}
@@ -577,6 +623,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	d.ptzCache.mu.RLock()
 	expired := time.Now().After(d.ptzCache.expiresAt)
 	d.ptzCache.mu.RUnlock()
+
 	if !expired {
 		t.Error("PTZ cache should be invalidated after successful set")
 	}
@@ -593,12 +640,14 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	d := newTestDaemon(pixy.StateOffline, "", "", withNoopV4L2())
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
+
 	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	// When user tries to set pan
 	resp, html := postPTZFormValue(t, server, "/api/ptz/pan", "50")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertHTTPStatusOK(t, resp)
 
 	// Then an error toast is shown

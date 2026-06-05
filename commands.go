@@ -51,6 +51,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 	}
 
 	var result CommandResult
+
 	switch parts[0] {
 	case cmdStatus:
 		result = okResult(d.getStatus(ctx))
@@ -141,6 +142,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 			if hid != "" {
 				return okResult(dev + " " + hid)
 			}
+
 			return okResult(dev)
 		}
 
@@ -167,7 +169,8 @@ func (d *Daemon) handleTrackingCommand(
 	state pixy.CameraState,
 	label string,
 ) CommandResult {
-	if err := d.deps.setTracking(ctx, state); err != nil {
+	err := d.deps.setTracking(ctx, state)
+	if err != nil {
 		return errResult(label+" "+string(state), err)
 	}
 
@@ -184,6 +187,7 @@ func (d *Daemon) handleTrackingCommand(
 
 func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) CommandResult {
 	var mode pixy.AudioMode
+
 	if len(parts) < minCmdParts {
 		d.mu.RLock()
 		mode = d.state.Audio.Next()
@@ -207,6 +211,7 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) Command
 
 func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandResult {
 	var enable bool
+
 	switch cmd {
 	case cmdGestureOn:
 		enable = true
@@ -217,7 +222,9 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandRe
 		enable = !d.state.Gesture
 		d.mu.RUnlock()
 	}
-	if err := d.deps.setGesture(ctx, enable); err != nil {
+
+	err := d.deps.setGesture(ctx, enable)
+	if err != nil {
 		return errResult(cmd+" enable="+strconv.FormatBool(enable), err)
 	}
 
@@ -229,7 +236,8 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandRe
 }
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
-	if err := d.deps.centerCamera(ctx); err != nil {
+	err := d.deps.centerCamera(ctx)
+	if err != nil {
 		return errResult(cmdCenter, err)
 	}
 
@@ -252,7 +260,9 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	}
 
 	cmd := parts[0]
+
 	var mode pixy.AutoMode
+
 	switch cmd {
 	case cmdAutoOn:
 		mode = pixy.AutoFull
@@ -309,6 +319,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		}
 
 		current := d.deps.parsePTZ(ctx, videoDev)
+
 		switch axis {
 		case pixy.AxisPan:
 			val = current.Pan + val
@@ -334,12 +345,13 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		return errResult(axis, errors.New("device not found"))
 	}
 
-	if v4l2Err := d.deps.v4l2Set(
+	v4l2Err := d.deps.v4l2Set(
 		ctx,
 		videoDev,
 		axis+"_absolute",
 		strconv.Itoa(val*multiplier),
-	); v4l2Err != nil {
+	)
+	if v4l2Err != nil {
 		return errResult(axis, v4l2Err)
 	}
 

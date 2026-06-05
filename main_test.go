@@ -71,6 +71,7 @@ func withCaptureTracking(captured *pixy.CameraState) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			*captured = s
+
 			return nil
 		}
 	}
@@ -80,6 +81,7 @@ func withCaptureAudio(captured *pixy.AudioMode) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			*captured = m
+
 			return nil
 		}
 	}
@@ -90,6 +92,7 @@ func withCaptureGesture(called, captured *bool) testDaemonOption {
 		d.deps.setGesture = func(_ context.Context, enabled bool) error {
 			*called = true
 			*captured = enabled
+
 			return nil
 		}
 	}
@@ -99,6 +102,7 @@ func withCaptureGestureArg(captured *bool) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setGesture = func(_ context.Context, enabled bool) error {
 			*captured = enabled
+
 			return nil
 		}
 	}
@@ -114,7 +118,10 @@ func withNotifyMessages(captured *[]string) testDaemonOption {
 
 func withCaptureCenter(calls *int) testDaemonOption {
 	return func(d *Daemon) {
-		d.deps.centerCamera = func(context.Context) error { *calls++; return nil }
+		d.deps.centerCamera = func(context.Context) error {
+			*calls++
+			return nil
+		}
 	}
 }
 
@@ -154,6 +161,7 @@ func readState[T any](d *Daemon, fn func(pixy.State) T) T {
 	d.mu.RLock()
 	v := fn(d.state)
 	d.mu.RUnlock()
+
 	return v
 }
 
@@ -167,6 +175,7 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 
 func assertInCall(t *testing.T, d *Daemon, want bool) {
 	t.Helper()
+
 	if got := readState(d, func(s pixy.State) bool { return s.InCall }); got != want {
 		t.Errorf("expected InCall=%v, got %v", want, got)
 	}
@@ -174,6 +183,7 @@ func assertInCall(t *testing.T, d *Daemon, want bool) {
 
 func assertHTTPStatusOK(t *testing.T, resp *http.Response) {
 	t.Helper()
+
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
 	}
@@ -181,9 +191,11 @@ func assertHTTPStatusOK(t *testing.T, resp *http.Response) {
 
 func assertNotifyContains(t *testing.T, messages []string, substr string) {
 	t.Helper()
+
 	if len(messages) == 0 {
 		t.Fatalf("expected notification containing %q, but no notifications", substr)
 	}
+
 	if !strings.Contains(messages[0], substr) {
 		t.Errorf("notification should mention %s, got: %s", substr, messages[0])
 	}
@@ -251,15 +263,22 @@ func newTestDaemon(
 	d.deps.setGesture = d.setGesture
 	d.deps.centerCamera = d.centerCamera
 	d.deps.v4l2Set = v4l2Set
+
 	d.deps.parsePTZ = parsePTZValues
+	if hidrawDev != "" {
+		d.hidDev = newHIDRawDevice(hidrawDev)
+	}
+
 	for _, opt := range opts {
 		opt(d)
 	}
+
 	return d
 }
 
 func assertCameraState(t *testing.T, d *Daemon, expected pixy.CameraState) {
 	t.Helper()
+
 	camera := readCameraState(d)
 	if camera != expected {
 		t.Errorf("expected camera state %s, got %s", expected, camera)
@@ -324,6 +343,7 @@ func assertParsedField(t *testing.T, parsed map[string]string, field string) {
 
 func assertTrackingIdle(t *testing.T, tracking pixy.CameraState) {
 	t.Helper()
+
 	if tracking != pixy.StateIdle {
 		t.Errorf("Tracking = %q, want idle", tracking)
 	}
@@ -569,6 +589,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 	t.Parallel()
 
 	var captured []pixy.CameraState
+
 	d := newTestDaemon(
 		pixy.StatePrivacy, testVideoDev, "/dev/hidraw0",
 		withCaptureTrackingSlice(&captured),
@@ -860,6 +881,7 @@ func runParseTests[T comparable](
 	tests []parseTestCase[T],
 ) {
 	t.Helper()
+
 	for _, tc := range tests {
 		t.Run(tc.input, func(t *testing.T) {
 			got, err := parse(tc.input)
@@ -1377,10 +1399,12 @@ func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 			d.applyProbeResult(probeDevices())
 
 			hasDev := d.videoDev != ""
+
 			isOffline := d.state.Camera == pixy.StateOffline
 			if hasDev && isOffline {
 				t.Error("camera should not be offline when video device is found")
 			}
+
 			if !hasDev && !isOffline {
 				t.Errorf("expected offline when no video device, got %s", d.state.Camera)
 			}
@@ -1422,7 +1446,9 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 
 func BenchmarkParseHIDResponse(b *testing.B) {
 	data := []byte{0x09, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01}
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		parseHIDResponse(data)
 	}
@@ -1430,7 +1456,9 @@ func BenchmarkParseHIDResponse(b *testing.B) {
 
 func BenchmarkWaybarOutput(b *testing.B) {
 	d := testDaemonWithState(pixy.StateTracking, true)
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		d.waybarOutput()
 	}
@@ -1438,7 +1466,9 @@ func BenchmarkWaybarOutput(b *testing.B) {
 
 func BenchmarkHandleCommand_Query(b *testing.B) {
 	d := testDaemonWithDevice(pixy.StateTracking)
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		d.handleCommand(context.Background(), cmdWaybar)
 	}
@@ -1448,6 +1478,7 @@ func BenchmarkHandleCommand_Mutating(b *testing.B) {
 	d := testDaemonWithDevice(pixy.StatePrivacy)
 	d.config = defaultTestConfig(b.TempDir())
 	b.ResetTimer()
+
 	for b.Loop() {
 		d.handleCommand(context.Background(), cmdToggleAuto)
 	}
@@ -1456,7 +1487,9 @@ func BenchmarkHandleCommand_Mutating(b *testing.B) {
 func BenchmarkGetWebStatus(b *testing.B) {
 	d := testDaemonWithDevice(pixy.StateTracking)
 	srv := &webServer{daemon: d}
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		srv.getWebStatus()
 	}

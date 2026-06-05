@@ -98,3 +98,12 @@ No blur-based elevation. Elevation is communicated through:
 - 2-column grid on desktop, single column on mobile (720px breakpoint)
 - Generous padding (2rem top, 1.5rem sides)
 - Preview card spans the visual weight of the left column
+
+## Architecture Patterns
+
+- **CommandResult**: All command handlers return a typed `CommandResult` struct (not raw strings). Provides `.String()` for backward compatibility and `.IsError()` for error checking.
+- **Dependencies struct**: Nine DI function fields consolidated into single `Dependencies` struct. Production wiring in `NewDaemon()`, tests override individual fields.
+- **HIDDevice interface**: Abstracts HID communication (`Send`, `SendRecv`). Production implementation wraps `/dev/hidraw*`, enabling test doubles.
+- **Middleware**: Uses `httputil` library for security headers, request logging, and request ID middleware. No local reimplementation.
+- **Metrics**: OTel counters/gauges registered lazily via `sync.Once`. Includes command, probe, uevent, HID failure, stream duration, and frame counters.
+- **Circuit breaker**: HID failures tracked via `hidFailCount`. After 3 consecutive failures, commands skip HID re-probe. Reset on success or successful device probe.

@@ -69,6 +69,7 @@ func TestParseUevent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			got := parseUevent(tt.input)
 			if got != tt.want {
 				t.Errorf("parseUevent(%q) = %+v, want %+v", tt.input, got, tt.want)
@@ -109,6 +110,7 @@ func TestIsRelevantUevent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			if got := isRelevantUevent(tt.evt); got != tt.want {
 				t.Errorf("isRelevantUevent(%+v) = %v, want %v", tt.evt, got, tt.want)
 			}

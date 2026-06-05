@@ -33,6 +33,7 @@ func parseUevent(data string) uevent {
 		if !ok {
 			continue
 		}
+
 		switch key {
 		case "ACTION":
 			evt.Action = val
@@ -61,6 +62,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 
 		return
 	}
+
 	_ = f.Close()
 
 	fd, err := unixSocketUevent()
@@ -72,6 +74,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 
 	go func() {
 		<-ctx.Done()
+
 		_ = fd.Close()
 	}()
 
@@ -102,6 +105,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 				attribute.String("subsystem", evt.Subsys),
 			),
 		)
+
 		ch <- struct{}{}
 	}
 }

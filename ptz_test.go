@@ -11,6 +11,7 @@ import (
 
 func assertV4L2CommandContains(t *testing.T, cmd *exec.Cmd, substrings []string) {
 	t.Helper()
+
 	cmdStr := cmd.String()
 	for _, s := range substrings {
 		if !strings.Contains(cmdStr, s) {

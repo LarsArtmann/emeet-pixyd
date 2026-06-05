@@ -60,6 +60,7 @@ func probeVideo4linux(sysfsPath string) string {
 		videoPath := "/dev/" + name
 
 		indexFile := fmt.Sprintf("%s/%s/index", sysfsPath, name)
+
 		indexData, iErr := os.ReadFile(indexFile)
 		if iErr == nil && strings.TrimSpace(string(indexData)) != "0" {
 			continue
@@ -120,6 +121,7 @@ type probeResult struct {
 func probeDevices() probeResult {
 	registerMetrics()
 	metricProbes.Add(context.Background(), 1)
+
 	result := probeResult{
 		VideoDev:  probeVideo4linux("/sys/class/video4linux"),
 		HidrawDev: probeHidraw("/sys/class/hidraw"),
@@ -139,6 +141,12 @@ func probeDevices() probeResult {
 func (d *Daemon) applyProbeResult(r probeResult) {
 	d.videoDev = r.VideoDev
 	d.hidrawDev = r.HidrawDev
+
+	if r.HidrawDev != "" {
+		d.hidDev = newHIDRawDevice(r.HidrawDev)
+	} else {
+		d.hidDev = nil
+	}
 
 	if r.VideoDev != "" && r.HidrawDev != "" {
 		d.hidFailCount = 0

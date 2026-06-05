@@ -1,7 +1,35 @@
 # emeet-pixyd — Superb Roadmap
 
 **Generated:** 2026-04-20
+**Archived:** 2026-06-05 — items migrated to paste_1.txt roadmap, most completed
 **Current State:** 63.4% coverage, vet clean, race clean, 0 TODOs, 1.3M+ fuzz executions
+
+---
+
+## Completion Status (as of 2026-06-05)
+
+| Item                         | Status      | Notes                                                                                           |
+| ---------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| 1.2 HIDDevice interface      | **DONE**    | `HIDDevice` interface in `hid.go` with `Send`/`SendRecv` methods, `hidrawDevice` implementation |
+| 2.1 Decompose `Run()`        | **DONE**    | Waybar extracted to `waybar.go`, socket to `socket.go`, PTZ to `ptz.go`                         |
+| 2.2 Eliminate `init()`       | **DONE**    | Lazy metrics registration via `sync.Once`                                                       |
+| 2.3 `.golangci.yml` config   | **DONE**    | Comprehensive config with all linters, 0 issues                                                 |
+| 3.1 Graceful degradation     | **DONE**    | `checkExternalDeps()` at startup warns for missing ffmpeg/v4l2-ctl/wpctl/notify-send            |
+| 3.2 Circuit breaker          | **DONE**    | `hidFailCount` + `hidCircuitBreakerThreshold` (3), resets on success and successful probe       |
+| 3.3 Stream monitoring        | **DONE**    | `metricStreamDuration` histogram + `metricFramesTotal` counter                                  |
+| 3.4 Structured errors        | **DONE**    | `CommandResult` struct, `CommandError` type, `errorPrefix` constant                             |
+| 4.1 Additional metrics       | **DONE**    | command_total, probe_total, uevent_total, hid_failures_total, stream_duration, frames_total     |
+| 4.3 pprof endpoint           | **DONE**    | Gated behind `Config.Debug`                                                                     |
+| 5.2 Keyboard shortcuts       | **DONE**    | Arrow keys for pan/tilt, +/- for zoom, T/I/P/C for modes                                        |
+| 7.1 Fix linter warnings      | **DONE**    | 0 issues from `golangci-lint run`                                                               |
+| 1.1 Commander interface      | Not started | Lower priority, DI functions sufficient for now                                                 |
+| 1.3 ProcessInspector         | Not started | Lower priority                                                                                  |
+| 1.4 UeventListener           | Not started | Lower priority                                                                                  |
+| 5.1 WebSocket updates        | Not started | Significant effort, HTMX polling works well                                                     |
+| 5.3 Mobile layout            | Not started | CSS-only change                                                                                 |
+| 6.1 Integration test harness | Not started | Large effort, fake HID/V4L2 devices                                                             |
+| 6.2 CI fuzz                  | Not started | CI pipeline change                                                                              |
+| 6.3 Benchmark suite          | Partial     | 4 benchmarks established                                                                        |
 
 ---
 

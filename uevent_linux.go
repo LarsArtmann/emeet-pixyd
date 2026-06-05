@@ -23,7 +23,8 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		//nolint:exhaustruct
 		Groups: 1,
 	}
-	if bindErr := unix.Bind(fd, sa); bindErr != nil {
+	bindErr := unix.Bind(fd, sa)
+	if bindErr != nil {
 		_ = unix.Close(fd)
 
 		return -1, fmt.Errorf("netlink bind: %w", bindErr)

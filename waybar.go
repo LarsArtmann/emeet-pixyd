@@ -58,6 +58,7 @@ func (d *Daemon) waybarOutput() string {
 	tooltip.WriteString(string(audio))
 	tooltip.WriteString("\nAuto: ")
 	tooltip.WriteString(autoMode.String())
+
 	if inCall {
 		tooltip.WriteString("\nIn call: yes")
 	}

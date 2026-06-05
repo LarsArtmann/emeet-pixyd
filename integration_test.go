@@ -23,34 +23,41 @@ const (
 
 func newIntegrationDaemon(t *testing.T) *Daemon {
 	t.Helper()
+
 	return newTestDaemon(pixy.StatePrivacy, "", "", withConfig(t.TempDir()))
 }
 
 func newDaemonWithDevice(t *testing.T) *Daemon {
 	t.Helper()
+
 	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withConfig(t.TempDir()))
 }
 
 func newTestWebServer(t *testing.T, daemon *Daemon) *httptest.Server {
 	t.Helper()
+
 	webSrv := &webServer{daemon: daemon}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
+
 	return server
 }
 
 func getBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("read body: %v", err)
 	}
+
 	return string(body)
 }
 
 func assertStatusCode(t *testing.T, resp *http.Response, expected int) {
 	t.Helper()
+
 	if resp.StatusCode != expected {
 		t.Errorf("expected %d, got %d", expected, resp.StatusCode)
 	}
@@ -58,6 +65,7 @@ func assertStatusCode(t *testing.T, resp *http.Response, expected int) {
 
 func assertContains(t *testing.T, haystack, needle, label string) {
 	t.Helper()
+
 	if !strings.Contains(haystack, needle) {
 		t.Errorf("%s: expected body to contain %q", label, needle)
 	}
@@ -65,6 +73,7 @@ func assertContains(t *testing.T, haystack, needle, label string) {
 
 func assertNotContains(t *testing.T, haystack, needle, label string) {
 	t.Helper()
+
 	if strings.Contains(haystack, needle) {
 		t.Errorf("%s: expected body NOT to contain %q", label, needle)
 	}
@@ -77,37 +86,46 @@ func assertResponseContains(t *testing.T, resp *http.Response, substr, label str
 
 func post(t *testing.T, url, contentType string, body io.Reader) *http.Response {
 	t.Helper()
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, body)
 	if err != nil {
 		t.Fatalf("new POST request: %v", err)
 	}
+
 	req.Header.Set("Content-Type", contentType)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("POST %s: %v", url, err)
 	}
+
 	return resp
 }
 
 func get(t *testing.T, url string) *http.Response {
 	t.Helper()
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("new GET request: %v", err)
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatalf("GET %s: %v", url, err)
 	}
+
 	return resp
 }
 
 func sendSC(t *testing.T, socketPath, cmd string) string {
 	t.Helper()
+
 	resp, err := pixy.SendCommand(context.Background(), socketPath, cmd)
 	if err != nil {
 		t.Fatalf("%s: %v", cmd, err)
 	}
+
 	return resp
 }
 
@@ -117,6 +135,7 @@ func daemonHasDevices(d *Daemon) bool {
 
 func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoints []string) {
 	t.Helper()
+
 	for _, ep := range endpoints {
 		t.Run(ep, func(t *testing.T) {
 			var (
@@ -135,6 +154,7 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 				if reqErr != nil {
 					t.Fatalf("new GET request: %v", reqErr)
 				}
+
 				resp, err = http.DefaultClient.Do(req)
 			} else {
 				req, reqErr := http.NewRequestWithContext(
@@ -146,6 +166,7 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 				if reqErr != nil {
 					t.Fatalf("new POST request: %v", reqErr)
 				}
+
 				resp, err = http.DefaultClient.Do(req)
 			}
 
@@ -199,6 +220,7 @@ type webStatusCheck struct {
 
 func assertPtrEqual[T comparable](t *testing.T, name string, got T, want *T) {
 	t.Helper()
+
 	if want != nil && got != *want {
 		t.Errorf("expected %s=%v, got %v", name, *want, got)
 	}
@@ -225,6 +247,7 @@ func assertWebStatus(t *testing.T, status webStatus) {
 
 func assertSocketResponseContains(t *testing.T, resp, substr, label string) {
 	t.Helper()
+
 	if !strings.Contains(resp, substr) {
 		t.Errorf("%s: expected %q in response, got: %s", label, substr, resp)
 	}
@@ -232,6 +255,7 @@ func assertSocketResponseContains(t *testing.T, resp, substr, label string) {
 
 func assertSocketResponsePrefix(t *testing.T, resp, prefix, label string) {
 	t.Helper()
+
 	if !strings.HasPrefix(resp, prefix) {
 		t.Errorf("%s: expected prefix %q, got: %s", label, prefix, resp)
 	}
@@ -239,6 +263,7 @@ func assertSocketResponsePrefix(t *testing.T, resp, prefix, label string) {
 
 func assertSocketResponseHasPrefixes(t *testing.T, resp string, prefixes []string) {
 	t.Helper()
+
 	for _, p := range prefixes {
 		assertSocketResponseContains(t, resp, p, "socket response")
 	}
@@ -246,11 +271,13 @@ func assertSocketResponseHasPrefixes(t *testing.T, resp string, prefixes []strin
 
 func assertCommandContainsAnyOf(t *testing.T, resp string, substrs []string, label string) {
 	t.Helper()
+
 	for _, s := range substrs {
 		if strings.Contains(resp, s) {
 			return
 		}
 	}
+
 	t.Errorf("expected one of %v in %s, got: %s", substrs, label, resp)
 }
 
@@ -267,8 +294,10 @@ func TestWeb_IndexReturnsHTML(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	body := getBody(t, resp)
 	assertContains(t, body, "<!doctype html>", "index page")
@@ -280,8 +309,10 @@ func TestWeb_IndexShowsOfflineWhenNoDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/")
 	defer resp.Body.Close() //nolint:errcheck
+
 	body := getBody(t, resp)
 	assertContains(t, body, "Offline", "offline badge")
 	assertContains(t, body, "Camera offline", "camera offline text")
@@ -291,8 +322,10 @@ func TestWeb_IndexShowsOnlineWithDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newDaemonWithDevice(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/")
 	defer resp.Body.Close() //nolint:errcheck
+
 	body := getBody(t, resp)
 	assertContains(t, body, "Online", "online badge")
 	assertNotContains(t, body, "Offline", "should not show offline")
@@ -304,8 +337,10 @@ func TestWeb_PanelReturnsHTMLFragment(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/panel")
 	defer resp.Body.Close() //nolint:errcheck
+
 	body := getBody(t, resp)
 	assertContains(t, body, "status-panel", "panel has status-panel div")
 	assertContains(t, body, "Track", "panel has track button")
@@ -317,8 +352,10 @@ func TestWeb_PanelReflectsDaemonState(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/panel")
 	defer resp.Body.Close() //nolint:errcheck
+
 	body := getBody(t, resp)
 	assertContains(t, body, "privacy", "panel shows privacy state")
 	assertContains(t, body, "gesture", "panel has gesture control")
@@ -330,12 +367,15 @@ func TestWeb_AutoToggleOff(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/auto", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	daemon.mu.Lock()
 	isAuto := daemon.state.AutoMode
 	daemon.mu.Unlock()
+
 	if !isAuto.IsOff() {
 		t.Errorf("expected auto=off after toggle, got %q", isAuto)
 	}
@@ -346,12 +386,15 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 	daemon := newIntegrationDaemon(t)
 	daemon.state.AutoMode = pixy.AutoOff
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/auto", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	daemon.mu.Lock()
 	isAuto := daemon.state.AutoMode
 	daemon.mu.Unlock()
+
 	if isAuto.IsOff() {
 		t.Errorf("expected auto!=off after toggle, got %q", isAuto)
 	}
@@ -361,15 +404,19 @@ func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/auto", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	daemon.mu.Lock()
 	if !daemon.state.AutoMode.IsOff() {
 		t.Fatal("first toggle should turn auto off")
 	}
 	daemon.mu.Unlock()
+
 	resp2 := post(t, server.URL+"/api/auto", "", nil)
 	defer resp2.Body.Close() //nolint:errcheck
+
 	daemon.mu.Lock()
 	if daemon.state.AutoMode.IsOff() {
 		t.Fatal("second toggle should turn auto back on")
@@ -383,8 +430,10 @@ func TestWeb_GestureToggleEndpoint(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/gesture", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 }
 
@@ -392,8 +441,10 @@ func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/gesture", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertResponseContains(t, resp, "status-panel", "gesture response is panel fragment")
 }
 
@@ -401,6 +452,7 @@ func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
 
 func TestWeb_AudioWithValidModes(t *testing.T) {
 	t.Parallel()
+
 	for _, mode := range []string{"nc", audioModeLive, audioModeOrg} {
 		t.Run(mode, func(t *testing.T) {
 			t.Parallel()
@@ -430,6 +482,7 @@ func TestWeb_AudioInvalidMode(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(
 
 		t,
@@ -441,6 +494,7 @@ func TestWeb_AudioInvalidMode(t *testing.T) {
 		strings.NewReader("mode=blorp"),
 	)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	assertResponseContains(t, resp, "status-panel", "still returns panel even on invalid mode")
 }
@@ -449,8 +503,10 @@ func TestWeb_AudioNoModeParam(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/audio", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 }
 
@@ -460,13 +516,16 @@ func testPTZEndpoint(t *testing.T, path, body string, expectedStatus int) {
 	t.Helper()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+path, "application/x-www-form-urlencoded", strings.NewReader(body))
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, expectedStatus)
 }
 
 func TestWeb_PTZEndpoint(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		path   string
 		body   string
@@ -490,8 +549,10 @@ func testWebEndpointReturnsOK(t *testing.T, endpoint string) {
 	t.Helper()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+endpoint, "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 }
 
@@ -526,8 +587,10 @@ func TestWeb_ProbeEndpoint(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/probe", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	assertResponseContains(t, resp, "status-panel", "probe returns panel")
 }
@@ -536,8 +599,10 @@ func TestWeb_SyncEndpointNoDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := post(t, server.URL+"/api/sync", "", nil)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 }
 
@@ -547,8 +612,10 @@ func testGETEndpoint503(t *testing.T, path string) {
 	t.Helper()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+path)
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	assertResponseContains(t, resp, "no camera device", "503 body")
 }
@@ -557,8 +624,10 @@ func TestWeb_SnapshotNoDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/api/snapshot")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	assertResponseContains(t, resp, "no frame available", "503 body")
 }
@@ -612,8 +681,10 @@ func TestWeb_UnknownRouteReturns404(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/api/nonexistent")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusNotFound)
 }
 
@@ -621,8 +692,10 @@ func TestWeb_HealthEndpoint(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/api/health")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	body := getBody(t, resp)
 	assertContains(t, body, `"status":"offline"`, "health response")
@@ -633,8 +706,10 @@ func TestWeb_HealthEndpointOnline(t *testing.T) {
 	t.Parallel()
 	daemon := newDaemonWithDevice(t)
 	server := newTestWebServer(t, daemon)
+
 	resp := get(t, server.URL+"/api/health")
 	defer resp.Body.Close() //nolint:errcheck
+
 	assertStatusCode(t, resp, http.StatusOK)
 	body := getBody(t, resp)
 	assertContains(t, body, `"status":"ok"`, "health response")
@@ -681,6 +756,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 
 func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		camera pixy.CameraState
 	}{
@@ -714,6 +790,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 
 func TestWeb_WebStatusAllAudioModes(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		audio pixy.AudioMode
 	}{
@@ -748,7 +825,9 @@ func shortSocketDir(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("create short temp dir: %v", err)
 	}
+
 	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+
 	return dir
 }
 
@@ -765,10 +844,12 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 		DefaultAudio:  pixy.AudioNC,
 		Debug:         false,
 	}
+
 	daemon, daemonErr := NewDaemon(cfg)
 	if daemonErr != nil {
 		t.Fatalf("NewDaemon: %v", daemonErr)
 	}
+
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
@@ -776,14 +857,15 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 
 		_ = daemon.listenUnix(ctx)
 	}()
-	for range 50 {
 
+	for range 50 {
 		if _, statErr := os.Stat(cfg.SocketPath()); statErr == nil {
 			break
 		}
 
 		time.Sleep(20 * time.Millisecond)
 	}
+
 	return daemon, cfg
 }
 
@@ -797,10 +879,12 @@ func TestSocket_StatusCommand(t *testing.T) {
 func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
+
 	resp := sendSC(t, cfg.SocketPath(), "auto-off")
 	if resp != "auto mode: off" {
 		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
+
 	resp2 := sendSC(t, cfg.SocketPath(), "auto-on")
 	if resp2 != "auto mode: full" {
 		t.Errorf("expected 'auto mode: full', got: %s", resp2)
@@ -810,6 +894,7 @@ func TestSocket_AutoToggleRoundTrip(t *testing.T) {
 func TestSocket_ProbeCommand(t *testing.T) {
 	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
+
 	resp := sendSC(t, cfg.SocketPath(), cmdProbe)
 	if daemon.videoDev != "" {
 		if !strings.HasPrefix(resp, "device found:") {
@@ -832,6 +917,7 @@ func TestSocket_WaybarCommand(t *testing.T) {
 func TestSocket_DeviceCommand(t *testing.T) {
 	t.Parallel()
 	daemon, cfg := startSocketDaemon(t)
+
 	resp := sendSC(t, cfg.SocketPath(), cmdDevice)
 	if daemon.videoDev != "" {
 		if !strings.Contains(resp, daemon.videoDev) {
@@ -860,6 +946,7 @@ func TestSocket_StatusViaCommandReturnsStatus(t *testing.T) {
 
 func TestSocket_CommandsNoDevice(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name string
 
@@ -895,6 +982,7 @@ func TestSocket_CommandsNoDevice(t *testing.T) {
 func TestSocket_AudioInvalidMode(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
+
 	resp := sendSC(t, cfg.SocketPath(), "audio badmode")
 	if !strings.HasPrefix(resp, "error: audio badmode:") {
 		t.Errorf("expected error starting with 'error: audio badmode:', got: %s", resp)
@@ -903,6 +991,7 @@ func TestSocket_AudioInvalidMode(t *testing.T) {
 
 func TestSocket_AudioValidModes(t *testing.T) {
 	t.Parallel()
+
 	for _, mode := range []string{"nc", "live", "org"} {
 		t.Run(mode, func(t *testing.T) {
 			t.Parallel()
@@ -920,6 +1009,7 @@ func TestSocket_AudioValidModes(t *testing.T) {
 
 func TestSocket_PanTiltZoom(t *testing.T) {
 	t.Parallel()
+
 	daemon, cfg := startSocketDaemon(t)
 	if daemon.videoDev != "" {
 		t.Skip("device connected")
@@ -942,6 +1032,7 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			resp := sendSC(t, cfg.SocketPath(), tc.cmd)
 			if tc.wantErr {
 				assertSocketResponsePrefix(t, resp, "error:", "socket response")
@@ -1013,6 +1104,7 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 	if !strings.Contains(html, `id="status-panel"`) {
 		t.Error("panel response missing #status-panel div")
 	}
+
 	if strings.Contains(html, `hx-trigger="every 3s, refresh from:body, load"`) {
 		t.Error("panel still has 'load' trigger (infinite loop bug)")
 	}
@@ -1054,6 +1146,7 @@ func TestHandleCommand_DeviceNotFound(t *testing.T) {
 	t.Parallel()
 
 	d := newIntegrationDaemon(t)
+
 	resp := d.handleCommand(context.Background(), cmdDevice)
 	if resp.String() != respDeviceNotFound {
 		t.Errorf("expected device not found, got: %s", resp)

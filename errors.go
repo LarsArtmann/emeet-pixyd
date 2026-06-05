@@ -49,6 +49,7 @@ func (r CommandResult) String() string {
 	if r.Err != nil {
 		return r.Err.Error()
 	}
+
 	return r.Message
 }
 

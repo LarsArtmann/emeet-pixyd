@@ -6,6 +6,7 @@ import "github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 
 type webStatus struct {
 	pixy.PTZValues
+
 	Camera     pixy.CameraState
 	Audio      pixy.AudioMode
 	Gesture    bool

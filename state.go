@@ -19,12 +19,14 @@ func (d *Daemon) loadState() {
 		if !os.IsNotExist(err) {
 			_ = os.Remove(d.config.StateFile() + ".tmp")
 		}
+
 		return
 	}
 
 	var loaded pixy.State
 
-	if jsonErr := json.Unmarshal(data, &loaded); jsonErr != nil {
+	jsonErr := json.Unmarshal(data, &loaded)
+	if jsonErr != nil {
 		slog.Warn(
 			"failed to parse state file, using defaults",
 			"path",
@@ -56,7 +58,8 @@ func (d *Daemon) loadState() {
 }
 
 func (d *Daemon) ensureStateDir() error {
-	if err := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir); err != nil {
+	err := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
+	if err != nil {
 		return fmt.Errorf("ensure state dir %s: %w", d.config.StateDir, err)
 	}
 
@@ -74,11 +77,13 @@ func (d *Daemon) saveState() error {
 	}
 
 	tmp := d.config.StateFile() + ".tmp"
-	if writeErr := os.WriteFile(tmp, data, pixy.PermissionStateFile); writeErr != nil {
+	writeErr := os.WriteFile(tmp, data, pixy.PermissionStateFile)
+	if writeErr != nil {
 		return fmt.Errorf("write temp state: %w", writeErr)
 	}
 
-	if renameErr := os.Rename(tmp, d.config.StateFile()); renameErr != nil {
+	renameErr := os.Rename(tmp, d.config.StateFile())
+	if renameErr != nil {
 		return fmt.Errorf("rename state: %w", renameErr)
 	}
 
@@ -88,7 +93,8 @@ func (d *Daemon) saveState() error {
 // saveStateOrLog calls saveState and logs any error with the given message.
 // Caller must hold d.mu.
 func (d *Daemon) saveStateOrLog(msg string) {
-	if err := d.saveState(); err != nil {
+	err := d.saveState()
+	if err != nil {
 		slog.Error(msg, "error", err)
 	}
 }

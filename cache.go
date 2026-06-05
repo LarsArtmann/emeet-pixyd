@@ -18,6 +18,7 @@ func (f *lastFrameCache) Get() []byte {
 	f.mu.RLock()
 	data := f.data
 	f.mu.RUnlock()
+
 	return data
 }
 
@@ -35,10 +36,12 @@ type ptzCache struct {
 
 func (c *ptzCache) Get() (pixy.PTZValues, bool) {
 	now := time.Now()
+
 	c.mu.RLock()
 	valid := now.Before(c.expiresAt)
 	values := c.values
 	c.mu.RUnlock()
+
 	return values, valid
 }
 

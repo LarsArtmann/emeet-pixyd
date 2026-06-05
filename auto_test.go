@@ -20,6 +20,7 @@ func readDebounce(d *Daemon) (inUse, idle int) {
 	inUse = d.debounceInUse
 	idle = d.debounceIdle
 	d.mu.RUnlock()
+
 	return inUse, idle
 }
 
@@ -27,6 +28,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
+
 	d := testAutoDaemon(withNotifyCalled(&notifyCalled))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
@@ -86,11 +88,13 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 	t.Parallel()
 
 	var setSourceCalled bool
+
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
 			d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
 				setSourceCalled = true
+
 				if id.Get() != "42" {
 					t.Errorf("expected source id 42, got %s", id.Get())
 				}
@@ -109,6 +113,7 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 	t.Parallel()
 
 	var setSourceCalled bool
+
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
@@ -127,6 +132,7 @@ func TestHandleCallEnd_ClearsInCall(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
+
 	d := testAutoDaemon(
 		withInCall(true),
 		withNotifyCalled(&notifyCalled),
@@ -192,6 +198,7 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
+
 	d := testAutoDaemon(
 		withCameraInUse(true),
 		withNotifyCalled(&notifyCalled),
@@ -231,6 +238,7 @@ func TestAutoManage_IdleTriggersCallEnd(t *testing.T) {
 	t.Parallel()
 
 	var notifyCalled bool
+
 	d := testAutoDaemon(
 		withInCall(true),
 		withCameraInUse(false),
@@ -254,6 +262,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 	d := testAutoDaemon(func(d *Daemon) {
 		d.deps.isCameraInUse = func(_ string) bool {
 			callCount++
+
 			return callCount <= 2
 		}
 		d.config.DebounceCount = 3
@@ -319,6 +328,7 @@ func withCaptureTrackingSlice(captured *[]pixy.CameraState) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			*captured = append(*captured, s)
+
 			return nil
 		}
 	}
@@ -332,6 +342,7 @@ func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
 	t.Parallel()
 
 	var trackingCalls []pixy.CameraState
+
 	d := testAutoDaemon(
 		withCameraInUse(true),
 		withDebounceCount(),
@@ -341,9 +352,11 @@ func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, true)
+
 	if len(trackingCalls) == 0 {
 		t.Fatal("expected setTrackingFn to be called via auto-manage")
 	}
+
 	if trackingCalls[0] != pixy.StateTracking {
 		t.Errorf("expected tracking call with StateTracking, got %s", trackingCalls[0])
 	}
@@ -353,11 +366,13 @@ func TestAutoManage_UsesMockedAudioFn(t *testing.T) {
 	t.Parallel()
 
 	var audioCalls []pixy.AudioMode
+
 	d := testAutoDaemon(func(d *Daemon) {
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			audioCalls = append(audioCalls, m)
+
 			return nil
 		}
 	})
@@ -367,6 +382,7 @@ func TestAutoManage_UsesMockedAudioFn(t *testing.T) {
 	if len(audioCalls) == 0 {
 		t.Fatal("expected setAudioFn to be called via auto-manage")
 	}
+
 	if audioCalls[0] != pixy.AudioNC {
 		t.Errorf("expected audio call with AudioNC, got %s", audioCalls[0])
 	}
@@ -376,6 +392,7 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 	t.Parallel()
 
 	var trackingCalls []pixy.CameraState
+
 	d := testAutoDaemon(
 		withInCall(true),
 		withCameraInUse(false),
@@ -386,9 +403,11 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, false)
+
 	if len(trackingCalls) == 0 {
 		t.Fatal("expected setTrackingFn to be called on call end")
 	}
+
 	if trackingCalls[0] != pixy.StatePrivacy {
 		t.Errorf("expected privacy call on call end, got %s", trackingCalls[0])
 	}

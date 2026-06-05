@@ -272,3 +272,83 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - systemd user service (runs after pipewire + graphical-session)
 - Installs `v4l-utils`, `wireplumber`, `libnotify` in service PATH
 - Creates `/run/emeet-pixyd` tmpfiles.d entry
+
+---
+
+## Session 2026-06-05 Changes
+
+### CommandResult (typed returns)
+
+- All command handlers return `CommandResult` struct (not raw strings)
+- `CommandResult.String()` returns message or error text for backward compat
+- `CommandResult.IsError()` checks for error state
+- Socket output: `d.handleCommand(ctx, cmd).String() + "\n"`
+
+### Dependencies struct
+
+- 10 DI function fields consolidated into `Dependencies` struct in `deps.go`
+- Includes `parsePTZ` for PTZ relative mode
+- Production wiring in `NewDaemon()` with two-phase init (circular refs)
+
+### New files
+
+- `waybar.go` — extracted waybar output logic from `main.go`
+- `socket.go` — extracted Unix socket listener from `main.go`
+- `deps.go` — `Dependencies` struct
+- `ptz.go` — consolidated PTZ logic (from `handlers.go` + `v4l2.go`)
+
+### Deleted files
+
+- `v4l2.go` — emptied after PTZ consolidation, deleted
+- `v4l2_test.go` — renamed to `ptz_test.go`
+
+### HIDDevice interface
+
+- `HIDDevice` interface in `hid.go` with `Send` and `SendRecv` methods
+- `hidrawDevice` production implementation wraps `/dev/hidraw*`
+- `Daemon.hidDev` field (HIDDevice, nil when offline)
+- `queryHIDState` takes `HIDDevice` instead of string path
+
+### HID Circuit Breaker
+
+- `hidFailCount` on Daemon, `hidCircuitBreakerThreshold = 3`
+- After 3 consecutive HID failures, commands return error without re-probing
+- Reset on successful HID send or successful device probe
+- `metricHIDFailures` OTel counter
+
+### Metrics
+
+- `metricCommands` (`emeet_pixyd_commands_total`, command + result attrs)
+- `metricProbes` (`emeet_pixyd_probes_total`)
+- `metricUevents` (`emeet_pixyd_uevents_total`, action + subsystem attrs)
+- `metricHIDFailures` (`emeet_pixyd_hid_failures_total`)
+- `metricStreamDuration` (`emeet_pixyd_stream_duration_seconds`, histogram)
+- `metricFramesTotal` (`emeet_pixyd_frames_total`)
+
+### PTZ Relative Mode
+
+- `parsePTZValue(s)` detects `+`/`-` prefix for relative adjustments
+- `pan+10` reads current value via `d.deps.parsePTZ()` and adds offset
+- `clampInt` applies min/max bounds
+
+### Keyboard Shortcuts
+
+- Arrow keys: pan (left/right ±5°), tilt (up +5°/down -5°)
+- +/- keys: zoom ±10
+- Existing: T=track, I=idle, P=privacy, C=center
+
+### Auto-manage error surfacing
+
+- `autoError` field on Daemon stores last error from `handleCallStart`/`handleCallEnd`
+- Cleared on success, surfaced via `webStatus.Error` in web UI
+
+### Graceful degradation
+
+- `checkExternalDeps()` at startup logs warnings for missing binaries
+- Checks: ffmpeg, v4l2-ctl, wpctl, notify-send
+- `v4l2ctl` constant in `ptz.go` (avoids goconst duplication warning)
+
+### Gosec exclusions
+
+- Added G703 (path traversal via taint analysis) to `.golangci.yml` excludes
+- Same rationale as G304 — hardware daemon opens `/dev/hidraw*` by design

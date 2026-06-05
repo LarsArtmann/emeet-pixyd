@@ -19,6 +19,7 @@ func TestCommandError_Error(t *testing.T) {
 	t.Parallel()
 
 	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
+
 	want := "error: pan: invalid value"
 	if got := err.Error(); got != want {
 		t.Errorf("Error() = %q, want %q", got, want)
@@ -29,7 +30,8 @@ func TestCommandError_Unwrap(t *testing.T) {
 	t.Parallel()
 
 	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
-	if got := err.Unwrap(); !errors.Is(got, ErrInvalidValue) {
+	got := err.Unwrap()
+	if !errors.Is(got, ErrInvalidValue) {
 		t.Errorf("Unwrap() = %v, want ErrInvalidValue", got)
 	}
 }
@@ -67,17 +69,21 @@ func TestIsCommandErrorResponse(t *testing.T) {
 
 func newPTZDaemon(opts ...testDaemonOption) *Daemon {
 	allOpts := append([]testDaemonOption{func(_ *Daemon) {}}, opts...)
+
 	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", allOpts...)
 }
 
 func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]struct{ axis, val string }) {
 	var calls []struct{ axis, val string }
+
 	d := newPTZDaemon(append(opts, func(d *Daemon) {
 		d.deps.v4l2Set = func(_ context.Context, _, axis, val string) error {
 			calls = append(calls, struct{ axis, val string }{axis, val})
+
 			return nil
 		}
 	})...)
+
 	return d, &calls
 }
 
@@ -86,6 +92,7 @@ func assertAutoModeEquals(t *testing.T, d *Daemon, want pixy.AutoMode) {
 	d.mu.RLock()
 	got := d.state.AutoMode
 	d.mu.RUnlock()
+
 	if got != want {
 		t.Errorf("AutoMode = %s, want %s", got, want)
 	}
@@ -111,6 +118,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 	if !resp.IsError() {
 		t.Errorf("expected error response, got: %s", resp.String())
 	}
+
 	assertCommandContains(t, resp.String(), "pan", "error")
 }
 
@@ -123,6 +131,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	if !resp.IsError() {
 		t.Errorf("expected error response, got: %s", resp.String())
 	}
+
 	assertCommandContains(t, resp.String(), "device not found", "error")
 }
 
@@ -150,6 +159,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 	if resp.IsError() {
 		t.Errorf("expected success, got error: %s", resp.String())
 	}
+
 	assertCommandContainsAnyOf(t, resp.String(), []string{"pan", "10"}, "response")
 }
 
@@ -159,9 +169,11 @@ func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 	d, setCalls := newPTZCaptureDaemon()
 
 	d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "200"})
+
 	if len(*setCalls) != 1 {
 		t.Fatalf("expected 1 call, got %d", len(*setCalls))
 	}
+
 	if (*setCalls)[0].val != "200" {
 		t.Errorf("zoom value = %s, want 200 (no multiplier)", (*setCalls)[0].val)
 	}
@@ -175,12 +187,14 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 	t.Parallel()
 
 	var calls int
+
 	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
 	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp.String())
 	}
+
 	if calls != 1 {
 		t.Errorf("centerCamera called %d times, want 1", calls)
 	}
@@ -210,6 +224,7 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp.String())
 	}
+
 	assertCommandContains(t, resp.String(), "full", "response")
 
 	assertAutoModeEquals(t, d, pixy.AutoFull)
@@ -275,6 +290,7 @@ func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
 
 func notError(t *testing.T, resp string) {
 	t.Helper()
+
 	if IsCommandErrorResponse(resp) {
 		t.Errorf("expected success, got: %s", resp)
 	}
@@ -284,10 +300,12 @@ func TestHandleGestureCommand_On(t *testing.T) {
 	t.Parallel()
 
 	var called, enabledArg bool
+
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOn)
 	notError(t, resp.String())
+
 	if !called || !enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/true", called, enabledArg)
 	}
@@ -297,10 +315,12 @@ func TestHandleGestureCommand_Off(t *testing.T) {
 	t.Parallel()
 
 	var called, enabledArg bool
+
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOff)
 	notError(t, resp.String())
+
 	if !called || enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/false", called, enabledArg)
 	}
@@ -310,6 +330,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 	t.Parallel()
 
 	var enabledArg bool
+
 	d := newTestDaemon(
 		pixy.StatePrivacy, "", "",
 		func(d *Daemon) { d.state.Gesture = false },
@@ -318,6 +339,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp.String())
+
 	if !enabledArg {
 		t.Errorf("toggle should enable gesture, got enabled=%v", enabledArg)
 	}
@@ -327,6 +349,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 	t.Parallel()
 
 	var enabledArg bool
+
 	d := newTestDaemon(
 		pixy.StatePrivacy, "", "",
 		func(d *Daemon) { d.state.Gesture = true },
@@ -335,6 +358,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
 	notError(t, resp.String())
+
 	if enabledArg {
 		t.Errorf("toggle should disable gesture, got enabled=%v", enabledArg)
 	}
@@ -348,10 +372,12 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 	t.Parallel()
 
 	var modeArg pixy.AudioMode
+
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
 	notError(t, resp.String())
+
 	if modeArg != pixy.AudioLive {
 		t.Errorf("setAudio called with %s, want %s", modeArg, pixy.AudioLive)
 	}
@@ -370,12 +396,14 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 	t.Parallel()
 
 	var modeArg pixy.AudioMode
+
 	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
 	}, withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio})
 	notError(t, resp.String())
+
 	if modeArg != pixy.AudioLive {
 		t.Errorf("next mode = %s, want %s", modeArg, pixy.AudioLive)
 	}
@@ -389,10 +417,12 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
+
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureTracking(&stateArg))
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
 	notError(t, resp.String())
+
 	if stateArg != pixy.StateTracking {
 		t.Errorf("setTracking called with %s, want %s", stateArg, pixy.StateTracking)
 	}
@@ -464,12 +494,15 @@ func TestApplyResponseToStatus_Error(t *testing.T) {
 
 	status := webStatus{}
 	applyResponseToStatus("error: pan: bad", &status, "ignored", toastTypeError)
+
 	if status.Error == "" {
 		t.Error("Error should be set")
 	}
+
 	if status.Toast != "" {
 		t.Error("Toast should not be set for error")
 	}
+
 	if status.ToastType != "" {
 		t.Error("ToastType should not be set for error")
 	}
@@ -480,12 +513,15 @@ func TestApplyResponseToStatus_Success(t *testing.T) {
 
 	status := webStatus{}
 	applyResponseToStatus(respTrackingOn, &status, "Tracking enabled", toastTypeSuccess)
+
 	if status.Error != "" {
 		t.Error("Error should not be set")
 	}
+
 	if status.Toast != "Tracking enabled" {
 		t.Errorf("Toast = %q, want %q", status.Toast, "Tracking enabled")
 	}
+
 	if status.ToastType != toastTypeSuccess {
 		t.Errorf("ToastType = %q, want %q", status.ToastType, toastTypeSuccess)
 	}
@@ -496,6 +532,7 @@ func TestApplyResponseToStatus_InfoToast(t *testing.T) {
 
 	status := webStatus{}
 	applyResponseToStatus("ok", &status, "Toggled", toastTypeInfo)
+
 	if status.ToastType != toastTypeInfo {
 		t.Errorf("ToastType = %q, want %q", status.ToastType, toastTypeInfo)
 	}
@@ -506,12 +543,15 @@ func TestApplyResponseToStatus_ErrorOverridesToast(t *testing.T) {
 
 	status := webStatus{}
 	applyResponseToStatus("error: something failed", &status, "Success msg", toastTypeSuccess)
+
 	if status.Error == "" {
 		t.Error("Error should be set for error response")
 	}
+
 	if status.Toast != "" {
 		t.Error("Toast should not be set when response is an error")
 	}
+
 	if status.ToastType != "" {
 		t.Error("ToastType should not be set when response is an error")
 	}
@@ -586,6 +626,7 @@ func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
 	if resp.String() == respDeviceNotFound {
 		return
 	}
+
 	if !strings.Contains(resp.String(), "/dev/video") {
 		t.Errorf("expected device path or %q, got: %s", respDeviceNotFound, resp.String())
 	}
@@ -599,6 +640,7 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
+
 	d := newTestDaemon(
 		pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
@@ -606,6 +648,7 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 
 	resp := d.handleTogglePrivacy(context.Background())
 	notError(t, resp.String())
+
 	if stateArg != pixy.StateTracking {
 		t.Errorf("toggle from privacy should set tracking, got: %s", stateArg)
 	}
@@ -615,6 +658,7 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
+
 	d := newTestDaemon(
 		pixy.StateTracking, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
@@ -622,6 +666,7 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 
 	resp := d.handleTogglePrivacy(context.Background())
 	notError(t, resp.String())
+
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from tracking should set privacy, got: %s", stateArg)
 	}
@@ -631,6 +676,7 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 	t.Parallel()
 
 	var stateArg pixy.CameraState
+
 	d := newTestDaemon(
 		pixy.StateIdle, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
@@ -638,6 +684,7 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 
 	resp := d.handleTogglePrivacy(context.Background())
 	notError(t, resp.String())
+
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from idle should set privacy, got: %s", stateArg)
 	}

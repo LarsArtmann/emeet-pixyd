@@ -168,6 +168,7 @@ func (m AutoMode) Toggle() AutoMode {
 	if m.IsOff() {
 		return AutoFull
 	}
+
 	return AutoOff
 }
 

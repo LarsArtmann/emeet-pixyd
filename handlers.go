@@ -53,6 +53,7 @@ func formatLastSynced(t time.Time) string {
 	if elapsed < time.Minute {
 		return "just now"
 	}
+
 	if elapsed < time.Hour {
 		return fmt.Sprintf("%dm ago", int(elapsed.Minutes()))
 	}
@@ -93,6 +94,7 @@ func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
 	if !status.Online {
 		return status
 	}
+
 	dev := status.Device
 
 	if values, valid := s.daemon.ptzCache.Get(); valid {
@@ -125,6 +127,7 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 	s.daemon.mu.RUnlock()
 
 	responseWriter.Header().Set("Content-Type", "application/json")
+
 	if !online {
 		responseWriter.WriteHeader(http.StatusServiceUnavailable)
 	}
@@ -136,8 +139,10 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 	})
 	if err != nil {
 		slog.Error("failed to marshal health response", "error", err)
+
 		return
 	}
+
 	_, _ = responseWriter.Write(data)
 }
 
@@ -213,18 +218,22 @@ func applyResponseToStatus(resp string, status *webStatus, toast, toastType stri
 func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	mode := request.FormValue("mode")
+
 	cmd := cmdAudio
 	if mode != "" {
 		cmd = cmdAudio + " " + mode
 	}
+
 	result := s.daemon.handleCommand(request.Context(), cmd)
 	slog.Debug("web audio", "cmd", cmd, "response", result.String())
 
 	status := s.getWebStatusWithPTZ(request.Context())
+
 	toast := toastAudioChanged
 	if !result.IsError() {
 		toast = "Audio: " + string(status.Audio)
 	}
+
 	applyResultToStatus(result, &status, toast, toastTypeSuccess)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
@@ -232,22 +241,27 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	axis := request.PathValue("axis")
+
 	val := request.FormValue("value")
 	if axis == "" || val == "" {
-
 		http.Error(responseWriter, "missing axis or value", http.StatusBadRequest)
 
 		return
 	}
+
 	if !ptzAxisValid(axis) {
 		http.Error(responseWriter, "invalid axis", http.StatusBadRequest)
+
 		return
 	}
+
 	intVal, err := strconv.Atoi(val)
 	if err != nil {
 		http.Error(responseWriter, "invalid value", http.StatusBadRequest)
+
 		return
 	}
+
 	info := ptzAxes[axis]
 	intVal = clampInt(intVal, info.Min, info.Max)
 	result := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
@@ -260,6 +274,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 			info.Label, axis, info.Min, info.Max, sliderVal, info.Unit,
 			result.String(), toastTypeError,
 		)).ServeHTTP(responseWriter, request)
+
 		return
 	}
 
@@ -278,11 +293,11 @@ func (s *webServer) invalidatePTZCache() {
 func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
 	status := s.getWebStatus()
 	if status.Device == "" {
-
 		http.Error(responseWriter, "no camera device", http.StatusServiceUnavailable)
 
 		return status, false
 	}
+
 	return status, true
 }
 
@@ -309,6 +324,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("GET /api/snapshot", server.handleSnapshot)
 	mux.HandleFunc("GET /api/stream", server.handleStream)
 	mux.Handle("GET /metrics", promhttp.Handler())
+
 	if server.daemon.config.Debug {
 		mux.HandleFunc("GET /debug/pprof/", pprof.Index)
 		mux.HandleFunc("GET /debug/pprof/cmdline", pprof.Cmdline)
@@ -316,5 +332,6 @@ func newWebMux(server *webServer) *http.ServeMux {
 		mux.HandleFunc("GET /debug/pprof/symbol", pprof.Symbol)
 		mux.HandleFunc("GET /debug/pprof/trace", pprof.Trace)
 	}
+
 	return mux
 }

@@ -16,20 +16,37 @@ output:
   formats: {}
 linters:
   enable:
+    - arangolint
+    - asasalint
+    - asciicheck
+    - bidichk
     - bodyclose
+    - canonicalheader
+    - clickhouselint
+    - containedctx
     - contextcheck
     - copyloopvar
     - cyclop
+    - decorder
+    - depguard
+    - dogsled
     - dupl
+    - dupword
     - durationcheck
+    - embeddedstructfieldcheck
+    - err113
     - errchkjson
     - errname
     - errorlint
     - exhaustive
     - exhaustruct
+    - exptostd
+    - fatcontext
+    - forbidigo
     - forcetypeassert
     - funlen
     - ginkgolinter
+    - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
     - gochecksumtype
@@ -37,26 +54,47 @@ linters:
     - goconst
     - gocritic
     - gocyclo
+    - godoclint
+    - godot
+    - godox
+    - goheader
+    - gomoddirectives
+    - gomodguard_v2
+    - goprintffuncname
     - gosec
     - gosmopolitan
+    - grouper
+    - iface
+    - importas
+    - inamedparam
     - interfacebloat
     - intrange
+    - iotamixing
+    - ireturn
     - loggercheck
     - maintidx
+    - makezero
     - mirror
     - misspell
+    - mnd
+    - modernize
     - musttag
     - nakedret
     - nestif
     - nilerr
     - nilnesserr
     - nilnil
+    - nlreturn
     - noctx
+    - noinlineerr
     - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
     - paralleltest
     - perfsprint
     - prealloc
     - predeclared
+    - promlinter
     - protogetter
     - reassign
     - recvcheck
@@ -65,17 +103,33 @@ linters:
     - sloglint
     - spancheck
     - sqlclosecheck
+    - tagalign
+    - tagliatelle
+    - testableexamples
     - testifylint
+    - testpackage
     - thelper
+    - tparallel
     - unconvert
     - unparam
+    - unqueryvet
+    - usestdlibvars
     - usetesting
+    - varnamelen
     - wastedassign
+    - whitespace
     - wrapcheck
+    - wsl_v5
     - zerologlint
   settings:
     cyclop:
       max-complexity: 20
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - $module
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -85,6 +139,8 @@ linters:
     gocritic:
       disabled-checks:
         - ifElseChain
+    gomoddirectives:
+      replace-local: true
     gosec:
       excludes:
         - G104
@@ -95,13 +151,36 @@ linters:
         - G304
         - G306
         - G702
+        - G703
         - G706
+    ireturn:
+      allow:
+        - error
+        - empty
+        - anon
+        - stdlib
+        - generic
     revive:
       rules:
         - disabled: true
           name: exported
         - disabled: true
           name: package-comments
+    varnamelen:
+      ignore-map-index-ok: true
+      ignore-names:
+        - err
+        - ok
+        - tt
+        - fn
+        - t
+        - i
+        - m
+        - g
+        - a
+        - b
+        - v
+      ignore-type-assert-ok: true
   exclusions:
     generated: lax
     rules:

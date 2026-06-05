@@ -21,7 +21,8 @@ func requireGaugeValue(t *testing.T, name string, want float64, attrs ...attribu
 	registerMetrics()
 
 	var rm metricdata.ResourceMetrics
-	if err := promExporter.Collect(context.Background(), &rm); err != nil {
+	err := promExporter.Collect(context.Background(), &rm)
+	if err != nil {
 		t.Fatalf("collect metrics: %v", err)
 	}
 
@@ -30,15 +31,18 @@ func requireGaugeValue(t *testing.T, name string, want float64, attrs ...attribu
 			if m.Name != name {
 				continue
 			}
+
 			gauge, ok := m.Data.(metricdata.Gauge[float64])
 			if !ok {
 				t.Fatalf("%s: not a float64 gauge", name)
 			}
+
 			for _, dp := range gauge.DataPoints {
 				if matchAttrs(dp.Attributes, attrs) {
 					if dp.Value != want {
 						t.Errorf("%s = %v, want %v", name, dp.Value, want)
 					}
+
 					return
 				}
 			}
@@ -52,17 +56,20 @@ func matchAttrs(set attribute.Set, wanted []attribute.KeyValue) bool {
 	if len(wanted) == 0 {
 		return set.Len() == 0
 	}
+
 	for _, w := range wanted {
 		v, ok := set.Value(w.Key)
 		if !ok || v.AsString() != w.Value.AsString() {
 			return false
 		}
 	}
+
 	return true
 }
 
 func assertJPEGBytes(t *testing.T, frame, expected []byte) {
 	t.Helper()
+
 	if string(frame) != string(expected) {
 		t.Errorf("expected %x, got %x", expected, frame)
 	}
@@ -79,9 +86,11 @@ func TestExtractJPEGFrame_MinimalFrame(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(frame) != 4 {
 		t.Fatalf("expected 4 bytes, got %d", len(frame))
 	}
+
 	assertJPEGMarkers(t, frame)
 }
 
@@ -96,6 +105,7 @@ func TestExtractJPEGFrame_FrameWithPayload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	assertJPEGBytes(t, frame, data)
 }
 
@@ -180,6 +190,7 @@ func TestExtractJPEGFrame_FFInsidePayload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	assertJPEGMarkers(t, frame)
 }
 
@@ -194,6 +205,7 @@ func TestExtractJPEGFrame_BufferReset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	assertJPEGBytes(t, frame, data)
 }
 
@@ -227,6 +239,7 @@ func TestPTZAxisLabel(t *testing.T) {
 			t.Errorf("ptzAxes[%q].Label = %q, want %q", tc.axis, got, tc.want)
 		}
 	}
+
 	if _, ok := ptzAxes["unknown"]; ok {
 		t.Error("unknown axis should not be in ptzAxes")
 	}
@@ -238,9 +251,11 @@ func TestPTZAxisUnit(t *testing.T) {
 	if got := ptzAxes[pixy.AxisPan].Unit; got != "\u00b0" {
 		t.Errorf("pan unit = %q, want °", got)
 	}
+
 	if got := ptzAxes[pixy.AxisTilt].Unit; got != "\u00b0" {
 		t.Errorf("tilt unit = %q, want °", got)
 	}
+
 	if got := ptzAxes[pixy.AxisZoom].Unit; got != "x" {
 		t.Errorf("zoom unit = %q, want x", got)
 	}
@@ -253,12 +268,15 @@ func TestPTZAxisValue(t *testing.T) {
 	if got := ptzAxisValue(pixy.AxisPan, status); got != -10 {
 		t.Errorf("pan value = %d, want -10", got)
 	}
+
 	if got := ptzAxisValue(pixy.AxisTilt, status); got != 5 {
 		t.Errorf("tilt value = %d, want 5", got)
 	}
+
 	if got := ptzAxisValue(pixy.AxisZoom, status); got != 200 {
 		t.Errorf("zoom value = %d, want 200", got)
 	}
+
 	if got := ptzAxisValue("unknown", status); got != 0 {
 		t.Errorf("unknown axis = %d, want 0", got)
 	}
@@ -315,12 +333,15 @@ func TestPTZAxisValid(t *testing.T) {
 	if !ptzAxisValid(pixy.AxisPan) {
 		t.Error("pan should be valid")
 	}
+
 	if !ptzAxisValid(pixy.AxisTilt) {
 		t.Error("tilt should be valid")
 	}
+
 	if !ptzAxisValid(pixy.AxisZoom) {
 		t.Error("zoom should be valid")
 	}
+
 	if ptzAxisValid("unknown") {
 		t.Error("unknown should be invalid")
 	}
@@ -342,6 +363,7 @@ func TestFormatLastSynced(t *testing.T) {
 	}
 
 	old := time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC)
+
 	result := formatLastSynced(old)
 	if len(result) != 5 {
 		t.Errorf("old time should return HH:MM format, got %q", result)
@@ -386,9 +408,11 @@ func TestSecurityMiddleware(t *testing.T) {
 
 func assertJPEGMarkers(t *testing.T, frame []byte) {
 	t.Helper()
+
 	if frame[0] != 0xFF || frame[1] != 0xD8 {
 		t.Errorf("missing SOI")
 	}
+
 	if frame[len(frame)-2] != 0xFF || frame[len(frame)-1] != 0xD9 {
 		t.Errorf("missing EOI")
 	}
@@ -396,13 +420,16 @@ func assertJPEGMarkers(t *testing.T, frame []byte) {
 
 func runRequestIDMiddleware(t *testing.T, req *http.Request) string {
 	t.Helper()
+
 	var capturedID string
+
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		capturedID = w.Header().Get("X-Request-ID")
 	})
 	h := requestIDMiddleware(inner)
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
+
 	return capturedID
 }
 
@@ -415,6 +442,7 @@ func TestRequestIDMiddleware_Generated(t *testing.T) {
 	if capturedID == "" {
 		t.Error("X-Request-ID should be generated when not provided")
 	}
+
 	if len(capturedID) != 8 {
 		t.Errorf("generated ID length = %d, want 8", len(capturedID))
 	}
@@ -455,13 +483,16 @@ func TestCachingFS(t *testing.T) {
 
 func BenchmarkExtractJPEGFrame(b *testing.B) {
 	data := make([]byte, 0, 104)
+
 	data = append(data, 0xFF, 0xD8)
 	for range 100 {
 		data = append(data, 0x42)
 	}
+
 	data = append(data, 0xFF, 0xD9)
 
 	b.ResetTimer()
+
 	for b.Loop() {
 		br := bufio.NewReader(bytes.NewReader(data))
 		buf := &bytes.Buffer{}
@@ -471,7 +502,9 @@ func BenchmarkExtractJPEGFrame(b *testing.B) {
 
 func BenchmarkFormatLastSynced(b *testing.B) {
 	t := time.Now()
+
 	b.ResetTimer()
+
 	for b.Loop() {
 		formatLastSynced(t)
 	}
@@ -481,6 +514,7 @@ func TestLoggingMiddleware_CapturesStatus(t *testing.T) {
 	t.Parallel()
 
 	var capturedStatus int
+
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		capturedStatus = http.StatusNotFound
@@ -494,6 +528,7 @@ func TestLoggingMiddleware_CapturesStatus(t *testing.T) {
 	if capturedStatus != http.StatusNotFound {
 		t.Errorf("inner handler saw status %d, want %d", capturedStatus, http.StatusNotFound)
 	}
+
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("recorder status = %d, want %d", rec.Code, http.StatusNotFound)
 	}
@@ -518,14 +553,19 @@ func TestLoggingMiddleware_Flusher(t *testing.T) {
 	t.Parallel()
 
 	var flushed bool
+
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		f, ok := w.(http.Flusher)
 		if !ok {
 			t.Error("responseWriter should implement http.Flusher")
+
 			return
 		}
+
 		_, _ = w.Write([]byte("chunk"))
+
 		f.Flush()
+
 		flushed = true
 	})
 
@@ -554,11 +594,13 @@ func TestUpdateMetrics(t *testing.T) {
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 1)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 0)
+
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		want := 0.0
 		if state.Camera == s {
 			want = 1.0
 		}
+
 		requireGaugeValue(t, "emeet_pixyd_camera_state", want, attribute.String("state", string(s)))
 	}
 

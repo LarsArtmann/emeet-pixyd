@@ -33,9 +33,11 @@ func (d *Daemon) handleCallStart(
 		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			slog.Error("failed to set audio mode", "error", audioErr)
+
 			if autoErr != "" {
 				autoErr += "; "
 			}
+
 			autoErr += "audio: " + audioErr.Error()
 		}
 	}
@@ -106,15 +108,18 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	inUse := d.deps.isCameraInUse(videoDev)
 
 	d.mu.Lock()
+
 	debounceCount := d.config.DebounceCount
 	if inUse {
 		d.debounceIdle = 0
+
 		d.debounceInUse++
 		if d.debounceInUse > debounceCount {
 			d.debounceInUse = debounceCount
 		}
 	} else {
 		d.debounceInUse = 0
+
 		d.debounceIdle++
 		if d.debounceIdle > debounceCount {
 			d.debounceIdle = debounceCount
@@ -129,15 +134,18 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	d.mu.Unlock()
 
 	changed := false
+
 	if inUse && !inCall && debounceInUse >= debounceCount {
 		slog.Info("camera in use, activating", "auto_mode", autoMode)
 		d.handleCallStart(ctx, camera, autoMode)
+
 		changed = true
 	}
 
 	if !inUse && inCall && debounceIdle >= debounceCount {
 		slog.Info("camera released", "auto_mode", autoMode)
 		d.handleCallEnd(ctx, autoMode)
+
 		changed = true
 	}
 

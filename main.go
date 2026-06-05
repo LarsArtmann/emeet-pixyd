@@ -4,10 +4,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"sync"
@@ -31,6 +33,7 @@ type Daemon struct {
 	config    pixy.Config
 	videoDev  string
 	hidrawDev string
+	hidDev    HIDDevice
 
 	debounceInUse int
 	debounceIdle  int
@@ -50,7 +53,8 @@ type Daemon struct {
 const hidCircuitBreakerThreshold = 3
 
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
-	if err := cfg.Validate(); err != nil {
+	err := cfg.Validate()
+	if err != nil {
 		return nil, fmt.Errorf("validate config: %w", err)
 	}
 
@@ -77,11 +81,29 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	// persisted state (if valid) wins, ensuring user overrides survive restarts.
 	d.state.AutoMode = cfg.AutoMode
 	d.state.Audio = cfg.DefaultAudio
+
 	registerMetrics()
 	d.loadState()
 	d.applyProbeResult(probeDevices())
+	checkExternalDeps()
 
 	return d, nil
+}
+
+func checkExternalDeps() {
+	for _, dep := range []struct {
+		binary string
+		impact string
+	}{
+		{"ffmpeg", "MJPEG streaming unavailable"},
+		{v4l2ctl, "PTZ control unavailable"},
+		{"wpctl", "PipeWire source switching unavailable"},
+		{"notify-send", "desktop notifications unavailable"},
+	} {
+		if _, err := exec.LookPath(dep.binary); err != nil {
+			slog.Warn("optional dependency not found", "binary", dep.binary, "impact", dep.impact)
+		}
+	}
 }
 
 func (d *Daemon) setDeviceState(
@@ -90,10 +112,10 @@ func (d *Daemon) setDeviceState(
 	setter stateSetter,
 ) error {
 	d.mu.RLock()
-	hidrawDev := d.hidrawDev
+	hidDev := d.hidDev
 	d.mu.RUnlock()
 
-	if hidrawDev == "" {
+	if hidDev == nil {
 		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
 	}
 
@@ -105,33 +127,36 @@ func (d *Daemon) setDeviceState(
 		return fmt.Errorf("setDeviceState: %w", pixy.ErrPIXYNotConnected)
 	}
 
-	err := hidSend(hidrawDev, configBytes)
+	err := hidDev.Send(configBytes)
 	if err != nil {
 		d.mu.Lock()
 		d.hidFailCount++
+
 		recordHIDFailure(ctx)
+
 		if d.hidFailCount < hidCircuitBreakerThreshold {
 			d.applyProbeResult(probeDevices()) //nolint:contextcheck
 		}
 		d.mu.Unlock()
 
-		return fmt.Errorf("setDeviceState send config via %s: %w", hidrawDev, err)
+		return fmt.Errorf("setDeviceState send config: %w", err)
 	}
 
 	select {
 	case <-ctx.Done():
-		return fmt.Errorf("setDeviceState %s: %w", hidrawDev, ctx.Err())
+		return fmt.Errorf("setDeviceState: %w", ctx.Err())
 	case <-time.After(hidCommandSleepMs * time.Millisecond):
 	}
 
-	err = hidSend(hidrawDev, commitBytes)
+	err = hidDev.Send(commitBytes)
 	if err != nil {
 		d.mu.Lock()
 		d.hidFailCount++
+
 		recordHIDFailure(ctx)
 		d.mu.Unlock()
 
-		return fmt.Errorf("setDeviceState send commit via %s: %w", hidrawDev, err)
+		return fmt.Errorf("setDeviceState send commit: %w", err)
 	}
 
 	d.mu.Lock()
@@ -201,6 +226,7 @@ func (d *Daemon) videoDevice() string {
 	d.mu.RLock()
 	dev := d.videoDev
 	d.mu.RUnlock()
+
 	return dev
 }
 
@@ -234,10 +260,11 @@ func (d *Daemon) queryGesture(ctx context.Context) (bool, error) {
 	)
 }
 
-func (d *Daemon) hidDevice() string {
+func (d *Daemon) hidDevice() HIDDevice {
 	d.mu.RLock()
-	dev := d.hidrawDev
+	dev := d.hidDev
 	d.mu.RUnlock()
+
 	return dev
 }
 
@@ -303,6 +330,7 @@ func boolStr(b bool, ifTrue, ifFalse string) string {
 	if b {
 		return ifTrue
 	}
+
 	return ifFalse
 }
 
@@ -395,8 +423,9 @@ func (d *Daemon) Run() {
 
 		go func() {
 			slog.Info("web UI starting", "addr", d.config.WebAddr)
+
 			listenErr := httpSrv.ListenAndServe()
-			if listenErr != nil && listenErr != http.ErrServerClosed {
+			if listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
 				slog.Error("web server error", "error", listenErr)
 			}
 		}()
@@ -430,20 +459,26 @@ func (d *Daemon) Run() {
 				d.mu.Lock()
 				d.saveStateOrLog("failed to save state on SIGHUP")
 				d.mu.Unlock()
+
 				continue
 			}
+
 			sdNotify("STOPPING=1")
 			slog.Info("shutting down")
 			d.mu.Lock()
 			d.saveStateOrLog("failed to save state on shutdown")
 			d.mu.Unlock()
 			cancel()
+
 			_ = os.Remove(d.config.SocketPath())
+
 			if httpSrv != nil {
 				shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				_ = httpSrv.Shutdown(shutdownCtx)
+
 				cancel()
 			}
+
 			return
 		case <-ueventCh:
 			slog.Info("device event detected, re-probing")
@@ -453,8 +488,10 @@ func (d *Daemon) Run() {
 			d.applyProbeResult(probeDevices())
 			newVideo := d.videoDev
 			d.mu.Unlock()
+
 			if oldVideo == "" && newVideo != "" {
 				slog.Info("device appeared, syncing state")
+
 				_ = d.syncState(ctx)
 			}
 			d.cmdMu.Unlock()
@@ -469,6 +506,7 @@ func exitWithDaemonError(err error) {
 	if err != nil {
 		_, dieErr := fmt.Fprintf(os.Stderr, "Error: %v\nIs emeet-pixyd running?\n", err)
 		_ = dieErr
+
 		os.Exit(1)
 	}
 }
@@ -487,34 +525,10 @@ func handleFlag() bool {
 
 		return true
 	case "--help", "-h":
-		_, _ = fmt.Fprintln(os.Stdout, `Usage: emeet-pixyd [command]
-
-Run without arguments to start the daemon.
-Run with a command to send it to a running daemon via Unix socket.
-
-Commands:
-  status            Show current camera status
-  waybar            Output waybar-compatible JSON
-  version           Print version
-  sync              Sync state from hardware
-  probe             Re-probe for device
-  device            Show device paths
-  track             Enable tracking mode
-  idle              Set idle mode
-  privacy           Enable privacy mode
-  toggle-privacy    Toggle privacy on/off
-  center            Center camera (pan/tilt/zoom reset)
-  audio [mode]      Cycle or set audio mode (nc, live, org/original)
-  gesture-on        Enable gesture control
-  gesture-off       Disable gesture control
-  toggle-gesture    Toggle gesture control
-  auto              Show current auto mode
-  auto-on           Enable auto mode (full)
-  auto-off          Disable auto mode
-  toggle-auto       Toggle auto mode
-  pan <degrees>     Set pan position
-  tilt <degrees>    Set tilt position
-  zoom <value>      Set zoom level`)
+		_, _ = fmt.Fprintln(
+			os.Stdout,
+			"Usage: emeet-pixyd [command]\n\nRun without arguments to start the daemon.\nRun with a command to send it to a running daemon via Unix socket.\n\nCommands:\n  status            Show current camera status\n  waybar            Output waybar-compatible JSON\n  version           Print version\n  sync              Sync state from hardware\n  probe             Re-probe for device\n  Show device paths\n  track             Enable tracking mode\n  idle              Set idle mode\n  privacy           Enable privacy mode\n  toggle-privacy    Toggle privacy on/off\n  center            Center camera (pan/tilt/zoom reset)\n  audio [mode]      Cycle or set audio mode (nc, live, org/original)\n  gesture-on        Enable gesture control\n  gesture-off       Disable gesture control\n  toggle-gesture    Toggle gesture control\n  auto              Show current auto mode\n  auto-on           Enable auto mode (full)\n  auto-off          Disable auto mode\n  toggle-auto       Toggle auto mode\n  pan <degrees>     Set pan position\n  tilt <degrees>    Set tilt position\n  zoom <value>      Set zoom level",
+		)
 
 		return true
 	default:
@@ -552,5 +566,6 @@ func main() {
 		slog.Error("daemon init failed", "error", err)
 		os.Exit(1)
 	}
+
 	d.Run()
 }

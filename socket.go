@@ -53,6 +53,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 				return nil
 			default:
 			}
+
 			slog.Error("socket accept error", "error", err)
 
 			continue
@@ -61,6 +62,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 		buf := make([]byte, pixy.SocketBufSize)
 
 		_ = conn.SetReadDeadline(time.Now().Add(socketIOTimeout))
+
 		n, readErr := conn.Read(buf)
 		if readErr == nil && n > 0 {
 			cmd := strings.TrimSpace(string(buf[:n]))
@@ -68,6 +70,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 			response := d.handleCommand(ctx, cmd).String() + "\n"
 
 			_ = conn.SetWriteDeadline(time.Now().Add(socketIOTimeout))
+
 			_, writeErr := conn.Write([]byte(response))
 			if writeErr != nil {
 				slog.Debug("socket write error", "error", writeErr)
