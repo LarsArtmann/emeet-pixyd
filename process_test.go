@@ -136,6 +136,7 @@ func TestPpidOf_MalformedStat(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	pidDir := filepath.Join(tmpDir, "12345")
+
 	err := os.MkdirAll(pidDir, 0o755)
 	if err != nil {
 		t.Fatal(err)

@@ -77,6 +77,7 @@ func (d *Daemon) saveState() error {
 	}
 
 	tmp := d.config.StateFile() + ".tmp"
+
 	writeErr := os.WriteFile(tmp, data, pixy.PermissionStateFile)
 	if writeErr != nil {
 		return fmt.Errorf("write temp state: %w", writeErr)

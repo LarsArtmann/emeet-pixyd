@@ -296,6 +296,7 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 			output := d.waybarOutput()
 
 			var parsed map[string]string
+
 			err := json.Unmarshal([]byte(output), &parsed)
 			if err != nil {
 				t.Fatalf("invalid JSON: %s", output)

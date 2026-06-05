@@ -120,6 +120,7 @@ func withCaptureCenter(calls *int) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.centerCamera = func(context.Context) error {
 			*calls++
+
 			return nil
 		}
 	}

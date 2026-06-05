@@ -21,6 +21,7 @@ func requireGaugeValue(t *testing.T, name string, want float64, attrs ...attribu
 	registerMetrics()
 
 	var rm metricdata.ResourceMetrics
+
 	err := promExporter.Collect(context.Background(), &rm)
 	if err != nil {
 		t.Fatalf("collect metrics: %v", err)

@@ -30,6 +30,7 @@ func TestCommandError_Unwrap(t *testing.T) {
 	t.Parallel()
 
 	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
+
 	got := err.Unwrap()
 	if !errors.Is(got, ErrInvalidValue) {
 		t.Errorf("Unwrap() = %v, want ErrInvalidValue", got)
