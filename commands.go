@@ -113,12 +113,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 		return okResult("emeet-pixyd " + buildVersion)
 
 	case cmdSync:
-		msg := d.syncState(ctx)
-		if IsCommandErrorResponse(msg) {
-			return errResultMsg(msg)
-		}
-
-		return okResult(msg)
+		return d.syncState(ctx)
 
 	case cmdProbe:
 		d.mu.Lock()

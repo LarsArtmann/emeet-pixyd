@@ -268,11 +268,11 @@ func (d *Daemon) hidDevice() HIDDevice {
 	return dev
 }
 
-func (d *Daemon) syncState(ctx context.Context) string {
+func (d *Daemon) syncState(ctx context.Context) CommandResult {
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
-		return (&CommandError{Op: cmdSync, Err: pixy.ErrPIXYNotConnected}).Error()
+		return errResult(cmdSync, pixy.ErrPIXYNotConnected)
 	}
 
 	tracking, trackingErr := d.queryTracking(ctx)
@@ -318,12 +318,12 @@ func (d *Daemon) syncState(ctx context.Context) string {
 		d.saveStateOrLog("failed to save synced state")
 		d.mu.Unlock()
 
-		return "synced (state updated from camera)"
+		return okResult("synced (state updated from camera)")
 	}
 
 	d.mu.Unlock()
 
-	return "synced (no changes)"
+	return okResult("synced (no changes)")
 }
 
 func boolStr(b bool, ifTrue, ifFalse string) string {

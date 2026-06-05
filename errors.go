@@ -5,7 +5,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 const errorPrefix = "error: "
@@ -51,9 +50,6 @@ func (r CommandResult) String() string {
 func (r CommandResult) IsError() bool {
 	return r.Err != nil
 }
-
-// IsCommandErrorResponse reports whether s is a legacy command error response string.
-func IsCommandErrorResponse(s string) bool { return strings.HasPrefix(s, errorPrefix) }
 
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.

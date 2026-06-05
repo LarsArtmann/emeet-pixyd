@@ -37,33 +37,6 @@ func TestCommandError_Unwrap(t *testing.T) {
 	}
 }
 
-func TestIsCommandErrorResponse(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		s    string
-		want bool
-	}{
-		{"error: pan: invalid value", true},
-		{"error: zoom: device not found", true},
-		{respTrackingOn, false},
-		{respPrivacyOn, false},
-		{"error:", false},
-		{"ERROR: pan: invalid value", false}, // wrong case
-		{"error:pan", false},                 // no space after colon
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.s, func(t *testing.T) {
-			t.Parallel()
-
-			if got := IsCommandErrorResponse(tc.s); got != tc.want {
-				t.Errorf("IsCommandErrorResponse(%q) = %v, want %v", tc.s, got, tc.want)
-			}
-		})
-	}
-}
-
 // ---------------------------------------------------------------------------
 // parsePTZValue tests
 // ---------------------------------------------------------------------------
@@ -299,7 +272,7 @@ func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{"auto-on"})
-	notError(t, resp.String())
+	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
@@ -311,7 +284,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 	})
 
 	resp := d.handleAutoCommand([]string{cmdAutoOff})
-	notError(t, resp.String())
+	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoOff)
 }
 
@@ -321,7 +294,7 @@ func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdToggleAuto})
-	notError(t, resp.String())
+	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
@@ -333,7 +306,7 @@ func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
 	})
 
 	resp := d.handleAutoCommand([]string{cmdAuto})
-	notError(t, resp.String())
+	notError(t, resp)
 	assertCommandContains(t, resp.String(), "tracking-only", "response")
 	assertAutoModeEquals(t, d, pixy.AutoTrackingOnly)
 }
@@ -342,11 +315,11 @@ func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
 // handleGestureCommand tests
 // ---------------------------------------------------------------------------
 
-func notError(t *testing.T, resp string) {
+func notError(t *testing.T, result CommandResult) {
 	t.Helper()
 
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
+	if result.IsError() {
+		t.Errorf("expected success, got: %s", result.String())
 	}
 }
 
@@ -358,7 +331,7 @@ func TestHandleGestureCommand_On(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOn)
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if !called || !enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/true", called, enabledArg)
@@ -373,7 +346,7 @@ func TestHandleGestureCommand_Off(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOff)
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if !called || enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/false", called, enabledArg)
@@ -392,7 +365,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if !enabledArg {
 		t.Errorf("toggle should enable gesture, got enabled=%v", enabledArg)
@@ -411,7 +384,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if enabledArg {
 		t.Errorf("toggle should disable gesture, got enabled=%v", enabledArg)
@@ -430,7 +403,7 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if modeArg != pixy.AudioLive {
 		t.Errorf("setAudio called with %s, want %s", modeArg, pixy.AudioLive)
@@ -456,7 +429,7 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 	}, withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio})
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if modeArg != pixy.AudioLive {
 		t.Errorf("next mode = %s, want %s", modeArg, pixy.AudioLive)
@@ -475,7 +448,7 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureTracking(&stateArg))
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if stateArg != pixy.StateTracking {
 		t.Errorf("setTracking called with %s, want %s", stateArg, pixy.StateTracking)
@@ -701,7 +674,7 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if stateArg != pixy.StateTracking {
 		t.Errorf("toggle from privacy should set tracking, got: %s", stateArg)
@@ -719,7 +692,7 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from tracking should set privacy, got: %s", stateArg)
@@ -737,7 +710,7 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp.String())
+	notError(t, resp)
 
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from idle should set privacy, got: %s", stateArg)
@@ -794,11 +767,11 @@ func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
 	d.config = defaultTestConfig(t.TempDir())
 
 	resp := d.handleCommand(context.Background(), cmdAutoOff)
-	notError(t, resp.String())
+	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoOff)
 
 	resp = d.handleCommand(context.Background(), cmdAutoOn)
-	notError(t, resp.String())
+	notError(t, resp)
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
