@@ -97,7 +97,6 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 		}
 
 		slog.Info("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
-		registerMetrics()
 		metricUevents.Add( //nolint:contextcheck // uevent goroutine has no inherited context
 			context.Background(), 1,
 			metric.WithAttributes(

@@ -119,7 +119,6 @@ type probeResult struct {
 }
 
 func probeDevices() probeResult {
-	registerMetrics()
 	metricProbes.Add(context.Background(), 1)
 
 	result := probeResult{

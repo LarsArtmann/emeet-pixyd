@@ -270,6 +270,8 @@ func newTestDaemon(
 		d.hidDev = newHIDRawDevice(hidrawDev)
 	}
 
+	registerMetrics()
+
 	for _, opt := range opts {
 		opt(d)
 	}

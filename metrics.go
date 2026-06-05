@@ -113,12 +113,10 @@ func registerMetrics() {
 }
 
 func recordHIDFailure(ctx context.Context) {
-	registerMetrics()
 	metricHIDFailures.Add(ctx, 1)
 }
 
 func updateMetrics(state pixy.State) {
-	registerMetrics()
 
 	ctx := context.Background()
 	if state.InCall {
@@ -144,7 +142,6 @@ func updateMetrics(state pixy.State) {
 }
 
 func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) {
-	registerMetrics()
 
 	resultStr := "success"
 	if result.IsError() {

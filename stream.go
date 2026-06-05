@@ -126,7 +126,6 @@ func (s *webServer) handleStream(
 
 	defer cleanupFFmpeg(cmd)
 	defer func() {
-		registerMetrics()
 		metricStreamDuration.Record(
 			ctx,
 			time.Since(streamStart).Seconds(),
@@ -153,7 +152,6 @@ func (s *webServer) handleStream(
 		}
 
 		s.daemon.lastFrame.Set(frame)
-		registerMetrics()
 		metricFramesTotal.Add(ctx, 1, metric.WithAttributes())
 
 		_, headerErr := fmt.Fprintf(
