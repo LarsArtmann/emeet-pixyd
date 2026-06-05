@@ -1497,3 +1497,41 @@ func BenchmarkGetWebStatus(b *testing.B) {
 		srv.getWebStatus()
 	}
 }
+
+// ---------------------------------------------------------------------------
+// HID circuit breaker tests
+// ---------------------------------------------------------------------------
+
+type failingHID struct {
+	err error
+}
+
+func (f *failingHID) Send(_ []byte) error          { return f.err }
+func (f *failingHID) SendRecv(_ context.Context, _ []byte) ([]byte, error) {
+	return nil, f.err
+}
+
+func TestSetDeviceState_CircuitBreaker(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StateIdle, testVideoDev, testHIDDev)
+
+	d.mu.Lock()
+	d.hidDev = &failingHID{err: errors.New("device busy")}
+	d.hidFailCount = hidCircuitBreakerThreshold
+	d.mu.Unlock()
+
+	err := d.setDeviceState(
+		context.Background(),
+		[]byte{0},
+		[]byte{0},
+		func(_ *Daemon) {},
+	)
+	if err == nil {
+		t.Fatal("expected circuit-open error")
+	}
+
+	if !errors.Is(err, pixy.ErrPIXYNotConnected) {
+		t.Errorf("circuit-open error should wrap ErrPIXYNotConnected, got: %v", err)
+	}
+}
