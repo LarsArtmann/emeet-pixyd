@@ -65,6 +65,59 @@ func TestIsCommandErrorResponse(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// parsePTZValue tests
+// ---------------------------------------------------------------------------
+
+func TestParsePTZValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		input    string
+		wantVal  int
+		wantRel  bool
+		wantErr  bool
+	}{
+		{"50", 50, false, false},
+		{"-30", -30, true, false},
+		{"+45", 45, true, false},
+		{"+0", 0, true, false},
+		{"-0", 0, true, false},
+		{"0", 0, false, false},
+		{"", 0, false, true},
+		{"+", 0, false, true},
+		{"-", 0, false, true},
+		{"abc", 0, false, true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
+			val, relative, err := parsePTZValue(tc.input)
+			if tc.wantErr {
+				if err == nil {
+					t.Errorf("parsePTZValue(%q): expected error, got nil", tc.input)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("parsePTZValue(%q): unexpected error: %v", tc.input, err)
+			}
+
+			if val != tc.wantVal {
+				t.Errorf("parsePTZValue(%q) val = %d, want %d", tc.input, val, tc.wantVal)
+			}
+
+			if relative != tc.wantRel {
+				t.Errorf("parsePTZValue(%q) relative = %v, want %v", tc.input, relative, tc.wantRel)
+			}
+		})
+	}
+}
+
+// ---------------------------------------------------------------------------
 // handlePTZCommand tests
 // ---------------------------------------------------------------------------
 
