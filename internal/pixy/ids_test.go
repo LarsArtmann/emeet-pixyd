@@ -17,8 +17,8 @@ func TestNewPID(t *testing.T) {
 	if pid.IsZero() {
 		t.Error("NewPID(42).IsZero() = true, want false")
 	}
-	if pid.String() != "42" {
-		t.Errorf("NewPID(42).String() = %q, want %q", pid.String(), "42")
+	if pid.String() != "PID:42" {
+		t.Errorf("NewPID(42).String() = %q, want %q", pid.String(), "PID:42")
 	}
 }
 

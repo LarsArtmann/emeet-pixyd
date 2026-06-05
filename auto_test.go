@@ -91,8 +91,8 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 		func(d *Daemon) {
 			d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
 				setSourceCalled = true
-				if id.String() != "42" {
-					t.Errorf("expected source id 42, got %s", id.String())
+				if id.Get() != "42" {
+					t.Errorf("expected source id 42, got %s", id.Get())
 				}
 			}
 		},

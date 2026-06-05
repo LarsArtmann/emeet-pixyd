@@ -37,7 +37,7 @@ func (d *Daemon) handleCallStart(
 		src, srcErr := d.findSourceFn(ctx)
 		if srcErr == nil {
 			d.setSourceFn(ctx, src)
-			slog.Info("set PipeWire default source to PIXY", "id", src.String())
+			slog.Info("set PipeWire default source to PIXY", "id", src.Get())
 		}
 	}
 

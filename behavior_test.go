@@ -93,7 +93,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
 		d.findSourceFn = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
 		d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
-			setSourceCalls = append(setSourceCalls, id.String())
+			setSourceCalls = append(setSourceCalls, id.Get())
 		}
 		d.notifyFn = func(_ context.Context, _, body string) {
 			notifyBodies = append(notifyBodies, body)

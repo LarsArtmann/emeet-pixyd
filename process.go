@@ -16,7 +16,7 @@ import (
 )
 
 func ppidOf(pid pixy.PID) pixy.PID {
-	statData, err := os.ReadFile(filepath.Join("/proc", pid.String(), "stat"))
+	statData, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid.Get()), "stat"))
 	if err != nil {
 		return pixy.PID{}
 	}
@@ -132,9 +132,9 @@ func findPixySource(ctx context.Context) (pixy.SourceID, error) {
 }
 
 func setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
-	err := exec.CommandContext(ctx, "wpctl", "set-default", sourceID.String()).Run()
+	err := exec.CommandContext(ctx, "wpctl", "set-default", sourceID.Get()).Run()
 	if err != nil {
-		slog.Error("failed to set default audio source", "id", sourceID.String(), "error", err)
+		slog.Error("failed to set default audio source", "id", sourceID.Get(), "error", err)
 	}
 }
 

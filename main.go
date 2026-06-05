@@ -18,6 +18,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
+	"github.com/larsartmann/httputil"
 )
 
 // Build info, overridden via -ldflags.
@@ -488,7 +489,7 @@ func (d *Daemon) newHTTPServer() *http.Server {
 	//nolint:exhaustruct
 	return &http.Server{
 		Addr: d.config.WebAddr,
-		Handler: Chain(
+		Handler: httputil.Chain(
 			mux, securityMiddleware, loggingMiddleware, requestIDMiddleware,
 		),
 		ReadHeaderTimeout: 5 * time.Second,
