@@ -77,6 +77,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Auto:       s.daemon.state.AutoMode,
 		Online:     s.daemon.videoDev != "",
 		Device:     s.daemon.videoDev,
+		Error:      s.daemon.autoError,
 		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),
 		Version:    buildVersion,
 	}
@@ -155,13 +156,13 @@ func (s *webServer) action(command string) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 
-		resp := s.daemon.handleCommand(request.Context(), command)
+		result := s.daemon.handleCommand(request.Context(), command)
 
-		slog.Debug("web action", "cmd", command, "response", resp)
+		slog.Debug("web action", "cmd", command, "response", result.String())
 
 		status := s.getWebStatusWithPTZ(request.Context())
 		toast, toastType := actionToast(command)
-		applyResponseToStatus(resp, &status, toast, toastType)
+		applyResultToStatus(result, &status, toast, toastType)
 
 		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 	}
@@ -190,6 +191,16 @@ func actionToast(command string) (string, string) {
 	}
 }
 
+func applyResultToStatus(result CommandResult, status *webStatus, toast, toastType string) {
+	if result.IsError() {
+		status.Error = result.String()
+	} else {
+		status.Toast = toast
+		status.ToastType = toastType
+	}
+}
+
+// applyResponseToStatus applies a string response to a webStatus.
 func applyResponseToStatus(resp string, status *webStatus, toast, toastType string) {
 	if IsCommandErrorResponse(resp) {
 		status.Error = resp
@@ -206,52 +217,16 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	if mode != "" {
 		cmd = cmdAudio + " " + mode
 	}
-	resp := s.daemon.handleCommand(request.Context(), cmd)
-	slog.Debug("web audio", "cmd", cmd, "response", resp)
+	result := s.daemon.handleCommand(request.Context(), cmd)
+	slog.Debug("web audio", "cmd", cmd, "response", result.String())
 
 	status := s.getWebStatusWithPTZ(request.Context())
 	toast := toastAudioChanged
-	if !IsCommandErrorResponse(resp) {
+	if !result.IsError() {
 		toast = "Audio: " + string(status.Audio)
 	}
-	applyResponseToStatus(resp, &status, toast, toastTypeSuccess)
+	applyResultToStatus(result, &status, toast, toastTypeSuccess)
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
-}
-
-func clampInt(v, lo, hi int) int {
-	return max(lo, min(hi, v))
-}
-
-type ptzAxisInfo struct {
-	Min   int
-	Max   int
-	Label string
-	Unit  string
-}
-
-//nolint:gochecknoglobals
-var ptzAxes = map[string]ptzAxisInfo{
-	pixy.AxisPan:  {Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0"},
-	pixy.AxisTilt: {Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0"},
-	pixy.AxisZoom: {Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x"},
-}
-
-func ptzAxisValid(axis string) bool {
-	_, ok := ptzAxes[axis]
-	return ok
-}
-
-func ptzAxisValue(axis string, status webStatus) int {
-	switch axis {
-	case pixy.AxisPan:
-		return status.Pan
-	case pixy.AxisTilt:
-		return status.Tilt
-	case pixy.AxisZoom:
-		return status.Zoom
-	default:
-		return 0
-	}
 }
 
 func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
@@ -275,15 +250,15 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	}
 	info := ptzAxes[axis]
 	intVal = clampInt(intVal, info.Min, info.Max)
-	resp := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
-	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", resp)
+	result := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
+	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", result.String())
 
-	if IsCommandErrorResponse(resp) {
+	if result.IsError() {
 		status := s.getWebStatusWithPTZ(request.Context())
 		sliderVal := ptzAxisValue(axis, status)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
 			info.Label, axis, info.Min, info.Max, sliderVal, info.Unit,
-			resp, toastTypeError,
+			result.String(), toastTypeError,
 		)).ServeHTTP(responseWriter, request)
 		return
 	}

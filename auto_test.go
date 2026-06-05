@@ -89,7 +89,7 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
-			d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
+			d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
 				setSourceCalled = true
 				if id.Get() != "42" {
 					t.Errorf("expected source id 42, got %s", id.Get())
@@ -112,7 +112,7 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 	d := testAutoDaemon(
 		withFindSource("42"),
 		func(d *Daemon) {
-			d.setSourceFn = func(_ context.Context, _ pixy.SourceID) { setSourceCalled = true }
+			d.deps.setSource = func(_ context.Context, _ pixy.SourceID) { setSourceCalled = true }
 		},
 	)
 
@@ -252,7 +252,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 
 	callCount := 0
 	d := testAutoDaemon(func(d *Daemon) {
-		d.isCameraInUseFn = func(_ string) bool {
+		d.deps.isCameraInUse = func(_ string) bool {
 			callCount++
 			return callCount <= 2
 		}
@@ -317,7 +317,7 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 
 func withCaptureTrackingSlice(captured *[]pixy.CameraState) testDaemonOption {
 	return func(d *Daemon) {
-		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			*captured = append(*captured, s)
 			return nil
 		}
@@ -354,9 +354,9 @@ func TestAutoManage_UsesMockedAudioFn(t *testing.T) {
 
 	var audioCalls []pixy.AudioMode
 	d := testAutoDaemon(func(d *Daemon) {
-		d.isCameraInUseFn = cameraInUseFn
+		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
-		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error {
+		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			audioCalls = append(audioCalls, m)
 			return nil
 		}

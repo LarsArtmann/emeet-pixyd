@@ -4,10 +4,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -36,6 +34,8 @@ type Daemon struct {
 
 	debounceInUse int
 	debounceIdle  int
+	hidFailCount  int
+	autoError     string
 	lastSyncedAt  time.Time
 
 	lastFrame lastFrameCache
@@ -44,17 +44,10 @@ type Daemon struct {
 
 	streamSema chan struct{}
 
-	isCameraInUseFn func(videoDev string) bool
-	findSourceFn    func(ctx context.Context) (pixy.SourceID, error)
-	setSourceFn     func(ctx context.Context, sourceID pixy.SourceID)
-	notifyFn        func(ctx context.Context, title, body string)
-
-	setTrackingFn  func(ctx context.Context, state pixy.CameraState) error
-	setAudioFn     func(ctx context.Context, mode pixy.AudioMode) error
-	setGestureFn   func(ctx context.Context, enabled bool) error
-	centerCameraFn func(ctx context.Context) error
-	v4l2SetFn      func(ctx context.Context, dev, ctrl, val string) error
+	deps Dependencies
 }
+
+const hidCircuitBreakerThreshold = 3
 
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	if err := cfg.Validate(); err != nil {
@@ -63,19 +56,23 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 
 	//nolint:exhaustruct // remaining fields set below or zero-valued
 	d := &Daemon{
-		config:          cfg,
-		state:           pixy.DefaultState(),
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: isCameraInUse,
-		findSourceFn:    findPixySource,
-		setSourceFn:     setDefaultSource,
-		notifyFn:        notify,
+		config:     cfg,
+		state:      pixy.DefaultState(),
+		streamSema: make(chan struct{}, 1),
 	}
-	d.setTrackingFn = d.setTracking
-	d.setAudioFn = d.setAudio
-	d.setGestureFn = d.setGesture
-	d.centerCameraFn = d.centerCamera
-	d.v4l2SetFn = v4l2Set
+	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
+	d.deps = Dependencies{
+		isCameraInUse: isCameraInUse,
+		findSource:    findPixySource,
+		setSource:     setDefaultSource,
+		notify:        notify,
+	}
+	d.deps.setTracking = d.setTracking
+	d.deps.setAudio = d.setAudio
+	d.deps.setGesture = d.setGesture
+	d.deps.centerCamera = d.centerCamera
+	d.deps.v4l2Set = v4l2Set
+	d.deps.parsePTZ = parsePTZValues
 	// Config values override defaults before loading persisted state;
 	// persisted state (if valid) wins, ensuring user overrides survive restarts.
 	d.state.AutoMode = cfg.AutoMode
@@ -100,10 +97,22 @@ func (d *Daemon) setDeviceState(
 		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
 	}
 
+	d.mu.RLock()
+	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
+	d.mu.RUnlock()
+
+	if circuitOpen {
+		return fmt.Errorf("setDeviceState: %w", pixy.ErrPIXYNotConnected)
+	}
+
 	err := hidSend(hidrawDev, configBytes)
 	if err != nil {
 		d.mu.Lock()
-		d.applyProbeResult(probeDevices())
+		d.hidFailCount++
+		recordHIDFailure(ctx)
+		if d.hidFailCount < hidCircuitBreakerThreshold {
+			d.applyProbeResult(probeDevices()) //nolint:contextcheck
+		}
 		d.mu.Unlock()
 
 		return fmt.Errorf("setDeviceState send config via %s: %w", hidrawDev, err)
@@ -117,10 +126,16 @@ func (d *Daemon) setDeviceState(
 
 	err = hidSend(hidrawDev, commitBytes)
 	if err != nil {
+		d.mu.Lock()
+		d.hidFailCount++
+		recordHIDFailure(ctx)
+		d.mu.Unlock()
+
 		return fmt.Errorf("setDeviceState send commit via %s: %w", hidrawDev, err)
 	}
 
 	d.mu.Lock()
+	d.hidFailCount = 0
 	setter(d)
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
@@ -173,7 +188,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 		"zoom_absolute": "100",
 	}
 	for ctrl, val := range controls {
-		err := d.v4l2SetFn(ctx, videoDev, ctrl, val)
+		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
 		if err != nil {
 			return fmt.Errorf("centerCamera %s=%s: %w", ctrl, val, err)
 		}
@@ -338,149 +353,6 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 		autoMode,
 		videoDev,
 	)
-}
-
-type waybarJSON struct {
-	Text    string `json:"text"`
-	Tooltip string `json:"tooltip"`
-	Class   string `json:"class"`
-}
-
-func (d *Daemon) waybarOutput() string {
-	d.mu.RLock()
-	camera := d.state.Camera
-	audio := d.state.Audio
-	inCall := d.state.InCall
-	autoMode := d.state.AutoMode
-	d.mu.RUnlock()
-
-	icon := ""
-	class := ""
-	text := ""
-
-	switch camera {
-	case pixy.StateTracking:
-		icon = "\uf030"
-		class = string(pixy.StateTracking)
-		text = "CAM"
-	case pixy.StatePrivacy:
-		icon = "\uf011"
-		class = string(pixy.StatePrivacy)
-		text = "OFF"
-	case pixy.StateIdle:
-		icon = "\uf03d"
-		class = string(pixy.StateIdle)
-		text = "IDLE"
-	case pixy.StateOffline:
-		icon = "\uf00d"
-		class = string(pixy.StateOffline)
-		text = "---"
-	}
-
-	if inCall {
-		class += " in-call"
-	}
-
-	var tooltip strings.Builder
-	tooltip.Grow(64)
-	tooltip.WriteString("EMEET PIXY: ")
-	tooltip.WriteString(string(camera))
-	tooltip.WriteString("\nAudio: ")
-	tooltip.WriteString(string(audio))
-	tooltip.WriteString("\nAuto: ")
-	tooltip.WriteString(autoMode.String())
-	if inCall {
-		tooltip.WriteString("\nIn call: yes")
-	}
-
-	out := waybarJSON{
-		Text:    icon + " " + text,
-		Tooltip: tooltip.String(),
-		Class:   "custom-camera " + class,
-	}
-
-	data, err := json.Marshal(out)
-	if err != nil {
-		return `{"text":"?","tooltip":"json marshal error","class":"custom-camera offline"}`
-	}
-
-	return string(data)
-}
-
-const socketIOTimeout = 5 * time.Second
-
-func (d *Daemon) listenUnix(ctx context.Context) error {
-	socketPath := d.config.SocketPath()
-	_ = os.Remove(socketPath)
-
-	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
-	if createErr != nil {
-		return fmt.Errorf("create state dir: %w", createErr)
-	}
-
-	//nolint:exhaustruct
-	lc := net.ListenConfig{}
-
-	listener, err := lc.Listen(ctx, "unix", socketPath)
-	if err != nil {
-		return fmt.Errorf("listen: %w", err)
-	}
-
-	defer func() {
-		closeErr := listener.Close()
-		if closeErr != nil {
-			slog.Debug("listener close error", "error", closeErr)
-		}
-	}()
-
-	chmodErr := os.Chmod(socketPath, pixy.PermissionSocket)
-	if chmodErr != nil {
-		slog.Error("failed to set socket permissions", "error", chmodErr)
-	}
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-			}
-			slog.Error("socket accept error", "error", err)
-
-			continue
-		}
-
-		buf := make([]byte, pixy.SocketBufSize)
-
-		_ = conn.SetReadDeadline(time.Now().Add(socketIOTimeout))
-		n, readErr := conn.Read(buf)
-		if readErr == nil && n > 0 {
-			cmd := strings.TrimSpace(string(buf[:n]))
-
-			response := d.handleCommand(ctx, cmd) + "\n"
-
-			_ = conn.SetWriteDeadline(time.Now().Add(socketIOTimeout))
-			_, writeErr := conn.Write([]byte(response))
-			if writeErr != nil {
-				slog.Debug("socket write error", "error", writeErr)
-			}
-		}
-
-		closeErr := conn.Close()
-		if closeErr != nil {
-			slog.Debug("conn close error", "error", closeErr)
-		}
-	}
-}
-
-func sendCommand(cfg pixy.Config, cmd string) (string, error) {
-	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), cmd)
-	if err != nil {
-		return "", fmt.Errorf("sendCommand %q: %w", cmd, err)
-	}
-
-	return resp, nil
 }
 
 func (d *Daemon) newHTTPServer() *http.Server {

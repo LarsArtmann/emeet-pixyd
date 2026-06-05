@@ -73,7 +73,7 @@ func newPTZDaemon(opts ...testDaemonOption) *Daemon {
 func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]struct{ axis, val string }) {
 	var calls []struct{ axis, val string }
 	d := newPTZDaemon(append(opts, func(d *Daemon) {
-		d.v4l2SetFn = func(_ context.Context, _, axis, val string) error {
+		d.deps.v4l2Set = func(_ context.Context, _, axis, val string) error {
 			calls = append(calls, struct{ axis, val string }{axis, val})
 			return nil
 		}
@@ -97,8 +97,8 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 	d := newPTZDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan})
-	if !strings.HasPrefix(resp, "usage:") {
-		t.Errorf("expected usage message, got: %s", resp)
+	if !strings.HasPrefix(resp.String(), "usage:") {
+		t.Errorf("expected usage message, got: %s", resp.String())
 	}
 }
 
@@ -108,10 +108,10 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 	d := newPTZDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "not-a-number"})
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error response, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error response, got: %s", resp.String())
 	}
-	assertCommandContains(t, resp, "pan", "error")
+	assertCommandContains(t, resp.String(), "pan", "error")
 }
 
 func TestHandlePTZCommand_NoDevice(t *testing.T) {
@@ -120,24 +120,24 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error response, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error response, got: %s", resp.String())
 	}
-	assertCommandContains(t, resp, "device not found", "error")
+	assertCommandContains(t, resp.String(), "device not found", "error")
 }
 
 func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
-		d.v4l2SetFn = func(context.Context, string, string, string) error {
+		d.deps.v4l2Set = func(context.Context, string, string, string) error {
 			return ErrInvalidValue
 		}
 	})
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error response, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error response, got: %s", resp.String())
 	}
 }
 
@@ -147,10 +147,10 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 	d, _ := newPTZCaptureDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got error: %s", resp)
+	if resp.IsError() {
+		t.Errorf("expected success, got error: %s", resp.String())
 	}
-	assertCommandContainsAnyOf(t, resp, []string{"pan", "10"}, "response")
+	assertCommandContainsAnyOf(t, resp.String(), []string{"pan", "10"}, "response")
 }
 
 func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
@@ -178,8 +178,8 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
+	if resp.IsError() {
+		t.Errorf("expected success, got: %s", resp.String())
 	}
 	if calls != 1 {
 		t.Errorf("centerCamera called %d times, want 1", calls)
@@ -192,8 +192,8 @@ func TestHandleCenterCommand_NoDevice(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handleCenterCommand(context.Background())
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error, got: %s", resp.String())
 	}
 }
 
@@ -207,10 +207,10 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
-	if IsCommandErrorResponse(resp) {
-		t.Errorf("expected success, got: %s", resp)
+	if resp.IsError() {
+		t.Errorf("expected success, got: %s", resp.String())
 	}
-	assertCommandContains(t, resp, "full", "response")
+	assertCommandContains(t, resp.String(), "full", "response")
 
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
@@ -221,7 +221,7 @@ func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	resp := d.handleAutoCommand([]string{"auto", "invalid-mode"})
-	assertCommandContains(t, resp, "usage:", "response")
+	assertCommandContains(t, resp.String(), "usage:", "response")
 }
 
 func TestHandleAutoCommand_ToggleOff(t *testing.T) {
@@ -230,7 +230,7 @@ func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{"auto-on"})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
@@ -242,7 +242,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 	})
 
 	resp := d.handleAutoCommand([]string{cmdAutoOff})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertAutoModeEquals(t, d, pixy.AutoOff)
 }
 
@@ -252,7 +252,7 @@ func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdToggleAuto})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
@@ -264,8 +264,8 @@ func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
 	})
 
 	resp := d.handleAutoCommand([]string{cmdAuto})
-	notError(t, resp)
-	assertCommandContains(t, resp, "tracking-only", "response")
+	notError(t, resp.String())
+	assertCommandContains(t, resp.String(), "tracking-only", "response")
 	assertAutoModeEquals(t, d, pixy.AutoTrackingOnly)
 }
 
@@ -287,7 +287,7 @@ func TestHandleGestureCommand_On(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOn)
-	notError(t, resp)
+	notError(t, resp.String())
 	if !called || !enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/true", called, enabledArg)
 	}
@@ -300,7 +300,7 @@ func TestHandleGestureCommand_Off(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOff)
-	notError(t, resp)
+	notError(t, resp.String())
 	if !called || enabledArg {
 		t.Errorf("setGesture called=%v enabled=%v, want true/false", called, enabledArg)
 	}
@@ -317,7 +317,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
-	notError(t, resp)
+	notError(t, resp.String())
 	if !enabledArg {
 		t.Errorf("toggle should enable gesture, got enabled=%v", enabledArg)
 	}
@@ -334,7 +334,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 	)
 
 	resp := d.handleGestureCommand(context.Background(), cmdToggleGesture)
-	notError(t, resp)
+	notError(t, resp.String())
 	if enabledArg {
 		t.Errorf("toggle should disable gesture, got enabled=%v", enabledArg)
 	}
@@ -351,7 +351,7 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
-	notError(t, resp)
+	notError(t, resp.String())
 	if modeArg != pixy.AudioLive {
 		t.Errorf("setAudio called with %s, want %s", modeArg, pixy.AudioLive)
 	}
@@ -363,7 +363,7 @@ func TestHandleAudioCommand_InvalidMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	resp := d.handleAudioCommand(context.Background(), []string{"audio", "invalid"})
-	assertCommandContains(t, resp, "error:", "response")
+	assertCommandContains(t, resp.String(), "error:", "response")
 }
 
 func TestHandleAudioCommand_NextMode(t *testing.T) {
@@ -375,7 +375,7 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 	}, withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio})
-	notError(t, resp)
+	notError(t, resp.String())
 	if modeArg != pixy.AudioLive {
 		t.Errorf("next mode = %s, want %s", modeArg, pixy.AudioLive)
 	}
@@ -392,7 +392,7 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withCaptureTracking(&stateArg))
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
-	notError(t, resp)
+	notError(t, resp.String())
 	if stateArg != pixy.StateTracking {
 		t.Errorf("setTracking called with %s, want %s", stateArg, pixy.StateTracking)
 	}
@@ -402,14 +402,14 @@ func TestHandleTrackingCommand_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
-		d.setTrackingFn = func(context.Context, pixy.CameraState) error {
+		d.deps.setTracking = func(context.Context, pixy.CameraState) error {
 			return ErrInvalidValue
 		}
 	})
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error response, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error response, got: %s", resp.String())
 	}
 }
 
@@ -527,8 +527,8 @@ func TestHandleQueryCommand_Version(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdVersion})
-	if !strings.HasPrefix(resp, "emeet-pixyd ") {
-		t.Errorf("expected version prefix, got: %s", resp)
+	if !strings.HasPrefix(resp.String(), "emeet-pixyd ") {
+		t.Errorf("expected version prefix, got: %s", resp.String())
 	}
 }
 
@@ -538,8 +538,8 @@ func TestHandleQueryCommand_Waybar(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdWaybar})
-	if !strings.Contains(resp, `"class"`) {
-		t.Errorf("expected JSON with 'class' key, got: %s", resp)
+	if !strings.Contains(resp.String(), `"class"`) {
+		t.Errorf("expected JSON with 'class' key, got: %s", resp.String())
 	}
 }
 
@@ -549,8 +549,8 @@ func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
-	if resp != respDeviceNotFound {
-		t.Errorf("expected %q, got: %s", respDeviceNotFound, resp)
+	if resp.String() != respDeviceNotFound {
+		t.Errorf("expected %q, got: %s", respDeviceNotFound, resp.String())
 	}
 }
 
@@ -560,8 +560,8 @@ func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 	d := testDaemonWithDevice(pixy.StateTracking)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
-	if !strings.Contains(resp, "/dev/video") {
-		t.Errorf("expected device path, got: %s", resp)
+	if !strings.Contains(resp.String(), "/dev/video") {
+		t.Errorf("expected device path, got: %s", resp.String())
 	}
 }
 
@@ -571,8 +571,8 @@ func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdSync})
-	if !IsCommandErrorResponse(resp) {
-		t.Errorf("expected error response for sync without device, got: %s", resp)
+	if !resp.IsError() {
+		t.Errorf("expected error response for sync without device, got: %s", resp.String())
 	}
 }
 
@@ -583,11 +583,11 @@ func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdProbe})
 	// probeDevices() scans real sysfs, so this test is flaky when a PIXY is connected.
-	if resp == respDeviceNotFound {
+	if resp.String() == respDeviceNotFound {
 		return
 	}
-	if !strings.Contains(resp, "/dev/video") {
-		t.Errorf("expected device path or %q, got: %s", respDeviceNotFound, resp)
+	if !strings.Contains(resp.String(), "/dev/video") {
+		t.Errorf("expected device path or %q, got: %s", respDeviceNotFound, resp.String())
 	}
 }
 
@@ -605,7 +605,7 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp)
+	notError(t, resp.String())
 	if stateArg != pixy.StateTracking {
 		t.Errorf("toggle from privacy should set tracking, got: %s", stateArg)
 	}
@@ -621,7 +621,7 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp)
+	notError(t, resp.String())
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from tracking should set privacy, got: %s", stateArg)
 	}
@@ -637,7 +637,7 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 	)
 
 	resp := d.handleTogglePrivacy(context.Background())
-	notError(t, resp)
+	notError(t, resp.String())
 	if stateArg != pixy.StatePrivacy {
 		t.Errorf("toggle from idle should set privacy, got: %s", stateArg)
 	}
@@ -653,8 +653,8 @@ func TestHandleMutatingCommand_Unknown(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleMutatingCommand(context.Background(), []string{"unknown-cmd"})
-	if !strings.HasPrefix(resp, "unknown command:") {
-		t.Errorf("expected unknown command response, got: %s", resp)
+	if !strings.HasPrefix(resp.String(), "error: unknown command:") {
+		t.Errorf("expected unknown command response, got: %s", resp.String())
 	}
 }
 
@@ -681,7 +681,7 @@ func TestHandleCommand_QueryNoLock(t *testing.T) {
 			t.Parallel()
 
 			resp := d.handleCommand(context.Background(), tc.cmd)
-			assertCommandContains(t, resp, tc.substr, "response")
+			assertCommandContains(t, resp.String(), tc.substr, "response")
 		})
 	}
 }
@@ -693,11 +693,11 @@ func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
 	d.config = defaultTestConfig(t.TempDir())
 
 	resp := d.handleCommand(context.Background(), cmdAutoOff)
-	notError(t, resp)
+	notError(t, resp.String())
 	assertAutoModeEquals(t, d, pixy.AutoOff)
 
 	resp = d.handleCommand(context.Background(), cmdAutoOn)
-	notError(t, resp)
+	notError(t, resp.String())
 	assertAutoModeEquals(t, d, pixy.AutoFull)
 }
 
@@ -707,5 +707,5 @@ func TestHandleCommand_EmptyCommandReturnsStatus(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleCommand(context.Background(), "")
-	assertCommandContains(t, resp, "camera=", "status response")
+	assertCommandContains(t, resp.String(), "camera=", "status response")
 }

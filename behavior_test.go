@@ -91,14 +91,14 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	)
 
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
-		d.setSourceFn = func(_ context.Context, id pixy.SourceID) {
+		d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
+		d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
 			setSourceCalls = append(setSourceCalls, id.Get())
 		}
-		d.notifyFn = func(_ context.Context, _, body string) {
+		d.deps.notify = func(_ context.Context, _, body string) {
 			notifyBodies = append(notifyBodies, body)
 		}
-		d.isCameraInUseFn = cameraInUseFn
+		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 3
 	})
 
@@ -117,7 +117,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	}
 
 	// When the camera is released for 3 consecutive poll cycles
-	d.isCameraInUseFn = cameraNotInUseFn
+	d.deps.isCameraInUse = cameraNotInUseFn
 	notifyBodies = nil
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
@@ -152,7 +152,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	resp := d.handleAutoCommand([]string{cmdAutoOff})
 
 	// Then auto mode is off but the call state is preserved
-	if resp != respAutoModeOff {
+	if resp.String() != respAutoModeOff {
 		t.Errorf("expected 'auto mode: off', got: %s", resp)
 	}
 	assertInCall(t, d, true)
@@ -162,7 +162,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 	}
 
 	// When camera is released, nothing happens (auto is off)
-	d.isCameraInUseFn = cameraNotInUseFn
+	d.deps.isCameraInUse = cameraNotInUseFn
 	d.config.DebounceCount = 1
 	d.autoManage(context.Background())
 
@@ -180,20 +180,20 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	callStarted := false
 	d := testAutoDaemon(func(d *Daemon) {
 		d.config.DebounceCount = 3
-		d.isCameraInUseFn = cameraNotInUseFn
-		d.notifyFn = func(context.Context, string, string) {
+		d.deps.isCameraInUse = cameraNotInUseFn
+		d.deps.notify = func(context.Context, string, string) {
 			callStarted = true
 		}
 	})
 
 	// When camera is used for 2 cycles, then idle for 1, then used for 2 again
-	d.isCameraInUseFn = cameraInUseFn
+	d.deps.isCameraInUse = cameraInUseFn
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
 	assertDebounce(t, d, 2, 0)
 
-	d.isCameraInUseFn = cameraNotInUseFn
+	d.deps.isCameraInUse = cameraNotInUseFn
 	d.autoManage(context.Background())
 
 	assertDebounce(t, d, 0, 1)
@@ -205,7 +205,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 	}
 
 	// When camera is used for 2 more cycles (not enough for debounce)
-	d.isCameraInUseFn = cameraInUseFn
+	d.deps.isCameraInUse = cameraInUseFn
 	d.autoManage(context.Background())
 	d.autoManage(context.Background())
 
@@ -224,19 +224,19 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	// When pan is set beyond the maximum (200 → clamp to 170)
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "200"})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertV4L2Call(t, *v4l2Calls, "612000")
 
 	// When tilt is set beyond minimum (-50 → clamp to -30)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-50"})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertV4L2Call(t, *v4l2Calls, "-108000")
 
 	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "500"})
-	notError(t, resp)
+	notError(t, resp.String())
 	assertV4L2Call(t, *v4l2Calls, "400")
 }
 
@@ -317,7 +317,7 @@ func TestBehavior_ErrorDuringCallStart_StillSetsInCall(t *testing.T) {
 
 	// Given a daemon with video device but no hidraw (setDeviceState returns early)
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
-		d.isCameraInUseFn = cameraInUseFn
+		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -385,7 +385,7 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 	var audioCalls []pixy.AudioMode
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
-		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error {
+		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			d.mu.Lock()
 			d.state.Audio = m
 			d.mu.Unlock()
@@ -425,7 +425,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 
 	var trackingCalls []pixy.CameraState
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
-		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			d.mu.Lock()
 			d.state.Camera = s
 			d.mu.Unlock()
@@ -436,14 +436,14 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 
 	// When user toggles privacy from privacy mode → should activate tracking
 	resp := d.handleCommand(context.Background(), cmdTogglePrivacy)
-	if IsCommandErrorResponse(resp) {
+	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp)
 	}
 	assertCameraState(t, d, pixy.StateTracking)
 
 	// When user toggles again from tracking → should enter privacy
 	resp = d.handleCommand(context.Background(), cmdTogglePrivacy)
-	if IsCommandErrorResponse(resp) {
+	if resp.IsError() {
 		t.Errorf("expected success, got: %s", resp)
 	}
 	assertCameraState(t, d, pixy.StatePrivacy)
@@ -486,7 +486,7 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
 		d.state.Camera = pixy.StatePrivacy
 		d.state.Audio = pixy.AudioLive
-		d.isCameraInUseFn = cameraInUseFn
+		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -512,7 +512,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoPrivacyOnly
 		d.state.Camera = pixy.StateIdle
-		d.isCameraInUseFn = cameraInUseFn
+		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})
 
@@ -525,7 +525,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 
 	// When camera is released (call end) — privacy should activate
 	notifyMessages = nil
-	d.isCameraInUseFn = cameraNotInUseFn
+	d.deps.isCameraInUse = cameraNotInUseFn
 	d.autoManage(context.Background())
 
 	assertInCall(t, d, false)

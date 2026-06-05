@@ -16,11 +16,17 @@ import (
 
 //nolint:gochecknoglobals
 var (
-	promExporter      *prometheus.Exporter
-	metricInCall      metric.Float64Gauge
-	metricAutoMode    metric.Float64Gauge
-	metricCameraState metric.Float64Gauge
-	metricsRegistered sync.Once
+	promExporter         *prometheus.Exporter
+	metricInCall         metric.Float64Gauge
+	metricAutoMode       metric.Float64Gauge
+	metricCameraState    metric.Float64Gauge
+	metricCommands       metric.Int64Counter
+	metricUevents        metric.Int64Counter
+	metricProbes         metric.Int64Counter
+	metricHIDFailures    metric.Int64Counter
+	metricStreamDuration metric.Float64Histogram
+	metricFramesTotal    metric.Int64Counter
+	metricsRegistered    sync.Once
 )
 
 func registerMetrics() {
@@ -54,7 +60,49 @@ func registerMetrics() {
 		); err != nil {
 			slog.Error("failed to create camera_state gauge", "error", err)
 		}
+		if metricCommands, err = meter.Int64Counter(
+			"emeet_pixyd_commands_total",
+			metric.WithDescription("Total number of commands processed"),
+		); err != nil {
+			slog.Error("failed to create commands counter", "error", err)
+		}
+		if metricProbes, err = meter.Int64Counter(
+			"emeet_pixyd_probes_total",
+			metric.WithDescription("Total number of device probes"),
+		); err != nil {
+			slog.Error("failed to create probes counter", "error", err)
+		}
+		if metricUevents, err = meter.Int64Counter(
+			"emeet_pixyd_uevents_total",
+			metric.WithDescription("Total number of relevant uevents received"),
+		); err != nil {
+			slog.Error("failed to create uevents counter", "error", err)
+		}
+		if metricHIDFailures, err = meter.Int64Counter(
+			"emeet_pixyd_hid_failures_total",
+			metric.WithDescription("Total number of HID send failures"),
+		); err != nil {
+			slog.Error("failed to create HID failures counter", "error", err)
+		}
+		if metricStreamDuration, err = meter.Float64Histogram(
+			"emeet_pixyd_stream_duration_seconds",
+			metric.WithDescription("Duration of MJPEG stream sessions in seconds"),
+			metric.WithUnit("s"),
+		); err != nil {
+			slog.Error("failed to create stream duration histogram", "error", err)
+		}
+		if metricFramesTotal, err = meter.Int64Counter(
+			"emeet_pixyd_frames_total",
+			metric.WithDescription("Total number of JPEG frames served via MJPEG stream"),
+		); err != nil {
+			slog.Error("failed to create frames counter", "error", err)
+		}
 	})
+}
+
+func recordHIDFailure(ctx context.Context) {
+	registerMetrics()
+	metricHIDFailures.Add(ctx, 1)
 }
 
 func updateMetrics(state pixy.State) {
@@ -78,4 +126,19 @@ func updateMetrics(state pixy.State) {
 			metricCameraState.Record(ctx, 0, stateAttr)
 		}
 	}
+}
+
+func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) {
+	registerMetrics()
+	resultStr := "success"
+	if result.IsError() {
+		resultStr = "error"
+	}
+	metricCommands.Add(
+		ctx, 1,
+		metric.WithAttributes(
+			attribute.String("command", cmd),
+			attribute.String("result", resultStr),
+		),
+	)
 }

@@ -12,6 +12,9 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -109,7 +112,16 @@ func (s *webServer) handleStream(
 	}
 	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	responseWriter.Header().Set("Cache-Control", "no-store")
+	streamStart := time.Now()
 	defer cleanupFFmpeg(cmd)
+	defer func() {
+		registerMetrics()
+		metricStreamDuration.Record(
+			ctx,
+			time.Since(streamStart).Seconds(),
+			metric.WithAttributes(attribute.String("source", "mjpeg")),
+		)
+	}()
 	br := bufio.NewReaderSize(stdOut, streamBufSize)
 	var buf bytes.Buffer
 	for {
@@ -126,6 +138,8 @@ func (s *webServer) handleStream(
 		}
 
 		s.daemon.lastFrame.Set(frame)
+		registerMetrics()
+		metricFramesTotal.Add(ctx, 1, metric.WithAttributes())
 
 		_, headerErr := fmt.Fprintf(
 			responseWriter,

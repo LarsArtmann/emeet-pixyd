@@ -153,21 +153,60 @@
       e.target.tagName === "SELECT"
     )
       return;
-    var map = {
+    var actionMap = {
       t: "/api/track",
       i: "/api/idle",
       p: "/api/privacy",
       c: "/api/center",
     };
-    var url = map[e.key.toLowerCase()];
-    if (!url) return;
-    e.preventDefault();
-    var badge = document.querySelector(".header-badge");
-    if (badge && badge.textContent === "Offline") {
-      showToast("Camera offline", "error");
+    var url = actionMap[e.key.toLowerCase()];
+    if (url) {
+      e.preventDefault();
+      var badge = document.querySelector(".header-badge");
+      if (badge && badge.textContent === "Offline") {
+        showToast("Camera offline", "error");
+        return;
+      }
+      htmx.trigger(document.body, "doAction", { url: url });
       return;
     }
-    htmx.trigger(document.body, "doAction", { url: url });
+    var ptzStep = { pan: 5, tilt: 5, zoom: 10 };
+    var ptzAction = null;
+    switch (e.key) {
+      case "ArrowLeft":
+        ptzAction = { axis: "pan", delta: -ptzStep.pan };
+        break;
+      case "ArrowRight":
+        ptzAction = { axis: "pan", delta: ptzStep.pan };
+        break;
+      case "ArrowUp":
+        ptzAction = { axis: "tilt", delta: ptzStep.tilt };
+        break;
+      case "ArrowDown":
+        ptzAction = { axis: "tilt", delta: -ptzStep.tilt };
+        break;
+      case "+":
+      case "=":
+        ptzAction = { axis: "zoom", delta: ptzStep.zoom };
+        break;
+      case "-":
+      case "_":
+        ptzAction = { axis: "zoom", delta: -ptzStep.zoom };
+        break;
+    }
+    if (!ptzAction) return;
+    e.preventDefault();
+    var slider = document.getElementById("slider-" + ptzAction.axis);
+    if (!slider) return;
+    var current = parseInt(slider.value, 10) || 0;
+    var next = current + ptzAction.delta;
+    slider.value = next;
+    var suffix = ptzAction.axis === "zoom" ? "x" : "\u00b0";
+    var valEl = document.getElementById("val-" + ptzAction.axis);
+    if (valEl) valEl.textContent = next + suffix;
+    htmx.trigger(document.body, "doAction", {
+      url: "/api/ptz/" + ptzAction.axis,
+    });
   });
 
   (function () {

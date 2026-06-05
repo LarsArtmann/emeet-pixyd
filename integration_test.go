@@ -258,7 +258,7 @@ func assertCommandResponse(t *testing.T, cmd, substr, label string) {
 	t.Helper()
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), cmd)
-	assertCommandContains(t, resp, substr, label)
+	assertCommandContains(t, resp.String(), substr, label)
 }
 
 // ---------- Index page ----------
@@ -848,7 +848,7 @@ func TestSocket_UnknownCommand(t *testing.T) {
 	t.Parallel()
 	_, cfg := startSocketDaemon(t)
 	resp := sendSC(t, cfg.SocketPath(), "foobar")
-	assertSocketResponsePrefix(t, resp, "unknown command:", "socket response")
+	assertSocketResponsePrefix(t, resp, "error: unknown command:", "socket response")
 }
 
 func TestSocket_StatusViaCommandReturnsStatus(t *testing.T) {
@@ -1028,7 +1028,7 @@ func TestHandleCommand_StatusFormat(t *testing.T) {
 
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), "")
-	assertCommandContainsAnyOf(t, resp, []string{"camera=", "audio="}, "status response")
+	assertCommandContainsAnyOf(t, resp.String(), []string{"camera=", "audio="}, "status response")
 }
 
 func TestHandleCommand_AudioUsage(t *testing.T) {
@@ -1046,8 +1046,8 @@ func TestHandleCommand_Device(t *testing.T) {
 
 	d := newDaemonWithDevice(t)
 	resp := d.handleCommand(context.Background(), cmdDevice)
-	assertCommandContains(t, resp, "/dev/video", "response")
-	assertCommandContains(t, resp, "/dev/hidraw", "response")
+	assertCommandContains(t, resp.String(), "/dev/video", "response")
+	assertCommandContains(t, resp.String(), "/dev/hidraw", "response")
 }
 
 func TestHandleCommand_DeviceNotFound(t *testing.T) {
@@ -1055,7 +1055,7 @@ func TestHandleCommand_DeviceNotFound(t *testing.T) {
 
 	d := newIntegrationDaemon(t)
 	resp := d.handleCommand(context.Background(), cmdDevice)
-	if resp != respDeviceNotFound {
+	if resp.String() != respDeviceNotFound {
 		t.Errorf("expected device not found, got: %s", resp)
 	}
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+const parsePTZValueErrStr = "invalid PTZ value"
+
 const (
 	respTrackingOn     = "tracking on"
 	respPrivacyOn      = "privacy on"
@@ -42,27 +44,32 @@ const (
 	minCmdParts      = 2
 )
 
-func (d *Daemon) handleCommand(ctx context.Context, cmd string) string {
+func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 	parts := strings.Fields(cmd)
 	if len(parts) == 0 {
-		return d.getStatus(ctx)
+		return okResult(d.getStatus(ctx))
 	}
 
+	var result CommandResult
 	switch parts[0] {
 	case cmdStatus:
-		return d.getStatus(ctx)
+		result = okResult(d.getStatus(ctx))
 
 	case cmdWaybar, cmdVersion, cmdSync, cmdProbe, cmdDevice:
-		return d.handleQueryCommand(ctx, parts)
+		result = d.handleQueryCommand(ctx, parts)
 
 	default:
 		d.cmdMu.Lock()
-		defer d.cmdMu.Unlock()
-		return d.handleMutatingCommand(ctx, parts)
+		result = d.handleMutatingCommand(ctx, parts)
+		d.cmdMu.Unlock()
 	}
+
+	recordCommandMetric(ctx, parts[0], result)
+
+	return result
 }
 
-func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) string {
+func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) CommandResult {
 	switch parts[0] {
 	case cmdTrack:
 		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTrack)
@@ -92,32 +99,37 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) stri
 		return d.handlePTZCommand(ctx, parts)
 
 	default:
-		return "unknown command: " + parts[0]
+		return errResultMsg("unknown command: " + parts[0])
 	}
 }
 
-func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string {
+func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) CommandResult {
 	switch parts[0] {
 	case cmdWaybar:
-		return d.waybarOutput()
+		return okResult(d.waybarOutput())
 
 	case cmdVersion:
-		return "emeet-pixyd " + buildVersion
+		return okResult("emeet-pixyd " + buildVersion)
 
 	case cmdSync:
-		return d.syncState(ctx)
+		msg := d.syncState(ctx)
+		if IsCommandErrorResponse(msg) {
+			return errResultMsg(msg)
+		}
+
+		return okResult(msg)
 
 	case cmdProbe:
 		d.mu.Lock()
-		d.applyProbeResult(probeDevices())
+		d.applyProbeResult(probeDevices()) //nolint:contextcheck
 		dev := d.videoDev
 		d.mu.Unlock()
 
 		if dev != "" {
-			return "device found: " + dev
+			return okResult("device found: " + dev)
 		}
 
-		return respDeviceNotFound
+		return okResult(respDeviceNotFound)
 
 	case cmdDevice:
 		d.mu.RLock()
@@ -127,18 +139,18 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) string 
 
 		if dev != "" {
 			if hid != "" {
-				return dev + " " + hid
+				return okResult(dev + " " + hid)
 			}
-			return dev
+			return okResult(dev)
 		}
 
-		return respDeviceNotFound
+		return okResult(respDeviceNotFound)
 	}
 
-	return errorPrefix + "unknown query command: " + parts[0]
+	return errResultMsg("unknown query command: " + parts[0])
 }
 
-func (d *Daemon) handleTogglePrivacy(ctx context.Context) string {
+func (d *Daemon) handleTogglePrivacy(ctx context.Context) CommandResult {
 	d.mu.RLock()
 	camera := d.state.Camera
 	d.mu.RUnlock()
@@ -154,23 +166,23 @@ func (d *Daemon) handleTrackingCommand(
 	ctx context.Context,
 	state pixy.CameraState,
 	label string,
-) string {
-	if err := d.setTrackingFn(ctx, state); err != nil {
-		return fmt.Errorf("%s%s %s: %w", errorPrefix, label, state, err).Error()
+) CommandResult {
+	if err := d.deps.setTracking(ctx, state); err != nil {
+		return errResult(label+" "+string(state), err)
 	}
 
 	if state == pixy.StateTracking {
-		return respTrackingOn
+		return okResult(respTrackingOn)
 	}
 
 	if state == pixy.StatePrivacy {
-		return respPrivacyOn
+		return okResult(respPrivacyOn)
 	}
 
-	return respTrackingOff
+	return okResult(respTrackingOff)
 }
 
-func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string {
+func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) CommandResult {
 	var mode pixy.AudioMode
 	if len(parts) < minCmdParts {
 		d.mu.RLock()
@@ -181,19 +193,19 @@ func (d *Daemon) handleAudioCommand(ctx context.Context, parts []string) string 
 
 		mode, parseErr = pixy.ParseAudioMode(parts[1])
 		if parseErr != nil {
-			return fmt.Errorf("%saudio %s: %w", errorPrefix, parts[1], parseErr).Error()
+			return errResult("audio "+parts[1], parseErr)
 		}
 	}
 
-	audioErr := d.setAudioFn(ctx, mode)
+	audioErr := d.deps.setAudio(ctx, mode)
 	if audioErr != nil {
-		return fmt.Errorf("%saudio %s: %w", errorPrefix, mode, audioErr).Error()
+		return errResult("audio "+string(mode), audioErr)
 	}
 
-	return "audio: " + string(mode)
+	return okResult("audio: " + string(mode))
 }
 
-func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
+func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandResult {
 	var enable bool
 	switch cmd {
 	case cmdGestureOn:
@@ -205,30 +217,30 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) string {
 		enable = !d.state.Gesture
 		d.mu.RUnlock()
 	}
-	if err := d.setGestureFn(ctx, enable); err != nil {
-		return (&CommandError{Op: cmd + " enable=" + strconv.FormatBool(enable), Err: err}).Error()
+	if err := d.deps.setGesture(ctx, enable); err != nil {
+		return errResult(cmd+" enable="+strconv.FormatBool(enable), err)
 	}
 
 	if enable {
-		return "gesture on"
+		return okResult("gesture on")
 	}
 
-	return "gesture off"
+	return okResult("gesture off")
 }
 
-func (d *Daemon) handleCenterCommand(ctx context.Context) string {
-	if err := d.centerCameraFn(ctx); err != nil {
-		return (&CommandError{Op: cmdCenter, Err: err}).Error()
+func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
+	if err := d.deps.centerCamera(ctx); err != nil {
+		return errResult(cmdCenter, err)
 	}
 
-	return "centered"
+	return okResult("centered")
 }
 
-func (d *Daemon) handleAutoCommand(parts []string) string {
+func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	if len(parts) >= minCmdParts {
 		mode, parseErr := pixy.ParseAutoMode(parts[1])
 		if parseErr != nil {
-			return respAutoUsage
+			return okResult(respAutoUsage)
 		}
 
 		d.mu.Lock()
@@ -236,7 +248,7 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 		d.saveStateOrLog("failed to save state")
 		d.mu.Unlock()
 
-		return "auto mode: " + mode.String()
+		return okResult("auto mode: " + mode.String())
 	}
 
 	cmd := parts[0]
@@ -255,7 +267,7 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 		mode = d.state.AutoMode
 		d.mu.RUnlock()
 
-		return "auto mode: " + mode.String()
+		return okResult("auto mode: " + mode.String())
 	}
 
 	d.mu.Lock()
@@ -264,26 +276,47 @@ func (d *Daemon) handleAutoCommand(parts []string) string {
 	d.mu.Unlock()
 
 	if mode.IsOff() {
-		return respAutoModeOff
+		return okResult(respAutoModeOff)
 	}
 
-	return "auto mode: " + mode.String()
+	return okResult("auto mode: " + mode.String())
 }
 
-func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
+func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandResult {
 	if len(parts) < minCmdParts {
-		return fmt.Sprintf("usage: %s <value>", parts[0])
+		return okResult(fmt.Sprintf("usage: %s <value>", parts[0]))
 	}
 
 	axis := parts[0]
 
 	info, ok := ptzAxes[axis]
 	if !ok {
-		return fmt.Sprintf("usage: %s <value>", parts[0])
+		return okResult(fmt.Sprintf("usage: %s <value>", parts[0]))
 	}
-	val, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return (&CommandError{Op: axis, Err: fmt.Errorf("%w: parse error", ErrInvalidValue)}).Error()
+
+	val, relative, parseErr := parsePTZValue(parts[1])
+	if parseErr != nil {
+		return errResult(axis, fmt.Errorf("%w: parse error", ErrInvalidValue))
+	}
+
+	if relative {
+		d.mu.RLock()
+		videoDev := d.videoDev
+		d.mu.RUnlock()
+
+		if videoDev == "" {
+			return errResult(axis, errors.New("device not found"))
+		}
+
+		current := d.deps.parsePTZ(ctx, videoDev)
+		switch axis {
+		case pixy.AxisPan:
+			val = current.Pan + val
+		case pixy.AxisTilt:
+			val = current.Tilt + val
+		case pixy.AxisZoom:
+			val = current.Zoom + val
+		}
 	}
 
 	val = clampInt(val, info.Min, info.Max)
@@ -298,17 +331,37 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) string {
 	d.mu.RUnlock()
 
 	if videoDev == "" {
-		return (&CommandError{Op: axis, Err: errors.New("device not found")}).Error()
+		return errResult(axis, errors.New("device not found"))
 	}
 
-	if v4l2Err := d.v4l2SetFn(
+	if v4l2Err := d.deps.v4l2Set(
 		ctx,
 		videoDev,
 		axis+"_absolute",
 		strconv.Itoa(val*multiplier),
 	); v4l2Err != nil {
-		return (&CommandError{Op: axis, Err: v4l2Err}).Error()
+		return errResult(axis, v4l2Err)
 	}
 
-	return fmt.Sprintf("%s set to %d", axis, val)
+	return okResult(fmt.Sprintf("%s set to %d", axis, val))
+}
+
+// parsePTZValue parses a PTZ value string, detecting relative mode (+10, -5).
+// Returns the integer value, whether it's relative, and any parse error.
+func parsePTZValue(s string) (int, bool, error) {
+	if len(s) > 1 && (s[0] == '+' || s[0] == '-') {
+		v, err := strconv.Atoi(s)
+		if err != nil {
+			return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+		}
+
+		return v, true, nil
+	}
+
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+	}
+
+	return v, false, nil
 }

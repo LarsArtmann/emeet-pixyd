@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -117,6 +118,8 @@ type probeResult struct {
 }
 
 func probeDevices() probeResult {
+	registerMetrics()
+	metricProbes.Add(context.Background(), 1)
 	result := probeResult{
 		VideoDev:  probeVideo4linux("/sys/class/video4linux"),
 		HidrawDev: probeHidraw("/sys/class/hidraw"),
@@ -138,6 +141,7 @@ func (d *Daemon) applyProbeResult(r probeResult) {
 	d.hidrawDev = r.HidrawDev
 
 	if r.VideoDev != "" && r.HidrawDev != "" {
+		d.hidFailCount = 0
 		if d.state.Camera == pixy.StateOffline {
 			d.state.Camera = pixy.StatePrivacy
 		}

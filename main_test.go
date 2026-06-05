@@ -49,12 +49,12 @@ func withInCall(inCall bool) testDaemonOption {
 
 func withNotifyCalled(called *bool) testDaemonOption {
 	return func(d *Daemon) {
-		d.notifyFn = func(_ context.Context, _, _ string) { *called = true }
+		d.deps.notify = func(_ context.Context, _, _ string) { *called = true }
 	}
 }
 
 func withCameraInUse(inUse bool) testDaemonOption {
-	return func(d *Daemon) { d.isCameraInUseFn = func(_ string) bool { return inUse } }
+	return func(d *Daemon) { d.deps.isCameraInUse = func(_ string) bool { return inUse } }
 }
 
 func cameraInUseFn(string) bool { return true }
@@ -63,13 +63,13 @@ func cameraNotInUseFn(string) bool { return false }
 
 func withNoopV4L2() testDaemonOption {
 	return func(d *Daemon) {
-		d.v4l2SetFn = func(_ context.Context, _, _, _ string) error { return nil }
+		d.deps.v4l2Set = func(_ context.Context, _, _, _ string) error { return nil }
 	}
 }
 
 func withCaptureTracking(captured *pixy.CameraState) testDaemonOption {
 	return func(d *Daemon) {
-		d.setTrackingFn = func(_ context.Context, s pixy.CameraState) error {
+		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			*captured = s
 			return nil
 		}
@@ -78,7 +78,7 @@ func withCaptureTracking(captured *pixy.CameraState) testDaemonOption {
 
 func withCaptureAudio(captured *pixy.AudioMode) testDaemonOption {
 	return func(d *Daemon) {
-		d.setAudioFn = func(_ context.Context, m pixy.AudioMode) error {
+		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			*captured = m
 			return nil
 		}
@@ -87,7 +87,7 @@ func withCaptureAudio(captured *pixy.AudioMode) testDaemonOption {
 
 func withCaptureGesture(called, captured *bool) testDaemonOption {
 	return func(d *Daemon) {
-		d.setGestureFn = func(_ context.Context, enabled bool) error {
+		d.deps.setGesture = func(_ context.Context, enabled bool) error {
 			*called = true
 			*captured = enabled
 			return nil
@@ -97,7 +97,7 @@ func withCaptureGesture(called, captured *bool) testDaemonOption {
 
 func withCaptureGestureArg(captured *bool) testDaemonOption {
 	return func(d *Daemon) {
-		d.setGestureFn = func(_ context.Context, enabled bool) error {
+		d.deps.setGesture = func(_ context.Context, enabled bool) error {
 			*captured = enabled
 			return nil
 		}
@@ -106,7 +106,7 @@ func withCaptureGestureArg(captured *bool) testDaemonOption {
 
 func withNotifyMessages(captured *[]string) testDaemonOption {
 	return func(d *Daemon) {
-		d.notifyFn = func(_ context.Context, _, body string) {
+		d.deps.notify = func(_ context.Context, _, body string) {
 			*captured = append(*captured, body)
 		}
 	}
@@ -114,7 +114,7 @@ func withNotifyMessages(captured *[]string) testDaemonOption {
 
 func withCaptureCenter(calls *int) testDaemonOption {
 	return func(d *Daemon) {
-		d.centerCameraFn = func(context.Context) error { *calls++; return nil }
+		d.deps.centerCamera = func(context.Context) error { *calls++; return nil }
 	}
 }
 
@@ -126,7 +126,7 @@ func ptr[T any](v T) *T { return new(v) }
 
 func withFindSource(id string) testDaemonOption {
 	return func(d *Daemon) {
-		d.findSourceFn = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID(id), nil }
+		d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID(id), nil }
 	}
 }
 
@@ -191,19 +191,22 @@ func assertNotifyContains(t *testing.T, messages []string, substr string) {
 
 func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 	return &Daemon{
-		mu:              sync.RWMutex{},
-		config:          cfg,
-		state:           state,
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    noopFindSourceFn,
-		setSourceFn:     noopSetSourceFn,
-		notifyFn:        noopNotifyFn,
-		setTrackingFn:   func(_ context.Context, _ pixy.CameraState) error { return nil },
-		setAudioFn:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
-		setGestureFn:    func(_ context.Context, _ bool) error { return nil },
-		centerCameraFn:  func(_ context.Context) error { return nil },
-		v4l2SetFn:       func(_ context.Context, _, _, _ string) error { return nil },
+		mu:         sync.RWMutex{},
+		config:     cfg,
+		state:      state,
+		streamSema: make(chan struct{}, 1),
+		deps: Dependencies{
+			isCameraInUse: func(string) bool { return false },
+			findSource:    noopFindSourceFn,
+			setSource:     noopSetSourceFn,
+			notify:        noopNotifyFn,
+			setTracking:   func(_ context.Context, _ pixy.CameraState) error { return nil },
+			setAudio:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
+			setGesture:    func(_ context.Context, _ bool) error { return nil },
+			centerCamera:  func(_ context.Context) error { return nil },
+			v4l2Set:       func(_ context.Context, _, _, _ string) error { return nil },
+			parsePTZ:      func(_ context.Context, _ string) pixy.PTZValues { return pixy.PTZValues{} },
+		},
 	}
 }
 
@@ -231,21 +234,24 @@ func newTestDaemon(
 			DefaultAudio:  pixy.AudioNC,
 			Debug:         false,
 		},
-		videoDev:        videoDev,
-		hidrawDev:       hidrawDev,
-		debounceInUse:   0,
-		debounceIdle:    0,
-		streamSema:      make(chan struct{}, 1),
-		isCameraInUseFn: func(string) bool { return false },
-		findSourceFn:    noopFindSourceFn,
-		setSourceFn:     noopSetSourceFn,
-		notifyFn:        noopNotifyFn,
+		videoDev:      videoDev,
+		hidrawDev:     hidrawDev,
+		debounceInUse: 0,
+		debounceIdle:  0,
+		streamSema:    make(chan struct{}, 1),
+		deps: Dependencies{
+			isCameraInUse: func(string) bool { return false },
+			findSource:    noopFindSourceFn,
+			setSource:     noopSetSourceFn,
+			notify:        noopNotifyFn,
+		},
 	}
-	d.setTrackingFn = d.setTracking
-	d.setAudioFn = d.setAudio
-	d.setGestureFn = d.setGesture
-	d.centerCameraFn = d.centerCamera
-	d.v4l2SetFn = v4l2Set
+	d.deps.setTracking = d.setTracking
+	d.deps.setAudio = d.setAudio
+	d.deps.setGesture = d.setGesture
+	d.deps.centerCamera = d.centerCamera
+	d.deps.v4l2Set = v4l2Set
+	d.deps.parsePTZ = parsePTZValues
 	for _, opt := range opts {
 		opt(d)
 	}
@@ -448,9 +454,9 @@ func TestHandleCommandStatus(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	result := d.handleCommand(context.Background(), cmdStatus)
-	assertStatusPrefix(t, result, "camera=offline", "offline status")
-	assertStatusContains(t, result, "audio=", "offline status")
-	assertStatusContains(t, result, "auto=", "offline status")
+	assertStatusPrefix(t, result.String(), "camera=offline", "offline status")
+	assertStatusContains(t, result.String(), "audio=", "offline status")
+	assertStatusContains(t, result.String(), "auto=", "offline status")
 }
 
 func TestHandleCommandUnknown(t *testing.T) {
@@ -459,7 +465,7 @@ func TestHandleCommandUnknown(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "foobar")
-	if result != "unknown command: foobar" {
+	if result.String() != "error: unknown command: foobar" {
 		t.Errorf("expected unknown command response, got: %s", result)
 	}
 }
@@ -471,7 +477,7 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), "auto-off")
-	if result != respAutoModeOff {
+	if result.String() != respAutoModeOff {
 		t.Errorf("expected 'auto mode off', got: %s", result)
 	}
 
@@ -480,7 +486,7 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 	}
 
 	result = d.handleCommand(context.Background(), "auto-on")
-	if result != "auto mode: full" {
+	if result.String() != "auto mode: full" {
 		t.Errorf("expected 'auto mode: full', got: %s", result)
 	}
 
@@ -493,7 +499,7 @@ func TestHandleCommandAudioInvalid(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "audio xyz")
-	if result == "" || !strings.HasPrefix(result, "error: audio xyz:") {
+	if result.String() == "" || !strings.HasPrefix(result.String(), "error: audio xyz:") {
 		t.Errorf("expected error starting with 'error: audio xyz:' for invalid mode, got: %s",
 			result)
 	}
@@ -506,11 +512,11 @@ func TestHandleCommandDeviceRequired(t *testing.T) {
 
 	for _, cmd := range []string{cmdTrack, cmdIdle, cmdPrivacy, cmdTogglePrivacy, cmdCenter, cmdGestureOn, cmdGestureOff} {
 		result := d.handleCommand(context.Background(), cmd)
-		if result == "" {
+		if result.String() == "" {
 			t.Errorf("expected error response for '%s' with no device", cmd)
 		}
 
-		if len(result) < 6 || result[:6] != "error:" {
+		if len(result.String()) < 6 || result.String()[:6] != "error:" {
 			t.Errorf("expected error: prefix for '%s' with no device, got: %s", cmd, result)
 		}
 	}
@@ -569,7 +575,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 	)
 
 	result := d.handleCommand(context.Background(), cmdTogglePrivacy)
-	if result != respTrackingOn {
+	if result.String() != respTrackingOn {
 		t.Errorf("expected %q, got %q", respTrackingOn, result)
 	}
 
@@ -586,8 +592,8 @@ func TestHandleCommandProbe(t *testing.T) {
 	result := d.handleCommand(context.Background(), cmdProbe)
 
 	if d.videoDev != "" {
-		assertStatusPrefix(t, result, "device found:", "PIXY connected")
-	} else if result != respDeviceNotFound {
+		assertStatusPrefix(t, result.String(), "device found:", "PIXY connected")
+	} else if result.String() != respDeviceNotFound {
 		t.Errorf("expected 'device not found' when no PIXY connected, got: %s", result)
 	}
 }
@@ -694,7 +700,7 @@ func TestHandleCommandAudioCycleNoDevice(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "")
 
 	result := d.handleCommand(context.Background(), "audio")
-	assertErrorPrefix(t, result)
+	assertErrorPrefix(t, result.String())
 }
 
 func TestConfigPaths(t *testing.T) {
@@ -803,7 +809,7 @@ func TestHandleCommandSyncNoDevice(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateOffline, "", "")
 	result := d.handleCommand(context.Background(), cmdSync)
-	assertErrorPrefix(t, result)
+	assertErrorPrefix(t, result.String())
 }
 
 func TestHandleCommandSyncWithDevice(t *testing.T) {
@@ -813,13 +819,13 @@ func TestHandleCommandSyncWithDevice(t *testing.T) {
 	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), cmdSync)
-	if IsCommandErrorResponse(result) {
-		assertErrorPrefix(t, result)
+	if result.IsError() {
+		assertErrorPrefix(t, result.String())
 
 		return
 	}
 
-	if !strings.HasPrefix(result, "synced") {
+	if !strings.HasPrefix(result.String(), "synced") {
 		t.Errorf("expected sync result to start with 'synced', got: %s", result)
 	}
 }

@@ -19,29 +19,40 @@ func (d *Daemon) handleCallStart(
 	d.state.InCall = true
 	d.mu.Unlock()
 
+	var autoErr string
+
 	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
-		trackErr := d.setTrackingFn(ctx, pixy.StateTracking)
+		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			slog.Error("failed to activate tracking", "error", trackErr)
+			autoErr = "tracking: " + trackErr.Error()
 		}
 	}
 
 	if autoMode.ActivatesAudio() {
-		audioErr := d.setAudioFn(ctx, pixy.AudioNC)
+		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			slog.Error("failed to set audio mode", "error", audioErr)
+			if autoErr != "" {
+				autoErr += "; "
+			}
+			autoErr += "audio: " + audioErr.Error()
 		}
 	}
 
 	if autoMode.SwitchesSource() {
-		src, srcErr := d.findSourceFn(ctx)
+		src, srcErr := d.deps.findSource(ctx)
 		if srcErr == nil {
-			d.setSourceFn(ctx, src)
+			d.deps.setSource(ctx, src)
 			slog.Info("set PipeWire default source to PIXY", "id", src.Get())
 		}
 	}
 
-	d.notifyFn(ctx, "EMEET PIXY", "Camera activated — "+autoMode.String()+" mode")
+	d.mu.Lock()
+	d.autoError = autoErr
+	d.mu.Unlock()
+
+	d.deps.notify(ctx, "EMEET PIXY", "Camera activated — "+autoMode.String()+" mode")
 }
 
 func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
@@ -49,16 +60,23 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 	d.state.InCall = false
 	d.mu.Unlock()
 
+	var autoErr string
+
 	if autoMode.ActivatesPrivacy() {
-		privacyErr := d.setTrackingFn(ctx, pixy.StatePrivacy)
+		privacyErr := d.deps.setTracking(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
 			slog.Error("failed to enter privacy mode", "error", privacyErr)
+			autoErr = "privacy: " + privacyErr.Error()
 		}
 
-		d.notifyFn(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")
+		d.deps.notify(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")
 	} else {
-		d.notifyFn(ctx, "EMEET PIXY", "Call ended")
+		d.deps.notify(ctx, "EMEET PIXY", "Call ended")
 	}
+
+	d.mu.Lock()
+	d.autoError = autoErr
+	d.mu.Unlock()
 }
 
 func (d *Daemon) autoManage(ctx context.Context) {
@@ -72,7 +90,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 
 	if videoDev == "" {
 		d.mu.Lock()
-		d.applyProbeResult(probeDevices())
+		d.applyProbeResult(probeDevices()) //nolint:contextcheck
 		videoDev = d.videoDev
 		d.mu.Unlock()
 
@@ -85,7 +103,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		return
 	}
 
-	inUse := d.isCameraInUseFn(videoDev)
+	inUse := d.deps.isCameraInUse(videoDev)
 
 	d.mu.Lock()
 	debounceCount := d.config.DebounceCount
