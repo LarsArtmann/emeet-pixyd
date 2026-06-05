@@ -205,16 +205,6 @@ func applyResultToStatus(result CommandResult, status *webStatus, toast, toastTy
 	}
 }
 
-// applyResponseToStatus applies a string response to a webStatus.
-func applyResponseToStatus(resp string, status *webStatus, toast, toastType string) {
-	if IsCommandErrorResponse(resp) {
-		status.Error = resp
-	} else {
-		status.Toast = toast
-		status.ToastType = toastType
-	}
-}
-
 func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	mode := request.FormValue("mode")

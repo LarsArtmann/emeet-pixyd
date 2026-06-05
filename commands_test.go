@@ -487,14 +487,14 @@ func TestActionToast_UnknownCommand(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// applyResponseToStatus tests
+// applyResultToStatus tests
 // ---------------------------------------------------------------------------
 
-func TestApplyResponseToStatus_Error(t *testing.T) {
+func TestApplyResultToStatus_Error(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{}
-	applyResponseToStatus("error: pan: bad", &status, "ignored", toastTypeError)
+	applyResultToStatus(errResult("pan", ErrInvalidValue), &status, "ignored", toastTypeError)
 
 	if status.Error == "" {
 		t.Error("Error should be set")
@@ -509,11 +509,11 @@ func TestApplyResponseToStatus_Error(t *testing.T) {
 	}
 }
 
-func TestApplyResponseToStatus_Success(t *testing.T) {
+func TestApplyResultToStatus_Success(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{}
-	applyResponseToStatus(respTrackingOn, &status, "Tracking enabled", toastTypeSuccess)
+	applyResultToStatus(okResult(respTrackingOn), &status, "Tracking enabled", toastTypeSuccess)
 
 	if status.Error != "" {
 		t.Error("Error should not be set")
@@ -528,33 +528,33 @@ func TestApplyResponseToStatus_Success(t *testing.T) {
 	}
 }
 
-func TestApplyResponseToStatus_InfoToast(t *testing.T) {
+func TestApplyResultToStatus_InfoToast(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{}
-	applyResponseToStatus("ok", &status, "Toggled", toastTypeInfo)
+	applyResultToStatus(okResult("ok"), &status, "Toggled", toastTypeInfo)
 
 	if status.ToastType != toastTypeInfo {
 		t.Errorf("ToastType = %q, want %q", status.ToastType, toastTypeInfo)
 	}
 }
 
-func TestApplyResponseToStatus_ErrorOverridesToast(t *testing.T) {
+func TestApplyResultToStatus_ErrorOverridesToast(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{}
-	applyResponseToStatus("error: something failed", &status, "Success msg", toastTypeSuccess)
+	applyResultToStatus(errResultMsg("something failed"), &status, "Success msg", toastTypeSuccess)
 
 	if status.Error == "" {
-		t.Error("Error should be set for error response")
+		t.Error("Error should be set for error result")
 	}
 
 	if status.Toast != "" {
-		t.Error("Toast should not be set when response is an error")
+		t.Error("Toast should not be set when result is an error")
 	}
 
 	if status.ToastType != "" {
-		t.Error("ToastType should not be set when response is an error")
+		t.Error("ToastType should not be set when result is an error")
 	}
 }
 
