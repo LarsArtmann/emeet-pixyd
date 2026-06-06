@@ -76,14 +76,14 @@ main() → NewDaemon() → Run()
 
 | File               | Purpose                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.go`          | `Daemon` struct, lifecycle (`Run`), signal handling, HTTP server setup, `main()` entry point (315 lines) |
+| `main.go`          | `Daemon` struct, lifecycle (`Run`), signal handling, HTTP server setup, `main()` entry point (315 lines)                                      |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, HTMX response rendering                                                                                           |
 | `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                 |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
-| `device.go`        | HID device state management: `setDeviceState`, `setTracking`/`Audio`/`Gesture`, `centerCamera`, query methods, `syncState`, `getStatus`      |
+| `device.go`        | HID device state management: `setDeviceState`, `setTracking`/`Audio`/`Gesture`, `centerCamera`, query methods, `syncState`, `getStatus`       |
 | `process.go`       | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications                                                    |
 | `uevent.go`        | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)                                                       |
 | `uevent_linux.go`  | Low-level `unix.Socket` call for netlink                                                                                                      |
@@ -92,7 +92,7 @@ main() → NewDaemon() → Run()
 | `probe.go`         | Device probing — pure `probeDevices()` returns `probeResult`, `applyProbeResult()` applies to Daemon                                          |
 | `web_types.go`     | `webStatus` struct shared between handlers and templates                                                                                      |
 | `templates.templ`  | HTML templates (compiled via `templ generate`)                                                                                                |
-| `errors.go`        | `CommandError` type, `CommandResult`, `errStr` helper, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                |
+| `errors.go`        | `CommandError` type, `CommandResult`, `errStr` helper, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                 |
 | `cache.go`         | Named cache types: `lastFrameCache` (Get/Set), `ptzCache` (Get/Set/Invalidate) with encapsulated mutex access                                 |
 | `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand`                                      |
 | `static/`          | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                                                                         |
@@ -372,7 +372,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 ### Stream semaphore bug fix
 
-- `setupStream` acquired `streamSema` but released it via `defer` on return — *before* `writeFrames` started streaming
+- `setupStream` acquired `streamSema` but released it via `defer` on return — _before_ `writeFrames` started streaming
 - Fixed by moving semaphore acquire/release to `handleStream` (the caller), wrapping the entire setup+stream lifecycle
 
 ### autoError refactor (string → error)
