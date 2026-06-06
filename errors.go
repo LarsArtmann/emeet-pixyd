@@ -55,6 +55,14 @@ func (r CommandResult) IsError() bool {
 	return r.Err != nil
 }
 
+func errStr(e error) string {
+	if e == nil {
+		return ""
+	}
+
+	return e.Error()
+}
+
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.
 	ErrAudioSourceNotFound = errors.New("PIXY audio source not found")

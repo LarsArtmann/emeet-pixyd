@@ -78,7 +78,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Auto:       s.daemon.state.AutoMode,
 		Online:     s.daemon.videoDev != "",
 		Device:     s.daemon.videoDev,
-		Error:      s.daemon.autoError,
+		Error:      errStr(s.daemon.autoError),
 		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),
 		Version:    buildVersion,
 	}

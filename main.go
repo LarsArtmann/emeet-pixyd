@@ -39,7 +39,7 @@ type Daemon struct {
 	debounceInUse int
 	debounceIdle  int
 	hidFailCount  int
-	autoError     string
+	autoError     error
 	lastSyncedAt  time.Time
 
 	lastFrame lastFrameCache

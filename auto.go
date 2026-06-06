@@ -4,6 +4,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -18,13 +20,13 @@ func (d *Daemon) handleCallStart(
 	d.state.InCall = true
 	d.mu.Unlock()
 
-	var autoErr string
+	var errs []error
 
 	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
 		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			slog.Error("failed to activate tracking", "error", trackErr)
-			autoErr = "tracking: " + trackErr.Error()
+			errs = append(errs, fmt.Errorf("tracking: %w", trackErr))
 		}
 	}
 
@@ -32,12 +34,7 @@ func (d *Daemon) handleCallStart(
 		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			slog.Error("failed to set audio mode", "error", audioErr)
-
-			if autoErr != "" {
-				autoErr += "; "
-			}
-
-			autoErr += "audio: " + audioErr.Error()
+			errs = append(errs, fmt.Errorf("audio: %w", audioErr))
 		}
 	}
 
@@ -50,7 +47,7 @@ func (d *Daemon) handleCallStart(
 	}
 
 	d.mu.Lock()
-	d.autoError = autoErr
+	d.autoError = errors.Join(errs...)
 	d.mu.Unlock()
 
 	d.deps.notify(ctx, "EMEET PIXY", "Camera activated — "+autoMode.String()+" mode")
@@ -61,13 +58,13 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 	d.state.InCall = false
 	d.mu.Unlock()
 
-	var autoErr string
+	var autoErr error
 
 	if autoMode.ActivatesPrivacy() {
 		privacyErr := d.deps.setTracking(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
 			slog.Error("failed to enter privacy mode", "error", privacyErr)
-			autoErr = "privacy: " + privacyErr.Error()
+			autoErr = fmt.Errorf("privacy: %w", privacyErr)
 		}
 
 		d.deps.notify(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")
@@ -154,7 +151,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		d.mu.Unlock()
 	} else {
 		d.mu.Lock()
-		d.autoError = ""
+		d.autoError = nil
 		d.mu.Unlock()
 	}
 
