@@ -6,7 +6,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os/exec"
@@ -20,6 +22,14 @@ import (
 const (
 	ffmpegShutdownTimeout = 2 * time.Second
 	streamBufSize         = 64 * 1024
+)
+
+var errJPEGMaxIterations = errors.New("max iterations reached scanning for JPEG frame")
+
+const (
+	jpegMarker = 0xFF
+	jpegSOI    = 0xD8
+	jpegEOI    = 0xD9
 )
 
 func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
@@ -74,57 +84,17 @@ func (s *webServer) handleStream(
 	responseWriter http.ResponseWriter,
 	request *http.Request,
 ) {
-	select {
-	case s.daemon.streamSema <- struct{}{}:
-	default:
-		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
+	ctx := request.Context()
 
-		return
-	}
-
-	defer func() { <-s.daemon.streamSema }()
-
-	status, ok := s.checkDevice(responseWriter)
+	br, cmd, flusher, ok := s.setupStream(responseWriter, ctx)
 	if !ok {
 		return
 	}
 
-	if _, lookErr := exec.LookPath("ffmpeg"); lookErr != nil {
-		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
-
-		return
-	}
-
-	flusher, flushOk := responseWriter.(http.Flusher)
-	if !flushOk {
-		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
-
-		return
-	}
-
-	ctx := request.Context()
-	cmd := ffmpegStreamCmd(ctx, status.Device)
-
-	stdOut, pipeErr := cmd.StdoutPipe()
-	if pipeErr != nil {
-		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
-
-		return
-	}
-
-	startErr := cmd.Start()
-	if startErr != nil {
-		http.Error(responseWriter, "stream start error", http.StatusInternalServerError)
-
-		return
-	}
-
-	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
-	responseWriter.Header().Set("Cache-Control", "no-store")
+	defer cleanupFFmpeg(cmd)
 
 	streamStart := time.Now()
 
-	defer cleanupFFmpeg(cmd)
 	defer func() {
 		metricStreamDuration.Record(
 			ctx,
@@ -133,8 +103,70 @@ func (s *webServer) handleStream(
 		)
 	}()
 
-	br := bufio.NewReaderSize(stdOut, streamBufSize)
+	s.writeFrames(responseWriter, br, flusher, ctx)
+}
 
+func (s *webServer) setupStream(
+	responseWriter http.ResponseWriter,
+	ctx context.Context,
+) (*bufio.Reader, *exec.Cmd, http.Flusher, bool) {
+	select {
+	case s.daemon.streamSema <- struct{}{}:
+	default:
+		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
+
+		return nil, nil, nil, false
+	}
+
+	defer func() { <-s.daemon.streamSema }()
+
+	status, ok := s.checkDevice(responseWriter)
+	if !ok {
+		return nil, nil, nil, false
+	}
+
+	_, lookErr := exec.LookPath("ffmpeg")
+	if lookErr != nil {
+		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
+
+		return nil, nil, nil, false
+	}
+
+	flusher, flushOk := responseWriter.(http.Flusher)
+	if !flushOk {
+		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
+
+		return nil, nil, nil, false
+	}
+
+	cmd := ffmpegStreamCmd(ctx, status.Device)
+
+	stdOut, pipeErr := cmd.StdoutPipe()
+	if pipeErr != nil {
+		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
+
+		return nil, nil, nil, false
+	}
+
+	startErr := cmd.Start()
+	if startErr != nil {
+		http.Error(responseWriter, "stream start error", http.StatusInternalServerError)
+
+		return nil, nil, nil, false
+	}
+
+	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+	responseWriter.Header().Set("Cache-Control", "no-store")
+
+	return bufio.NewReaderSize(stdOut, streamBufSize), cmd, flusher, true
+}
+
+func (s *webServer) writeFrames(
+	responseWriter io.Writer,
+	br *bufio.Reader,
+	flusher http.Flusher,
+	ctx context.Context,
+) {
 	var buf bytes.Buffer
 
 	for {
@@ -193,19 +225,19 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		}
 
 		if !soiFound {
-			if b == 0xFF {
+			if b == jpegMarker {
 				next, nextErr := br.ReadByte()
 				if nextErr != nil {
 					return nil, fmt.Errorf("read soi next: %w", nextErr)
 				}
 
 				switch next {
-				case 0xD8:
+				case jpegSOI:
 					buf.Reset()
-					buf.Write([]byte{0xFF, 0xD8})
+					buf.Write([]byte{jpegMarker, jpegSOI})
 
 					soiFound = true
-				case 0xFF:
+				case jpegMarker:
 					_ = br.UnreadByte()
 				}
 			}
@@ -215,7 +247,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 		buf.WriteByte(b)
 
-		if b == 0xFF {
+		if b == jpegMarker {
 			next, nextErr := br.ReadByte()
 			if nextErr != nil {
 				return nil, fmt.Errorf("read eoi next: %w", nextErr)
@@ -223,7 +255,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 			buf.WriteByte(next)
 
-			if next == 0xD9 {
+			if next == jpegEOI {
 				frame := make([]byte, buf.Len())
 				copy(frame, buf.Bytes())
 
@@ -232,5 +264,9 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("max iterations (%d) reached scanning for JPEG frame", maxIterations)
+	return nil, fmt.Errorf(
+		"max iterations (%d) reached scanning for JPEG frame: %w",
+		maxIterations,
+		errJPEGMaxIterations,
+	)
 }

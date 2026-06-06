@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	ueventAdd    = "add"
-	ueventRemove = "remove"
+	ueventAdd     = "add"
+	ueventRemove  = "remove"
+	ueventBufSize = 4096
 )
 
 type uevent struct {
@@ -78,7 +79,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 		_ = fd.Close()
 	}()
 
-	buf := make([]byte, 4096)
+	buf := make([]byte, ueventBufSize)
 	for {
 		n, readErr := fd.Read(buf)
 		if readErr != nil {

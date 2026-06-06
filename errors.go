@@ -4,7 +4,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 )
 
 const errorPrefix = "error: "
@@ -26,15 +25,20 @@ type CommandResult struct {
 }
 
 func okResult(msg string) CommandResult {
-	return CommandResult{Message: msg}
+	return CommandResult{Message: msg, Err: nil}
 }
 
 func errResult(op string, err error) CommandResult {
-	return CommandResult{Err: &CommandError{Op: op, Err: err}}
+	return CommandResult{Message: "", Err: &CommandError{Op: op, Err: err}}
 }
 
+// commandMsgError is a static-error-compatible wrapper for simple error messages.
+type commandMsgError struct{ msg string }
+
+func (e *commandMsgError) Error() string { return errorPrefix + e.msg }
+
 func errResultMsg(msg string) CommandResult {
-	return CommandResult{Err: fmt.Errorf("%s%s", errorPrefix, msg)}
+	return CommandResult{Message: "", Err: &commandMsgError{msg: msg}}
 }
 
 // String returns the text representation for socket/CLI output.
@@ -56,4 +60,6 @@ var (
 	ErrAudioSourceNotFound = errors.New("PIXY audio source not found")
 	// ErrInvalidValue is returned when a PTZ value is out of range.
 	ErrInvalidValue = errors.New("invalid value")
+	// errDeviceNotFound is returned when the video device path is empty.
+	errDeviceNotFound = errors.New("device not found")
 )

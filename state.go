@@ -67,7 +67,8 @@ func (d *Daemon) ensureStateDir() error {
 }
 
 func (d *Daemon) saveState() error {
-	if err := d.ensureStateDir(); err != nil {
+	err := d.ensureStateDir()
+	if err != nil {
 		return err
 	}
 

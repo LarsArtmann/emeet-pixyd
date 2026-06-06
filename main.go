@@ -1,5 +1,6 @@
 //go:build linux
 
+// Package main implements the emeet-pixyd daemon for the EMEET PIXY webcam.
 package main
 
 import (
@@ -52,6 +53,16 @@ type Daemon struct {
 
 const hidCircuitBreakerThreshold = 3
 
+const (
+	httpReadHeaderTimeout = 5 * time.Second
+	httpReadTimeout       = 10 * time.Second
+	httpWriteTimeout      = 30 * time.Second
+	httpIdleTimeout       = 60 * time.Second
+	httpMaxHeaderBytes    = 1 << 20
+	ueventChBufSize       = 8
+	shutdownTimeout       = 5 * time.Second
+)
+
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	err := cfg.Validate()
 	if err != nil {
@@ -100,7 +111,8 @@ func checkExternalDeps() {
 		{"wpctl", "PipeWire source switching unavailable"},
 		{"notify-send", "desktop notifications unavailable"},
 	} {
-		if _, err := exec.LookPath(dep.binary); err != nil {
+		_, err := exec.LookPath(dep.binary)
+		if err != nil {
 			slog.Warn("optional dependency not found", "binary", dep.binary, "impact", dep.impact)
 		}
 	}
@@ -392,11 +404,11 @@ func (d *Daemon) newHTTPServer() *http.Server {
 		Handler: httputil.Chain(
 			mux, securityMiddleware, loggingMiddleware, requestIDMiddleware,
 		),
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		IdleTimeout:       60 * time.Second,
-		MaxHeaderBytes:    1 << 20,
+		ReadHeaderTimeout: httpReadHeaderTimeout,
+		ReadTimeout:       httpReadTimeout,
+		WriteTimeout:      httpWriteTimeout,
+		IdleTimeout:       httpIdleTimeout,
+		MaxHeaderBytes:    httpMaxHeaderBytes,
 	}
 }
 
@@ -448,7 +460,7 @@ func (d *Daemon) Run() {
 	ticker := time.NewTicker(d.config.PollInterval)
 	defer ticker.Stop()
 
-	ueventCh := make(chan struct{}, 8)
+	ueventCh := make(chan struct{}, ueventChBufSize)
 	go d.listenUevents(ctx, ueventCh)
 
 	for {
@@ -473,7 +485,7 @@ func (d *Daemon) Run() {
 			_ = os.Remove(d.config.SocketPath())
 
 			if httpSrv != nil {
-				shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 				_ = httpSrv.Shutdown(shutdownCtx)
 
 				cancel()

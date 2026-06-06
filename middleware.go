@@ -11,6 +11,8 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
+const requestIDMask = 0xFFFFFFFF
+
 type cachingFS struct {
 	handler http.Handler
 }
@@ -39,6 +41,6 @@ var requestIDMiddleware httputil.Middleware = httputil.RequestID(httputil.Reques
 	HeaderName:    "X-Request-ID",
 	ForwardHeader: "X-Request-ID",
 	GenerateID: func() string {
-		return fmt.Sprintf("%08x", time.Now().UnixNano()&0xFFFFFFFF)
+		return fmt.Sprintf("%08x", time.Now().UnixNano()&requestIDMask)
 	},
 })

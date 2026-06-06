@@ -1,6 +1,5 @@
 //go:build linux
 
-// Package main implements the emeet-pixyd daemon for the EMEET PIXY webcam.
 package main
 
 import (

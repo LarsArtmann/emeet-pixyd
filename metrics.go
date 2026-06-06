@@ -46,67 +46,77 @@ func registerMetrics() {
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
 
 		meter := mp.Meter("emeet-pixyd")
-		if metricInCall, err = meter.Float64Gauge(
+
+		metricInCall, err = meter.Float64Gauge(
 			"emeet_pixyd_in_call",
 			metric.WithDescription("Whether the camera is currently in a call (1=yes, 0=no)"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create in_call gauge", "error", err)
 		}
 
-		if metricAutoMode, err = meter.Float64Gauge(
+		metricAutoMode, err = meter.Float64Gauge(
 			"emeet_pixyd_auto_mode",
 			metric.WithDescription("Whether auto-management mode is enabled (1=yes, 0=no)"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create auto_mode gauge", "error", err)
 		}
 
-		if metricCameraState, err = meter.Float64Gauge(
+		metricCameraState, err = meter.Float64Gauge(
 			"emeet_pixyd_camera_state",
 			metric.WithDescription("Current camera state as a gauge per state label (1=active)"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create camera_state gauge", "error", err)
 		}
 
-		if metricCommands, err = meter.Int64Counter(
+		metricCommands, err = meter.Int64Counter(
 			"emeet_pixyd_commands_total",
 			metric.WithDescription("Total number of commands processed"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create commands counter", "error", err)
 		}
 
-		if metricProbes, err = meter.Int64Counter(
+		metricProbes, err = meter.Int64Counter(
 			"emeet_pixyd_probes_total",
 			metric.WithDescription("Total number of device probes"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create probes counter", "error", err)
 		}
 
-		if metricUevents, err = meter.Int64Counter(
+		metricUevents, err = meter.Int64Counter(
 			"emeet_pixyd_uevents_total",
 			metric.WithDescription("Total number of relevant uevents received"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create uevents counter", "error", err)
 		}
 
-		if metricHIDFailures, err = meter.Int64Counter(
+		metricHIDFailures, err = meter.Int64Counter(
 			"emeet_pixyd_hid_failures_total",
 			metric.WithDescription("Total number of HID send failures"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create HID failures counter", "error", err)
 		}
 
-		if metricStreamDuration, err = meter.Float64Histogram(
+		metricStreamDuration, err = meter.Float64Histogram(
 			"emeet_pixyd_stream_duration_seconds",
 			metric.WithDescription("Duration of MJPEG stream sessions in seconds"),
 			metric.WithUnit("s"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create stream duration histogram", "error", err)
 		}
 
-		if metricFramesTotal, err = meter.Int64Counter(
+		metricFramesTotal, err = meter.Int64Counter(
 			"emeet_pixyd_frames_total",
 			metric.WithDescription("Total number of JPEG frames served via MJPEG stream"),
-		); err != nil {
+		)
+		if err != nil {
 			slog.Error("failed to create frames counter", "error", err)
 		}
 	})

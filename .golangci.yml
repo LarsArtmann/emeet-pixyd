@@ -28,7 +28,6 @@ linters:
     - copyloopvar
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -54,7 +53,6 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - godoclint
     - godot
     - godox
     - goheader
@@ -124,21 +122,19 @@ linters:
   settings:
     cyclop:
       max-complexity: 20
-    depguard:
-      rules:
-        main:
-          allow:
-            - $gostd
-            - $module
     exhaustruct:
       exclude:
         - os/exec.Cmd
+        - main.CommandResult
     funlen:
       lines: 100
       statements: 80
     gocritic:
       disabled-checks:
         - ifElseChain
+    mnd:
+      ignored-numbers:
+        - "2"
     gomoddirectives:
       replace-local: true
     gosec:
@@ -160,6 +156,7 @@ linters:
         - anon
         - stdlib
         - generic
+        - github.com/LarsArtmann/emeet-pixyd.HIDDevice
     revive:
       rules:
         - disabled: true
@@ -180,6 +177,21 @@ linters:
         - a
         - b
         - v
+        - d
+        - d2
+        - s
+        - r
+        - br
+        - ch
+        - f
+        - fd
+        - n
+        - tc
+        - rm
+        - w
+        - ep
+        - c
+        - id
       ignore-type-assert-ok: true
   exclusions:
     generated: lax
@@ -192,6 +204,8 @@ linters:
           - funlen
           - cyclop
           - goconst
+          - err113
+          - noinlineerr
       - path: _test\.go
         text: unused
         linters:

@@ -17,6 +17,7 @@ import (
 var (
 	errNoHIDResponse   = errors.New("no HID response")
 	errUnrecognizedHID = errors.New("unrecognized HID response")
+	errHIDWriteZero    = errors.New("wrote 0 bytes")
 )
 
 // HIDDevice abstracts HID communication for testability.
@@ -147,7 +148,7 @@ func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) ([]byte, err
 	}
 
 	if written == 0 {
-		return nil, fmt.Errorf("write hidraw %s: wrote 0 bytes", h.path)
+		return nil, fmt.Errorf("write hidraw %s: %w", h.path, errHIDWriteZero)
 	}
 
 	type readResult struct {

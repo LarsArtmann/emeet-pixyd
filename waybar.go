@@ -15,6 +15,8 @@ type waybarJSON struct {
 	Class   string `json:"class"`
 }
 
+const tooltipInitSize = 64
+
 func (d *Daemon) waybarOutput() string {
 	d.mu.RLock()
 	camera := d.state.Camera
@@ -51,7 +53,7 @@ func (d *Daemon) waybarOutput() string {
 	}
 
 	var tooltip strings.Builder
-	tooltip.Grow(64)
+	tooltip.Grow(tooltipInitSize)
 	tooltip.WriteString("EMEET PIXY: ")
 	tooltip.WriteString(string(camera))
 	tooltip.WriteString("\nAudio: ")

@@ -138,6 +138,8 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 
 	for _, ep := range endpoints {
 		t.Run(ep, func(t *testing.T) {
+			t.Parallel()
+
 			var (
 				resp *http.Response
 

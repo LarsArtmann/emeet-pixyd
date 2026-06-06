@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -309,7 +308,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 	d.mu.RUnlock()
 
 	if videoDev == "" {
-		return errResult(axis, errors.New("device not found"))
+		return errResult(axis, errDeviceNotFound)
 	}
 
 	if relative {

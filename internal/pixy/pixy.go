@@ -211,8 +211,9 @@ func ParseAutoMode(rawInput string) (AutoMode, error) {
 		return AutoOff, nil
 	default:
 		return AutoOff, fmt.Errorf(
-			"invalid auto mode: %q (valid: off, full, tracking-only, privacy-only)",
+			"invalid auto mode: %q (valid: off, full, tracking-only, privacy-only): %w",
 			rawInput,
+			ErrInvalidAutoMode,
 		)
 	}
 }
@@ -335,13 +336,15 @@ func ConfigFromEnv() Config {
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_POLL_INTERVAL"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
+		d, parseErr := time.ParseDuration(v)
+		if parseErr == nil {
 			cfg.PollInterval = d
 		}
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_DEBOUNCE_COUNT"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
+		n, parseErr := strconv.Atoi(v)
+		if parseErr == nil {
 			cfg.DebounceCount = n
 		}
 	}
@@ -351,13 +354,15 @@ func ConfigFromEnv() Config {
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_AUTO"); v != "" {
-		if m, err := ParseAutoMode(v); err == nil {
+		m, parseErr := ParseAutoMode(v)
+		if parseErr == nil {
 			cfg.AutoMode = m
 		}
 	}
 
 	if v := os.Getenv("EMEET_PIXYD_DEFAULT_AUDIO"); v != "" {
-		if m, err := ParseAudioMode(v); err == nil {
+		m, parseErr := ParseAudioMode(v)
+		if parseErr == nil {
 			cfg.DefaultAudio = m
 		}
 	}
