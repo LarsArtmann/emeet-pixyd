@@ -86,6 +86,16 @@ func (s *webServer) handleStream(
 ) {
 	ctx := request.Context()
 
+	select {
+	case s.daemon.streamSema <- struct{}{}:
+	default:
+		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
+
+		return
+	}
+
+	defer func() { <-s.daemon.streamSema }()
+
 	br, cmd, flusher, ok := s.setupStream(responseWriter, ctx)
 	if !ok {
 		return
@@ -110,16 +120,6 @@ func (s *webServer) setupStream(
 	responseWriter http.ResponseWriter,
 	ctx context.Context,
 ) (*bufio.Reader, *exec.Cmd, http.Flusher, bool) {
-	select {
-	case s.daemon.streamSema <- struct{}{}:
-	default:
-		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
-
-		return nil, nil, nil, false
-	}
-
-	defer func() { <-s.daemon.streamSema }()
-
 	status, ok := s.checkDevice(responseWriter)
 	if !ok {
 		return nil, nil, nil, false
