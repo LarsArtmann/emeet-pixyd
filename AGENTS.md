@@ -76,14 +76,14 @@ main() → NewDaemon() → Run()
 
 | File               | Purpose                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.go`          | `Daemon` struct, lifecycle, signal handling, status/waybar output, socket server                                                              |
+| `main.go`          | `Daemon` struct, lifecycle (`Run`), signal handling, HTTP server setup, `main()` entry point (315 lines) |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, HTMX response rendering                                                                                           |
 | `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                 |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
-| `v4l2.go`          | V4L2 pan/tilt/zoom control via `v4l2-ctl` subprocess, `parsePTZValues`                                                                        |
+| `device.go`        | HID device state management: `setDeviceState`, `setTracking`/`Audio`/`Gesture`, `centerCamera`, query methods, `syncState`, `getStatus`      |
 | `process.go`       | `/proc/*/fd` scanning for call detection, PipeWire source switching, desktop notifications                                                    |
 | `uevent.go`        | Netlink uevent listener for device hotplug (context-cancellable, fd closed on shutdown)                                                       |
 | `uevent_linux.go`  | Low-level `unix.Socket` call for netlink                                                                                                      |
@@ -92,7 +92,7 @@ main() → NewDaemon() → Run()
 | `probe.go`         | Device probing — pure `probeDevices()` returns `probeResult`, `applyProbeResult()` applies to Daemon                                          |
 | `web_types.go`     | `webStatus` struct shared between handlers and templates                                                                                      |
 | `templates.templ`  | HTML templates (compiled via `templ generate`)                                                                                                |
-| `errors.go`        | `CommandError` type, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                                                   |
+| `errors.go`        | `CommandError` type, `CommandResult`, `errStr` helper, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                |
 | `cache.go`         | Named cache types: `lastFrameCache` (Get/Set), `ptzCache` (Get/Set/Invalidate) with encapsulated mutex access                                 |
 | `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand`                                      |
 | `static/`          | Frontend assets (HTMX, app.js, style.css) — embedded via `//go:embed`                                                                         |
@@ -339,8 +339,9 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 ### Auto-manage error surfacing
 
-- `autoError` field on Daemon stores last error from `handleCallStart`/`handleCallEnd`
-- Cleared on success, surfaced via `webStatus.Error` in web UI
+- `autoError` field on Daemon (type `error`) stores last error from `handleCallStart`/`handleCallEnd`
+- Uses `errors.Join` for multi-error accumulation in `handleCallStart`
+- Cleared on success (`nil`), surfaced via `errStr()` + `webStatus.Error` in web UI
 
 ### Graceful degradation
 
@@ -352,3 +353,40 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 - Added G703 (path traversal via taint analysis) to `.golangci.yml` excludes
 - Same rationale as G304 — hardware daemon opens `/dev/hidraw*` by design
+
+---
+
+## Session 2026-06-06 Changes
+
+### Lint cleanup (106 → 0 issues)
+
+- Removed `depguard` and `godoclint` linters from `.golangci.yml` (false positives from build tags, broken config)
+- Added 15 common Go short names to `varnamelin` ignore-names (`mu`, `wg`, `ctx`, `err`, etc.)
+- Added `HIDDevice` to `ireturn` allow list
+- Added `err113`/`noinlineerr` test exclusions
+- Fixed `tparallel` (added `t.Parallel()` to subtests), `exhaustruct` (explicit nil/"" fields), `nonamedreturns` (blank identifiers)
+- Created `commandMsgError` type and sentinel errors (`errDeviceNotFound`, `errHIDWriteZero`) for `err113`
+- Separated error assignments from if-checks for `noinlineerr` (17 sites)
+- Extracted named constants for `mnd`: HTTP timeouts, JPEG markers (`jpegMarker`, `jpegSOI`, `jpegEOI`), buffer sizes
+- Extracted `setupStream`/`writeFrames` from `handleStream` for `funlen`
+
+### Stream semaphore bug fix
+
+- `setupStream` acquired `streamSema` but released it via `defer` on return — *before* `writeFrames` started streaming
+- Fixed by moving semaphore acquire/release to `handleStream` (the caller), wrapping the entire setup+stream lifecycle
+
+### autoError refactor (string → error)
+
+- `Daemon.autoError` changed from `string` to `error`
+- `handleCallStart` uses `[]error` + `errors.Join` instead of string concatenation
+- `handleCallEnd` uses `fmt.Errorf("privacy: %w", privacyErr)` wrapping
+- `autoManage` clears with `nil` instead of `""`
+- `errStr()` helper in `errors.go` converts `error` → `string` at the display boundary (`handlers.go`)
+
+### device.go extraction
+
+- Extracted 11 methods + 2 helpers from `main.go` into `device.go`:
+  - `setDeviceState`, `setTracking`, `setAudio`, `setGesture`, `centerCamera`
+  - `videoDevice`, `queryTracking`, `queryAudio`, `queryGesture`, `hidDevice`
+  - `syncState`, `getStatus`, `boolStr`
+- Reduced `main.go` from 583 to 315 lines (under 350-line pre-commit limit)
