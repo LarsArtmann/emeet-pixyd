@@ -16,7 +16,8 @@ type lastFrameCache struct {
 
 func (f *lastFrameCache) Get() []byte {
 	f.mu.RLock()
-	data := f.data
+	data := make([]byte, len(f.data))
+	copy(data, f.data)
 	f.mu.RUnlock()
 
 	return data
