@@ -161,19 +161,7 @@ func (d *Daemon) Run() {
 		}
 	}()
 
-	var httpSrv *http.Server
-	if d.config.WebAddr != "" {
-		httpSrv = d.newHTTPServer()
-
-		go func() {
-			slog.Info("web UI starting", "addr", d.config.WebAddr)
-
-			listenErr := httpSrv.ListenAndServe()
-			if listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
-				slog.Error("web server error", "error", listenErr)
-			}
-		}()
-	}
+	httpSrv := d.startHTTPServer()
 
 	slog.Info("EMEET PIXY daemon started")
 	sdNotify("READY=1")
@@ -189,6 +177,52 @@ func (d *Daemon) Run() {
 	)
 	d.mu.Unlock()
 
+	d.eventLoop(ctx, cancel, sigs, httpSrv)
+}
+
+func (d *Daemon) startHTTPServer() *http.Server {
+	if d.config.WebAddr == "" {
+		return nil
+	}
+
+	httpSrv := d.newHTTPServer()
+
+	go func() {
+		slog.Info("web UI starting", "addr", d.config.WebAddr)
+
+		listenErr := httpSrv.ListenAndServe()
+		if listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
+			slog.Error("web server error", "error", listenErr)
+		}
+	}()
+
+	return httpSrv
+}
+
+func (d *Daemon) handleShutdown(cancel context.CancelFunc, httpSrv *http.Server) {
+	sdNotify("STOPPING=1")
+	slog.Info("shutting down")
+	d.mu.Lock()
+	d.saveStateOrLog("failed to save state on shutdown")
+	d.mu.Unlock()
+	cancel()
+
+	_ = os.Remove(d.config.SocketPath())
+
+	if httpSrv != nil {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		_ = httpSrv.Shutdown(shutdownCtx)
+
+		shutdownCancel()
+	}
+}
+
+func (d *Daemon) eventLoop(
+	ctx context.Context,
+	cancel context.CancelFunc,
+	sigs <-chan os.Signal,
+	httpSrv *http.Server,
+) {
 	ticker := time.NewTicker(d.config.PollInterval)
 	defer ticker.Stop()
 
@@ -207,21 +241,7 @@ func (d *Daemon) Run() {
 				continue
 			}
 
-			sdNotify("STOPPING=1")
-			slog.Info("shutting down")
-			d.mu.Lock()
-			d.saveStateOrLog("failed to save state on shutdown")
-			d.mu.Unlock()
-			cancel()
-
-			_ = os.Remove(d.config.SocketPath())
-
-			if httpSrv != nil {
-				shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-				_ = httpSrv.Shutdown(shutdownCtx)
-
-				cancel()
-			}
+			d.handleShutdown(cancel, httpSrv) //nolint:contextcheck // shutdown cancels the parent context
 
 			return
 		case <-ueventCh:
@@ -229,7 +249,7 @@ func (d *Daemon) Run() {
 			d.cmdMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			d.applyProbeResult(probeDevices())
+			d.applyProbeResult(probeDevices()) //nolint:contextcheck
 			newVideo := d.videoDev
 			d.mu.Unlock()
 
