@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	ffmpegBin             = "ffmpeg"
 	ffmpegShutdownTimeout = 2 * time.Second
 	streamBufSize         = 64 * 1024
 )
@@ -48,7 +49,7 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
 	return exec.CommandContext(
 		ctx,
-		"ffmpeg",
+		ffmpegBin,
 		"-f", "v4l2",
 		"-input_format", "mjpeg",
 		"-i", device,
@@ -125,7 +126,7 @@ func (s *webServer) setupStream(
 		return nil, nil, nil, false
 	}
 
-	_, lookErr := exec.LookPath("ffmpeg")
+	_, lookErr := exec.LookPath(ffmpegBin)
 	if lookErr != nil {
 		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
 

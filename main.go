@@ -106,10 +106,10 @@ func checkExternalDeps() {
 		binary string
 		impact string
 	}{
-		{"ffmpeg", "MJPEG streaming unavailable"},
+		{ffmpegBin, "MJPEG streaming unavailable"},
 		{v4l2ctl, "PTZ control unavailable"},
-		{"wpctl", "PipeWire source switching unavailable"},
-		{"notify-send", "desktop notifications unavailable"},
+		{wpctl, "PipeWire source switching unavailable"},
+		{notifySend, "desktop notifications unavailable"},
 	} {
 		_, err := exec.LookPath(dep.binary)
 		if err != nil {

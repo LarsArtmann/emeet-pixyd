@@ -15,6 +15,11 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+const (
+	wpctl      = "wpctl"
+	notifySend = "notify-send"
+)
+
 func ppidOf(pid pixy.PID) pixy.PID {
 	statData, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid.Get()), "stat"))
 	if err != nil {
@@ -110,7 +115,7 @@ func isCameraInUse(videoDev string) bool {
 }
 
 func findPixySource(ctx context.Context) (pixy.SourceID, error) {
-	out, err := exec.CommandContext(ctx, "wpctl", "status").Output()
+	out, err := exec.CommandContext(ctx, wpctl, "status").Output()
 	if err != nil {
 		return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", err)
 	}
@@ -132,14 +137,14 @@ func findPixySource(ctx context.Context) (pixy.SourceID, error) {
 }
 
 func setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
-	err := exec.CommandContext(ctx, "wpctl", "set-default", sourceID.Get()).Run()
+	err := exec.CommandContext(ctx, wpctl, "set-default", sourceID.Get()).Run()
 	if err != nil {
 		slog.Error("failed to set default audio source", "id", sourceID.Get(), "error", err)
 	}
 }
 
 func notify(ctx context.Context, title, body string) {
-	err := exec.CommandContext(ctx, "notify-send", "-a", "emeet-pixyd", title, body).Run()
+	err := exec.CommandContext(ctx, notifySend, "-a", "emeet-pixyd", title, body).Run()
 	if err != nil {
 		slog.Warn("notification failed", "error", err)
 	}
