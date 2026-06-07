@@ -85,7 +85,6 @@
           };
 
           checks.format = config.treefmt.build.check self;
-          checks.build = config.packages.default;
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
               inherit src version;
@@ -153,18 +152,19 @@
               packages = [
                 pkgs.go_1_26
                 pkgs.golangci-lint
-              templ
+                pkgs.templ
               ];
 
               GOWORK = "off";
-            };          };
+            };
+          };
         };
 
       flake = {
         overlays.default = final: _prev: {
-          emeet-pixyd = prev.callPackage ./package.nix {
+          emeet-pixyd = final.callPackage ./package.nix {
             inherit src version;
-            templ = prev.templ;
+            templ = final.templ;
           };
         };
 
