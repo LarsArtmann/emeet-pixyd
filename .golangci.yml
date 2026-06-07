@@ -1,13 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.3
-  build-tags:
-    - goexperiment.arenas
-    - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
-    - goexperiment.runtimesecret
-    - goexperiment.simd
+  go: "1.26"
   allow-parallel-runners: true
   allow-serial-runners: true
   issues-exit-code: 1
@@ -16,13 +10,11 @@ output:
   formats: {}
 linters:
   enable:
-    - arangolint
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - canonicalheader
-    - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
@@ -44,7 +36,6 @@ linters:
     - forbidigo
     - forcetypeassert
     - funlen
-    - ginkgolinter
     - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
@@ -97,10 +88,8 @@ linters:
     - reassign
     - recvcheck
     - revive
-    - rowserrcheck
     - sloglint
     - spancheck
-    - sqlclosecheck
     - tagalign
     - tagliatelle
     - testableexamples
@@ -110,7 +99,6 @@ linters:
     - tparallel
     - unconvert
     - unparam
-    - unqueryvet
     - usestdlibvars
     - usetesting
     - varnamelen
