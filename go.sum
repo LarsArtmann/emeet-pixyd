@@ -25,8 +25,8 @@ github.com/larsartmann/go-branded-id v0.3.0 h1:3uE01+ymNTfsvtLMRSiux+6TjPZX5+frq
 github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-error-family v0.3.0 h1:ozA/xt9C+o+4o6bbt/vrMZDCL+ZvBjJVV79fjNkz3+8=
 github.com/larsartmann/go-error-family v0.3.0/go.mod h1:Fz+CKBOHHFZAeiZ/GFbY0JiiXBei+SqY8nznz2XpeaM=
-github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b h1:JPv4u+JRcJILpno1CHw+62CBDV5zeCvVjZokFf/I3jE=
-github.com/larsartmann/httputil v0.0.0-20260605133311-64f7f3b3871b/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
+github.com/larsartmann/httputil v0.0.0-20260607223019-1cb4408b77a7 h1:fJZFNCP5Stvx+NKNfg5EFDp37iT6iqCRjIitNCvaLqQ=
+github.com/larsartmann/httputil v0.0.0-20260607223019-1cb4408b77a7/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
