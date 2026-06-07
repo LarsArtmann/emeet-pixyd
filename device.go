@@ -18,15 +18,12 @@ func (d *Daemon) setDeviceState(
 ) error {
 	d.mu.RLock()
 	hidDev := d.hidDev
+	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
 	d.mu.RUnlock()
 
 	if hidDev == nil {
 		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
 	}
-
-	d.mu.RLock()
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
 
 	if circuitOpen {
 		return fmt.Errorf("setDeviceState: %w", pixy.ErrPIXYNotConnected)
