@@ -17,17 +17,28 @@ const v4l2ctl = "v4l2-ctl"
 const v4l2DegreesPerUnit = 3600
 
 type ptzAxisInfo struct {
-	Min   int
-	Max   int
-	Label string
-	Unit  string
+	Min        int
+	Max        int
+	Label      string
+	Unit       string
+	V4L2Ctrl   string
+	Multiplier int
 }
 
 //nolint:gochecknoglobals
 var ptzAxes = map[string]ptzAxisInfo{
-	pixy.AxisPan:  {Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0"},
-	pixy.AxisTilt: {Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0"},
-	pixy.AxisZoom: {Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x"},
+	pixy.AxisPan: {
+		Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0",
+		V4L2Ctrl: "pan_absolute", Multiplier: v4l2DegreesPerUnit,
+	},
+	pixy.AxisTilt: {
+		Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0",
+		V4L2Ctrl: "tilt_absolute", Multiplier: v4l2DegreesPerUnit,
+	},
+	pixy.AxisZoom: {
+		Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x",
+		V4L2Ctrl: "zoom_absolute", Multiplier: 1,
+	},
 }
 
 func ptzAxisValid(axis string) bool {

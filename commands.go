@@ -326,16 +326,11 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	val = clampInt(val, info.Min, info.Max)
 
-	multiplier := v4l2DegreesPerUnit
-	if axis == pixy.AxisZoom {
-		multiplier = 1
-	}
-
 	v4l2Err := d.deps.v4l2Set(
 		ctx,
 		videoDev,
-		axis+"_absolute",
-		strconv.Itoa(val*multiplier),
+		info.V4L2Ctrl,
+		strconv.Itoa(val*info.Multiplier),
 	)
 	if v4l2Err != nil {
 		return errResult(axis, v4l2Err)

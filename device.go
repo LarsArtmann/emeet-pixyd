@@ -113,9 +113,9 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	}
 
 	controls := map[string]string{
-		"pan_absolute":  "0",
-		"tilt_absolute": "0",
-		"zoom_absolute": "100",
+		ptzAxes[pixy.AxisPan].V4L2Ctrl:  "0",
+		ptzAxes[pixy.AxisTilt].V4L2Ctrl: "0",
+		ptzAxes[pixy.AxisZoom].V4L2Ctrl: "100",
 	}
 	for ctrl, val := range controls {
 		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
