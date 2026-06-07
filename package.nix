@@ -38,5 +38,6 @@ buildGoModule {
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     mainProgram = "emeet-pixyd";
+    inherit version;
   };
 }
