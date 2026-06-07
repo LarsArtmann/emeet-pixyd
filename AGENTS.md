@@ -76,10 +76,10 @@ main() → NewDaemon() → Run()
 
 | File               | Purpose                                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.go`          | `Daemon` struct, lifecycle (`Run`), signal handling, HTTP server setup, `main()` entry point (315 lines)                                      |
+| `main.go`          | `Daemon` struct, lifecycle (`Run` → `startHTTPServer` + `eventLoop` + `handleShutdown`), signal handling, `main()` entry point (335 lines) |
 | `commands.go`      | Command routing for both Unix socket and CLI (`handleCommand` switch), extracted `handleQueryCommand` and `handleTogglePrivacy`               |
 | `handlers.go`      | HTTP routing, web handlers, HTMX response rendering                                                                                           |
-| `metrics.go`       | OTel metrics registration, `updateMetrics()` — lazy registration via `sync.Once`, no `init()`                                                 |
+| `metrics.go`       | `daemonMetrics` struct encapsulating all metric vars, DRY `mustFloat64Gauge`/`mustInt64Counter`/`mustFloat64Histogram` helpers, `recordProbe`/`recordStreamDuration`/`recordFrame`/`recordUevent` functions, `updateMetrics`, `recordCommandMetric`, `collectMetrics` (test-only) |
 | `stream.go`        | MJPEG streaming, snapshot, JPEG frame extraction                                                                                              |
 | `middleware.go`    | Security headers, request ID, caching FS, `Chain` middleware                                                                                  |
 | `hid.go`           | HID bidirectional communication over hidraw — config writes + response parsing                                                                |
@@ -284,4 +284,4 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 - **2026-06-05**: CommandResult typed returns, Dependencies struct in deps.go, HIDDevice interface + circuit breaker, PTZ relative mode, keyboard PTZ shortcuts, autoError surfacing, graceful degradation, new files (waybar.go, socket.go, deps.go, ptz.go), deleted v4l2.go
 - **2026-06-06**: Lint cleanup (106→0 issues), stream semaphore bug fix, autoError string→error refactor, device.go extraction (11 methods from main.go)
-- **2026-06-07**: PTZValues.Get/Set axis-agnostic methods, v4l2CtrlToAxis reverse map, parsePTZValues refactored to eliminate hardcoded V4L2 control names, actionToast map lookup (replaced 8-case switch), waybarCameraStates map (replaced 4-case switch), external binary name constants (ffmpegBin, wpctl, notifySend), lock consolidation in setDeviceState
+- **2026-06-07 (session 8)**: CSS variables for all hardcoded colors, `daemonMetrics` struct with DRY helpers, `slog.With` contextual logging in device.go/auto.go, `Run()` decomposed into `startHTTPServer`/`handleShutdown`/`eventLoop`, `lastFrameCache.Get()` defensive copy, app.js XSS fix + URL validation + PTZ helpers, `streamResult` named struct, lint check in flake.nix, CHANGELOG 0.2.0 release
