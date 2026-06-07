@@ -78,10 +78,14 @@
             projectRootFile = "go.mod";
             programs = {
               gofumpt.enable = true;
+              goimports.enable = true;
+              templ.enable = true;
               nixfmt.enable = true;
             };
           };
 
+          checks.format = config.treefmt.build.check self;
+          checks.build = config.packages.default;
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
               inherit src version;
@@ -149,15 +153,15 @@
               packages = [
                 pkgs.go_1_26
                 pkgs.golangci-lint
+              templ
               ];
 
               GOWORK = "off";
-            };
-          };
+            };          };
         };
 
       flake = {
-        overlays.default = _final: prev: {
+        overlays.default = final: _prev: {
           emeet-pixyd = prev.callPackage ./package.nix {
             inherit src version;
             templ = prev.templ;
