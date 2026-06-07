@@ -15,8 +15,8 @@
 | **Center Camera**     | Resets pan=0, tilt=0, zoom=100 via `v4l2-ctl`                 | ✅ FULLY_FUNCTIONAL |
 | **PTZ Sliders (Web)** | Pan (±170°), Tilt (±30°), Zoom (100–400×) with 300ms debounce | ✅ FULLY_FUNCTIONAL |
 | **PTZ CLI**           | `pan/tilt/zoom <value>` via socket/CLI with clamping          | ✅ FULLY_FUNCTIONAL |
-| **PTZ Relative Mode**  | `pan+10`, `tilt-5` for relative adjustments via socket/CLI  | ✅ FULLY_FUNCTIONAL |
-| **Keyboard PTZ**       | Arrow keys: pan/tilt ±5°, +/-: zoom ±10                         | ✅ FULLY_FUNCTIONAL |
+| **PTZ Relative Mode** | `pan+10`, `tilt-5` for relative adjustments via socket/CLI    | ✅ FULLY_FUNCTIONAL |
+| **Keyboard PTZ**      | Arrow keys: pan/tilt ±5°, +/-: zoom ±10                       | ✅ FULLY_FUNCTIONAL |
 
 ## Audio
 
@@ -65,9 +65,9 @@
 | **Status**              | Full status string (camera, audio, gesture, PTZ, in-call, auto, device) | ✅ FULLY_FUNCTIONAL |
 | **Sync**                | Queries hardware via HID, reconciles with daemon state                  | ✅ FULLY_FUNCTIONAL |
 | **Probe**               | Re-scans sysfs for video4linux + hidraw devices                         | ✅ FULLY_FUNCTIONAL |
-| **Device**              | Returns both `/dev/videoX` and `/dev/hidrawY` paths                        | ✅ FULLY_FUNCTIONAL |
+| **Device**              | Returns both `/dev/videoX` and `/dev/hidrawY` paths                     | ✅ FULLY_FUNCTIONAL |
 | **Waybar Output**       | JSON with icon, class, tooltip for Waybar custom module                 | ✅ FULLY_FUNCTIONAL |
-| **--version / --help**  | `emeet-pixyd --version` prints version, `--help` prints usage          | ✅ FULLY_FUNCTIONAL |
+| **--version / --help**  | `emeet-pixyd --version` prints version, `--help` prints usage           | ✅ FULLY_FUNCTIONAL |
 
 ## Desktop Notifications
 
@@ -91,19 +91,19 @@
 
 ## Monitoring & Observability
 
-| Feature                 | Description                                                 | Status              |
-| ----------------------- | ----------------------------------------------------------- | ------------------- |
+| Feature                 | Description                                                                                                                                                         | Status              |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | **Prometheus Metrics**  | OTel gauges + counters at `/metrics`: in_call, auto_mode, camera_state, command_total, probe_total, uevent_total, hid_failures_total, stream_duration, frames_total | ✅ FULLY_FUNCTIONAL |
-| **pprof Debug**         | `/debug/pprof/*` gated behind `EMEET_PIXYD_DEBUG=true`      | ✅ FULLY_FUNCTIONAL |
-| **Health Endpoint**     | `/api/health` returns JSON status + 503 when device offline  | ✅ FULLY_FUNCTIONAL |
-| **systemd Integration** | `sd_notify` READY=1 + WATCHDOG=1 each poll tick             | ✅ FULLY_FUNCTIONAL |
+| **pprof Debug**         | `/debug/pprof/*` gated behind `EMEET_PIXYD_DEBUG=true`                                                                                                              | ✅ FULLY_FUNCTIONAL |
+| **Health Endpoint**     | `/api/health` returns JSON status + 503 when device offline                                                                                                         | ✅ FULLY_FUNCTIONAL |
+| **systemd Integration** | `sd_notify` READY=1 + WATCHDOG=1 each poll tick                                                                                                                     | ✅ FULLY_FUNCTIONAL |
 
 ## HID Communication
 
-| Feature               | Description                                                    | Status              |
-| --------------------- | -------------------------------------------------------------- | ------------------- |
-| **HID Config+Commit** | 9-byte config + 4-byte commit via hidraw, 200ms sleep          | ✅ FULLY_FUNCTIONAL |
-| **HID State Query**   | Generic `queryHIDState[T]` with 500ms timeout response parsing | ✅ FULLY_FUNCTIONAL |
+| Feature                 | Description                                                    | Status              |
+| ----------------------- | -------------------------------------------------------------- | ------------------- |
+| **HID Config+Commit**   | 9-byte config + 4-byte commit via hidraw, 200ms sleep          | ✅ FULLY_FUNCTIONAL |
+| **HID State Query**     | Generic `queryHIDState[T]` with 500ms timeout response parsing | ✅ FULLY_FUNCTIONAL |
 | **HID Circuit Breaker** | Stops retrying after 3 consecutive failures, resets on success | ✅ FULLY_FUNCTIONAL |
 
 ## NixOS Module

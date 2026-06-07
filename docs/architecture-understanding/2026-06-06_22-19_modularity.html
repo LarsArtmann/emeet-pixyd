@@ -1,212 +1,550 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>emeet-pixyd Architecture Review — 2026-06-06</title>
-<style>
-  :root { --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a; --text: #e0e0e0; --accent: #6c9eff; --green: #4caf50; --orange: #ff9800; --red: #f44336; --blue: #2196f3; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem; max-width: 1200px; margin: 0 auto; }
-  h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.8rem; }
-  h2 { color: var(--accent); margin: 2rem 0 1rem; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-  h3 { color: #c0c0c0; margin: 1rem 0 0.5rem; }
-  .meta { color: #888; margin-bottom: 2rem; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
-  .card h3 { margin-top: 0; }
-  .score { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
-  .score-good { background: rgba(76,175,80,0.2); color: var(--green); }
-  .score-ok { background: rgba(255,152,0,0.2); color: var(--orange); }
-  .score-bad { background: rgba(244,67,54,0.2); color: var(--red); }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
-  th { color: var(--accent); font-weight: 600; }
-  code { background: #2a2d3a; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
-  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; margin-right: 4px; }
-  .tag-strong { background: rgba(76,175,80,0.2); color: var(--green); }
-  .tag-moderate { background: rgba(255,152,0,0.2); color: var(--orange); }
-  .tag-weak { background: rgba(244,67,54,0.2); color: var(--red); }
-  .finding { margin: 1.5rem 0; padding: 1rem; border-left: 3px solid var(--accent); background: rgba(108,158,255,0.05); }
-  ul { padding-left: 1.5rem; }
-  li { margin: 0.3rem 0; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-  .metric { text-align: center; padding: 1rem; }
-  .metric .value { font-size: 2rem; font-weight: 700; color: var(--accent); }
-  .metric .label { font-size: 0.85rem; color: #888; }
-</style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emeet-pixyd Architecture Review — 2026-06-06</title>
+    <style>
+      :root {
+        --bg: #0f1117;
+        --card: #1a1d27;
+        --border: #2a2d3a;
+        --text: #e0e0e0;
+        --accent: #6c9eff;
+        --green: #4caf50;
+        --orange: #ff9800;
+        --red: #f44336;
+        --blue: #2196f3;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        font-size: 1.8rem;
+      }
+      h2 {
+        color: var(--accent);
+        margin: 2rem 0 1rem;
+        font-size: 1.3rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+      h3 {
+        color: #c0c0c0;
+        margin: 1rem 0 0.5rem;
+      }
+      .meta {
+        color: #888;
+        margin-bottom: 2rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+      }
+      .card h3 {
+        margin-top: 0;
+      }
+      .score {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .score-good {
+        background: rgba(76, 175, 80, 0.2);
+        color: var(--green);
+      }
+      .score-ok {
+        background: rgba(255, 152, 0, 0.2);
+        color: var(--orange);
+      }
+      .score-bad {
+        background: rgba(244, 67, 54, 0.2);
+        color: var(--red);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      code {
+        background: #2a2d3a;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        margin-right: 4px;
+      }
+      .tag-strong {
+        background: rgba(76, 175, 80, 0.2);
+        color: var(--green);
+      }
+      .tag-moderate {
+        background: rgba(255, 152, 0, 0.2);
+        color: var(--orange);
+      }
+      .tag-weak {
+        background: rgba(244, 67, 54, 0.2);
+        color: var(--red);
+      }
+      .finding {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        border-left: 3px solid var(--accent);
+        background: rgba(108, 158, 255, 0.05);
+      }
+      ul {
+        padding-left: 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .metric {
+        text-align: center;
+        padding: 1rem;
+      }
+      .metric .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .metric .label {
+        font-size: 0.85rem;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>emeet-pixyd Architecture Review</h1>
+    <p class="meta">2026-06-06 | ~10K lines Go (prod + tests) | Single binary Linux daemon</p>
 
-<h1>emeet-pixyd Architecture Review</h1>
-<p class="meta">2026-06-06 | ~10K lines Go (prod + tests) | Single binary Linux daemon</p>
+    <h2>Executive Summary</h2>
 
-<h2>Executive Summary</h2>
+    <div class="grid">
+      <div class="card metric">
+        <div class="value">9,961</div>
+        <div class="label">Total Go lines</div>
+      </div>
+      <div class="card metric">
+        <div class="value">23</div>
+        <div class="label">Source files</div>
+      </div>
+      <div class="card metric">
+        <div class="value">43/61</div>
+        <div class="label">TODOs done (70%)</div>
+      </div>
+      <div class="card metric">
+        <div class="value">0</div>
+        <div class="label">Lint issues</div>
+      </div>
+    </div>
 
-<div class="grid">
-  <div class="card metric"><div class="value">9,961</div><div class="label">Total Go lines</div></div>
-  <div class="card metric"><div class="value">23</div><div class="label">Source files</div></div>
-  <div class="card metric"><div class="value">43/61</div><div class="label">TODOs done (70%)</div></div>
-  <div class="card metric"><div class="value">0</div><div class="label">Lint issues</div></div>
-</div>
+    <h2>1. Modularity Assessment</h2>
 
-<h2>1. Modularity Assessment</h2>
+    <div class="finding">
+      <h3>Current Module Structure</h3>
+      <p>
+        Single <code>main</code> package with one internal package (<code>internal/pixy</code>). The
+        codebase is well-decomposed into 23 focused files with clear responsibilities.
+      </p>
 
-<div class="finding">
-<h3>Current Module Structure</h3>
-<p>Single <code>main</code> package with one internal package (<code>internal/pixy</code>). The codebase is well-decomposed into 23 focused files with clear responsibilities.</p>
+      <table>
+        <tr>
+          <th>File</th>
+          <th>Lines</th>
+          <th>Responsibility</th>
+          <th>Cohesion</th>
+        </tr>
+        <tr>
+          <td><code>main.go</code></td>
+          <td>315</td>
+          <td>Daemon lifecycle, signal handling, HTTP setup</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>commands.go</code></td>
+          <td>365</td>
+          <td>Command routing (socket + CLI)</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>handlers.go</code></td>
+          <td>327</td>
+          <td>HTTP handlers, web UI</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>device.go</code></td>
+          <td>280</td>
+          <td>HID state management, device queries</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>stream.go</code></td>
+          <td>272</td>
+          <td>MJPEG streaming, JPEG extraction</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>hid.go</code></td>
+          <td>272</td>
+          <td>HID protocol, device abstraction</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>auto.go</code></td>
+          <td>161</td>
+          <td>Auto-manage lifecycle</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>process.go</code></td>
+          <td>146</td>
+          <td>/proc scanning, PipeWire</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>probe.go</code></td>
+          <td>158</td>
+          <td>Device probing (sysfs)</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+        <tr>
+          <td><code>internal/pixy/</code></td>
+          <td>~250</td>
+          <td>Shared types, config, constants</td>
+          <td><span class="score score-good">HIGH</span></td>
+        </tr>
+      </table>
 
-<table>
-  <tr><th>File</th><th>Lines</th><th>Responsibility</th><th>Cohesion</th></tr>
-  <tr><td><code>main.go</code></td><td>315</td><td>Daemon lifecycle, signal handling, HTTP setup</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>commands.go</code></td><td>365</td><td>Command routing (socket + CLI)</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>handlers.go</code></td><td>327</td><td>HTTP handlers, web UI</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>device.go</code></td><td>280</td><td>HID state management, device queries</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>stream.go</code></td><td>272</td><td>MJPEG streaming, JPEG extraction</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>hid.go</code></td><td>272</td><td>HID protocol, device abstraction</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>auto.go</code></td><td>161</td><td>Auto-manage lifecycle</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>process.go</code></td><td>146</td><td>/proc scanning, PipeWire</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>probe.go</code></td><td>158</td><td>Device probing (sysfs)</td><td><span class="score score-good">HIGH</span></td></tr>
-  <tr><td><code>internal/pixy/</code></td><td>~250</td><td>Shared types, config, constants</td><td><span class="score score-good">HIGH</span></td></tr>
-</table>
+      <p>
+        <strong>Verdict:</strong> <span class="tag tag-strong">Strong</span> — Each file has a
+        single clear responsibility. No god-files. File sizes are well-controlled (max 365 lines for
+        commands.go).
+      </p>
+    </div>
 
-<p><strong>Verdict:</strong> <span class="tag tag-strong">Strong</span> — Each file has a single clear responsibility. No god-files. File sizes are well-controlled (max 365 lines for commands.go).</p>
-</div>
+    <h2>2. Scalability Analysis</h2>
 
-<h2>2. Scalability Analysis</h2>
+    <div class="finding">
+      <h3>Concurrency Model</h3>
+      <p>The daemon uses a well-structured concurrency model with three distinct lock scopes:</p>
+      <ul>
+        <li><code>D.mu</code> (RWMutex) — protects state, device paths, debounce counters</li>
+        <li><code>D.cmdMu</code> (Mutex) — serializes mutating commands only; queries bypass</li>
+        <li><code>streamSema</code> (chan, cap 1) — limits to one MJPEG stream</li>
+      </ul>
+      <p>
+        This is appropriate for a single-device hardware daemon. The read/write lock separation
+        allows concurrent status queries while serializing state mutations.
+      </p>
+      <p>
+        <strong>Scalability limit:</strong> Designed for exactly one PIXY device. Not a flaw — this
+        is a hardware daemon.
+      </p>
+    </div>
 
-<div class="finding">
-<h3>Concurrency Model</h3>
-<p>The daemon uses a well-structured concurrency model with three distinct lock scopes:</p>
-<ul>
-  <li><code>D.mu</code> (RWMutex) — protects state, device paths, debounce counters</li>
-  <li><code>D.cmdMu</code> (Mutex) — serializes mutating commands only; queries bypass</li>
-  <li><code>streamSema</code> (chan, cap 1) — limits to one MJPEG stream</li>
-</ul>
-<p>This is appropriate for a single-device hardware daemon. The read/write lock separation allows concurrent status queries while serializing state mutations.</p>
-<p><strong>Scalability limit:</strong> Designed for exactly one PIXY device. Not a flaw — this is a hardware daemon.</p>
-</div>
+    <div class="finding">
+      <h3>Dependency Injection</h3>
+      <p>
+        The <code>Dependencies</code> struct consolidates 10 function fields for testability.
+        Production wiring in <code>NewDaemon()</code>, tests override via functional options.
+      </p>
+      <p>
+        <span class="tag tag-strong">Strong</span> — All external interactions (HID, v4l2, /proc,
+        PipeWire, notifications) are injectable. The two-phase init handles circular refs cleanly.
+      </p>
+    </div>
 
-<div class="finding">
-<h3>Dependency Injection</h3>
-<p>The <code>Dependencies</code> struct consolidates 10 function fields for testability. Production wiring in <code>NewDaemon()</code>, tests override via functional options.</p>
-<p><span class="tag tag-strong">Strong</span> — All external interactions (HID, v4l2, /proc, PipeWire, notifications) are injectable. The two-phase init handles circular refs cleanly.</p>
-</div>
+    <h2>3. Service Orientation</h2>
 
-<h2>3. Service Orientation</h2>
+    <div class="finding">
+      <h3>API Surface</h3>
+      <table>
+        <tr>
+          <th>Interface</th>
+          <th>Protocol</th>
+          <th>Consumers</th>
+        </tr>
+        <tr>
+          <td>Unix socket</td>
+          <td>Line-based text</td>
+          <td>CLI, Waybar, scripts</td>
+        </tr>
+        <tr>
+          <td>HTTP/Web UI</td>
+          <td>HTMX + REST</td>
+          <td>Browser</td>
+        </tr>
+        <tr>
+          <td>Prometheus</td>
+          <td>/metrics</td>
+          <td>Monitoring</td>
+        </tr>
+        <tr>
+          <td>Health</td>
+          <td>/api/health JSON</td>
+          <td>Load balancers, watchdogs</td>
+        </tr>
+      </table>
+      <p>
+        The socket protocol is simple and effective. HTTP handlers use templ for type-safe HTML. The
+        <code>CommandResult</code> type unifies socket and HTTP responses.
+      </p>
+      <p>
+        <span class="tag tag-moderate">Moderate</span> — The socket protocol is unversioned text.
+        This is fine for a local-only daemon but would need versioning if ever exposed over a
+        network.
+      </p>
+    </div>
 
-<div class="finding">
-<h3>API Surface</h3>
-<table>
-  <tr><th>Interface</th><th>Protocol</th><th>Consumers</th></tr>
-  <tr><td>Unix socket</td><td>Line-based text</td><td>CLI, Waybar, scripts</td></tr>
-  <tr><td>HTTP/Web UI</td><td>HTMX + REST</td><td>Browser</td></tr>
-  <tr><td>Prometheus</td><td>/metrics</td><td>Monitoring</td></tr>
-  <tr><td>Health</td><td>/api/health JSON</td><td>Load balancers, watchdogs</td></tr>
-</table>
-<p>The socket protocol is simple and effective. HTTP handlers use templ for type-safe HTML. The <code>CommandResult</code> type unifies socket and HTTP responses.</p>
-<p><span class="tag tag-moderate">Moderate</span> — The socket protocol is unversioned text. This is fine for a local-only daemon but would need versioning if ever exposed over a network.</p>
-</div>
+    <h2>4. Composability</h2>
 
-<h2>4. Composability</h2>
+    <div class="finding">
+      <h3>Strengths</h3>
+      <ul>
+        <li>
+          <code>internal/pixy</code> package provides clean domain types with branded IDs
+          (<code>PID</code>, <code>SourceID</code>)
+        </li>
+        <li><code>CommandResult</code> typed return eliminates stringly-typed command results</li>
+        <li><code>HIDDevice</code> interface abstracts hardware I/O</li>
+        <li><code>Dependencies</code> struct provides complete DI surface</li>
+        <li><code>probeDevices()</code> is a pure function — easy to test and reason about</li>
+        <li><code>pixy.State.Valid()</code> prevents garbage enum values from persisting</li>
+      </ul>
+    </div>
 
-<div class="finding">
-<h3>Strengths</h3>
-<ul>
-  <li><code>internal/pixy</code> package provides clean domain types with branded IDs (<code>PID</code>, <code>SourceID</code>)</li>
-  <li><code>CommandResult</code> typed return eliminates stringly-typed command results</li>
-  <li><code>HIDDevice</code> interface abstracts hardware I/O</li>
-  <li><code>Dependencies</code> struct provides complete DI surface</li>
-  <li><code>probeDevices()</code> is a pure function — easy to test and reason about</li>
-  <li><code>pixy.State.Valid()</code> prevents garbage enum values from persisting</li>
-</ul>
-</div>
+    <div class="finding">
+      <h3>Improvement Opportunities</h3>
+      <table>
+        <tr>
+          <th>Area</th>
+          <th>Current</th>
+          <th>Recommendation</th>
+          <th>Impact</th>
+        </tr>
+        <tr>
+          <td>Shell command abstraction</td>
+          <td>Direct <code>exec.Command</code> calls in process.go, ptz.go</td>
+          <td>Extract a <code>Commander</code> interface (TODO #21)</td>
+          <td><span class="tag tag-moderate">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Process inspection</td>
+          <td>Direct <code>/proc</code> filesystem reads</td>
+          <td>Extract a <code>ProcessInspector</code> interface (TODO #23)</td>
+          <td><span class="tag tag-moderate">Medium</span></td>
+        </tr>
+        <tr>
+          <td>Uevent listener</td>
+          <td>Direct netlink socket</td>
+          <td>Extract a <code>UeventListener</code> interface (TODO #24)</td>
+          <td><span class="tag tag-weak">Low</span></td>
+        </tr>
+        <tr>
+          <td>WebSocket updates</td>
+          <td>3s HTMX polling</td>
+          <td>WebSocket for instant state changes (TODO #27)</td>
+          <td><span class="tag tag-weak">Low</span></td>
+        </tr>
+        <tr>
+          <td>Mobile layout</td>
+          <td>Desktop-focused</td>
+          <td>CSS-only responsive adjustments (TODO #26)</td>
+          <td><span class="tag tag-weak">Low</span></td>
+        </tr>
+      </table>
+    </div>
 
-<div class="finding">
-<h3>Improvement Opportunities</h3>
-<table>
-  <tr><th>Area</th><th>Current</th><th>Recommendation</th><th>Impact</th></tr>
-  <tr>
-    <td>Shell command abstraction</td>
-    <td>Direct <code>exec.Command</code> calls in process.go, ptz.go</td>
-    <td>Extract a <code>Commander</code> interface (TODO #21)</td>
-    <td><span class="tag tag-moderate">Medium</span></td>
-  </tr>
-  <tr>
-    <td>Process inspection</td>
-    <td>Direct <code>/proc</code> filesystem reads</td>
-    <td>Extract a <code>ProcessInspector</code> interface (TODO #23)</td>
-    <td><span class="tag tag-moderate">Medium</span></td>
-  </tr>
-  <tr>
-    <td>Uevent listener</td>
-    <td>Direct netlink socket</td>
-    <td>Extract a <code>UeventListener</code> interface (TODO #24)</td>
-    <td><span class="tag tag-weak">Low</span></td>
-  </tr>
-  <tr>
-    <td>WebSocket updates</td>
-    <td>3s HTMX polling</td>
-    <td>WebSocket for instant state changes (TODO #27)</td>
-    <td><span class="tag tag-weak">Low</span></td>
-  </tr>
-  <tr>
-    <td>Mobile layout</td>
-    <td>Desktop-focused</td>
-    <td>CSS-only responsive adjustments (TODO #26)</td>
-    <td><span class="tag tag-weak">Low</span></td>
-  </tr>
-</table>
-</div>
+    <h2>5. Type Safety</h2>
 
-<h2>5. Type Safety</h2>
+    <div class="finding">
+      <h3>Domain Types</h3>
+      <p>Excellent type discipline throughout:</p>
+      <ul>
+        <li>
+          <code>CameraState</code>, <code>AudioMode</code>, <code>AutoMode</code> — string-based
+          with <code>Valid()</code> + <code>String()</code>
+        </li>
+        <li>
+          <code>PID</code> and <code>SourceID</code> — branded types prevent mixing at compile time
+        </li>
+        <li><code>PTZValues</code> with <code>Clamp()</code> method</li>
+        <li><code>CommandResult</code> — typed returns for all command handlers</li>
+        <li><code>CommandError</code> — structured error type with sentinel errors</li>
+      </ul>
+      <p>
+        <span class="tag tag-strong">Strong</span> — Impossible states are largely unrepresentable.
+        The branded ID pattern is particularly well-applied.
+      </p>
+    </div>
 
-<div class="finding">
-<h3>Domain Types</h3>
-<p>Excellent type discipline throughout:</p>
-<ul>
-  <li><code>CameraState</code>, <code>AudioMode</code>, <code>AutoMode</code> — string-based with <code>Valid()</code> + <code>String()</code></li>
-  <li><code>PID</code> and <code>SourceID</code> — branded types prevent mixing at compile time</li>
-  <li><code>PTZValues</code> with <code>Clamp()</code> method</li>
-  <li><code>CommandResult</code> — typed returns for all command handlers</li>
-  <li><code>CommandError</code> — structured error type with sentinel errors</li>
-</ul>
-<p><span class="tag tag-strong">Strong</span> — Impossible states are largely unrepresentable. The branded ID pattern is particularly well-applied.</p>
-</div>
+    <h2>6. Remaining Architecture TODOs (17 open)</h2>
 
-<h2>6. Remaining Architecture TODOs (17 open)</h2>
+    <div class="card">
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Task</th>
+          <th>Priority</th>
+          <th>Effort</th>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td>Structured log levels audit</td>
+          <td><span class="tag tag-moderate">P1</span></td>
+          <td>30min</td>
+        </tr>
+        <tr>
+          <td>21</td>
+          <td>Extract Commander interface</td>
+          <td><span class="tag tag-moderate">P2</span></td>
+          <td>2h</td>
+        </tr>
+        <tr>
+          <td>23</td>
+          <td>Extract ProcessInspector interface</td>
+          <td><span class="tag tag-moderate">P2</span></td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td>24</td>
+          <td>Extract UeventListener interface</td>
+          <td><span class="tag tag-weak">P3</span></td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td>26</td>
+          <td>Mobile-responsive layout</td>
+          <td><span class="tag tag-weak">P3</span></td>
+          <td>1h</td>
+        </tr>
+        <tr>
+          <td>27</td>
+          <td>WebSocket for live updates</td>
+          <td><span class="tag tag-weak">P3</span></td>
+          <td>4h</td>
+        </tr>
+        <tr>
+          <td>30</td>
+          <td>Camera preset support</td>
+          <td><span class="tag tag-weak">P4</span></td>
+          <td>3h</td>
+        </tr>
+        <tr>
+          <td>31</td>
+          <td>Integration test harness</td>
+          <td><span class="tag tag-moderate">P2</span></td>
+          <td>8h</td>
+        </tr>
+        <tr>
+          <td>34</td>
+          <td>MJPEG stream reconnection</td>
+          <td><span class="tag tag-weak">P3</span></td>
+          <td>2h</td>
+        </tr>
+        <tr>
+          <td>42</td>
+          <td>PTZ readback accuracy</td>
+          <td><span class="tag tag-moderate">P2</span></td>
+          <td>2h</td>
+        </tr>
+      </table>
+    </div>
 
-<div class="card">
-<table>
-  <tr><th>#</th><th>Task</th><th>Priority</th><th>Effort</th></tr>
-  <tr><td>14</td><td>Structured log levels audit</td><td><span class="tag tag-moderate">P1</span></td><td>30min</td></tr>
-  <tr><td>21</td><td>Extract Commander interface</td><td><span class="tag tag-moderate">P2</span></td><td>2h</td></tr>
-  <tr><td>23</td><td>Extract ProcessInspector interface</td><td><span class="tag tag-moderate">P2</span></td><td>1h</td></tr>
-  <tr><td>24</td><td>Extract UeventListener interface</td><td><span class="tag tag-weak">P3</span></td><td>1h</td></tr>
-  <tr><td>26</td><td>Mobile-responsive layout</td><td><span class="tag tag-weak">P3</span></td><td>1h</td></tr>
-  <tr><td>27</td><td>WebSocket for live updates</td><td><span class="tag tag-weak">P3</span></td><td>4h</td></tr>
-  <tr><td>30</td><td>Camera preset support</td><td><span class="tag tag-weak">P4</span></td><td>3h</td></tr>
-  <tr><td>31</td><td>Integration test harness</td><td><span class="tag tag-moderate">P2</span></td><td>8h</td></tr>
-  <tr><td>34</td><td>MJPEG stream reconnection</td><td><span class="tag tag-weak">P3</span></td><td>2h</td></tr>
-  <tr><td>42</td><td>PTZ readback accuracy</td><td><span class="tag tag-moderate">P2</span></td><td>2h</td></tr>
-</table>
-</div>
+    <h2>7. Overall Assessment</h2>
 
-<h2>7. Overall Assessment</h2>
-
-<div class="card">
-<table>
-  <tr><th>Dimension</th><th>Rating</th><th>Notes</th></tr>
-  <tr><td>Modularity</td><td><span class="score score-good">8/10</span></td><td>Well-decomposed files, clear responsibilities, DI struct</td></tr>
-  <tr><td>Scalability</td><td><span class="score score-good">9/10</span></td><td>Appropriate for scope — single-device hardware daemon</td></tr>
-  <tr><td>Service Orientation</td><td><span class="score score-good">7/10</span></td><td>Good API surface, unversioned socket protocol is fine for local use</td></tr>
-  <tr><td>Composability</td><td><span class="score score-good">8/10</span></td><td>Strong DI, typed returns, branded IDs, pure probe function</td></tr>
-  <tr><td>Type Safety</td><td><span class="score score-good">9/10</span></td><td>Branded types, validated enums, CommandResult pattern</td></tr>
-  <tr><td>Testability</td><td><span class="score score-good">7/10</span></td><td>Good DI coverage, 63% total coverage, hardware-dependent gaps</td></tr>
-  <tr><td>Observability</td><td><span class="score score-good">8/10</span></td><td>OTel metrics, pprof, health endpoint, structured logging</td></tr>
-</table>
-<p style="margin-top:1rem"><strong>Overall: 8/10</strong> — A well-crafted single-purpose daemon with strong type discipline, clean decomposition, and appropriate abstractions. The remaining TODOs are mostly incremental improvements, not architectural issues.</p>
-</div>
-
-</body>
+    <div class="card">
+      <table>
+        <tr>
+          <th>Dimension</th>
+          <th>Rating</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td>Modularity</td>
+          <td><span class="score score-good">8/10</span></td>
+          <td>Well-decomposed files, clear responsibilities, DI struct</td>
+        </tr>
+        <tr>
+          <td>Scalability</td>
+          <td><span class="score score-good">9/10</span></td>
+          <td>Appropriate for scope — single-device hardware daemon</td>
+        </tr>
+        <tr>
+          <td>Service Orientation</td>
+          <td><span class="score score-good">7/10</span></td>
+          <td>Good API surface, unversioned socket protocol is fine for local use</td>
+        </tr>
+        <tr>
+          <td>Composability</td>
+          <td><span class="score score-good">8/10</span></td>
+          <td>Strong DI, typed returns, branded IDs, pure probe function</td>
+        </tr>
+        <tr>
+          <td>Type Safety</td>
+          <td><span class="score score-good">9/10</span></td>
+          <td>Branded types, validated enums, CommandResult pattern</td>
+        </tr>
+        <tr>
+          <td>Testability</td>
+          <td><span class="score score-good">7/10</span></td>
+          <td>Good DI coverage, 63% total coverage, hardware-dependent gaps</td>
+        </tr>
+        <tr>
+          <td>Observability</td>
+          <td><span class="score score-good">8/10</span></td>
+          <td>OTel metrics, pprof, health endpoint, structured logging</td>
+        </tr>
+      </table>
+      <p style="margin-top: 1rem">
+        <strong>Overall: 8/10</strong> — A well-crafted single-purpose daemon with strong type
+        discipline, clean decomposition, and appropriate abstractions. The remaining TODOs are
+        mostly incremental improvements, not architectural issues.
+      </p>
+    </div>
+  </body>
 </html>

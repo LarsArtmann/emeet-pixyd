@@ -285,4 +285,3 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **2026-06-05**: CommandResult typed returns, Dependencies struct in deps.go, HIDDevice interface + circuit breaker, PTZ relative mode, keyboard PTZ shortcuts, autoError surfacing, graceful degradation, new files (waybar.go, socket.go, deps.go, ptz.go), deleted v4l2.go
 - **2026-06-06**: Lint cleanup (106→0 issues), stream semaphore bug fix, autoError string→error refactor, device.go extraction (11 methods from main.go)
 - **2026-06-07**: PTZValues.Get/Set axis-agnostic methods, v4l2CtrlToAxis reverse map, parsePTZValues refactored to eliminate hardcoded V4L2 control names, actionToast map lookup (replaced 8-case switch), waybarCameraStates map (replaced 4-case switch), external binary name constants (ffmpegBin, wpctl, notifySend), lock consolidation in setDeviceState
-
