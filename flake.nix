@@ -36,6 +36,23 @@
         root = ./.;
         fileset = sourceFiles;
       };
+
+      checkSourceFiles = lib.fileset.unions [
+        (lib.fileset.fileFilter (
+          file:
+          lib.hasSuffix ".go" file.name
+          || lib.hasSuffix ".mod" file.name
+          || lib.hasSuffix ".sum" file.name
+          || lib.hasSuffix ".templ" file.name
+        ) ./.)
+        ./static
+        ./.golangci.yml
+      ];
+
+      checkSrc = lib.fileset.toSource {
+        root = ./.;
+        fileset = checkSourceFiles;
+      };
     in
     {
       packages = forAllSystems (
@@ -59,6 +76,36 @@
         in
         {
           build = self.packages.${system}.default;
+
+          lint = pkgs.buildGoModule {
+            pname = "emeet-pixyd-lint";
+            inherit version;
+            src = checkSrc;
+            vendorHash = "sha256-A2WXQPHGgRuHL/g1q0jh7sT44OdpONHMceMrZVjgta0=";
+            proxyVendor = true;
+            doCheck = false;
+
+            nativeBuildInputs = [
+              pkgs.templ
+              pkgs.golangci-lint
+            ];
+
+            GOWORK = "off";
+
+            preBuild = "templ generate";
+
+            buildPhase = ''
+              runHook preBuild
+              golangci-lint run --timeout 2m ./...
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out
+              runHook postInstall
+            '';
+          };
         }
       );
 
