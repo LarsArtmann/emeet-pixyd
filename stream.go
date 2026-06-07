@@ -97,12 +97,12 @@ func (s *webServer) handleStream(
 
 	defer func() { <-s.daemon.streamSema }()
 
-	br, cmd, flusher, ok := s.setupStream(responseWriter, ctx)
-	if !ok {
+	result := s.setupStream(responseWriter, ctx)
+	if !result.ok {
 		return
 	}
 
-	defer cleanupFFmpeg(cmd)
+	defer cleanupFFmpeg(result.cmd)
 
 	streamStart := time.Now()
 
@@ -114,30 +114,38 @@ func (s *webServer) handleStream(
 		)
 	}()
 
-	s.writeFrames(responseWriter, br, flusher, ctx)
+	s.writeFrames(responseWriter, result.reader, result.flusher, ctx)
 }
 
+type streamResult struct {
+	reader  *bufio.Reader
+	cmd     *exec.Cmd
+	flusher http.Flusher
+	ok      bool
+}
+
+//nolint:exhaustruct
 func (s *webServer) setupStream(
 	responseWriter http.ResponseWriter,
 	ctx context.Context,
-) (*bufio.Reader, *exec.Cmd, http.Flusher, bool) {
+) streamResult {
 	status, ok := s.checkDevice(responseWriter)
 	if !ok {
-		return nil, nil, nil, false
+		return streamResult{}
 	}
 
 	_, lookErr := exec.LookPath(ffmpegBin)
 	if lookErr != nil {
 		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
 
-		return nil, nil, nil, false
+		return streamResult{}
 	}
 
 	flusher, flushOk := responseWriter.(http.Flusher)
 	if !flushOk {
 		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
 
-		return nil, nil, nil, false
+		return streamResult{}
 	}
 
 	cmd := ffmpegStreamCmd(ctx, status.Device)
@@ -146,20 +154,25 @@ func (s *webServer) setupStream(
 	if pipeErr != nil {
 		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
 
-		return nil, nil, nil, false
+		return streamResult{}
 	}
 
 	startErr := cmd.Start()
 	if startErr != nil {
 		http.Error(responseWriter, "stream start error", http.StatusInternalServerError)
 
-		return nil, nil, nil, false
+		return streamResult{}
 	}
 
 	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	responseWriter.Header().Set("Cache-Control", "no-store")
 
-	return bufio.NewReaderSize(stdOut, streamBufSize), cmd, flusher, true
+	return streamResult{
+		reader:  bufio.NewReaderSize(stdOut, streamBufSize),
+		cmd:     cmd,
+		flusher: flusher,
+		ok:      true,
+	}
 }
 
 func (s *webServer) writeFrames(
