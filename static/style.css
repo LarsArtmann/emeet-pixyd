@@ -18,6 +18,15 @@
   --yellow-subtle: rgba(229, 161, 61, 0.12);
   --red: #e85d5d;
   --red-subtle: rgba(232, 93, 93, 0.12);
+  --accent-hover: #4a7fd9;
+  --green-hover: #3db87a;
+  --red-hover: #d94d4d;
+  --yellow-hover: #d4902f;
+  --yellow-text: #1a1500;
+  --green-border: rgba(76, 200, 138, 0.3);
+  --red-border: rgba(232, 93, 93, 0.3);
+  --red-border-subtle: rgba(232, 93, 93, 0.25);
+  --bg-deep: #06070a;
   --radius: 10px;
   --radius-sm: 6px;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -81,13 +90,13 @@ header h1 {
 
 .header-badge-online {
   background: var(--green-subtle);
-  border-color: rgba(76, 200, 138, 0.3);
+  border-color: var(--green-border);
   color: var(--green);
 }
 
 .header-badge-offline {
   background: var(--red-subtle);
-  border-color: rgba(232, 93, 93, 0.3);
+  border-color: var(--red-border);
   color: var(--red);
 }
 
@@ -228,8 +237,8 @@ header h1 {
 }
 
 .btn-active:hover {
-  background: #4a7fd9;
-  border-color: #4a7fd9;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn-green.btn-active {
@@ -238,8 +247,8 @@ header h1 {
   color: var(--bg);
 }
 .btn-green.btn-active:hover {
-  background: #3db87a;
-  border-color: #3db87a;
+  background: var(--green-hover);
+  border-color: var(--green-hover);
 }
 
 .btn-red.btn-active {
@@ -248,23 +257,23 @@ header h1 {
   color: var(--bg);
 }
 .btn-red.btn-active:hover {
-  background: #d94d4d;
-  border-color: #d94d4d;
+  background: var(--red-hover);
+  border-color: var(--red-hover);
 }
 
 .btn-yellow.btn-active {
   background: var(--yellow);
   border-color: var(--yellow);
-  color: #1a1500;
+  color: var(--yellow-text);
 }
 .btn-yellow.btn-active:hover {
-  background: #d4902f;
-  border-color: #d4902f;
+  background: var(--yellow-hover);
+  border-color: var(--yellow-hover);
 }
 
 .preview-container {
   position: relative;
-  background: #06070a;
+  background: var(--bg-deep);
   border-radius: var(--radius-sm);
   overflow: hidden;
   aspect-ratio: 16/9;
@@ -467,7 +476,7 @@ input[type="range"]:focus-visible {
 
 .error-banner {
   background: var(--red-subtle);
-  border: 1px solid rgba(232, 93, 93, 0.25);
+  border: 1px solid var(--red-border-subtle);
   border-radius: var(--radius);
   padding: 0.85rem 1rem;
   margin-bottom: 1rem;
