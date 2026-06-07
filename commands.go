@@ -313,15 +313,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	if relative {
 		current := d.deps.parsePTZ(ctx, videoDev)
-
-		switch axis {
-		case pixy.AxisPan:
-			val = current.Pan + val
-		case pixy.AxisTilt:
-			val = current.Tilt + val
-		case pixy.AxisZoom:
-			val = current.Zoom + val
-		}
+		val = current.Get(axis) + val
 	}
 
 	val = clampInt(val, info.Min, info.Max)

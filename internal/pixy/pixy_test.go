@@ -687,18 +687,21 @@ func TestState_Valid(t *testing.T) {
 	}
 
 	invalidCamera := DefaultState()
+
 	invalidCamera.Camera = CameraState("bogus")
 	if invalidCamera.Valid() {
 		t.Error("State with invalid Camera should not be Valid()")
 	}
 
 	invalidAudio := DefaultState()
+
 	invalidAudio.Audio = AudioMode("bogus")
 	if invalidAudio.Valid() {
 		t.Error("State with invalid Audio should not be Valid()")
 	}
 
 	invalidAuto := DefaultState()
+
 	invalidAuto.AutoMode = AutoMode("bogus")
 	if invalidAuto.Valid() {
 		t.Error("State with invalid AutoMode should not be Valid()")
@@ -740,5 +743,49 @@ func TestPTZValues_Clamp(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("%s: Clamp() = %+v, want %+v", tc.name, got, tc.want)
 		}
+	}
+}
+
+func TestPTZValues_Get(t *testing.T) {
+	t.Parallel()
+
+	ptz := PTZValues{Pan: 10, Tilt: -5, Zoom: 200}
+
+	if got := ptz.Get(AxisPan); got != 10 {
+		t.Errorf("Get(pan) = %d, want 10", got)
+	}
+
+	if got := ptz.Get(AxisTilt); got != -5 {
+		t.Errorf("Get(tilt) = %d, want -5", got)
+	}
+
+	if got := ptz.Get(AxisZoom); got != 200 {
+		t.Errorf("Get(zoom) = %d, want 200", got)
+	}
+
+	if got := ptz.Get("unknown"); got != 0 {
+		t.Errorf("Get(unknown) = %d, want 0", got)
+	}
+}
+
+func TestPTZValues_Set(t *testing.T) {
+	t.Parallel()
+
+	ptz := PTZValues{Pan: 1, Tilt: 2, Zoom: 3}
+
+	if got := ptz.Set(AxisPan, 42); got != (PTZValues{Pan: 42, Tilt: 2, Zoom: 3}) {
+		t.Errorf("Set(pan, 42) = %+v, want {Pan:42, Tilt:2, Zoom:3}", got)
+	}
+
+	if got := ptz.Set(AxisTilt, -10); got != (PTZValues{Pan: 1, Tilt: -10, Zoom: 3}) {
+		t.Errorf("Set(tilt, -10) = %+v, want {Pan:1, Tilt:-10, Zoom:3}", got)
+	}
+
+	if got := ptz.Set(AxisZoom, 300); got != (PTZValues{Pan: 1, Tilt: 2, Zoom: 300}) {
+		t.Errorf("Set(zoom, 300) = %+v, want {Pan:1, Tilt:2, Zoom:300}", got)
+	}
+
+	if got := ptz.Set("unknown", 999); got != ptz {
+		t.Errorf("Set(unknown, 999) should return unchanged copy")
 	}
 }

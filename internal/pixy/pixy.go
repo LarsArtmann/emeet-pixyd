@@ -275,6 +275,34 @@ func (p PTZValues) Clamp() PTZValues {
 	}
 }
 
+// Get returns the PTZ value for the given axis name (pan, tilt, zoom).
+func (p PTZValues) Get(axis string) int {
+	switch axis {
+	case AxisPan:
+		return p.Pan
+	case AxisTilt:
+		return p.Tilt
+	case AxisZoom:
+		return p.Zoom
+	default:
+		return 0
+	}
+}
+
+// Set returns a copy with the given axis set to val.
+func (p PTZValues) Set(axis string, val int) PTZValues {
+	switch axis {
+	case AxisPan:
+		p.Pan = val
+	case AxisTilt:
+		p.Tilt = val
+	case AxisZoom:
+		p.Zoom = val
+	}
+
+	return p
+}
+
 // PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
 const (
 	PanMin  = -170

@@ -41,6 +41,25 @@ var ptzAxes = map[string]ptzAxisInfo{
 	},
 }
 
+// ptzAxisOrder defines the deterministic order for V4L2 control listing.
+//
+//nolint:gochecknoglobals
+var ptzAxisOrder = []string{pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom}
+
+// v4l2CtrlToAxis maps V4L2 control names back to PTZ axis names.
+//
+//nolint:gochecknoglobals
+var v4l2CtrlToAxis = buildCtrlToAxis()
+
+func buildCtrlToAxis() map[string]string {
+	m := make(map[string]string, len(ptzAxes))
+	for axis, info := range ptzAxes {
+		m[info.V4L2Ctrl] = axis
+	}
+
+	return m
+}
+
 func ptzAxisValid(axis string) bool {
 	_, ok := ptzAxes[axis]
 
@@ -48,16 +67,7 @@ func ptzAxisValid(axis string) bool {
 }
 
 func ptzAxisValue(axis string, status webStatus) int {
-	switch axis {
-	case pixy.AxisPan:
-		return status.Pan
-	case pixy.AxisTilt:
-		return status.Tilt
-	case pixy.AxisZoom:
-		return status.Zoom
-	default:
-		return 0
-	}
+	return status.Get(axis)
 }
 
 func clampInt(v, lo, hi int) int {
@@ -74,10 +84,20 @@ func v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 	return nil
 }
 
+// v4l2GetCtrlList returns the comma-separated list of V4L2 control names for v4l2-ctl --get-ctrl.
+func v4l2GetCtrlList() string {
+	ctrls := make([]string, 0, len(ptzAxisOrder))
+	for _, axis := range ptzAxisOrder {
+		ctrls = append(ctrls, ptzAxes[axis].V4L2Ctrl)
+	}
+
+	return strings.Join(ctrls, ",")
+}
+
 func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
 	out, err := exec.CommandContext(
 		ctx, v4l2ctl, "-d", dev,
-		"--get-ctrl=pan_absolute,tilt_absolute,zoom_absolute",
+		"--get-ctrl="+v4l2GetCtrlList(),
 	).Output()
 	if err != nil {
 		//nolint:exhaustruct
@@ -87,24 +107,23 @@ func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
 	var ptz pixy.PTZValues
 
 	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
-		key, val, ok := strings.Cut(line, ":")
+		key, rawVal, ok := strings.Cut(line, ":")
 		if !ok {
 			continue
 		}
 
-		v, parseErr := strconv.Atoi(strings.TrimSpace(val))
+		v, parseErr := strconv.Atoi(strings.TrimSpace(rawVal))
 		if parseErr != nil {
 			continue
 		}
 
-		switch strings.TrimSpace(key) {
-		case "pan_absolute":
-			ptz.Pan = v / v4l2DegreesPerUnit
-		case "tilt_absolute":
-			ptz.Tilt = v / v4l2DegreesPerUnit
-		case "zoom_absolute":
-			ptz.Zoom = v
+		axis, found := v4l2CtrlToAxis[strings.TrimSpace(key)]
+		if !found {
+			continue
 		}
+
+		info := ptzAxes[axis]
+		ptz = ptz.Set(axis, v/info.Multiplier)
 	}
 
 	return ptz
