@@ -8,9 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -98,13 +95,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 		}
 
 		slog.Info("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
-		metricUevents.Add( //nolint:contextcheck // uevent goroutine has no inherited context
-			context.Background(), 1,
-			metric.WithAttributes(
-				attribute.String("action", evt.Action),
-				attribute.String("subsystem", evt.Subsys),
-			),
-		)
+		recordUevent(evt.Action, evt.Subsys) //nolint:contextcheck // uevent goroutine has no inherited context
 
 		ch <- struct{}{}
 	}

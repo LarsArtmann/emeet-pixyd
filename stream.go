@@ -14,9 +14,6 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
-
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -107,11 +104,7 @@ func (s *webServer) handleStream(
 	streamStart := time.Now()
 
 	defer func() {
-		metricStreamDuration.Record(
-			ctx,
-			time.Since(streamStart).Seconds(),
-			metric.WithAttributes(attribute.String("source", "mjpeg")),
-		)
+		recordStreamDuration(ctx, time.Since(streamStart).Seconds())
 	}()
 
 	s.writeFrames(responseWriter, result.reader, result.flusher, ctx)
@@ -198,7 +191,7 @@ func (s *webServer) writeFrames(
 		}
 
 		s.daemon.lastFrame.Set(frame)
-		metricFramesTotal.Add(ctx, 1, metric.WithAttributes())
+		recordFrame(ctx)
 
 		_, headerErr := fmt.Fprintf(
 			responseWriter,

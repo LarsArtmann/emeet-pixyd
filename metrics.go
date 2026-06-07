@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -12,28 +13,31 @@ import (
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
-//nolint:gochecknoglobals
+type daemonMetrics struct {
+	promExporter *prometheus.Exporter
+
+	inCall         metric.Float64Gauge
+	autoMode       metric.Float64Gauge
+	cameraState    metric.Float64Gauge
+	commands       metric.Int64Counter
+	uevents        metric.Int64Counter
+	probes         metric.Int64Counter
+	hidFailures    metric.Int64Counter
+	streamDuration metric.Float64Histogram
+	framesTotal    metric.Int64Counter
+}
+
 var (
-	promExporter         *prometheus.Exporter
-	metricInCall         metric.Float64Gauge
-	metricAutoMode       metric.Float64Gauge
-	metricCameraState    metric.Float64Gauge
-	metricCommands       metric.Int64Counter
-	metricUevents        metric.Int64Counter
-	metricProbes         metric.Int64Counter
-	metricHIDFailures    metric.Int64Counter
-	metricStreamDuration metric.Float64Histogram
-	metricFramesTotal    metric.Int64Counter
-	metricsRegistered    sync.Once
+	metricsInstance   *daemonMetrics //nolint:gochecknoglobals // lazy init via sync.Once
+	metricsRegistered sync.Once      //nolint:gochecknoglobals // lazy init, runs once per process
 )
 
 func registerMetrics() {
 	metricsRegistered.Do(func() {
-		var err error
-
-		promExporter, err = prometheus.New(
+		provider, err := prometheus.New(
 			prometheus.WithoutScopeInfo(),
 			prometheus.WithoutTargetInfo(),
 		)
@@ -43,109 +47,129 @@ func registerMetrics() {
 			return
 		}
 
-		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(promExporter))
-
+		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(provider))
 		meter := mp.Meter("emeet-pixyd")
 
-		metricInCall, err = meter.Float64Gauge(
-			"emeet_pixyd_in_call",
-			metric.WithDescription("Whether the camera is currently in a call (1=yes, 0=no)"),
-		)
-		if err != nil {
-			slog.Error("failed to create in_call gauge", "error", err)
-		}
-
-		metricAutoMode, err = meter.Float64Gauge(
-			"emeet_pixyd_auto_mode",
-			metric.WithDescription("Whether auto-management mode is enabled (1=yes, 0=no)"),
-		)
-		if err != nil {
-			slog.Error("failed to create auto_mode gauge", "error", err)
-		}
-
-		metricCameraState, err = meter.Float64Gauge(
-			"emeet_pixyd_camera_state",
-			metric.WithDescription("Current camera state as a gauge per state label (1=active)"),
-		)
-		if err != nil {
-			slog.Error("failed to create camera_state gauge", "error", err)
-		}
-
-		metricCommands, err = meter.Int64Counter(
-			"emeet_pixyd_commands_total",
-			metric.WithDescription("Total number of commands processed"),
-		)
-		if err != nil {
-			slog.Error("failed to create commands counter", "error", err)
-		}
-
-		metricProbes, err = meter.Int64Counter(
-			"emeet_pixyd_probes_total",
-			metric.WithDescription("Total number of device probes"),
-		)
-		if err != nil {
-			slog.Error("failed to create probes counter", "error", err)
-		}
-
-		metricUevents, err = meter.Int64Counter(
-			"emeet_pixyd_uevents_total",
-			metric.WithDescription("Total number of relevant uevents received"),
-		)
-		if err != nil {
-			slog.Error("failed to create uevents counter", "error", err)
-		}
-
-		metricHIDFailures, err = meter.Int64Counter(
-			"emeet_pixyd_hid_failures_total",
-			metric.WithDescription("Total number of HID send failures"),
-		)
-		if err != nil {
-			slog.Error("failed to create HID failures counter", "error", err)
-		}
-
-		metricStreamDuration, err = meter.Float64Histogram(
-			"emeet_pixyd_stream_duration_seconds",
-			metric.WithDescription("Duration of MJPEG stream sessions in seconds"),
-			metric.WithUnit("s"),
-		)
-		if err != nil {
-			slog.Error("failed to create stream duration histogram", "error", err)
-		}
-
-		metricFramesTotal, err = meter.Int64Counter(
-			"emeet_pixyd_frames_total",
-			metric.WithDescription("Total number of JPEG frames served via MJPEG stream"),
-		)
-		if err != nil {
-			slog.Error("failed to create frames counter", "error", err)
+		metricsInstance = &daemonMetrics{
+			promExporter: provider,
+			inCall: mustFloat64Gauge(
+				meter,
+				"emeet_pixyd_in_call",
+				"Whether the camera is currently in a call (1=yes, 0=no)",
+			),
+			autoMode: mustFloat64Gauge(
+				meter,
+				"emeet_pixyd_auto_mode",
+				"Whether auto-management mode is enabled (1=yes, 0=no)",
+			),
+			cameraState: mustFloat64Gauge(
+				meter,
+				"emeet_pixyd_camera_state",
+				"Current camera state as a gauge per state label (1=active)",
+			),
+			commands: mustInt64Counter(meter, "emeet_pixyd_commands_total", "Total number of commands processed"),
+			uevents: mustInt64Counter(
+				meter,
+				"emeet_pixyd_uevents_total",
+				"Total number of relevant uevents received",
+			),
+			probes: mustInt64Counter(meter, "emeet_pixyd_probes_total", "Total number of device probes"),
+			hidFailures: mustInt64Counter(
+				meter,
+				"emeet_pixyd_hid_failures_total",
+				"Total number of HID send failures",
+			),
+			streamDuration: mustFloat64Histogram(
+				meter,
+				"emeet_pixyd_stream_duration_seconds",
+				"Duration of MJPEG stream sessions in seconds",
+				"s",
+			),
+			framesTotal: mustInt64Counter(
+				meter,
+				"emeet_pixyd_frames_total",
+				"Total number of JPEG frames served via MJPEG stream",
+			),
 		}
 	})
 }
 
+//nolint:ireturn
+func mustFloat64Gauge(meter metric.Meter, name, desc string) metric.Float64Gauge {
+	g, err := meter.Float64Gauge(name, metric.WithDescription(desc))
+	if err != nil {
+		slog.Error("failed to create gauge", "name", name, "error", err)
+	}
+
+	return g
+}
+
+//nolint:ireturn
+func mustInt64Counter(meter metric.Meter, name, desc string) metric.Int64Counter {
+	c, err := meter.Int64Counter(name, metric.WithDescription(desc))
+	if err != nil {
+		slog.Error("failed to create counter", "name", name, "error", err)
+	}
+
+	return c
+}
+
+//nolint:ireturn
+func mustFloat64Histogram(meter metric.Meter, name, desc, unit string) metric.Float64Histogram {
+	h, err := meter.Float64Histogram(name, metric.WithDescription(desc), metric.WithUnit(unit))
+	if err != nil {
+		slog.Error("failed to create histogram", "name", name, "error", err)
+	}
+
+	return h
+}
+
 func recordHIDFailure(ctx context.Context) {
-	metricHIDFailures.Add(ctx, 1)
+	metricsInstance.hidFailures.Add(ctx, 1)
+}
+
+func recordProbe() {
+	metricsInstance.probes.Add(context.Background(), 1)
+}
+
+func recordStreamDuration(ctx context.Context, seconds float64) {
+	metricsInstance.streamDuration.Record(ctx, seconds, metric.WithAttributes(attribute.String("source", "mjpeg")))
+}
+
+func recordFrame(ctx context.Context) {
+	metricsInstance.framesTotal.Add(ctx, 1, metric.WithAttributes())
+}
+
+func recordUevent(action, subsystem string) {
+	metricsInstance.uevents.Add(
+		context.Background(), 1,
+		metric.WithAttributes(
+			attribute.String("action", action),
+			attribute.String("subsystem", subsystem),
+		),
+	)
 }
 
 func updateMetrics(state pixy.State) {
 	ctx := context.Background()
 	if state.InCall {
-		metricInCall.Record(ctx, 1)
+		metricsInstance.inCall.Record(ctx, 1)
 	} else {
-		metricInCall.Record(ctx, 0)
+		metricsInstance.inCall.Record(ctx, 0)
 	}
 
 	if state.AutoMode.IsOff() {
-		metricAutoMode.Record(ctx, 0)
+		metricsInstance.autoMode.Record(ctx, 0)
 	} else {
-		metricAutoMode.Record(ctx, 1)
+		metricsInstance.autoMode.Record(ctx, 1)
 	}
 
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
 		if state.Camera == s {
-			metricCameraState.Record(ctx, 1, stateAttr)
+			metricsInstance.cameraState.Record(ctx, 1, stateAttr)
 		} else {
-			metricCameraState.Record(ctx, 0, stateAttr)
+			metricsInstance.cameraState.Record(ctx, 0, stateAttr)
 		}
 	}
 }
@@ -156,11 +180,20 @@ func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) 
 		resultStr = "error"
 	}
 
-	metricCommands.Add(
+	metricsInstance.commands.Add(
 		ctx, 1,
 		metric.WithAttributes(
 			attribute.String("command", cmd),
 			attribute.String("result", resultStr),
 		),
 	)
+}
+
+func collectMetrics(ctx context.Context, rm *metricdata.ResourceMetrics) error {
+	err := metricsInstance.promExporter.Collect(ctx, rm)
+	if err != nil {
+		return fmt.Errorf("collect metrics: %w", err)
+	}
+
+	return nil
 }

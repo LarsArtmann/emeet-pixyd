@@ -3,7 +3,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -117,7 +116,7 @@ type probeResult struct {
 }
 
 func probeDevices() probeResult {
-	metricProbes.Add(context.Background(), 1)
+	recordProbe()
 
 	result := probeResult{
 		VideoDev:  probeVideo4linux("/sys/class/video4linux"),

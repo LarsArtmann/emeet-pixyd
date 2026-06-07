@@ -79,11 +79,7 @@
     var dot = document.createElement("span");
     dot.className = "offline-dot";
     banner.appendChild(dot);
-    banner.appendChild(
-      document.createTextNode(
-        " Daemon unreachable \u2014 reconnecting\u2026",
-      ),
-    );
+    banner.appendChild(document.createTextNode(" Daemon unreachable \u2014 reconnecting\u2026"));
     panel.insertBefore(banner, panel.firstChild);
   }
 
@@ -249,10 +245,7 @@
         img.style.display = "";
         if (fallback) fallback.style.display = "none";
       }, delay);
-      streamRetryDelay = Math.min(
-        streamRetryDelay * 2,
-        STREAM_RETRY_MAX_MS,
-      );
+      streamRetryDelay = Math.min(streamRetryDelay * 2, STREAM_RETRY_MAX_MS);
     });
   })();
 })();

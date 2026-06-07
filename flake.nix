@@ -81,7 +81,7 @@
             pname = "emeet-pixyd-lint";
             inherit version;
             src = checkSrc;
-            vendorHash = "sha256-A2WXQPHGgRuHL/g1q0jh7sT44OdpONHMceMrZVjgta0=";
+            vendorHash = "sha256-7FOSH+F2YBf0KS7HPLKlOXOEzeArOwaSWN0hJIhWexc=";
             proxyVendor = true;
             doCheck = false;
 
@@ -96,6 +96,7 @@
 
             buildPhase = ''
               runHook preBuild
+              export HOME=$TMPDIR
               golangci-lint run --timeout 2m ./...
               runHook postBuild
             '';
