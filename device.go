@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -112,7 +113,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	controls := map[string]string{
 		ptzAxes[pixy.AxisPan].V4L2Ctrl:  "0",
 		ptzAxes[pixy.AxisTilt].V4L2Ctrl: "0",
-		ptzAxes[pixy.AxisZoom].V4L2Ctrl: "100",
+		ptzAxes[pixy.AxisZoom].V4L2Ctrl: strconv.Itoa(pixy.ZoomDefault),
 	}
 	for ctrl, val := range controls {
 		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
