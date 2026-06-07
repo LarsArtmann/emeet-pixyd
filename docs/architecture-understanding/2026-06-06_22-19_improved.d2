@@ -1,0 +1,85 @@
+emeet-pixyd Improved Architecture: {
+  Consumers: {
+    CLI: {shape: hexagon}
+    "Web UI (WebSocket)": {shape: hexagon}
+    Waybar: {shape: hexagon}
+    Prometheus: {shape: hexagon}
+  }
+
+  Daemon: {
+    "Command Bus": {
+      shape: diamond
+      label: "Command Bus\n(typed CommandResult)"
+    }
+    "Auto Manager": {}
+    "State Store": {shape: cylinder}
+  }
+
+  "Device Layer": {
+    label: "Device Layer (Interfaces)"
+    HIDDevice: {
+      shape: hexagon
+      label: "HIDDevice\n(Send, SendRecv)"
+    }
+    Commander: {
+      shape: hexagon
+      label: "Commander\n(Run, LookPath)"
+    }
+    ProcessInspector: {
+      shape: hexagon
+      label: "ProcessInspector\n(IsCameraInUse)"
+    }
+    UeventListener: {
+      shape: hexagon
+      label: "UeventListener\n(Listen)"
+    }
+  }
+
+  Implementations: {
+    hidrawDev: {
+      shape: circle
+      label: "hidrawDevice\n(/dev/hidraw*)"
+    }
+    v4l2Runner: {
+      shape: circle
+      label: "v4l2Runner"
+    }
+    ffmpegRunner: {
+      shape: circle
+      label: "ffmpeg runner"
+    }
+    wpctlRunner: {shape: circle}
+    notifyRunner: {
+      shape: circle
+      label: "notify-send runner"
+    }
+    procScanner: {
+      shape: circle
+      label: "/proc scanner"
+    }
+    netlinkListener: {
+      shape: circle
+      label: "netlink listener"
+    }
+  }
+
+  Consumers.CLI -> Daemon."Command Bus": "commands"
+  Consumers."Web UI (WebSocket)" -> Daemon."Command Bus": "WebSocket + commands"
+  Consumers.Waybar -> Daemon."Command Bus": "waybar query"
+  Daemon."Command Bus" -> "Device Layer".HIDDevice: "setTracking, setAudio, setGesture"
+  Daemon."Command Bus" -> "Device Layer".Commander: "centerCamera, stream"
+  Daemon."Auto Manager" -> "Device Layer".ProcessInspector: "isCameraInUse"
+  Daemon."Auto Manager" -> "Device Layer".Commander: "findSource, setSource, notify"
+  Daemon."Auto Manager" -> "Device Layer".HIDDevice: "setTracking, setAudio"
+  "Device Layer".HIDDevice -> Implementations.hidrawDev: "production"
+  "Device Layer".Commander -> Implementations.v4l2Runner: "production"
+  "Device Layer".Commander -> Implementations.ffmpegRunner: "production"
+  "Device Layer".Commander -> Implementations.wpctlRunner: "production"
+  "Device Layer".Commander -> Implementations.notifyRunner: "production"
+  "Device Layer".ProcessInspector -> Implementations.procScanner: "production"
+  "Device Layer".UeventListener -> Implementations.netlinkListener: "production"
+  Daemon."Command Bus" -> Daemon."State Store": "reads/writes"
+  Daemon."Auto Manager" -> Daemon."State Store": "reads/writes"
+  Daemon."Command Bus" -> Consumers.Prometheus: "metrics"
+  Daemon."Command Bus" -> Consumers."Web UI (WebSocket)": "state push"
+}

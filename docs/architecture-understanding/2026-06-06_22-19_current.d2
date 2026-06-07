@@ -1,0 +1,75 @@
+emeet-pixyd Current Architecture: {
+  CLI: {shape: hexagon}
+  "Unix Socket": {shape: queue}
+  "HTTP Server": {shape: queue}
+
+  Daemon: {
+    "Run Loop": {shape: circle}
+    "Command Router": {shape: diamond}
+    "Auto Manager": {}
+    Dependencies: {
+      isCameraInUse: {shape: stored_data}
+      findSource: {shape: stored_data}
+      setSource: {shape: stored_data}
+      notify: {shape: stored_data}
+      setTracking: {shape: stored_data}
+      setAudio: {shape: stored_data}
+      setGesture: {shape: stored_data}
+      centerCamera: {shape: stored_data}
+      v4l2Set: {shape: stored_data}
+      parsePTZ: {shape: stored_data}
+    }
+    State: {shape: cylinder}
+  }
+
+  "HID Protocol": {
+    HIDDevice: {shape: hexagon}
+    hidraw0: {
+      shape: circle
+      label: "/dev/hidraw*"
+    }
+  }
+
+  V4L2: {
+    label: "v4l2-ctl (PTZ)"
+    video0: {
+      shape: circle
+      label: "/dev/video*"
+    }
+  }
+
+  External: {
+    ffmpeg: {shape: hexagon}
+    wpctl: {shape: hexagon}
+    "notify-send": {shape: hexagon}
+  }
+
+  Observability: {
+    Metrics: {shape: stored_data}
+    Health: {shape: stored_data}
+    pprof: {shape: stored_data}
+  }
+
+  "Web UI (HTMX)": {shape: hexagon}
+  Waybar: {shape: hexagon}
+
+  CLI -> "Unix Socket": "sends commands"
+  "Unix Socket" -> Daemon."Command Router": "routes"
+  "Web UI (HTMX)" -> "HTTP Server": "polls /panel every 3s"
+  "HTTP Server" -> Daemon."Command Router": "routes"
+  Daemon."Run Loop" -> Daemon."Auto Manager": "every 2s"
+  Daemon."Auto Manager" -> Daemon.Dependencies: "calls DI functions"
+  Daemon."Command Router" -> Daemon.Dependencies: "calls DI functions"
+  Daemon.Dependencies -> Daemon.State: "reads/writes"
+  Daemon.Dependencies -> "HID Protocol".HIDDevice: "config + commit"
+  Daemon.Dependencies -> V4L2: "PTZ control"
+  "HID Protocol".HIDDevice -> "HID Protocol".hidraw0: "writes"
+  V4L2 -> V4L2.video0: "ioctl"
+  Daemon.Dependencies -> External.ffmpeg: "MJPEG stream"
+  Daemon.Dependencies -> External.wpctl: "source switching"
+  Daemon.Dependencies -> External."notify-send": "notifications"
+  Daemon -> Observability.Metrics: "OTel gauges"
+  Daemon -> Observability.Health: "/api/health"
+  Daemon -> Observability.pprof: "debug mode"
+  Daemon."Command Router" -> Waybar: "waybar JSON"
+}
