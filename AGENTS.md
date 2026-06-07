@@ -163,6 +163,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - `CameraState` and `AudioMode` are string-based types with `Valid()` and `String()` methods
 - `ParseAudioMode("org")` maps to `AudioOriginal` (value `"original"`) — the CLI shorthand differs from the stored value
 - Generic `queryHIDState[T]` in `hid.go` for type-safe HID queries
+- `PTZValues.Get(axis)` and `PTZValues.Set(axis, val)` for axis-agnostic PTZ access — eliminates switch statements on axis names
 - `PID` and `SourceID` are branded types via `github.com/larsartmann/go-branded-id` (phantom typing) — prevent mixing process IDs and PipeWire source IDs at compile time. Defined in `internal/pixy/ids.go`.
 - Metrics use OpenTelemetry SDK (`go.opentelemetry.io/otel/exporters/prometheus`) with `promhttp.Handler()` for the `/metrics` endpoint. `prometheus/client_golang` kept only for `promhttp`.
 
@@ -255,6 +256,10 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`TestAutoManage_NoDevice_Returns` skips when device present**: Detects real hardware via `probeVideo4linux()` and `t.Skip()` if found.
 - **No `init()` functions**: All `init()` functions eliminated. Metrics registration is lazy via `sync.Once` in `registerMetrics()`, called from `NewDaemon()` and `updateMetrics()`.
 - **`handleHealth` uses typed struct**: `healthResponse` struct with `json.Marshal` instead of `fmt.Fprintf` JSON template — proper escaping.
+- **`PTZValues.Get/Set` for axis-agnostic access**: All PTZ code uses `Get(axis)`/`Set(axis, val)` instead of switch-on-axis. `ptzAxisValue`, relative PTZ, and `parsePTZValues` all use these methods.
+- **V4L2 control names centralized**: `ptzAxes` map has `V4L2Ctrl` and `Multiplier` fields. `v4l2CtrlToAxis` reverse map converts V4L2 output back to axis names. `v4l2GetCtrlList()` builds the `--get-ctrl` argument from the map. Zero hardcoded `"pan_absolute"` etc. strings in production code.
+- **Map-based lookups replace switches**: `actionToasts` map in `handlers.go`, `waybarCameraStates` map in `waybar.go` — new entries only require adding to the map.
+- **External binary constants**: `ffmpegBin`, `wpctl`, `notifySend`, `v4l2ctl` — no raw binary name strings in production code.
 
 ### External Libraries Considered
 
@@ -279,4 +284,5 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 - **2026-06-05**: CommandResult typed returns, Dependencies struct in deps.go, HIDDevice interface + circuit breaker, PTZ relative mode, keyboard PTZ shortcuts, autoError surfacing, graceful degradation, new files (waybar.go, socket.go, deps.go, ptz.go), deleted v4l2.go
 - **2026-06-06**: Lint cleanup (106→0 issues), stream semaphore bug fix, autoError string→error refactor, device.go extraction (11 methods from main.go)
+- **2026-06-07**: PTZValues.Get/Set axis-agnostic methods, v4l2CtrlToAxis reverse map, parsePTZValues refactored to eliminate hardcoded V4L2 control names, actionToast map lookup (replaced 8-case switch), waybarCameraStates map (replaced 4-case switch), external binary name constants (ffmpegBin, wpctl, notifySend), lock consolidation in setDeviceState
 

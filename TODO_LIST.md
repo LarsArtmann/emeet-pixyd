@@ -112,7 +112,7 @@
 | 58  | ✅ DONE | Added `role="alert"` to error banners for screen reader announcement                             | Frontend A11y   |
 | 59  | ❌ SKIP | `encoding/json/v2` not available in Go 1.26.2 stdlib — revisit when landed                       | How-to-Go       |
 | 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream   | Self-Review 4.8 |
-| 61  | ✅ DONE | Archive `docs/SUPERB_ROADMAP.md` — completion status table added, marked archived            | Docs Freshness  |
+| 62  | ✅ DONE | Enrich `PTZValues` with `Get(axis)`/`Set(axis, val)` methods, eliminate all hardcoded V4L2 control names | Session 7  |
 
 ---
 
@@ -130,8 +130,8 @@
 
 || Status     | Count |
 | ---------- | ----- |
-| ✅ DONE    | 43    |
+| ✅ DONE    | 44    |
 | 🔶 PARTIAL | 0     |
 | ❌ SKIP    | 1     |
 | ⬜ TODO    | 17    |
-| **Total**  | 61    |
+| **Total**  | 62    |
