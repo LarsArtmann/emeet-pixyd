@@ -1,26 +1,45 @@
 (function () {
   "use strict";
 
-  htmx.config.timeout = 10000;
+  var HTMX_TIMEOUT_MS = 10000;
+  var STREAM_RETRY_INITIAL_MS = 3000;
+  var STREAM_RETRY_MAX_MS = 30000;
+  var TOAST_DISPLAY_MS = 2500;
+  var TOAST_FADE_MS = 300;
+  var CONSECUTIVE_ERROR_THRESHOLD = 3;
+
+  htmx.config.timeout = HTMX_TIMEOUT_MS;
   htmx.config.allowEval = false;
 
   var pendingRequests = new Set();
   var consecutiveErrors = 0;
-  var streamRetryDelay = 3000;
-  var maxStreamRetryDelay = 30000;
+  var streamRetryDelay = STREAM_RETRY_INITIAL_MS;
 
   document.body.addEventListener("doAction", function (e) {
-    htmx.ajax("POST", e.detail.url, {
+    var url = e.detail.url;
+    if (!url || url.indexOf("/api/") !== 0) return;
+
+    htmx.ajax("POST", url, {
       target: "#status-panel",
       swap: "outerHTML",
     });
   });
 
+  function getPTZAxis(path) {
+    if (path.indexOf("/api/ptz/") !== 0) return null;
+    return path.split("/").pop();
+  }
+
+  function getSlider(axis) {
+    return axis ? document.getElementById("slider-" + axis) : null;
+  }
+
   document.addEventListener("htmx:configRequest", function (e) {
     var pathInfo = e.detail.pathInfo;
     if (!pathInfo) return;
     var path = pathInfo.requestPath;
-    if (path.indexOf("/api/ptz/") === 0) {
+    var axis = getPTZAxis(path);
+    if (axis) {
       var elt = e.detail.elt;
       if (elt && elt.classList.contains("ptz-slider")) {
         e.detail.parameters.value = elt.value;
@@ -40,16 +59,16 @@
   function showToast(msg, type) {
     type = type || "success";
     var container = document.getElementById("toast-container");
-    container.innerHTML = '<div class="toast toast-' + type + ' show">' + msg + "</div>";
+    var toast = document.createElement("div");
+    toast.className = "toast toast-" + type + " show";
+    toast.textContent = msg;
+    container.appendChild(toast);
     setTimeout(function () {
-      var el = container.querySelector(".toast");
-      if (el) {
-        el.classList.remove("show");
-        setTimeout(function () {
-          el.remove();
-        }, 300);
-      }
-    }, 2500);
+      toast.classList.remove("show");
+      setTimeout(function () {
+        toast.remove();
+      }, TOAST_FADE_MS);
+    }, TOAST_DISPLAY_MS);
   }
 
   function showOfflineBanner() {
@@ -57,8 +76,14 @@
     if (!panel || panel.querySelector(".offline-banner")) return;
     var banner = document.createElement("div");
     banner.className = "error-banner offline-banner";
-    banner.innerHTML =
-      '<span class="offline-dot"></span> Daemon unreachable \u2014 reconnecting\u2026';
+    var dot = document.createElement("span");
+    dot.className = "offline-dot";
+    banner.appendChild(dot);
+    banner.appendChild(
+      document.createTextNode(
+        " Daemon unreachable \u2014 reconnecting\u2026",
+      ),
+    );
     panel.insertBefore(banner, panel.firstChild);
   }
 
@@ -73,11 +98,9 @@
       return;
     }
     if (path) pendingRequests.add(path);
-    if (path && path.indexOf("/api/ptz/") === 0) {
-      var axis = path.split("/").pop();
-      var slider = document.getElementById("slider-" + axis);
-      if (slider) slider.classList.add("sending");
-    }
+    var axis = getPTZAxis(path);
+    var slider = getSlider(axis);
+    if (slider) slider.classList.add("sending");
   });
 
   document.addEventListener("htmx:afterRequest", function (e) {
@@ -85,46 +108,43 @@
 
     if (path) {
       pendingRequests.delete(path);
-      if (path.indexOf("/api/ptz/") === 0) {
-        var axis = path.split("/").pop();
-        var slider = document.getElementById("slider-" + axis);
-        if (slider) slider.classList.remove("sending");
-      }
+      var axis = getPTZAxis(path);
+      var slider = getSlider(axis);
+      if (slider) slider.classList.remove("sending");
     }
 
     if (e.detail.failed) {
       consecutiveErrors++;
-      if (path && path.indexOf("/api/ptz/") === 0) {
-        var errAxis = path.split("/").pop();
-        var errSlider = document.getElementById("slider-" + errAxis);
-        if (errSlider && errSlider.dataset.lastGood !== undefined) {
-          errSlider.value = errSlider.dataset.lastGood;
-          var valEl = document.getElementById("val-" + errAxis);
-          if (valEl) {
-            var suffix = errAxis === "zoom" ? "x" : "\u00b0";
-            valEl.textContent = errSlider.dataset.lastGood + suffix;
-          }
+      var errAxis = getPTZAxis(path);
+      var errSlider = getSlider(errAxis);
+      if (errSlider && errSlider.dataset.lastGood !== undefined) {
+        errSlider.value = errSlider.dataset.lastGood;
+        var valEl = document.getElementById("val-" + errAxis);
+        if (valEl) {
+          var suffix = errAxis === "zoom" ? "x" : "\u00b0";
+          valEl.textContent = errSlider.dataset.lastGood + suffix;
         }
       }
-      if (consecutiveErrors >= 3) {
+      if (consecutiveErrors >= CONSECUTIVE_ERROR_THRESHOLD) {
         showOfflineBanner();
       }
       showToast(
-        consecutiveErrors >= 3 ? "Connection lost \u2014 retrying" : "Request failed",
+        consecutiveErrors >= CONSECUTIVE_ERROR_THRESHOLD
+          ? "Connection lost \u2014 retrying"
+          : "Request failed",
         "error",
       );
       return;
     }
 
     consecutiveErrors = 0;
+    streamRetryDelay = STREAM_RETRY_INITIAL_MS;
     var offlineBanner = document.querySelector(".offline-banner");
     if (offlineBanner) offlineBanner.remove();
 
-    if (path && path.indexOf("/api/ptz/") === 0) {
-      var okAxis = path.split("/").pop();
-      var okSlider = document.getElementById("slider-" + okAxis);
-      if (okSlider) okSlider.dataset.lastGood = okSlider.value;
-    }
+    var okAxis = getPTZAxis(path);
+    var okSlider = getSlider(okAxis);
+    if (okSlider) okSlider.dataset.lastGood = okSlider.value;
   });
 
   document.addEventListener("htmx:responseError", function (e) {
@@ -142,7 +162,7 @@
 
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
-      streamRetryDelay = 3000;
+      streamRetryDelay = STREAM_RETRY_INITIAL_MS;
     }
   });
 
@@ -229,7 +249,10 @@
         img.style.display = "";
         if (fallback) fallback.style.display = "none";
       }, delay);
-      streamRetryDelay = Math.min(streamRetryDelay * 2, maxStreamRetryDelay);
+      streamRetryDelay = Math.min(
+        streamRetryDelay * 2,
+        STREAM_RETRY_MAX_MS,
+      );
     });
   })();
 })();
