@@ -20,6 +20,9 @@ const (
 	respAutoModeOff    = "auto mode: off"
 	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
 	respDeviceNotFound = "device not found"
+	respGestureOn      = "gesture on"
+	respGestureOff     = "gesture off"
+	respCentered       = "centered"
 
 	cmdStatus        = "status"
 	cmdGestureOn     = "gesture-on"
@@ -223,10 +226,10 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandRe
 	}
 
 	if enable {
-		return okResult("gesture on")
+		return okResult(respGestureOn)
 	}
 
-	return okResult("gesture off")
+	return okResult(respGestureOff)
 }
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
@@ -235,7 +238,7 @@ func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
 		return errResult(cmdCenter, err)
 	}
 
-	return okResult("centered")
+	return okResult(respCentered)
 }
 
 func (d *Daemon) handleAutoCommand(parts []string) CommandResult {

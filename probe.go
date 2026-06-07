@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	pixyVendorID  = "328f"
-	pixyProductID = "00c0"
+	pixyVendorIDInt  = 0x328f
+	pixyProductIDInt = 0x00c0
 )
 
 func isPixyName(name string) bool {
@@ -38,11 +38,9 @@ func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx 
 
 		vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
 		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
-		expectedVendor, evErr := strconv.ParseInt(pixyVendorID, 16, 0)
-		expectedProduct, epErr := strconv.ParseInt(pixyProductID, 16, 0)
 
-		return vErr == nil && pErr == nil && evErr == nil && epErr == nil &&
-			vendor == expectedVendor && product == expectedProduct
+		return vErr == nil && pErr == nil &&
+			vendor == int64(pixyVendorIDInt) && product == int64(pixyProductIDInt)
 	}
 
 	return false

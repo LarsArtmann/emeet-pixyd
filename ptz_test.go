@@ -43,7 +43,7 @@ func TestParsePTZValues_InvalidDevice(t *testing.T) {
 func TestV4L2DegreesPerUnit(t *testing.T) {
 	t.Parallel()
 
-	if v4l2DegreesPerUnit != 3600 {
-		t.Errorf("v4l2DegreesPerUnit = %d, want 3600", v4l2DegreesPerUnit)
+	if v4l2UnitsPerDegree != 3600 {
+		t.Errorf("v4l2UnitsPerDegree = %d, want 3600", v4l2UnitsPerDegree)
 	}
 }

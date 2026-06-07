@@ -69,30 +69,35 @@ type hidResponse struct {
 	Got      bool
 }
 
+//nolint:gochecknoglobals
+var cameraHIDBytes = map[pixy.CameraState]byte{
+	pixy.StateTracking: hidByteTracking,
+	pixy.StatePrivacy:  hidBytePrivacy,
+	pixy.StateIdle:     hidByteIdle,
+	pixy.StateOffline:  hidByteIdle,
+}
+
 func cameraHIDByte(s pixy.CameraState) byte {
-	switch s {
-	case pixy.StateTracking:
-		return hidByteTracking
-	case pixy.StatePrivacy:
-		return hidBytePrivacy
-	case pixy.StateIdle, pixy.StateOffline:
-		return hidByteIdle
-	default:
-		return hidByteIdle
+	if b, ok := cameraHIDBytes[s]; ok {
+		return b
 	}
+
+	return hidByteIdle
+}
+
+//nolint:gochecknoglobals
+var audioHIDBytes = map[pixy.AudioMode]byte{
+	pixy.AudioNC:       hidByteNC,
+	pixy.AudioLive:     hidByteLive,
+	pixy.AudioOriginal: hidByteOriginal,
 }
 
 func audioHIDByte(m pixy.AudioMode) byte {
-	switch m {
-	case pixy.AudioNC:
-		return hidByteNC
-	case pixy.AudioLive:
-		return hidByteLive
-	case pixy.AudioOriginal:
-		return hidByteOriginal
-	default:
-		return hidByteNC
+	if b, ok := audioHIDBytes[m]; ok {
+		return b
 	}
+
+	return hidByteNC
 }
 
 func newHIDRawDevice(path string) HIDDevice {
@@ -192,6 +197,11 @@ func newHIDResponse(got bool) hidResponse {
 }
 
 func parseHIDResponse(data []byte) hidResponse {
+	// HID response layout (9+ bytes):
+	//   data[0] = report prefix (0x09 = camera config)
+	//   data[1] = interface (0x01=tracking, 0x04=gesture, 0x05=audio)
+	//   data[2..7] = markers/padding
+	//   data[8] = mode byte (tracking/audio/gesture state)
 	if len(data) < hidMinLen {
 		return newHIDResponse(false)
 	}

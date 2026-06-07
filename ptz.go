@@ -14,7 +14,8 @@ import (
 
 const v4l2ctl = "v4l2-ctl"
 
-const v4l2DegreesPerUnit = 3600
+// v4l2UnitsPerDegree is the V4L2 internal unit: 1 degree = 3600 V4L2 units.
+const v4l2UnitsPerDegree = 3600
 
 type ptzAxisInfo struct {
 	Min        int
@@ -29,11 +30,11 @@ type ptzAxisInfo struct {
 var ptzAxes = map[string]ptzAxisInfo{
 	pixy.AxisPan: {
 		Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0",
-		V4L2Ctrl: "pan_absolute", Multiplier: v4l2DegreesPerUnit,
+		V4L2Ctrl: "pan_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisTilt: {
 		Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0",
-		V4L2Ctrl: "tilt_absolute", Multiplier: v4l2DegreesPerUnit,
+		V4L2Ctrl: "tilt_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisZoom: {
 		Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x",
