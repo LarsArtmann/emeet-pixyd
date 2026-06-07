@@ -22,10 +22,12 @@ func (d *Daemon) handleCallStart(
 
 	var errs []error
 
+	log := slog.With("auto_mode", autoMode)
+
 	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
 		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
-			slog.Error("failed to activate tracking", "error", trackErr)
+			log.Error("failed to activate tracking", "error", trackErr)
 			errs = append(errs, fmt.Errorf("tracking: %w", trackErr))
 		}
 	}
@@ -33,7 +35,7 @@ func (d *Daemon) handleCallStart(
 	if autoMode.ActivatesAudio() {
 		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
-			slog.Error("failed to set audio mode", "error", audioErr)
+			log.Error("failed to set audio mode", "error", audioErr)
 			errs = append(errs, fmt.Errorf("audio: %w", audioErr))
 		}
 	}
@@ -42,7 +44,7 @@ func (d *Daemon) handleCallStart(
 		src, srcErr := d.deps.findSource(ctx)
 		if srcErr == nil {
 			d.deps.setSource(ctx, src)
-			slog.Info("set PipeWire default source to PIXY", "id", src.Get())
+			log.Info("set PipeWire default source to PIXY", "id", src.Get())
 		}
 	}
 
@@ -60,10 +62,12 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 
 	var autoErr error
 
+	log := slog.With("auto_mode", autoMode)
+
 	if autoMode.ActivatesPrivacy() {
 		privacyErr := d.deps.setTracking(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
-			slog.Error("failed to enter privacy mode", "error", privacyErr)
+			log.Error("failed to enter privacy mode", "error", privacyErr)
 			autoErr = fmt.Errorf("privacy: %w", privacyErr)
 		}
 
@@ -131,15 +135,17 @@ func (d *Daemon) autoManage(ctx context.Context) {
 
 	changed := false
 
+	log := slog.With("auto_mode", autoMode)
+
 	if inUse && !inCall && debounceInUse >= debounceCount {
-		slog.Info("camera in use, activating", "auto_mode", autoMode)
+		log.Info("camera in use, activating")
 		d.handleCallStart(ctx, camera, autoMode)
 
 		changed = true
 	}
 
 	if !inUse && inCall && debounceIdle >= debounceCount {
-		slog.Info("camera released", "auto_mode", autoMode)
+		log.Info("camera released")
 		d.handleCallEnd(ctx, autoMode)
 
 		changed = true

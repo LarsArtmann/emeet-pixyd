@@ -185,34 +185,36 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 	d.mu.Lock()
 	changed := false
 
+	log := slog.With("device", d.hidrawDev)
+
 	if trackingErr == nil && tracking.Valid() && tracking != pixy.StateOffline {
 		if d.state.Camera != tracking {
-			slog.Info("state sync: camera changed", "believed", d.state.Camera, "actual", tracking)
+			log.Info("state sync: camera changed", "believed", d.state.Camera, "actual", tracking)
 			d.state.Camera = tracking
 			changed = true
 		}
 	} else if trackingErr != nil {
-		slog.Debug("tracking query failed", "error", trackingErr)
+		log.Debug("tracking query failed", "error", trackingErr)
 	}
 
 	if audioErr == nil && audio.Valid() {
 		if d.state.Audio != audio {
-			slog.Info("state sync: audio changed", "believed", d.state.Audio, "actual", audio)
+			log.Info("state sync: audio changed", "believed", d.state.Audio, "actual", audio)
 			d.state.Audio = audio
 			changed = true
 		}
 	} else if audioErr != nil {
-		slog.Debug("audio query failed", "error", audioErr)
+		log.Debug("audio query failed", "error", audioErr)
 	}
 
 	if gestureErr == nil {
 		if d.state.Gesture != gesture {
-			slog.Info("state sync: gesture changed", "believed", d.state.Gesture, "actual", gesture)
+			log.Info("state sync: gesture changed", "believed", d.state.Gesture, "actual", gesture)
 			d.state.Gesture = gesture
 			changed = true
 		}
 	} else {
-		slog.Debug("gesture query failed", "error", gestureErr)
+		log.Debug("gesture query failed", "error", gestureErr)
 	}
 
 	d.lastSyncedAt = time.Now()
