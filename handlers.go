@@ -41,6 +41,23 @@ const (
 	toastAutoToggled     = "Auto mode toggled"
 )
 
+type actionToastInfo struct {
+	msg  string
+	kind string
+}
+
+//nolint:gochecknoglobals
+var actionToasts = map[string]actionToastInfo{
+	cmdTrack:         {toastTrackingEnabled, toastTypeSuccess},
+	cmdIdle:          {toastCameraIdle, toastTypeSuccess},
+	cmdPrivacy:       {toastPrivacyOn, toastTypeSuccess},
+	cmdCenter:        {toastCameraCentered, toastTypeSuccess},
+	cmdSync:          {toastStateSynced, toastTypeSuccess},
+	cmdProbe:         {toastProbedDevices, toastTypeSuccess},
+	cmdToggleGesture: {toastGestureToggled, toastTypeInfo},
+	cmdToggleAuto:    {toastAutoToggled, toastTypeInfo},
+}
+
 //go:embed static
 var staticFS embed.FS
 
@@ -174,26 +191,12 @@ func (s *webServer) action(command string) http.HandlerFunc {
 }
 
 func actionToast(command string) (string, string) {
-	switch command {
-	case cmdTrack:
-		return toastTrackingEnabled, toastTypeSuccess
-	case cmdIdle:
-		return toastCameraIdle, toastTypeSuccess
-	case cmdPrivacy:
-		return toastPrivacyOn, toastTypeSuccess
-	case cmdCenter:
-		return toastCameraCentered, toastTypeSuccess
-	case cmdSync:
-		return toastStateSynced, toastTypeSuccess
-	case cmdProbe:
-		return toastProbedDevices, toastTypeSuccess
-	case cmdToggleGesture:
-		return toastGestureToggled, toastTypeInfo
-	case cmdToggleAuto:
-		return toastAutoToggled, toastTypeInfo
-	default:
+	info, ok := actionToasts[command]
+	if !ok {
 		return "", ""
 	}
+
+	return info.msg, info.kind
 }
 
 func applyResultToStatus(result CommandResult, status *webStatus, toast, toastType string) {
