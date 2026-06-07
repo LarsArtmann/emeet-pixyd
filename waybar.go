@@ -17,6 +17,20 @@ type waybarJSON struct {
 
 const tooltipInitSize = 64
 
+type waybarCameraInfo struct {
+	icon  string
+	class string
+	text  string
+}
+
+//nolint:gochecknoglobals
+var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
+	pixy.StateTracking: {icon: "\uf030", class: string(pixy.StateTracking), text: "CAM"},
+	pixy.StatePrivacy:  {icon: "\uf011", class: string(pixy.StatePrivacy), text: "OFF"},
+	pixy.StateIdle:     {icon: "\uf03d", class: string(pixy.StateIdle), text: "IDLE"},
+	pixy.StateOffline:  {icon: "\uf00d", class: string(pixy.StateOffline), text: "---"},
+}
+
 func (d *Daemon) waybarOutput() string {
 	d.mu.RLock()
 	camera := d.state.Camera
@@ -25,28 +39,8 @@ func (d *Daemon) waybarOutput() string {
 	autoMode := d.state.AutoMode
 	d.mu.RUnlock()
 
-	icon := ""
-	class := ""
-	text := ""
-
-	switch camera {
-	case pixy.StateTracking:
-		icon = "\uf030"
-		class = string(pixy.StateTracking)
-		text = "CAM"
-	case pixy.StatePrivacy:
-		icon = "\uf011"
-		class = string(pixy.StatePrivacy)
-		text = "OFF"
-	case pixy.StateIdle:
-		icon = "\uf03d"
-		class = string(pixy.StateIdle)
-		text = "IDLE"
-	case pixy.StateOffline:
-		icon = "\uf00d"
-		class = string(pixy.StateOffline)
-		text = "---"
-	}
+	info := waybarCameraStates[camera]
+	class := info.class
 
 	if inCall {
 		class += " in-call"
@@ -66,7 +60,7 @@ func (d *Daemon) waybarOutput() string {
 	}
 
 	out := waybarJSON{
-		Text:    icon + " " + text,
+		Text:    info.icon + " " + info.text,
 		Tooltip: tooltip.String(),
 		Class:   "custom-camera " + class,
 	}
