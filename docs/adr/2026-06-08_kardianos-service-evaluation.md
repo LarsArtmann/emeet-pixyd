@@ -10,17 +10,17 @@ Do not adopt kardianos/service. The current `go-systemd/v22` + NixOS module appr
 
 ## What kardianos/service Provides vs What emeet-pixyd Already Has
 
-| Capability | kardianos/service | emeet-pixyd current |
-|---|---|---|
-| `sd_notify READY=1` | Not supported | `go-systemd/v22` — already wired |
-| `sd_notify WATCHDOG=1` | Not supported | Every 2s tick in eventLoop |
-| `sd_notify STOPPING=1` | Not supported | In `handleShutdown` |
-| `Type=notify` service | Generates `Type=simple` | NixOS module: `Type = "notify"` |
-| `WatchdogSec=30` | Not supported | NixOS module configures it |
-| Signal handling | SIGTERM/SIGINT only | SIGTERM + SIGINT + SIGHUP (state save) |
-| Security hardening | None (generic unit) | `ProtectSystem`, `PrivateTmp`, `NoNewPrivileges`, `RestrictAddressFamilies`, `MemoryMax=256M` |
-| Service installation | Writes `.service` file to disk | Declarative NixOS module |
-| Cross-platform | Windows, macOS, Linux | Linux-only (`//go:build linux`) — dead weight |
+| Capability             | kardianos/service              | emeet-pixyd current                                                                           |
+| ---------------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `sd_notify READY=1`    | Not supported                  | `go-systemd/v22` — already wired                                                              |
+| `sd_notify WATCHDOG=1` | Not supported                  | Every 2s tick in eventLoop                                                                    |
+| `sd_notify STOPPING=1` | Not supported                  | In `handleShutdown`                                                                           |
+| `Type=notify` service  | Generates `Type=simple`        | NixOS module: `Type = "notify"`                                                               |
+| `WatchdogSec=30`       | Not supported                  | NixOS module configures it                                                                    |
+| Signal handling        | SIGTERM/SIGINT only            | SIGTERM + SIGINT + SIGHUP (state save)                                                        |
+| Security hardening     | None (generic unit)            | `ProtectSystem`, `PrivateTmp`, `NoNewPrivileges`, `RestrictAddressFamilies`, `MemoryMax=256M` |
+| Service installation   | Writes `.service` file to disk | Declarative NixOS module                                                                      |
+| Cross-platform         | Windows, macOS, Linux          | Linux-only (`//go:build linux`) — dead weight                                                 |
 
 ## Rationale
 
@@ -34,7 +34,7 @@ kardianos/service's value proposition is "write once, run on Windows/macOS/Linux
 
 ### 3. NixOS module is superior to generated unit files
 
-The current NixOS module produces a hardened, properly-configured systemd unit declaratively. kardianos/service generates a generic unit file (no sandboxing, `RestartSec=120`, `WantedBy=multi-user.target` for a *user* service) and would bypass NixOS's declarative service management entirely.
+The current NixOS module produces a hardened, properly-configured systemd unit declaratively. kardianos/service generates a generic unit file (no sandboxing, `RestartSec=120`, `WantedBy=multi-user.target` for a _user_ service) and would bypass NixOS's declarative service management entirely.
 
 ### 4. The `Run()` abstraction is trivial
 
