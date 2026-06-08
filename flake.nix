@@ -135,6 +135,7 @@
                 runHook postInstall
               '';
             };
+            test = config.packages.default.overrideAttrs (_: { doCheck = true; });
           };
 
           devShells = {
