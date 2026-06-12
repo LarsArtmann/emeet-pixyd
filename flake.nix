@@ -23,7 +23,7 @@
       treefmt-nix,
     }:
     let
-      version = self.shortRev or self.dirtyRev or "dev";
+      version = "0.3.1";
 
       lib = nixpkgs.lib;
 
