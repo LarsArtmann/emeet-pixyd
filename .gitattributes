@@ -6,3 +6,5 @@ docs/status/*.md linguist-documentation
 *.go text eol=lf
 # Exclude from language statistics
 vendor/** linguist-vendored
+# Exclude from language statistics
+reports/** linguist-generated

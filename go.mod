@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/larsartmann/go-branded-id v0.3.0
-	github.com/larsartmann/httputil v0.1.1
+	github.com/larsartmann/httputil v0.2.0
 	github.com/prometheus/client_golang v1.23.2
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.66.0
