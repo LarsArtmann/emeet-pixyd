@@ -67,6 +67,21 @@ func withNoopV4L2() testDaemonOption {
 	}
 }
 
+// v4l2Call records a single v4l2Set invocation.
+type v4l2Call struct {
+	dev, ctrl, val string
+}
+
+func withCaptureV4L2(calls *[]v4l2Call) testDaemonOption {
+	return func(d *Daemon) {
+		d.deps.v4l2Set = func(_ context.Context, dev, ctrl, val string) error {
+			*calls = append(*calls, v4l2Call{dev: dev, ctrl: ctrl, val: val})
+
+			return nil
+		}
+	}
+}
+
 func withCaptureTracking(captured *pixy.CameraState) testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {

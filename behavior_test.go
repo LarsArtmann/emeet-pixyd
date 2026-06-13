@@ -655,3 +655,82 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	assertCommandContains(t, html, "toast-error", "response")
 	assertCommandContains(t, html, "error:", "response")
 }
+
+// ---------------------------------------------------------------------------
+// Scenario: PTZ web controls reach the V4L2 camera layer end-to-end
+// ---------------------------------------------------------------------------
+
+func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		axis       string
+		value      string
+		wantCtrl   string
+		wantVal    string
+		wantSlider string
+	}{
+		{"pan", "45", "pan_absolute", "162000", `value="45"`},
+		{"tilt", "-30", "tilt_absolute", "-108000", `value="-30"`},
+		{"zoom", "200", "zoom_absolute", "200", `value="200"`},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.axis, func(t *testing.T) {
+			t.Parallel()
+
+			var v4l2Calls []v4l2Call
+
+			d := newTestDaemon(
+				pixy.StateTracking,
+				"/dev/video0",
+				"/dev/hidraw7",
+				withCaptureV4L2(&v4l2Calls),
+				func(d *Daemon) {
+					d.ptzCache.values = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}
+					d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
+				},
+			)
+			webSrv := &webServer{daemon: d}
+			mux := newWebMux(webSrv)
+
+			server := httptest.NewServer(mux)
+			defer server.Close()
+
+			// When user sets the axis value via the web slider
+			resp, html := postPTZFormValue(t, server, "/api/ptz/"+tc.axis, tc.value)
+			resp.Body.Close() //nolint:errcheck
+
+			// Then the HTTP response is OK and contains the updated slider
+			assertHTTPStatusOK(t, resp)
+			assertCommandContains(t, html, tc.wantSlider, "slider response")
+
+			// And v4l2-ctl was called with the correct control and scaled value
+			if len(v4l2Calls) != 1 {
+				t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
+			}
+
+			call := v4l2Calls[0]
+			if call.dev != "/dev/video0" {
+				t.Errorf("v4l2 dev = %q, want /dev/video0", call.dev)
+			}
+
+			if call.ctrl != tc.wantCtrl {
+				t.Errorf("v4l2 ctrl = %q, want %q", call.ctrl, tc.wantCtrl)
+			}
+
+			if call.val != tc.wantVal {
+				t.Errorf("v4l2 val = %q, want %q", call.val, tc.wantVal)
+			}
+
+			// And the PTZ cache is invalidated
+			d.ptzCache.mu.RLock()
+			expired := time.Now().After(d.ptzCache.expiresAt)
+			d.ptzCache.mu.RUnlock()
+
+			if !expired {
+				t.Error("PTZ cache should be invalidated after successful set")
+			}
+		})
+	}
+}

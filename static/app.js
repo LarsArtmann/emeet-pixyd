@@ -217,12 +217,7 @@
     var current = parseInt(slider.value, 10) || 0;
     var next = current + ptzAction.delta;
     slider.value = next;
-    var suffix = ptzAction.axis === "zoom" ? "x" : "\u00b0";
-    var valEl = document.getElementById("val-" + ptzAction.axis);
-    if (valEl) valEl.textContent = next + suffix;
-    htmx.trigger(document.body, "doAction", {
-      url: "/api/ptz/" + ptzAction.axis,
-    });
+    htmx.trigger(slider, "input");
   });
 
   (function () {
