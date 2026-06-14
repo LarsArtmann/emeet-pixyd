@@ -29,6 +29,13 @@ jobs:
         env:
           GOWORK: off
 
+      - name: Vulnerability check
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+        env:
+          GOWORK: off
+
       - name: Test
         run: go test -race -count=1 ./...
         env:

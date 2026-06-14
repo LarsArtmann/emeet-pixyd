@@ -122,7 +122,7 @@ func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
 		return status
 	}
 
-	ptz := parsePTZValues(ctx, dev)
+	ptz := s.daemon.deps.parsePTZ(ctx, dev)
 	s.daemon.ptzCache.Set(ptz, ptzCacheTTL)
 
 	status.Pan = ptz.Pan
@@ -281,17 +281,6 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 func (s *webServer) invalidatePTZCache() {
 	s.daemon.ptzCache.Invalidate()
-}
-
-func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
-	status := s.getWebStatus()
-	if status.Device == "" {
-		http.Error(responseWriter, "no camera device", http.StatusServiceUnavailable)
-
-		return status, false
-	}
-
-	return status, true
 }
 
 func newWebMux(server *webServer) *http.ServeMux {

@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 
@@ -13,7 +12,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
 
 type daemonMetrics struct {
@@ -125,22 +123,42 @@ func mustFloat64Histogram(meter metric.Meter, name, desc, unit string) metric.Fl
 }
 
 func recordHIDFailure(ctx context.Context) {
+	if metricsInstance == nil {
+		return
+	}
+
 	metricsInstance.hidFailures.Add(ctx, 1)
 }
 
 func recordProbe() {
+	if metricsInstance == nil {
+		return
+	}
+
 	metricsInstance.probes.Add(context.Background(), 1)
 }
 
 func recordStreamDuration(ctx context.Context, seconds float64) {
+	if metricsInstance == nil {
+		return
+	}
+
 	metricsInstance.streamDuration.Record(ctx, seconds, metric.WithAttributes(attribute.String("source", "mjpeg")))
 }
 
 func recordFrame(ctx context.Context) {
+	if metricsInstance == nil {
+		return
+	}
+
 	metricsInstance.framesTotal.Add(ctx, 1, metric.WithAttributes())
 }
 
 func recordUevent(action, subsystem string) {
+	if metricsInstance == nil {
+		return
+	}
+
 	metricsInstance.uevents.Add(
 		context.Background(), 1,
 		metric.WithAttributes(
@@ -151,6 +169,10 @@ func recordUevent(action, subsystem string) {
 }
 
 func updateMetrics(state pixy.State) {
+	if metricsInstance == nil {
+		return
+	}
+
 	ctx := context.Background()
 	if state.InCall {
 		metricsInstance.inCall.Record(ctx, 1)
@@ -175,6 +197,10 @@ func updateMetrics(state pixy.State) {
 }
 
 func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) {
+	if metricsInstance == nil {
+		return
+	}
+
 	resultStr := "success"
 	if result.IsError() {
 		resultStr = "error"
@@ -187,13 +213,4 @@ func recordCommandMetric(ctx context.Context, cmd string, result CommandResult) 
 			attribute.String("result", resultStr),
 		),
 	)
-}
-
-func collectMetrics(ctx context.Context, rm *metricdata.ResourceMetrics) error {
-	err := metricsInstance.promExporter.Collect(ctx, rm)
-	if err != nil {
-		return fmt.Errorf("collect metrics: %w", err)
-	}
-
-	return nil
 }

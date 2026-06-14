@@ -117,6 +117,17 @@ type streamResult struct {
 	ok      bool
 }
 
+func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
+	status := s.getWebStatus()
+	if status.Device == "" {
+		http.Error(responseWriter, "no camera device", http.StatusServiceUnavailable)
+
+		return status, false
+	}
+
+	return status, true
+}
+
 //nolint:exhaustruct
 func (s *webServer) setupStream(
 	responseWriter http.ResponseWriter,
