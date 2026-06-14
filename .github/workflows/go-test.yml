@@ -49,3 +49,19 @@ jobs:
           go tool cover -func=coverage.out | tail -1
         env:
           GOWORK: off
+
+      - name: Cache fuzz corpus
+        uses: actions/cache@v4
+        with:
+          path: testdata/fuzz
+          key: fuzz-corpus-${{ github.run_id }}
+          restore-keys: fuzz-corpus-
+
+      - name: Fuzz
+        run: |
+          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse; do
+            echo "Fuzzing $target for 60s ..."
+            go test -fuzz=$target -fuzztime=60s .
+          done
+        env:
+          GOWORK: off
