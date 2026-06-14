@@ -37,7 +37,7 @@ emeet-pixyd --help                  # show CLI usage
 
 ### CI
 
-GitHub Actions: `go vet ./...`, `golangci-lint run --timeout 2m`, then `go test -race -count=1 ./...` on ubuntu-latest. All steps use `GOWORK: off`.
+GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out` on ubuntu-latest. All steps use `GOWORK: off`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test.
 
 ---
 
