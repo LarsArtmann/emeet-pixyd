@@ -191,6 +191,21 @@ func TestHasPixyProduct(t *testing.T) {
 			"PRODUCT=328f\n",
 			false,
 		},
+		{
+			// The malformed first PRODUCT line used to make matchesPixyID
+			// return false immediately. A valid PRODUCT line later in the
+			// file should still be honored.
+			"malformed PRODUCT followed by valid one",
+			"PRODUCT=328f\nPRODUCT=328f/00c0/2004\n",
+			true,
+		},
+		{
+			// Reverse order: valid first, malformed second — must still
+			// match on the first valid line.
+			"valid PRODUCT followed by malformed",
+			"PRODUCT=328f/00c0/2004\nPRODUCT=328f\n",
+			true,
+		},
 	}
 
 	for _, tc := range tests {

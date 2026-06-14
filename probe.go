@@ -23,6 +23,11 @@ func isPixyName(name string) bool {
 		strings.Contains(name, "PIXY")
 }
 
+// matchesPixyID reports whether ueventData contains a "prefix=v/p/..." line
+// (separated by sep) where vendor and product (at the given indices) match
+// the PIXY USB IDs. It scans all lines with that prefix; a match anywhere
+// counts, but lines that don't have enough parts are skipped (not treated
+// as a mismatch — uevent files can have spurious continuation lines).
 func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx int) bool {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
 		value, ok := strings.CutPrefix(line, prefix)
@@ -32,14 +37,16 @@ func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx 
 
 		parts := strings.Split(value, sep)
 		if len(parts) <= max(vendorIdx, productIdx) {
-			return false
+			continue
 		}
 
 		vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
 		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
 
-		return vErr == nil && pErr == nil &&
-			vendor == int64(pixyVendorIDInt) && product == int64(pixyProductIDInt)
+		if vErr == nil && pErr == nil &&
+			vendor == int64(pixyVendorIDInt) && product == int64(pixyProductIDInt) {
+			return true
+		}
 	}
 
 	return false
