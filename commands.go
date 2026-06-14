@@ -10,8 +10,6 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
-const parsePTZValueErrStr = "invalid PTZ value"
-
 const (
 	respTrackingOn     = "tracking on"
 	respPrivacyOn      = "privacy on"

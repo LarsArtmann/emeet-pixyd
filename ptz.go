@@ -14,6 +14,11 @@ import (
 
 const v4l2ctl = "v4l2-ctl"
 
+// parsePTZValueErrStr is the prefix used by parsePTZValue when it returns
+// a wrapped error. Lives in ptz.go because that's the only file that
+// constructs the error.
+const parsePTZValueErrStr = "invalid PTZ value"
+
 // v4l2UnitsPerDegree is the V4L2 internal unit: 1 degree = 3600 V4L2 units.
 const v4l2UnitsPerDegree = 3600
 

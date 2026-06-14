@@ -36,6 +36,9 @@ type Daemon struct {
 	hidrawDev string
 	hidDev    HIDDevice
 
+	// Debounce counters: number of consecutive polls observing a stable
+	// in-use or idle state. Both clamp to config.DebounceCount so the
+	// >= check below is the trigger boundary, not unbounded growth.
 	debounceInUse int
 	debounceIdle  int
 	hidFailCount  int
