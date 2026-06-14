@@ -56,7 +56,7 @@ func isRelevantUevent(evt uevent) bool {
 func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 	f, err := os.Open("/sys/kernel/uevent_seqnum")
 	if err != nil {
-		slog.Debug("uevent: cannot open uevent_seqnum, disabling hotplug", "error", err)
+		slog.Warn("uevent: cannot open uevent_seqnum, disabling hotplug", "error", err)
 
 		return
 	}
@@ -65,7 +65,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 
 	fd, err := unixSocketUevent()
 	if err != nil {
-		slog.Debug("uevent: cannot create netlink socket, disabling hotplug", "error", err)
+		slog.Warn("uevent: cannot create netlink socket, disabling hotplug", "error", err)
 
 		return
 	}

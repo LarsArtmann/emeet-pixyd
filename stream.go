@@ -196,7 +196,11 @@ func (s *webServer) writeFrames(
 
 		frame, frameErr := extractJPEGFrame(br, &buf)
 		if frameErr != nil {
-			slog.Debug("frame extract error", "error", frameErr)
+			if errors.Is(frameErr, errJPEGMaxIterations) {
+				slog.Warn("frame extract exceeded iteration limit", "error", frameErr)
+			} else {
+				slog.Debug("frame extract error", "error", frameErr)
+			}
 
 			return
 		}
