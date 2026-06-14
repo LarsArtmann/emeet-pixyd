@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"strconv"
@@ -367,6 +368,8 @@ func ConfigFromEnv() Config {
 		d, parseErr := time.ParseDuration(v)
 		if parseErr == nil {
 			cfg.PollInterval = d
+		} else {
+			slog.Warn("invalid EMEET_PIXYD_POLL_INTERVAL, using default", "value", v, "default", cfg.PollInterval)
 		}
 	}
 
@@ -374,6 +377,8 @@ func ConfigFromEnv() Config {
 		n, parseErr := strconv.Atoi(v)
 		if parseErr == nil {
 			cfg.DebounceCount = n
+		} else {
+			slog.Warn("invalid EMEET_PIXYD_DEBOUNCE_COUNT, using default", "value", v, "default", cfg.DebounceCount)
 		}
 	}
 
@@ -385,6 +390,8 @@ func ConfigFromEnv() Config {
 		m, parseErr := ParseAutoMode(v)
 		if parseErr == nil {
 			cfg.AutoMode = m
+		} else {
+			slog.Warn("invalid EMEET_PIXYD_AUTO, using default", "value", v, "default", cfg.AutoMode)
 		}
 	}
 
@@ -392,6 +399,8 @@ func ConfigFromEnv() Config {
 		m, parseErr := ParseAudioMode(v)
 		if parseErr == nil {
 			cfg.DefaultAudio = m
+		} else {
+			slog.Warn("invalid EMEET_PIXYD_DEFAULT_AUDIO, using default", "value", v, "default", cfg.DefaultAudio)
 		}
 	}
 

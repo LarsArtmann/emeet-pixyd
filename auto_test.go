@@ -412,3 +412,41 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 		t.Errorf("expected privacy call on call end, got %s", trackingCalls[0])
 	}
 }
+
+func TestHandleCallStart_FindSourceErrorSurfacesInAutoError(t *testing.T) {
+	t.Parallel()
+
+	d := testAutoDaemon(
+		func(d *Daemon) {
+			d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) {
+				return pixy.SourceID{}, ErrAudioSourceNotFound
+			}
+		},
+	)
+
+	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+
+	d.mu.RLock()
+	autoErr := d.autoError
+	d.mu.RUnlock()
+
+	if autoErr == nil {
+		t.Fatal("expected autoError to be set when findSource fails")
+	}
+}
+
+func TestHandleCallStart_FindSourceSuccessClearsAutoError(t *testing.T) {
+	t.Parallel()
+
+	d := testAutoDaemon(withFindSource("42"))
+
+	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+
+	d.mu.RLock()
+	autoErr := d.autoError
+	d.mu.RUnlock()
+
+	if autoErr != nil {
+		t.Errorf("expected autoError to be nil on success, got %v", autoErr)
+	}
+}

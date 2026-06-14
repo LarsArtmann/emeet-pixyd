@@ -151,7 +151,7 @@ func recordFrame(ctx context.Context) {
 		return
 	}
 
-	metricsInstance.framesTotal.Add(ctx, 1, metric.WithAttributes())
+	metricsInstance.framesTotal.Add(ctx, 1)
 }
 
 func recordUevent(action, subsystem string) {

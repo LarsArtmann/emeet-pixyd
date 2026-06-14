@@ -45,6 +45,9 @@ func (d *Daemon) handleCallStart(
 		if srcErr == nil {
 			d.deps.setSource(ctx, src)
 			log.Info("set PipeWire default source to PIXY", "id", src.Get())
+		} else {
+			log.Error("failed to find PIXY audio source", "error", srcErr)
+			errs = append(errs, fmt.Errorf("source: %w", srcErr))
 		}
 	}
 
