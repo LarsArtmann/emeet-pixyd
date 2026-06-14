@@ -21,6 +21,13 @@ jobs:
         env:
           GOWORK: off
 
+      - name: Generate templ
+        run: |
+          go install github.com/a-h/templ/cmd/templ@latest
+          templ generate
+        env:
+          GOWORK: off
+
       - name: Lint
         uses: golangci/golangci-lint-action@v7
         with:
@@ -36,7 +43,9 @@ jobs:
         env:
           GOWORK: off
 
-      - name: Test
-        run: go test -race -count=1 ./...
+      - name: Test with coverage
+        run: |
+          go test -race -count=1 -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out | tail -1
         env:
           GOWORK: off
