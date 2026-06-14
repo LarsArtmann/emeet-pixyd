@@ -15,8 +15,6 @@ import (
 )
 
 type daemonMetrics struct {
-	promExporter *prometheus.Exporter
-
 	inCall         metric.Float64Gauge
 	autoMode       metric.Float64Gauge
 	cameraState    metric.Float64Gauge
@@ -31,6 +29,9 @@ type daemonMetrics struct {
 var (
 	metricsInstance   *daemonMetrics //nolint:gochecknoglobals // lazy init via sync.Once
 	metricsRegistered sync.Once      //nolint:gochecknoglobals // lazy init, runs once per process
+	// testPromExporter is set during registerMetrics() so tests can collect
+	// metric snapshots without adding production-only state to daemonMetrics.
+	testPromExporter *prometheus.Exporter //nolint:gochecknoglobals // test-only
 )
 
 func registerMetrics() {
@@ -47,9 +48,9 @@ func registerMetrics() {
 
 		mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(provider))
 		meter := mp.Meter("emeet-pixyd")
+		testPromExporter = provider
 
 		metricsInstance = &daemonMetrics{
-			promExporter: provider,
 			inCall: mustFloat64Gauge(
 				meter,
 				"emeet_pixyd_in_call",

@@ -15,7 +15,11 @@ func collectMetrics(ctx context.Context, rm *metricdata.ResourceMetrics) error {
 		return errors.New("metrics not initialized")
 	}
 
-	err := metricsInstance.promExporter.Collect(ctx, rm)
+	if testPromExporter == nil {
+		return errors.New("test Prometheus exporter not initialized")
+	}
+
+	err := testPromExporter.Collect(ctx, rm)
 	if err != nil {
 		return fmt.Errorf("collect metrics: %w", err)
 	}
