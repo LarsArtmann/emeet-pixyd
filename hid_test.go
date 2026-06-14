@@ -165,6 +165,7 @@ func TestParseHIDResponseUnknownAudioByte(t *testing.T) {
 	t.Parallel()
 
 	data := []byte{0x09, 0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0xFF}
+
 	resp := parseHIDResponse(data)
 	if resp.Got {
 		t.Errorf("expected Got=false for unknown audio byte 0xFF, got Got=true (audio=%s)", resp.Audio)
@@ -176,6 +177,7 @@ func TestParseHIDResponseUnknownTrackingByte(t *testing.T) {
 	t.Parallel()
 
 	data := []byte{0x09, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0xEE}
+
 	resp := parseHIDResponse(data)
 	if resp.Got {
 		t.Errorf("expected Got=false for unknown tracking byte 0xEE, got Got=true (tracking=%s)", resp.Tracking)
