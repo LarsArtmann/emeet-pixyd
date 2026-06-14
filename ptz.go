@@ -177,6 +177,9 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		return errResult(axis, v4l2Err)
 	}
 
+	d.ptzCache.Invalidate()
+	d.broadcastStateChanged()
+
 	return okResult(fmt.Sprintf("%s set to %d", axis, val))
 }
 

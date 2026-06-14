@@ -236,6 +236,9 @@ func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
 		return errResult(cmdCenter, err)
 	}
 
+	d.ptzCache.Invalidate()
+	d.broadcastStateChanged()
+
 	return okResult(respCentered)
 }
 
@@ -250,6 +253,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 		d.state.AutoMode = mode
 		d.saveStateOrLog("failed to save state")
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		return okResult("auto mode: " + mode.String())
 	}
@@ -279,6 +283,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	d.state.AutoMode = mode
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
+	d.broadcastStateChanged()
 
 	if mode.IsOff() {
 		return okResult(respAutoModeOff)
