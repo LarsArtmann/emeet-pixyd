@@ -102,6 +102,7 @@ func TestStateFileCorrupt(t *testing.T) {
 	}
 
 	d := testDaemonNoDevice()
+
 	d.config = cfg
 	if loaded := d.loadState(); loaded {
 		t.Error("expected loadState to return false for corrupt file")
@@ -117,6 +118,7 @@ func TestStateFileMissing(t *testing.T) {
 
 	cfg := defaultTestConfig("/nonexistent")
 	d := testDaemonNoDevice()
+
 	d.config = cfg
 	if loaded := d.loadState(); loaded {
 		t.Error("expected loadState to return false for missing file")
@@ -132,6 +134,7 @@ func TestStateFileValid(t *testing.T) {
 
 	d := testDaemonNoDevice()
 	d.config = cfg
+
 	d.state = pixy.State{
 		Camera:   pixy.StateTracking,
 		Audio:    pixy.AudioLive,

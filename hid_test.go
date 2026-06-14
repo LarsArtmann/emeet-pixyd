@@ -157,6 +157,31 @@ func TestParseHIDResponseAudio(t *testing.T) {
 	}
 }
 
+// TestParseHIDResponseUnknownAudioByte ensures that an unrecognized audio
+// mode byte (e.g. 0xFF) does NOT silently report AudioNC. Previously, the
+// default branch mapped any unknown byte to AudioNC and Got=true, so a
+// queryAudio call would happily return a bogus value.
+func TestParseHIDResponseUnknownAudioByte(t *testing.T) {
+	t.Parallel()
+
+	data := []byte{0x09, 0x05, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0xFF}
+	resp := parseHIDResponse(data)
+	if resp.Got {
+		t.Errorf("expected Got=false for unknown audio byte 0xFF, got Got=true (audio=%s)", resp.Audio)
+	}
+}
+
+// TestParseHIDResponseUnknownTrackingByte ensures the same guarantee for tracking.
+func TestParseHIDResponseUnknownTrackingByte(t *testing.T) {
+	t.Parallel()
+
+	data := []byte{0x09, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0xEE}
+	resp := parseHIDResponse(data)
+	if resp.Got {
+		t.Errorf("expected Got=false for unknown tracking byte 0xEE, got Got=true (tracking=%s)", resp.Tracking)
+	}
+}
+
 func TestParseHIDResponseGesture(t *testing.T) {
 	t.Parallel()
 
@@ -196,11 +221,9 @@ func TestParseHIDResponseUnknownInterface(t *testing.T) {
 	data := []byte{0x09, 0x99, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x01}
 
 	resp := parseHIDResponse(data)
-	if !resp.Got {
-		t.Error("expected Got=true for valid-length response with unknown interface")
+	if resp.Got {
+		t.Error("expected Got=false for unknown interface — queryHIDState must surface this as errUnrecognizedHID")
 	}
-
-	assertTrackingIdle(t, resp.Tracking)
 }
 
 func TestHandleCommandSyncNoDevice(t *testing.T) {

@@ -62,10 +62,6 @@ func FuzzParseHIDResponse(f *testing.F) {
 			return
 		}
 
-		if !resp.Got {
-			t.Error("Got should be true for data >= hidMinLen")
-		}
-
 		if !resp.Tracking.Valid() {
 			t.Errorf("invalid CameraState %q", resp.Tracking)
 		}

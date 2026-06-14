@@ -217,20 +217,32 @@ func parseHIDResponse(data []byte) hidResponse {
 			resp.Tracking = pixy.StateTracking
 		case hidBytePrivacy:
 			resp.Tracking = pixy.StatePrivacy
+		case hidByteIdle:
+			resp.Tracking = pixy.StateIdle
 		default:
 			resp.Tracking = pixy.StateIdle
+			resp.Got = false
 		}
 	case data[0] == cameraConfigPrefix && data[1] == hidInterfaceAudio:
 		switch data[8] {
+		case hidByteNC:
+			resp.Audio = pixy.AudioNC
 		case hidByteLive:
 			resp.Audio = pixy.AudioLive
 		case hidByteOriginal:
 			resp.Audio = pixy.AudioOriginal
 		default:
+			// Unknown audio byte: leave the value at the zero default and
+			// signal failure via Got=false so the caller reports an error
+			// instead of silently treating it as AudioNC.
 			resp.Audio = pixy.AudioNC
+			resp.Got = false
 		}
 	case data[0] == cameraConfigPrefix && data[1] == hidInterfaceGesture:
+		// Gesture has no discrete "mode" — the trailing byte is the on/off bit.
 		resp.Gesture = data[len(data)-1] == gestureEnabledByte
+	default:
+		resp.Got = false
 	}
 
 	return resp
