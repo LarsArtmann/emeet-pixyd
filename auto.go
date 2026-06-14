@@ -55,6 +55,7 @@ func (d *Daemon) handleCallStart(
 	d.autoError = errors.Join(errs...)
 	d.mu.Unlock()
 
+	d.broadcastStateChanged()
 	d.deps.notify(ctx, "EMEET PIXY", "Camera activated — "+autoMode.String()+" mode")
 }
 
@@ -82,6 +83,8 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 	d.mu.Lock()
 	d.autoError = autoErr
 	d.mu.Unlock()
+
+	d.broadcastStateChanged()
 }
 
 func (d *Daemon) autoManage(ctx context.Context) {
@@ -98,6 +101,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 		videoDev = d.videoDev
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		if videoDev == "" {
 			return

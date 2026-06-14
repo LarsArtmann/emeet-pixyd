@@ -51,6 +51,10 @@ type Daemon struct {
 
 	streamSema chan struct{}
 
+	// eventClients holds active Server-Sent Events subscribers. Each channel
+	// is buffered (cap 1) so broadcasts never block on slow readers.
+	eventClients map[chan struct{}]struct{}
+
 	deps Dependencies
 }
 
@@ -187,6 +191,52 @@ func (d *Daemon) Run() {
 	d.eventLoop(ctx, cancel, sigs, httpSrv)
 }
 
+// subscribeEvents registers a new SSE client and returns a buffered channel
+// that receives a signal whenever daemon state changes. Callers must pair
+// this with unsubscribeEvents to avoid leaking channels.
+func (d *Daemon) subscribeEvents() chan struct{} {
+	ch := make(chan struct{}, 1)
+
+	d.mu.Lock()
+	if d.eventClients == nil {
+		d.eventClients = make(map[chan struct{}]struct{})
+	}
+
+	d.eventClients[ch] = struct{}{}
+	d.mu.Unlock()
+
+	return ch
+}
+
+// unsubscribeEvents removes an SSE client and closes its channel.
+func (d *Daemon) unsubscribeEvents(ch chan struct{}) {
+	d.mu.Lock()
+	delete(d.eventClients, ch)
+	d.mu.Unlock()
+
+	close(ch)
+}
+
+// broadcastStateChanged notifies all active SSE clients that they should
+// refresh the UI. The notification is non-blocking; slow clients drop events.
+func (d *Daemon) broadcastStateChanged() {
+	d.mu.RLock()
+
+	clients := make([]chan struct{}, 0, len(d.eventClients))
+	for ch := range d.eventClients {
+		clients = append(clients, ch)
+	}
+
+	d.mu.RUnlock()
+
+	for _, ch := range clients {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
+}
+
 func (d *Daemon) startHTTPServer() *http.Server {
 	if d.config.WebAddr == "" {
 		return nil
@@ -259,6 +309,7 @@ func (d *Daemon) eventLoop(
 			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 			newVideo := d.videoDev
 			d.mu.Unlock()
+			d.broadcastStateChanged()
 
 			if oldVideo == "" && newVideo != "" {
 				slog.Info("device appeared, syncing state")

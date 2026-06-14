@@ -174,6 +174,46 @@ func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, reques
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
+func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
+	responseWriter.Header().Set("Content-Type", "text/event-stream")
+	responseWriter.Header().Set("Cache-Control", "no-cache")
+	responseWriter.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := responseWriter.(http.Flusher)
+	if !ok {
+		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
+
+		return
+	}
+
+	ch := s.daemon.subscribeEvents()
+	defer s.daemon.unsubscribeEvents(ch)
+
+	_, _ = fmt.Fprintf(responseWriter, "event: connected\ndata: {}\n\n")
+
+	flusher.Flush()
+
+	ctx := request.Context()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case _, ok := <-ch:
+			if !ok {
+				return
+			}
+
+			_, writeErr := fmt.Fprintf(responseWriter, "event: refresh\ndata: {}\n\n")
+			if writeErr != nil {
+				return
+			}
+
+			flusher.Flush()
+		}
+	}
+}
+
 func (s *webServer) action(command string) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
@@ -288,6 +328,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
+	mux.HandleFunc("GET /api/events", server.handleEvents)
 	mux.HandleFunc("GET /api/health", server.handleHealth)
 	mux.HandleFunc("POST /api/track", server.action(cmdTrack))
 	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))

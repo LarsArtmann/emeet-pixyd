@@ -119,6 +119,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 		d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 		dev := d.videoDev
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		if dev != "" {
 			return okResult("device found: " + dev)

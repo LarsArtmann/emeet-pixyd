@@ -35,7 +35,7 @@
 | 11  | ✅ DONE | Device name matching shared `isPixyName()` helper                                 | Quality sweep |
 | 12  | ✅ DONE | Error var consolidation (no duplicates)                                           | Quality sweep |
 | 13  | ✅ DONE | Eliminate `init()` for Prometheus metrics — lazy registration via `sync.Once`     | Roadmap 2.2   |
-| 14  | ⬜ TODO | Structured log levels audit (standardize Debug/Info/Warn/Error usage)             | Roadmap 4.2   |
+| 14  | ✅ DONE | Structured log levels audit (standardize Debug/Info/Warn/Error usage)             | Roadmap 4.2   |
 | 15  | ✅ DONE | Graceful degradation for missing optional deps (`checkExternalDeps()` at startup) | Roadmap 3.1   |
 
 ## Phase 3: Observability (P1-P2)
@@ -46,7 +46,7 @@
 | 17  | ✅ DONE | Circuit breaker for HID failures (`hidFailCount` + `hidCircuitBreakerThreshold`)                                      | Roadmap 3.2 |
 | 18  | ✅ DONE | Stream health monitoring (`metricStreamDuration` histogram + `metricFramesTotal` counter)                             | Roadmap 3.3 |
 | 19  | ✅ DONE | Benchmark suite (7 benchmarks: JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced)                      | Roadmap 6.3 |
-| 20  | ⬜ TODO | Continuous fuzz in CI (60s per test, store corpus, fail on crash)                                                     | Roadmap 6.2 |
+| 20  | ✅ DONE | Continuous fuzz in CI (60s per test, store corpus, fail on crash)                                                     | Roadmap 6.2 |
 
 ## Phase 4: Architecture (P2-P3)
 
@@ -63,7 +63,7 @@
 | #   | Status  | Task                                                       | Source      |
 | --- | ------- | ---------------------------------------------------------- | ----------- |
 | 26  | ⬜ TODO | Mobile-responsive layout                                   | Roadmap 5.3 |
-| 27  | ⬜ TODO | WebSocket for live state updates (replace 3s HTMX polling) | Roadmap 5.1 |
+| 27  | ✅ DONE | SSE for live state updates (replace 3s HTMX polling)       | Roadmap 5.1 |
 | 28  | ✅ DONE | Keyboard shortcuts for PTZ (arrow keys, +/- for zoom)      | Status E.12 |
 | 29  | ✅ DONE | PTZ relative mode (`pan+10`, `tilt-5`) via `parsePTZValue` | Status E.8  |
 | 30  | ⬜ TODO | Camera preset support (save/recall PTZ positions)          | Status F.9  |
@@ -130,8 +130,8 @@
 
 |            | Status | Count |
 | ---------- | ------ | ----- |
-| ✅ DONE    | 44     |
+| ✅ DONE    | 47     |
 | 🔶 PARTIAL | 0      |
 | ❌ SKIP    | 1      |
-| ⬜ TODO    | 17     |
+| ⬜ TODO    | 14     |
 | **Total**  | 62     |

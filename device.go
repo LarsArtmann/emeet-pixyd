@@ -15,7 +15,7 @@ import (
 func (d *Daemon) setDeviceState(
 	ctx context.Context,
 	configBytes, commitBytes []byte,
-	setter stateSetter,
+	mutator stateMutator,
 ) error {
 	d.mu.RLock()
 	hidDev := d.hidDev
@@ -41,6 +41,7 @@ func (d *Daemon) setDeviceState(
 			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 		}
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		return fmt.Errorf("setDeviceState send config: %w", err)
 	}
@@ -58,15 +59,17 @@ func (d *Daemon) setDeviceState(
 
 		recordHIDFailure(ctx)
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		return fmt.Errorf("setDeviceState send commit: %w", err)
 	}
 
 	d.mu.Lock()
 	d.hidFailCount = 0
-	setter(d)
+	mutator(d)
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
+	d.broadcastStateChanged()
 
 	return nil
 }
@@ -222,6 +225,7 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 	if changed {
 		d.saveStateOrLog("failed to save synced state")
 		d.mu.Unlock()
+		d.broadcastStateChanged()
 
 		return okResult("synced (state updated from camera)")
 	}

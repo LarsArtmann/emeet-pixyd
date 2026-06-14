@@ -11,7 +11,11 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
-type stateSetter func(d *Daemon)
+// stateMutator is called by setDeviceState after a successful HID commit.
+// It runs while d.mu is held and must mutate only d.state (or fields
+// protected by that lock). The caller persists the change to disk after
+// the mutator returns.
+type stateMutator func(d *Daemon)
 
 // loadState reads the persisted state from disk. Returns true if a valid
 // state file was found and applied, false if the file was missing, unreadable,

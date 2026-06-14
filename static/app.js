@@ -156,11 +156,44 @@
     showToast("Request timed out", "error");
   });
 
+  var evtSource = null;
+  var evtRetryDelay = STREAM_RETRY_INITIAL_MS;
+
+  function connectEvents() {
+    if (evtSource) return;
+
+    evtSource = new EventSource("/api/events");
+
+    evtSource.onopen = function () {
+      evtRetryDelay = STREAM_RETRY_INITIAL_MS;
+    };
+
+    evtSource.addEventListener("refresh", function () {
+      htmx.trigger("#status-panel", "refresh");
+    });
+
+    evtSource.onerror = function () {
+      if (evtSource) {
+        evtSource.close();
+        evtSource = null;
+      }
+
+      setTimeout(connectEvents, evtRetryDelay);
+      evtRetryDelay = Math.min(evtRetryDelay * 2, STREAM_RETRY_MAX_MS);
+    };
+  }
+
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
       streamRetryDelay = STREAM_RETRY_INITIAL_MS;
+      connectEvents();
+    } else if (evtSource) {
+      evtSource.close();
+      evtSource = null;
     }
   });
+
+  connectEvents();
 
   document.addEventListener("keydown", function (e) {
     if (
