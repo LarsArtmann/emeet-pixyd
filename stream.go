@@ -240,6 +240,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 			// hunt for an EOI that was just thrown away — producing a
 			// truncated/garbage frame.
 			buf.Reset()
+
 			soiFound = false
 		}
 
