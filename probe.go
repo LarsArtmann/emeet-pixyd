@@ -134,7 +134,11 @@ func probeDevices() probeResult {
 	return result
 }
 
-func (d *Daemon) applyProbeResult(r probeResult) {
+// applyProbeResultLocked updates the daemon's view of the PIXY device from a
+// probe result. The caller MUST hold d.mu (write lock) for the duration of
+// the call; all field writes are unsynchronized. Centralizing the write here
+// keeps the lock contract in one place and lets the race detector verify it.
+func (d *Daemon) applyProbeResultLocked(r probeResult) {
 	d.videoDev = r.VideoDev
 	d.hidrawDev = r.HidrawDev
 

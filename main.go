@@ -97,7 +97,9 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	}
 
 	registerMetrics()
-	d.applyProbeResult(probeDevices())
+	// NewDaemon runs before any goroutines exist, so we can call the
+	// _Locked variant directly without taking d.mu.
+	d.applyProbeResultLocked(probeDevices())
 	checkExternalDeps()
 
 	return d, nil
@@ -251,7 +253,7 @@ func (d *Daemon) eventLoop(
 			d.cmdMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			d.applyProbeResult(probeDevices()) //nolint:contextcheck
+			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 			newVideo := d.videoDev
 			d.mu.Unlock()
 

@@ -38,7 +38,7 @@ func (d *Daemon) setDeviceState(
 		recordHIDFailure(ctx)
 
 		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResult(probeDevices()) //nolint:contextcheck
+			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 		}
 		d.mu.Unlock()
 

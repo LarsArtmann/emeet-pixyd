@@ -95,7 +95,7 @@ func (d *Daemon) autoManage(ctx context.Context) {
 
 	if videoDev == "" {
 		d.mu.Lock()
-		d.applyProbeResult(probeDevices()) //nolint:contextcheck
+		d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
 		videoDev = d.videoDev
 		d.mu.Unlock()
 
