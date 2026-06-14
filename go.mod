@@ -5,9 +5,6 @@ go 1.26.3
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/coreos/go-systemd/v22 v22.7.0
-)
-
-require (
 	github.com/larsartmann/go-branded-id v0.3.0
 	github.com/larsartmann/httputil v0.2.0
 	github.com/prometheus/client_golang v1.23.2

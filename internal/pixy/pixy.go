@@ -324,7 +324,7 @@ const (
 )
 
 // Config holds daemon configuration parameters.
-// Fields marked with env tags are read from environment variables by ConfigFromEnv().
+// Values are read from environment variables by ConfigFromEnv().
 type Config struct {
 	StateDir      string
 	PollInterval  time.Duration
