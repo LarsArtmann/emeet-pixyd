@@ -23,15 +23,19 @@ type Config struct {
 }
 
 // DefaultConfig returns the standard daemon configuration.
+// State-related defaults (AutoMode, DefaultAudio) are derived from DefaultState()
+// so env defaults and initial runtime state cannot drift apart.
 func DefaultConfig() Config {
+	state := DefaultState()
+
 	//nolint:exhaustruct
 	return Config{
 		StateDir:      DefaultStateDir,
 		PollInterval:  DefaultPollInterval,
 		DebounceCount: DefaultDebounceCount,
 		WebAddr:       DefaultWebAddr,
-		AutoMode:      AutoFull,
-		DefaultAudio:  AudioNC,
+		AutoMode:      state.AutoMode,
+		DefaultAudio:  state.Audio,
 	}
 }
 

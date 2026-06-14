@@ -309,6 +309,27 @@ func TestDefaultConfig_NewFields(t *testing.T) {
 	}
 }
 
+func TestDefaultConfig_DoesNotDriftFromDefaultState(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultConfig()
+	state := DefaultState()
+
+	if cfg.AutoMode != state.AutoMode {
+		t.Errorf(
+			"DefaultConfig().AutoMode (%q) != DefaultState().AutoMode (%q): defaults drifted",
+			cfg.AutoMode, state.AutoMode,
+		)
+	}
+
+	if cfg.DefaultAudio != state.Audio {
+		t.Errorf(
+			"DefaultConfig().DefaultAudio (%q) != DefaultState().Audio (%q): defaults drifted",
+			cfg.DefaultAudio, state.Audio,
+		)
+	}
+}
+
 func TestConfigFromEnv_AutoAndAudio(t *testing.T) {
 	t.Setenv("EMEET_PIXYD_AUTO", "false")
 	t.Setenv("EMEET_PIXYD_DEFAULT_AUDIO", "live")
