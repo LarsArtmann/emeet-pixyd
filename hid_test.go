@@ -3,6 +3,8 @@
 package main
 
 import (
+	"context"
+	"strings"
 	"testing"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -199,4 +201,30 @@ func TestParseHIDResponseUnknownInterface(t *testing.T) {
 	}
 
 	assertTrackingIdle(t, resp.Tracking)
+}
+
+func TestHandleCommandSyncNoDevice(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(pixy.StateOffline, "", "")
+	result := d.handleCommand(context.Background(), cmdSync)
+	assertErrorPrefix(t, result.String())
+}
+
+func TestHandleCommandSyncWithDevice(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonWithDevice(pixy.StatePrivacy)
+	d.config = defaultTestConfig(t.TempDir())
+
+	result := d.handleCommand(context.Background(), cmdSync)
+	if result.IsError() {
+		assertErrorPrefix(t, result.String())
+
+		return
+	}
+
+	if !strings.HasPrefix(result.String(), "synced") {
+		t.Errorf("expected sync result to start with 'synced', got: %s", result)
+	}
 }
