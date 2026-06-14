@@ -132,7 +132,7 @@ func checkExternalDeps() {
 func sdNotify(state string) {
 	sent, err := daemon.SdNotify(false, state)
 	if err != nil {
-		slog.Debug("sd_notify failed", "error", err)
+		slog.Warn("sd_notify failed", "error", err)
 	} else if !sent {
 		slog.Debug("sd_notify not sent (no NOTIFY_SOCKET)")
 	}

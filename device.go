@@ -197,7 +197,7 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 			changed = true
 		}
 	} else if trackingErr != nil {
-		log.Debug("tracking query failed", "error", trackingErr)
+		log.Warn("tracking query failed", "error", trackingErr)
 	}
 
 	if audioErr == nil && audio.Valid() {
@@ -207,7 +207,7 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 			changed = true
 		}
 	} else if audioErr != nil {
-		log.Debug("audio query failed", "error", audioErr)
+		log.Warn("audio query failed", "error", audioErr)
 	}
 
 	if gestureErr == nil {
@@ -217,7 +217,7 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 			changed = true
 		}
 	} else {
-		log.Debug("gesture query failed", "error", gestureErr)
+		log.Warn("gesture query failed", "error", gestureErr)
 	}
 
 	d.lastSyncedAt = time.Now()
