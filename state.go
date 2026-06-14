@@ -13,14 +13,24 @@ import (
 
 type stateSetter func(d *Daemon)
 
-func (d *Daemon) loadState() {
+// loadState reads the persisted state from disk. Returns true if a valid
+// state file was found and applied, false if the file was missing, unreadable,
+// invalid, or contained invalid enum values (caller should keep its defaults).
+func (d *Daemon) loadState() bool {
 	data, err := os.ReadFile(d.config.StateFile())
 	if err != nil {
 		if !os.IsNotExist(err) {
+			slog.Warn(
+				"failed to read state file, keeping current state",
+				"path",
+				d.config.StateFile(),
+				"error",
+				err,
+			)
 			_ = os.Remove(d.config.StateFile() + ".tmp")
 		}
 
-		return
+		return false
 	}
 
 	var loaded pixy.State
@@ -35,7 +45,7 @@ func (d *Daemon) loadState() {
 			jsonErr,
 		)
 
-		return
+		return false
 	}
 
 	if !loaded.Valid() {
@@ -51,10 +61,12 @@ func (d *Daemon) loadState() {
 			loaded.AutoMode,
 		)
 
-		return
+		return false
 	}
 
 	d.state = loaded
+
+	return true
 }
 
 func (d *Daemon) ensureStateDir() error {

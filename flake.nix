@@ -99,6 +99,17 @@
             meta = {
               mainProgram = "emeet-pixyd";
               description = "EMEET PIXY webcam auto-activation daemon";
+              homepage = "https://github.com/LarsArtmann/emeet-pixyd";
+              license = {
+                shortName = "MIT";
+                fullName = "MIT License";
+                url = "https://opensource.org/licenses/MIT";
+              };
+              maintainers = [ ];
+              platforms = [
+                "x86_64-linux"
+                "aarch64-linux"
+              ];
             };
           };
 
@@ -135,7 +146,9 @@
                 runHook postInstall
               '';
             };
-            test = config.packages.default.overrideAttrs (_: { doCheck = true; });
+            test = config.packages.default.overrideAttrs (_: {
+              doCheck = true;
+            });
           };
 
           devShells = {

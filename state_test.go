@@ -103,7 +103,9 @@ func TestStateFileCorrupt(t *testing.T) {
 
 	d := testDaemonNoDevice()
 	d.config = cfg
-	d.loadState()
+	if loaded := d.loadState(); loaded {
+		t.Error("expected loadState to return false for corrupt file")
+	}
 
 	if d.state.Camera != pixy.StatePrivacy {
 		t.Errorf("expected state to remain unchanged on corrupt file, got %s", d.state.Camera)
@@ -116,7 +118,41 @@ func TestStateFileMissing(t *testing.T) {
 	cfg := defaultTestConfig("/nonexistent")
 	d := testDaemonNoDevice()
 	d.config = cfg
-	d.loadState()
+	if loaded := d.loadState(); loaded {
+		t.Error("expected loadState to return false for missing file")
+	}
 
 	assertCameraState(t, d, pixy.StatePrivacy)
+}
+
+func TestStateFileValid(t *testing.T) {
+	t.Parallel()
+
+	cfg := defaultTestConfig(t.TempDir())
+
+	d := testDaemonNoDevice()
+	d.config = cfg
+	d.state = pixy.State{
+		Camera:   pixy.StateTracking,
+		Audio:    pixy.AudioLive,
+		Gesture:  true,
+		InCall:   true,
+		AutoMode: pixy.AutoOff,
+	}
+	if saveErr := d.saveState(); saveErr != nil {
+		t.Fatalf("saveState: %v", saveErr)
+	}
+
+	// Simulate a fresh daemon start with a different in-memory default.
+	d2 := testDaemonNoDevice()
+	d2.config = cfg
+	d2.state = pixy.DefaultState()
+
+	if loaded := d2.loadState(); !loaded {
+		t.Error("expected loadState to return true for valid file")
+	}
+
+	if d2.state.AutoMode != pixy.AutoOff {
+		t.Errorf("expected persisted AutoMode to win, got %s", d2.state.AutoMode)
+	}
 }

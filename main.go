@@ -88,13 +88,15 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.deps.centerCamera = d.centerCamera
 	d.deps.v4l2Set = v4l2Set
 	d.deps.parsePTZ = parsePTZValues
-	// Config values override defaults before loading persisted state;
-	// persisted state (if valid) wins, ensuring user overrides survive restarts.
-	d.state.AutoMode = cfg.AutoMode
-	d.state.Audio = cfg.DefaultAudio
+	// Persisted state wins on subsequent restarts; env-configured defaults apply
+	// only on first run (no valid state file present). This way EMEET_PIXYD_AUTO
+	// and EMEET_PIXYD_DEFAULT_AUDIO seed initial state, then the daemon takes over.
+	if !d.loadState() {
+		d.state.AutoMode = cfg.AutoMode
+		d.state.Audio = cfg.DefaultAudio
+	}
 
 	registerMetrics()
-	d.loadState()
 	d.applyProbeResult(probeDevices())
 	checkExternalDeps()
 
