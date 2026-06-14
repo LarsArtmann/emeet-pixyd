@@ -129,3 +129,68 @@ func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
 
 	return ptz
 }
+
+func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandResult {
+	if len(parts) < minCmdParts {
+		return okResult(fmt.Sprintf("usage: %s <value>", parts[0]))
+	}
+
+	axis := parts[0]
+
+	info, ok := ptzAxes[axis]
+	if !ok {
+		return errResultMsg("unknown PTZ axis: " + axis)
+	}
+
+	val, relative, parseErr := parsePTZValue(parts[1])
+	if parseErr != nil {
+		return errResult(axis, fmt.Errorf("%w: parse error", ErrInvalidValue))
+	}
+
+	d.mu.RLock()
+	videoDev := d.videoDev
+	d.mu.RUnlock()
+
+	if videoDev == "" {
+		return errResult(axis, errDeviceNotFound)
+	}
+
+	if relative {
+		current := d.deps.parsePTZ(ctx, videoDev)
+		val = current.Get(axis) + val
+	}
+
+	val = clampInt(val, info.Min, info.Max)
+
+	v4l2Err := d.deps.v4l2Set(
+		ctx,
+		videoDev,
+		info.V4L2Ctrl,
+		strconv.Itoa(val*info.Multiplier),
+	)
+	if v4l2Err != nil {
+		return errResult(axis, v4l2Err)
+	}
+
+	return okResult(fmt.Sprintf("%s set to %d", axis, val))
+}
+
+// parsePTZValue parses a PTZ value string, detecting relative mode (+10, -5).
+// Returns the integer value, whether it's relative, and any parse error.
+func parsePTZValue(s string) (int, bool, error) {
+	if len(s) > 1 && (s[0] == '+' || s[0] == '-') {
+		v, err := strconv.Atoi(s)
+		if err != nil {
+			return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+		}
+
+		return v, true, nil
+	}
+
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+	}
+
+	return v, false, nil
+}
