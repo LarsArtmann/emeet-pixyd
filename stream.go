@@ -234,7 +234,13 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 	for range maxIterations {
 		if buf.Len() > maxStreamBufferSize {
+			// Buffer overflow: discard everything collected so far and
+			// restart the frame scan. Leaving soiFound=true would cause
+			// the next bytes to be appended to an empty buffer while we
+			// hunt for an EOI that was just thrown away — producing a
+			// truncated/garbage frame.
 			buf.Reset()
+			soiFound = false
 		}
 
 		b, err := br.ReadByte()
