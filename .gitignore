@@ -15,3 +15,4 @@ node_modules/
 *_templ.go
 # Sensitive files
 *.db
+reports/
