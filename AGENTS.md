@@ -290,8 +290,3 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 
 ---
 
-## Session History (Key Architectural Changes)
-
-- **2026-06-05**: CommandResult typed returns, Dependencies struct in deps.go, HIDDevice interface + circuit breaker, PTZ relative mode, keyboard PTZ shortcuts, autoError surfacing, graceful degradation, new files (waybar.go, socket.go, deps.go, ptz.go), deleted v4l2.go
-- **2026-06-06**: Lint cleanup (106→0 issues), stream semaphore bug fix, autoError string→error refactor, device.go extraction (11 methods from main.go)
-- **2026-06-07 (session 8)**: CSS variables for all hardcoded colors, `daemonMetrics` struct with DRY helpers, `slog.With` contextual logging in device.go/auto.go, `Run()` decomposed into `startHTTPServer`/`handleShutdown`/`eventLoop`, `lastFrameCache.Get()` defensive copy, app.js XSS fix + URL validation + PTZ helpers, `streamResult` named struct, lint check in flake.nix, CHANGELOG 0.2.0 release
