@@ -155,6 +155,8 @@ func TestHandleCallStart_FindSourceErrorSurfacesInAutoError(t *testing.T) {
 	t.Parallel()
 
 	d := testAutoDaemon(
+		withNoopTracking(),
+		withNoopAudio(),
 		func(d *Daemon) {
 			d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) {
 				return pixy.SourceID{}, ErrAudioSourceNotFound
@@ -176,7 +178,11 @@ func TestHandleCallStart_FindSourceErrorSurfacesInAutoError(t *testing.T) {
 func TestHandleCallStart_FindSourceSuccessClearsAutoError(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withFindSource("42"))
+	d := testAutoDaemon(
+		withNoopTracking(),
+		withNoopAudio(),
+		withFindSource("42"),
+	)
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 

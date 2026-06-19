@@ -60,6 +60,18 @@ func withNoopV4L2() testDaemonOption {
 	}
 }
 
+func withNoopTracking() testDaemonOption {
+	return func(d *Daemon) {
+		d.deps.setTracking = func(_ context.Context, _ pixy.CameraState) error { return nil }
+	}
+}
+
+func withNoopAudio() testDaemonOption {
+	return func(d *Daemon) {
+		d.deps.setAudio = func(_ context.Context, _ pixy.AudioMode) error { return nil }
+	}
+}
+
 type v4l2Call struct {
 	dev, ctrl, val string
 }

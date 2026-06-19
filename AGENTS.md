@@ -173,7 +173,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - Standard `testing` package only (no testify)
 - **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withInCall()` or custom `testDaemonOption` to inject mock deps
 - Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`, `setTrackingFn`, `setAudioFn`, `setGestureFn`, `centerCameraFn`, `v4l2SetFn`) default to no-op stubs or real implementations in tests
-- Predefined test options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, `withNotifyCalled()`, `withNotifyMessages()`, `withFindSource()`, `withCaptureTracking()`, `withCaptureAudio()`, `withCaptureGesture()`, `withCaptureGestureArg()`, `withCaptureCenter()`, `withNoopV4L2()`, `withDebounceCount()`
+- Predefined test options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, `withNotifyCalled()`, `withNotifyMessages()`, `withFindSource()`, `withCaptureTracking()`, `withCaptureAudio()`, `withCaptureGesture()`, `withCaptureGestureArg()`, `withCaptureCenter()`, `withNoopV4L2()`, `withNoopTracking()`, `withNoopAudio()`, `withDebounceCount()`
 - `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
@@ -255,6 +255,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **justfile removed**: Deprecated in favor of flake.nix. No justfile in the project.
 - **PTZ success toasts suppressed**: `handlePTZ` passes empty toast on success to avoid visual spam during slider drag. Error toasts still shown.
 - **`TestAutoManage_NoDevice_Returns` skips when device present**: Detects real hardware via `probeVideo4linux()` and `t.Skip()` if found.
+- **`newTestDaemon` wires REAL HID/V4L2 impls by default**: `setTracking`, `setAudio`, `setGesture`, `centerCamera`, `v4l2Set` default to the real `d.*` methods (which open `/dev/hidraw7` / run `v4l2-ctl`). Tests that assert on `autoError` or other side effects WITHOUT exercising HID must inject no-op stubs (`withNoopTracking()`, `withNoopAudio()`, `withNoopV4L2()`), otherwise they fail on hardware-bearing machines where `/dev/hidraw7` is inaccessible (permission denied) and pass only by accident on hardware-less CI.
 - **No `init()` functions**: All `init()` functions eliminated. Metrics registration is lazy via `sync.Once` in `registerMetrics()`, called from `NewDaemon()` and `updateMetrics()`.
 - **`handleHealth` uses typed struct**: `healthResponse` struct with `json.Marshal` instead of `fmt.Fprintf` JSON template — proper escaping.
 - **`PTZValues.Get/Set` for axis-agnostic access**: All PTZ code uses `Get(axis)`/`Set(axis, val)` instead of switch-on-axis. `ptzAxisValue`, relative PTZ, and `parsePTZValues` all use these methods.
@@ -289,4 +290,3 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - Creates `/run/emeet-pixyd` tmpfiles.d entry
 
 ---
-
