@@ -28,9 +28,7 @@ func TestHandleCommandUnknown(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "foobar")
-	if result.String() != "error: unknown command: foobar" {
-		t.Errorf("expected unknown command response, got: %s", result)
-	}
+	assertEqual(t, result.String(), "error: unknown command: foobar")
 }
 
 func TestHandleCommandAutoToggle(t *testing.T) {
@@ -40,18 +38,14 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), "auto-off")
-	if result.String() != respAutoModeOff {
-		t.Errorf("expected 'auto mode off', got: %s", result)
-	}
+	assertEqual(t, result.String(), respAutoModeOff)
 
 	if d.state.AutoMode != pixy.AutoOff {
 		t.Error("expected auto mode to be false")
 	}
 
 	result = d.handleCommand(context.Background(), "auto-on")
-	if result.String() != "auto mode: full" {
-		t.Errorf("expected 'auto mode: full', got: %s", result)
-	}
+	assertEqual(t, result.String(), "auto mode: full")
 
 	assertAutoMode(t, d, pixy.AutoFull)
 }
@@ -135,9 +129,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 	)
 
 	result := d.handleCommand(context.Background(), cmdTogglePrivacy)
-	if result.String() != respTrackingOn {
-		t.Errorf("expected %q, got %q", respTrackingOn, result)
-	}
+	assertEqual(t, result.String(), respTrackingOn)
 
 	if len(captured) != 1 || captured[0] != pixy.StateTracking {
 		t.Errorf("expected tracking call with tracking, got %v", captured)

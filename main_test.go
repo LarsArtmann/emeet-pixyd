@@ -193,24 +193,31 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 	return readState(d, func(s pixy.State) pixy.AudioMode { return s.Audio })
 }
 
+// noopDependencies returns a Dependencies struct where every function is a
+// no-op stub. Shared by test daemon builders that need a fully populated
+// Dependencies without any real HID/V4L2 side effects.
+func noopDependencies() Dependencies {
+	return Dependencies{
+		isCameraInUse: func(string) bool { return false },
+		findSource:    noopFindSourceFn,
+		setSource:     noopSetSourceFn,
+		notify:        noopNotifyFn,
+		setTracking:   func(_ context.Context, _ pixy.CameraState) error { return nil },
+		setAudio:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
+		setGesture:    func(_ context.Context, _ bool) error { return nil },
+		centerCamera:  func(_ context.Context) error { return nil },
+		v4l2Set:       func(_ context.Context, _, _, _ string) error { return nil },
+		parsePTZ:      func(_ context.Context, _ string) pixy.PTZValues { return pixy.PTZValues{} },
+	}
+}
+
 func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 	return &Daemon{
 		mu:         sync.RWMutex{},
 		config:     cfg,
 		state:      state,
 		streamSema: make(chan struct{}, 1),
-		deps: Dependencies{
-			isCameraInUse: func(string) bool { return false },
-			findSource:    noopFindSourceFn,
-			setSource:     noopSetSourceFn,
-			notify:        noopNotifyFn,
-			setTracking:   func(_ context.Context, _ pixy.CameraState) error { return nil },
-			setAudio:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
-			setGesture:    func(_ context.Context, _ bool) error { return nil },
-			centerCamera:  func(_ context.Context) error { return nil },
-			v4l2Set:       func(_ context.Context, _, _, _ string) error { return nil },
-			parsePTZ:      func(_ context.Context, _ string) pixy.PTZValues { return pixy.PTZValues{} },
-		},
+		deps:       noopDependencies(),
 	}
 }
 

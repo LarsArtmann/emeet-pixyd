@@ -10,6 +10,27 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+// inCallState returns a pixy.State representing an active call scenario
+// shared across multiple state persistence tests.
+func inCallState() pixy.State {
+	return pixy.State{
+		Camera:   pixy.StateTracking,
+		Audio:    pixy.AudioLive,
+		Gesture:  true,
+		InCall:   true,
+		AutoMode: pixy.AutoOff,
+	}
+}
+
+// assertLoadStateFalse fails if loadState returns true (used for corrupt/missing files).
+func assertLoadStateFalse(t *testing.T, d *Daemon, label string) {
+	t.Helper()
+
+	if loaded := d.loadState(); loaded {
+		t.Errorf("expected loadState to return false for %s file", label)
+	}
+}
+
 func TestStateDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -33,15 +54,9 @@ func TestStateSaveLoad(t *testing.T) {
 	cfg := defaultTestConfig(t.TempDir())
 
 	d := &Daemon{
-		mu:     sync.RWMutex{},
-		config: cfg,
-		state: pixy.State{
-			Camera:   pixy.StateTracking,
-			Audio:    pixy.AudioLive,
-			Gesture:  true,
-			InCall:   true,
-			AutoMode: pixy.AutoOff,
-		},
+		mu:            sync.RWMutex{},
+		config:        cfg,
+		state:         inCallState(),
 		videoDev:      "",
 		hidrawDev:     "",
 		debounceInUse: 0,
@@ -104,9 +119,7 @@ func TestStateFileCorrupt(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	d.config = cfg
-	if loaded := d.loadState(); loaded {
-		t.Error("expected loadState to return false for corrupt file")
-	}
+	assertLoadStateFalse(t, d, "corrupt")
 
 	if d.state.Camera != pixy.StatePrivacy {
 		t.Errorf("expected state to remain unchanged on corrupt file, got %s", d.state.Camera)
@@ -120,9 +133,7 @@ func TestStateFileMissing(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	d.config = cfg
-	if loaded := d.loadState(); loaded {
-		t.Error("expected loadState to return false for missing file")
-	}
+	assertLoadStateFalse(t, d, "missing")
 
 	assertCameraState(t, d, pixy.StatePrivacy)
 }
@@ -135,13 +146,7 @@ func TestStateFileValid(t *testing.T) {
 	d := testDaemonNoDevice()
 	d.config = cfg
 
-	d.state = pixy.State{
-		Camera:   pixy.StateTracking,
-		Audio:    pixy.AudioLive,
-		Gesture:  true,
-		InCall:   true,
-		AutoMode: pixy.AutoOff,
-	}
+	d.state = inCallState()
 	if saveErr := d.saveState(); saveErr != nil {
 		t.Fatalf("saveState: %v", saveErr)
 	}

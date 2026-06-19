@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -55,6 +54,45 @@ func assertV4L2Call(t *testing.T, v4l2Calls []struct{ axis, val string }, wantVa
 	}
 }
 
+func assertV4L2CallFull(t *testing.T, calls []v4l2Call, wantDev, wantCtrl, wantVal string) {
+	t.Helper()
+
+	if len(calls) != 1 {
+		t.Fatalf("expected 1 v4l2 call, got %d", len(calls))
+	}
+
+	call := calls[0]
+
+	if call.dev != wantDev {
+		t.Errorf("v4l2 dev = %q, want %q", call.dev, wantDev)
+	}
+
+	if call.ctrl != wantCtrl {
+		t.Errorf("v4l2 ctrl = %q, want %q", call.ctrl, wantCtrl)
+	}
+
+	if call.val != wantVal {
+		t.Errorf("v4l2 val = %q, want %q", call.val, wantVal)
+	}
+}
+
+func assertPTZCacheInvalidated(t *testing.T, d *Daemon) {
+	t.Helper()
+
+	if _, valid := d.ptzCache.Get(); valid {
+		t.Error("PTZ cache should be invalidated after successful set")
+	}
+}
+
+// withSeededPTZCache returns a testDaemonOption that primes the PTZ cache
+// with a known starting state (pan=0, tilt=0, zoom=100) so subsequent
+// requests can be observed against a non-zero baseline.
+func withSeededPTZCache() testDaemonOption {
+	return func(d *Daemon) {
+		d.ptzCache.Set(pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}, ptzCacheTTL)
+	}
+}
+
 func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	t.Parallel()
 
@@ -87,10 +125,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 		"/dev/video0",
 		"/dev/hidraw7",
 		withNoopV4L2(),
-		func(d *Daemon) {
-			d.ptzCache.values = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}
-			d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
-		},
+		withSeededPTZCache(),
 	)
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
@@ -115,13 +150,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	}
 
 	// And the PTZ cache is invalidated
-	d.ptzCache.mu.RLock()
-	expired := time.Now().After(d.ptzCache.expiresAt)
-	d.ptzCache.mu.RUnlock()
-
-	if !expired {
-		t.Error("PTZ cache should be invalidated after successful set")
-	}
+	assertPTZCacheInvalidated(t, d)
 }
 
 func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
@@ -172,10 +201,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 				"/dev/video0",
 				"/dev/hidraw7",
 				withCaptureV4L2(&v4l2Calls),
-				func(d *Daemon) {
-					d.ptzCache.values = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}
-					d.ptzCache.expiresAt = time.Now().Add(ptzCacheTTL)
-				},
+				withSeededPTZCache(),
 			)
 			webSrv := &webServer{daemon: d}
 			mux := newWebMux(webSrv)
@@ -192,31 +218,10 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 			assertCommandContains(t, html, tc.wantSlider, "slider response")
 
 			// And v4l2-ctl was called with the correct control and scaled value
-			if len(v4l2Calls) != 1 {
-				t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
-			}
-
-			call := v4l2Calls[0]
-			if call.dev != "/dev/video0" {
-				t.Errorf("v4l2 dev = %q, want /dev/video0", call.dev)
-			}
-
-			if call.ctrl != tc.wantCtrl {
-				t.Errorf("v4l2 ctrl = %q, want %q", call.ctrl, tc.wantCtrl)
-			}
-
-			if call.val != tc.wantVal {
-				t.Errorf("v4l2 val = %q, want %q", call.val, tc.wantVal)
-			}
+			assertV4L2CallFull(t, v4l2Calls, "/dev/video0", tc.wantCtrl, tc.wantVal)
 
 			// And the PTZ cache is invalidated
-			d.ptzCache.mu.RLock()
-			expired := time.Now().After(d.ptzCache.expiresAt)
-			d.ptzCache.mu.RUnlock()
-
-			if !expired {
-				t.Error("PTZ cache should be invalidated after successful set")
-			}
+			assertPTZCacheInvalidated(t, d)
 		})
 	}
 }

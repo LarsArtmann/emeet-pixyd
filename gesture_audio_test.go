@@ -9,6 +9,15 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+// assertAudioLive fails the test if the captured audio mode is not AudioLive.
+func assertAudioLive(t *testing.T, modeArg pixy.AudioMode, scenario string) {
+	t.Helper()
+
+	if modeArg != pixy.AudioLive {
+		t.Errorf("%s = %s, want %s", scenario, modeArg, pixy.AudioLive)
+	}
+}
+
 func TestHandleGestureCommand_On(t *testing.T) {
 	t.Parallel()
 
@@ -87,9 +96,7 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
 	notError(t, resp)
 
-	if modeArg != pixy.AudioLive {
-		t.Errorf("setAudio called with %s, want %s", modeArg, pixy.AudioLive)
-	}
+	assertAudioLive(t, modeArg, "setAudio called with")
 }
 
 func TestHandleAudioCommand_InvalidMode(t *testing.T) {
@@ -113,9 +120,7 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio})
 	notError(t, resp)
 
-	if modeArg != pixy.AudioLive {
-		t.Errorf("next mode = %s, want %s", modeArg, pixy.AudioLive)
-	}
+	assertAudioLive(t, modeArg, "next mode")
 }
 
 func TestHandleTrackingCommand_SetTracking(t *testing.T) {
@@ -143,9 +148,7 @@ func TestHandleTrackingCommand_ErrorPath(t *testing.T) {
 	})
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
-	if !resp.IsError() {
-		t.Errorf("expected error response, got: %s", resp.String())
-	}
+	expectError(t, resp)
 }
 
 func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {

@@ -21,6 +21,15 @@ func assertDebounce(t *testing.T, d *Daemon, wantInUse, wantIdle int) {
 	}
 }
 
+// assertTooltipContains fails if the waybar tooltip does not contain substring.
+func assertTooltipContains(t *testing.T, parsed map[string]string, substr, label string) {
+	t.Helper()
+
+	if !strings.Contains(parsed["tooltip"], substr) {
+		t.Errorf("tooltip should contain %s %q, got: %s", label, substr, parsed["tooltip"])
+	}
+}
+
 func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 	t.Parallel()
 
@@ -162,22 +171,12 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 				t.Error("tooltip should contain device name")
 			}
 
-			if !strings.Contains(parsed["tooltip"], string(tc.camera)) {
-				t.Errorf("tooltip should contain camera state %s", tc.camera)
-			}
-
-			if !strings.Contains(parsed["tooltip"], string(tc.audio)) {
-				t.Errorf("tooltip should contain audio mode %s", tc.audio)
-			}
-
-			if !strings.Contains(parsed["tooltip"], string(tc.autoMode)) {
-				t.Errorf("tooltip should contain auto mode %s", tc.autoMode)
-			}
+			assertTooltipContains(t, parsed, string(tc.camera), "camera state")
+			assertTooltipContains(t, parsed, string(tc.audio), "audio mode")
+			assertTooltipContains(t, parsed, string(tc.autoMode), "auto mode")
 
 			if tc.inCall {
-				if !strings.Contains(parsed["tooltip"], "In call: yes") {
-					t.Error("tooltip should show in-call status when in call")
-				}
+				assertTooltipContains(t, parsed, "In call: yes", "in-call status")
 			}
 
 			if !strings.Contains(parsed["class"], "custom-camera") {

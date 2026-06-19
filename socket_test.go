@@ -89,13 +89,9 @@ func TestSocket_ProbeCommand(t *testing.T) {
 
 	resp := sendSC(t, cfg.SocketPath(), cmdProbe)
 	if daemon.videoDev != "" {
-		if !strings.HasPrefix(resp, "device found:") {
-			t.Errorf("expected 'device found: ...', got: %s", resp)
-		}
+		assertSocketResponsePrefix(t, resp, "device found:", "probe response")
 	} else {
-		if resp != "device not found" {
-			t.Errorf("expected 'device not found', got: %s", resp)
-		}
+		assertEqual(t, resp, "device not found")
 	}
 }
 
@@ -176,9 +172,7 @@ func TestSocket_AudioInvalidMode(t *testing.T) {
 	_, cfg := startSocketDaemon(t)
 
 	resp := sendSC(t, cfg.SocketPath(), "audio badmode")
-	if !strings.HasPrefix(resp, "error: audio badmode:") {
-		t.Errorf("expected error starting with 'error: audio badmode:', got: %s", resp)
-	}
+	assertSocketResponsePrefix(t, resp, "error: audio badmode:", "audio badmode response")
 }
 
 func TestSocket_AudioValidModes(t *testing.T) {

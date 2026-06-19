@@ -41,6 +41,22 @@ func notError(t *testing.T, result CommandResult) {
 	}
 }
 
+func expectError(t *testing.T, result CommandResult) {
+	t.Helper()
+
+	if !result.IsError() {
+		t.Errorf("expected error response, got: %s", result.String())
+	}
+}
+
+func assertEqual(t *testing.T, got, want string) {
+	t.Helper()
+
+	if got != want {
+		t.Errorf("expected %q, got %q", want, got)
+	}
+}
+
 func TestActionToast_KnownCommands(t *testing.T) {
 	t.Parallel()
 
@@ -153,9 +169,7 @@ func TestHandleQueryCommand_Version(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdVersion})
-	if !strings.HasPrefix(resp.String(), "emeet-pixyd ") {
-		t.Errorf("expected version prefix, got: %s", resp.String())
-	}
+	assertStatusPrefix(t, resp.String(), "emeet-pixyd ", "version")
 }
 
 func TestHandleQueryCommand_Waybar(t *testing.T) {
@@ -164,9 +178,7 @@ func TestHandleQueryCommand_Waybar(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdWaybar})
-	if !strings.Contains(resp.String(), `"class"`) {
-		t.Errorf("expected JSON with 'class' key, got: %s", resp.String())
-	}
+	assertCommandContains(t, resp.String(), `"class"`, "response")
 }
 
 func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
@@ -186,9 +198,7 @@ func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 	d := testDaemonWithDevice(pixy.StateTracking)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
-	if !strings.Contains(resp.String(), "/dev/video") {
-		t.Errorf("expected device path, got: %s", resp.String())
-	}
+	assertCommandContains(t, resp.String(), "/dev/video", "response")
 }
 
 func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
@@ -197,9 +207,7 @@ func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdSync})
-	if !resp.IsError() {
-		t.Errorf("expected error response for sync without device, got: %s", resp.String())
-	}
+	expectError(t, resp)
 }
 
 func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
@@ -224,9 +232,7 @@ func TestHandleMutatingCommand_Unknown(t *testing.T) {
 	d := testDaemonNoDevice()
 
 	resp := d.handleMutatingCommand(context.Background(), []string{"unknown-cmd"})
-	if !strings.HasPrefix(resp.String(), "error: unknown command:") {
-		t.Errorf("expected unknown command response, got: %s", resp.String())
-	}
+	assertStatusPrefix(t, resp.String(), "error: unknown command:", "unknown command")
 }
 
 func TestHandleCommand_QueryNoLock(t *testing.T) {

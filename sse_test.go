@@ -4,8 +4,8 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -22,13 +22,21 @@ func readSSELine(t *testing.T, reader *bufio.Reader) string {
 	return line
 }
 
-func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
-	t.Parallel()
+// assertSSELine reads the next line from the SSE reader and asserts it equals want.
+func assertSSELine(t *testing.T, reader *bufio.Reader, want string) {
+	t.Helper()
 
-	d := testDaemonNoDevice()
-	server := newTestWebServer(t, d)
+	if got := readSSELine(t, reader); got != want {
+		t.Errorf("sse line = %q, want %q", got, want)
+	}
+}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL+"/api/events", nil)
+// openSSEStream opens a GET connection to /api/events on the given server
+// and registers a cleanup hook to close the body.
+func openSSEStream(t *testing.T, server *httptest.Server) *http.Response {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL+"/api/events", nil)
 	if err != nil {
 		t.Fatalf("new request: %v", err)
 	}
@@ -39,6 +47,17 @@ func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
 	}
 
 	t.Cleanup(func() { _ = resp.Body.Close() })
+
+	return resp
+}
+
+func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice()
+	server := newTestWebServer(t, d)
+
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
@@ -51,13 +70,8 @@ func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
 
 	reader := bufio.NewReader(resp.Body)
 
-	if got := readSSELine(t, reader); got != "event: connected\n" {
-		t.Errorf("first event = %q, want event: connected", got)
-	}
-
-	if got := readSSELine(t, reader); got != "data: {}\n" {
-		t.Errorf("first data = %q, want data: {}", got)
-	}
+	assertSSELine(t, reader, "event: connected\n")
+	assertSSELine(t, reader, "data: {}\n")
 }
 
 func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
@@ -66,18 +80,7 @@ func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
 	d := testDaemonNoDevice()
 	server := newTestWebServer(t, d)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL+"/api/events", nil)
-	if err != nil {
-		t.Fatalf("new request: %v", err)
-	}
-
-	resp, err := server.Client().Do(req)
-	if err != nil {
-		t.Fatalf("GET /api/events: %v", err)
-	}
-
-	t.Cleanup(func() { _ = resp.Body.Close() })
-
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 	reader := bufio.NewReader(resp.Body)
 
 	// Consume connected event.

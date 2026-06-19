@@ -25,9 +25,7 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
-	if resp.IsError() {
-		t.Errorf("expected success, got: %s", resp.String())
-	}
+	notError(t, resp)
 
 	assertCommandContains(t, resp.String(), "full", "response")
 

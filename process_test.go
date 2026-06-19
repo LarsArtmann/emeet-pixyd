@@ -27,9 +27,7 @@ func TestPpidOf_InvalidPID(t *testing.T) {
 	t.Parallel()
 
 	ppid := ppidOf(pixy.NewPID(999999999))
-	if !ppid.IsZero() {
-		t.Errorf("expected 0 for invalid PID, got %d", ppid.Get())
-	}
+	assertPIDIsZero(t, ppid, "invalid PID")
 }
 
 func TestPpidOf_InitProcess(t *testing.T) {
@@ -77,19 +75,34 @@ func TestIsDescendantOf_SamePID(t *testing.T) {
 	}
 }
 
-func TestIsCameraInUse_EmptyDev(t *testing.T) {
-	t.Parallel()
+// assertPIDIsZero fails the test if the given PID is not zero (invalid/edge-case).
+func assertPIDIsZero(t *testing.T, ppid pixy.PID, label string) {
+	t.Helper()
 
-	if isCameraInUse("") {
-		t.Error("expected false for empty device path")
+	if !ppid.IsZero() {
+		t.Errorf("expected 0 for %s, got %d", label, ppid.Get())
 	}
 }
 
-func TestIsCameraInUse_NonexistentDev(t *testing.T) {
+func TestIsCameraInUse_NonexistentOrEmptyDev(t *testing.T) {
 	t.Parallel()
 
-	if isCameraInUse("/dev/video_nonexistent_xyz") {
-		t.Error("expected false for nonexistent device")
+	tests := []struct {
+		name string
+		dev  string
+	}{
+		{name: "empty dev path", dev: ""},
+		{name: "nonexistent dev", dev: "/dev/video_nonexistent_xyz"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if isCameraInUse(tc.dev) {
+				t.Errorf("expected false for %s device path %q", tc.name, tc.dev)
+			}
+		})
 	}
 }
 
@@ -150,9 +163,7 @@ func TestPpidOf_MalformedStat(t *testing.T) {
 	// ppidOf reads from /proc, not our tmpDir, so this tests the real /proc.
 	// We just verify it doesn't panic on edge cases.
 	ppid := ppidOf(pixy.NewPID(-1))
-	if !ppid.IsZero() {
-		t.Errorf("expected 0 for negative PID, got %d", ppid.Get())
-	}
+	assertPIDIsZero(t, ppid, "negative PID")
 }
 
 func TestIsDescendantOf_MaxDepth(t *testing.T) {

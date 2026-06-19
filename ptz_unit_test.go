@@ -9,6 +9,16 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+// assertAxisNotInMap fails if the given axis exists in ptzAxes.
+// Used to verify the map rejects unknown axis names.
+func assertAxisNotInMap(t *testing.T, axis string) {
+	t.Helper()
+
+	if _, ok := ptzAxes[axis]; ok {
+		t.Errorf("unknown axis %q should not be in ptzAxes", axis)
+	}
+}
+
 func TestPTZAxisLabel(t *testing.T) {
 	t.Parallel()
 
@@ -27,9 +37,7 @@ func TestPTZAxisLabel(t *testing.T) {
 		}
 	}
 
-	if _, ok := ptzAxes["unknown"]; ok {
-		t.Error("unknown axis should not be in ptzAxes")
-	}
+	assertAxisNotInMap(t, "unknown")
 }
 
 func TestPTZAxisUnit(t *testing.T) {
@@ -109,9 +117,7 @@ func TestPTZLimits(t *testing.T) {
 		t.Errorf("zoom limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.ZoomMin, pixy.ZoomMax)
 	}
 
-	if _, ok := ptzAxes["unknown"]; ok {
-		t.Error("unknown axis should not be in ptzAxes")
-	}
+	assertAxisNotInMap(t, "unknown")
 }
 
 func TestPTZAxisValid(t *testing.T) {

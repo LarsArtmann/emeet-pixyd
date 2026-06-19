@@ -56,16 +56,10 @@ func TestNewSourceID(t *testing.T) {
 	t.Parallel()
 
 	sid := NewSourceID("42")
-	if sid.Get() != "42" {
-		t.Errorf("NewSourceID(%q).Get() = %q, want %q", "42", sid.Get(), "42")
-	}
+	assertGet(t, sid.Get(), "42", "NewSourceID(\"42\").Get()")
 
 	if sid.IsZero() {
 		t.Errorf("NewSourceID(%q).IsZero() = true, want false", "42")
-	}
-
-	if sid.Get() != "42" {
-		t.Errorf("NewSourceID(%q).Get() = %q, want %q", "42", sid.Get(), "42")
 	}
 }
 

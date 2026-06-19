@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -85,9 +84,7 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 	d := newPTZDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan})
-	if !strings.HasPrefix(resp.String(), "usage:") {
-		t.Errorf("expected usage message, got: %s", resp.String())
-	}
+	assertStatusPrefix(t, resp.String(), "usage:", "usage message")
 }
 
 func TestHandlePTZCommand_InvalidValue(t *testing.T) {
@@ -96,9 +93,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 	d := newPTZDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "not-a-number"})
-	if !resp.IsError() {
-		t.Errorf("expected error response, got: %s", resp.String())
-	}
+	expectError(t, resp)
 
 	assertCommandContains(t, resp.String(), "pan", "error")
 }
@@ -109,9 +104,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if !resp.IsError() {
-		t.Errorf("expected error response, got: %s", resp.String())
-	}
+	expectError(t, resp)
 
 	assertCommandContains(t, resp.String(), "device not found", "error")
 }
@@ -126,9 +119,7 @@ func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 	})
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if !resp.IsError() {
-		t.Errorf("expected error response, got: %s", resp.String())
-	}
+	expectError(t, resp)
 }
 
 func TestHandlePTZCommand_Success(t *testing.T) {
@@ -137,9 +128,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 	d, _ := newPTZCaptureDaemon()
 
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
-	if resp.IsError() {
-		t.Errorf("expected success, got error: %s", resp.String())
-	}
+	notError(t, resp)
 
 	assertCommandContainsAnyOf(t, resp.String(), []string{"pan", "10"}, "response")
 }
@@ -168,9 +157,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
-	if resp.IsError() {
-		t.Errorf("expected success, got: %s", resp.String())
-	}
+	notError(t, resp)
 
 	if calls != 1 {
 		t.Errorf("centerCamera called %d times, want 1", calls)
@@ -183,7 +170,5 @@ func TestHandleCenterCommand_NoDevice(t *testing.T) {
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
 	resp := d.handleCenterCommand(context.Background())
-	if !resp.IsError() {
-		t.Errorf("expected error, got: %s", resp.String())
-	}
+	expectError(t, resp)
 }
