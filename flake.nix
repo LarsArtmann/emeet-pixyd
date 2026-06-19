@@ -25,7 +25,7 @@
     let
       version = "0.3.1";
 
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
 
       sourceFiles = lib.fileset.unions [
         (lib.fileset.fileFilter (
@@ -88,7 +88,7 @@
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
               inherit src version;
-              templ = pkgs.templ;
+              inherit (pkgs) templ;
             };
             default = config.packages.emeet-pixyd;
           };
@@ -120,7 +120,7 @@
               pname = "emeet-pixyd-lint";
               inherit version;
               src = checkSrc;
-              vendorHash = "sha256-5wNmZkOXoqy88Ah4hkl/EHHhbXdSOSEnjhowEGiBtTw=";
+              vendorHash = "sha256-V9odnSmOX8+YAKjwhNrSdQn49OzUVGKKCrHfTZNK+9k=";
               proxyVendor = true;
               doCheck = false;
 
@@ -178,7 +178,7 @@
         overlays.default = final: _prev: {
           emeet-pixyd = final.callPackage ./package.nix {
             inherit src version;
-            templ = final.templ;
+            inherit (final) templ;
           };
         };
 
