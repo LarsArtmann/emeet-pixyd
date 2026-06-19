@@ -18,15 +18,15 @@ The brutal self-review from Session 9 identified six real bugs and several hygie
 
 ### Bugs fixed and pushed to `master`
 
-| Commit | File(s) | What changed |
-| ------ | ------- | ------------ |
-| `69cee07` | `main.go`, `state.go`, `state_test.go`, `flake.nix` | **H5 — env defaults silently dropped on restart.** `loadState()` now returns a `bool`; `NewDaemon()` only applies `EMEET_PIXYD_AUTO` / `EMEET_PIXYD_DEFAULT_AUDIO` defaults when no valid state file exists. Also fixed `flake.nix` `apps.default.meta` so the pre-commit hook passes. |
-| `e5cc9c6` | `hid.go`, `hid_test.go`, `hid_fuzz_test.go` | **L15 — unknown HID mode bytes treated as defaults.** Unknown bytes now set `resp.Got = false`, so `queryHIDState` surfaces `errUnrecognizedHID` instead of returning bogus `AudioNC`/`StateIdle`. Fuzz seed invariant updated. |
-| `00f7538` | `probe.go`, `main.go`, `auto.go`, `commands.go`, `device.go`, `probe_hidraw_test.go` | **H6 — `applyProbeResult` race/contract.** Renamed to `applyProbeResultLocked`; the function documents and enforces its "caller must hold `d.mu`" contract. |
-| `7ad906b` | `probe.go`, `probe_hidraw_test.go` | **M14 — `matchesPixyID` early-return bug.** No longer bails on the first malformed or non-PIXY `PRODUCT=` line; scans the whole uevent file. |
-| `d875c1d` | `stream.go` | **M6 — `extractJPEGFrame` buffer reset state loss.** Resets `soiFound = false` alongside the buffer so the parser re-scans for a fresh SOI after overflow. |
-| `11d46dd` | `commands.go`, `ptz.go`, `main.go` | **Hygiene.** `parsePTZValueErrStr` moved to `ptz.go`; debounce counter fields documented. |
-| `1ad38a4`, `16729aa` | `hid_test.go`, `stream.go` | Gofumpt formatting commits. |
+| Commit               | File(s)                                                                              | What changed                                                                                                                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `69cee07`            | `main.go`, `state.go`, `state_test.go`, `flake.nix`                                  | **H5 — env defaults silently dropped on restart.** `loadState()` now returns a `bool`; `NewDaemon()` only applies `EMEET_PIXYD_AUTO` / `EMEET_PIXYD_DEFAULT_AUDIO` defaults when no valid state file exists. Also fixed `flake.nix` `apps.default.meta` so the pre-commit hook passes. |
+| `e5cc9c6`            | `hid.go`, `hid_test.go`, `hid_fuzz_test.go`                                          | **L15 — unknown HID mode bytes treated as defaults.** Unknown bytes now set `resp.Got = false`, so `queryHIDState` surfaces `errUnrecognizedHID` instead of returning bogus `AudioNC`/`StateIdle`. Fuzz seed invariant updated.                                                        |
+| `00f7538`            | `probe.go`, `main.go`, `auto.go`, `commands.go`, `device.go`, `probe_hidraw_test.go` | **H6 — `applyProbeResult` race/contract.** Renamed to `applyProbeResultLocked`; the function documents and enforces its "caller must hold `d.mu`" contract.                                                                                                                            |
+| `7ad906b`            | `probe.go`, `probe_hidraw_test.go`                                                   | **M14 — `matchesPixyID` early-return bug.** No longer bails on the first malformed or non-PIXY `PRODUCT=` line; scans the whole uevent file.                                                                                                                                           |
+| `d875c1d`            | `stream.go`                                                                          | **M6 — `extractJPEGFrame` buffer reset state loss.** Resets `soiFound = false` alongside the buffer so the parser re-scans for a fresh SOI after overflow.                                                                                                                             |
+| `11d46dd`            | `commands.go`, `ptz.go`, `main.go`                                                   | **Hygiene.** `parsePTZValueErrStr` moved to `ptz.go`; debounce counter fields documented.                                                                                                                                                                                              |
+| `1ad38a4`, `16729aa` | `hid_test.go`, `stream.go`                                                           | Gofumpt formatting commits.                                                                                                                                                                                                                                                            |
 
 ### Verification
 
@@ -55,13 +55,13 @@ The brutal self-review from Session 9 identified six real bugs and several hygie
 
 Specifically:
 
-| Item | Status | Why partial |
-| ---- | ------ | ----------- |
-| `cmdMu` held across HID I/O (H2) | Investigated, not fixed | Real throughput/deadlock concern, but splitting the lock affects auto-manage / command serialization semantics and needs a dedicated design pass. |
-| `findSource`/`setSource` error handling (M3/M24) | Investigated | `setSource` signature returns nothing by design; changing it means touching `handleCallStart`, the deps struct, and all mocks. Surfaceable as a follow-up. |
-| `DefaultConfig` vs `DefaultState` drift (M16) | Investigated | Single source of truth for defaults is desirable, but unifying would require updating every test that constructs `pixy.State` literals. |
-| `PTZValues.Get` silent zero for bad axis (M9) | Noted | Would need `(int, bool)` API change; all template call sites would need updating. |
-| Coverage for `stream.go`, `process.go`, `hid.go` hardware paths (TODO #32) | Still open | Requires fake device harness or build-tag-guarded real-hardware integration test. |
+| Item                                                                       | Status                  | Why partial                                                                                                                                                |
+| -------------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cmdMu` held across HID I/O (H2)                                           | Investigated, not fixed | Real throughput/deadlock concern, but splitting the lock affects auto-manage / command serialization semantics and needs a dedicated design pass.          |
+| `findSource`/`setSource` error handling (M3/M24)                           | Investigated            | `setSource` signature returns nothing by design; changing it means touching `handleCallStart`, the deps struct, and all mocks. Surfaceable as a follow-up. |
+| `DefaultConfig` vs `DefaultState` drift (M16)                              | Investigated            | Single source of truth for defaults is desirable, but unifying would require updating every test that constructs `pixy.State` literals.                    |
+| `PTZValues.Get` silent zero for bad axis (M9)                              | Noted                   | Would need `(int, bool)` API change; all template call sites would need updating.                                                                          |
+| Coverage for `stream.go`, `process.go`, `hid.go` hardware paths (TODO #32) | Still open              | Requires fake device harness or build-tag-guarded real-hardware integration test.                                                                          |
 
 ---
 
@@ -124,33 +124,33 @@ Current remaining risks that could become "fucked up" if ignored:
 
 ## f) Top #25 things we should get done next!
 
-| # | Priority | Task | Owner | Estimate |
-|---|----------|------|-------|----------|
-| 1 | **P0** | Split `cmdMu` from HID I/O serialization to unblock commands during HID stalls | TBD | 4h |
-| 2 | **P0** | Build fake device harness for `stream.go`/`hid.go`/`process.go` integration tests | TBD | 6h |
-| 3 | **P1** | Unify `DefaultConfig()` and `DefaultState()` default values | TBD | 1h |
-| 4 | **P1** | Add CI fuzz step (60s per target, cache corpus) | TBD | 1h |
-| 5 | **P1** | Move `main.go` to `cmd/emeet-pixyd/main.go` | TBD | 3h |
-| 6 | **P1** | Structured log levels audit | TBD | 2h |
-| 7 | **P1** | WebSocket/SSE live state updates | TBD | 4h |
-| 8 | **P2** | Mobile-responsive web UI polish | TBD | 3h |
-| 9 | **P2** | Camera preset support (save/recall PTZ positions) | TBD | 4h |
-| 10 | **P2** | Extract `Commander` interface for external binaries | TBD | 3h |
-| 11 | **P2** | Extract `ProcessInspector` interface for `/proc` scanning | TBD | 2h |
-| 12 | **P2** | Extract `UeventListener` interface for netlink | TBD | 2h |
-| 13 | **P2** | Improve MJPEG stream reconnection on transient errors | TBD | 2h |
-| 14 | **P2** | PTZ readback accuracy: delay or in-memory last-set value | TBD | 2h |
-| 15 | **P2** | Real-hardware integration test (build-tag guarded) | TBD | 4h |
-| 16 | **P3** | `PTZValues.Get` should return `(int, bool)` | TBD | 1h |
-| 17 | **P3** | Surface `setSource` errors in `handleCallStart` | TBD | 1h |
-| 18 | **P3** | Name `stateSetter` type and document contract | TBD | 30m |
-| 19 | **P3** | Add invariant tests for `State.Valid()` / `Config.Validate()` | TBD | 1h |
-| 20 | **P3** | Remove dead `metricsInstance.promExporter` production field or move to test helper | TBD | 1h |
-| 21 | **P3** | Add coverage for `uevent.go` listener paths (currently 0%) | TBD | 2h |
-| 22 | **P3** | Add coverage for `hidrawDevice.SendRecv` timeout path | TBD | 2h |
-| 23 | **P3** | Add coverage for `v4l2Set` error path | TBD | 1h |
-| 24 | **P3** | Investigate `go-error-family` indirect dependency warning | TBD | 30m |
-| 25 | **P3** | Update `AGENTS.md` with Session 10 findings and current test file inventory | TBD | 30m |
+| #   | Priority | Task                                                                               | Owner | Estimate |
+| --- | -------- | ---------------------------------------------------------------------------------- | ----- | -------- |
+| 1   | **P0**   | Split `cmdMu` from HID I/O serialization to unblock commands during HID stalls     | TBD   | 4h       |
+| 2   | **P0**   | Build fake device harness for `stream.go`/`hid.go`/`process.go` integration tests  | TBD   | 6h       |
+| 3   | **P1**   | Unify `DefaultConfig()` and `DefaultState()` default values                        | TBD   | 1h       |
+| 4   | **P1**   | Add CI fuzz step (60s per target, cache corpus)                                    | TBD   | 1h       |
+| 5   | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                                        | TBD   | 3h       |
+| 6   | **P1**   | Structured log levels audit                                                        | TBD   | 2h       |
+| 7   | **P1**   | WebSocket/SSE live state updates                                                   | TBD   | 4h       |
+| 8   | **P2**   | Mobile-responsive web UI polish                                                    | TBD   | 3h       |
+| 9   | **P2**   | Camera preset support (save/recall PTZ positions)                                  | TBD   | 4h       |
+| 10  | **P2**   | Extract `Commander` interface for external binaries                                | TBD   | 3h       |
+| 11  | **P2**   | Extract `ProcessInspector` interface for `/proc` scanning                          | TBD   | 2h       |
+| 12  | **P2**   | Extract `UeventListener` interface for netlink                                     | TBD   | 2h       |
+| 13  | **P2**   | Improve MJPEG stream reconnection on transient errors                              | TBD   | 2h       |
+| 14  | **P2**   | PTZ readback accuracy: delay or in-memory last-set value                           | TBD   | 2h       |
+| 15  | **P2**   | Real-hardware integration test (build-tag guarded)                                 | TBD   | 4h       |
+| 16  | **P3**   | `PTZValues.Get` should return `(int, bool)`                                        | TBD   | 1h       |
+| 17  | **P3**   | Surface `setSource` errors in `handleCallStart`                                    | TBD   | 1h       |
+| 18  | **P3**   | Name `stateSetter` type and document contract                                      | TBD   | 30m      |
+| 19  | **P3**   | Add invariant tests for `State.Valid()` / `Config.Validate()`                      | TBD   | 1h       |
+| 20  | **P3**   | Remove dead `metricsInstance.promExporter` production field or move to test helper | TBD   | 1h       |
+| 21  | **P3**   | Add coverage for `uevent.go` listener paths (currently 0%)                         | TBD   | 2h       |
+| 22  | **P3**   | Add coverage for `hidrawDevice.SendRecv` timeout path                              | TBD   | 2h       |
+| 23  | **P3**   | Add coverage for `v4l2Set` error path                                              | TBD   | 1h       |
+| 24  | **P3**   | Investigate `go-error-family` indirect dependency warning                          | TBD   | 30m      |
+| 25  | **P3**   | Update `AGENTS.md` with Session 10 findings and current test file inventory        | TBD   | 30m      |
 
 ---
 
@@ -158,7 +158,7 @@ Current remaining risks that could become "fucked up" if ignored:
 
 **What is the intended production semantics for `EMEET_PIXYD_AUTO` / `EMEET_PIXYD_DEFAULT_AUDIO` after the first run?**
 
-The fix in commit `69cee07` chose: *env vars are defaults that apply only when no state file exists; once a state file is written, it wins on every restart.* This preserves "user overrides survive restarts" and makes env vars deterministic first-run seeds.
+The fix in commit `69cee07` chose: _env vars are defaults that apply only when no state file exists; once a state file is written, it wins on every restart._ This preserves "user overrides survive restarts" and makes env vars deterministic first-run seeds.
 
 Alternative semantics could be:
 
@@ -172,16 +172,16 @@ I picked the second because it matches the existing comment in `AGENTS.md` ("per
 
 ## Metrics
 
-| Metric | Value |
-| ------ | ----- |
-| Go source files | 65 (excluding generated `templates_templ.go`) |
-| Lines of Go code | ~11,873 total |
-| Test/benchmark/fuzz functions | 283 |
-| Test coverage | 72.5% total / 91.3% `internal/pixy` |
-| Lint issues | 0 |
-| `go vet` issues | 0 |
-| BuildFlow pre-commit steps passed | 25/25 |
-| Commits since last status report | 8 |
+| Metric                            | Value                                         |
+| --------------------------------- | --------------------------------------------- |
+| Go source files                   | 65 (excluding generated `templates_templ.go`) |
+| Lines of Go code                  | ~11,873 total                                 |
+| Test/benchmark/fuzz functions     | 283                                           |
+| Test coverage                     | 72.5% total / 91.3% `internal/pixy`           |
+| Lint issues                       | 0                                             |
+| `go vet` issues                   | 0                                             |
+| BuildFlow pre-commit steps passed | 25/25                                         |
+| Commits since last status report  | 8                                             |
 
 ---
 
@@ -208,13 +208,13 @@ I picked the second because it matches the existing comment in `AGENTS.md` ("per
 
 ## Docs status
 
-| File | Status | Notes |
-| ---- | ------ | ----- |
-| `AGENTS.md` | ⚠️ Stale | Last updated 2026-06-05; needs Session 10 changes added (new test files, `applyProbeResultLocked`, `loadState` bool return, env-default semantics). |
-| `TODO_LIST.md` | ⚠️ Stale | Last updated 2026-06-06; needs new regression-test tasks and closure of completed items. |
-| `FEATURES.md` | ✅ Current | Feature inventory still accurate. |
-| `CHANGELOG.md` | ✅ Current | No release since 0.3.0; bug fixes are in commit log. |
-| `README.md` | ✅ Current | Usage unaffected. |
+| File           | Status     | Notes                                                                                                                                               |
+| -------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`    | ⚠️ Stale   | Last updated 2026-06-05; needs Session 10 changes added (new test files, `applyProbeResultLocked`, `loadState` bool return, env-default semantics). |
+| `TODO_LIST.md` | ⚠️ Stale   | Last updated 2026-06-06; needs new regression-test tasks and closure of completed items.                                                            |
+| `FEATURES.md`  | ✅ Current | Feature inventory still accurate.                                                                                                                   |
+| `CHANGELOG.md` | ✅ Current | No release since 0.3.0; bug fixes are in commit log.                                                                                                |
+| `README.md`    | ✅ Current | Usage unaffected.                                                                                                                                   |
 
 ---
 

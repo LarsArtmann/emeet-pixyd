@@ -21,42 +21,42 @@ Session 10 implemented several improvements (config unification, CI fuzz, log au
 
 ### All Session 10+11 work committed and pushed
 
-| Commit | Type | What changed |
-| ------ | ---- | ------------ |
-| `6c6c8da` | fix | **Config unification.** `DefaultConfig()` derives `AutoMode`/`DefaultAudio` from `DefaultState()`. Drift impossible. Guard test added. |
-| `a9be2cd` | refactor | **Metrics cleanup.** `promExporter` moved from production `daemonMetrics` to test-only `testPromExporter`. |
-| `d98b167` | ci | **CI fuzz.** `FuzzExtractJPEGFrame` + `FuzzParseHIDResponse` 60s each, corpus cached. |
-| `3da3bbb` | fix | **Log audit (pass 1).** Uevent hotplug init failures + JPEG max-iteration overrun → Warn. |
-| `fb2778f` | feat | **SSE live updates.** Replaced 3s HTMX polling with `/api/events` Server-Sent Events. Full client+server implementation. Also: `stateMutator` rename + `vendorHash` fix. |
-| `e243a58` | fix | **SSE broadcast gaps.** Auto-mode, center, PTZ commands now broadcast state changes to SSE clients. |
-| `a818122` | fix | **Log audit (complete).** syncState query failures + sd_notify failure → Warn. |
-| `5d06a0c` | docs | **Session 11 status report.** |
+| Commit    | Type     | What changed                                                                                                                                                             |
+| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `6c6c8da` | fix      | **Config unification.** `DefaultConfig()` derives `AutoMode`/`DefaultAudio` from `DefaultState()`. Drift impossible. Guard test added.                                   |
+| `a9be2cd` | refactor | **Metrics cleanup.** `promExporter` moved from production `daemonMetrics` to test-only `testPromExporter`.                                                               |
+| `d98b167` | ci       | **CI fuzz.** `FuzzExtractJPEGFrame` + `FuzzParseHIDResponse` 60s each, corpus cached.                                                                                    |
+| `3da3bbb` | fix      | **Log audit (pass 1).** Uevent hotplug init failures + JPEG max-iteration overrun → Warn.                                                                                |
+| `fb2778f` | feat     | **SSE live updates.** Replaced 3s HTMX polling with `/api/events` Server-Sent Events. Full client+server implementation. Also: `stateMutator` rename + `vendorHash` fix. |
+| `e243a58` | fix      | **SSE broadcast gaps.** Auto-mode, center, PTZ commands now broadcast state changes to SSE clients.                                                                      |
+| `a818122` | fix      | **Log audit (complete).** syncState query failures + sd_notify failure → Warn.                                                                                           |
+| `5d06a0c` | docs     | **Session 11 status report.**                                                                                                                                            |
 
 ### SSE broadcast coverage audit (complete)
 
 Every `d.state.*` mutation path verified:
 
-| Mutation site | Broadcast? |
-| ------------- | ---------- |
-| `setDeviceState` → `mutator(d)` | ✅ |
-| `syncState` changed=true | ✅ |
-| `handleCallStart` InCall=true | ✅ |
-| `handleCallEnd` InCall=false | ✅ |
-| `handleAutoCommand` explicit mode | ✅ (fixed in `e243a58`) |
-| `handleAutoCommand` on/off/toggle | ✅ (fixed in `e243a58`) |
-| `handleCenterCommand` (PTZ hardware) | ✅ (fixed in `e243a58`) |
-| `handlePTZCommand` (V4L2 hardware) | ✅ (fixed in `e243a58`) |
-| `applyProbeResultLocked` (4 call sites) | ✅ |
-| `NewDaemon` first-run defaults | N/A (no clients) |
+| Mutation site                           | Broadcast?              |
+| --------------------------------------- | ----------------------- |
+| `setDeviceState` → `mutator(d)`         | ✅                      |
+| `syncState` changed=true                | ✅                      |
+| `handleCallStart` InCall=true           | ✅                      |
+| `handleCallEnd` InCall=false            | ✅                      |
+| `handleAutoCommand` explicit mode       | ✅ (fixed in `e243a58`) |
+| `handleAutoCommand` on/off/toggle       | ✅ (fixed in `e243a58`) |
+| `handleCenterCommand` (PTZ hardware)    | ✅ (fixed in `e243a58`) |
+| `handlePTZCommand` (V4L2 hardware)      | ✅ (fixed in `e243a58`) |
+| `applyProbeResultLocked` (4 call sites) | ✅                      |
+| `NewDaemon` first-run defaults          | N/A (no clients)        |
 
 ### Log level conventions (now standardized)
 
-| Level | Usage | Count |
-| ----- | ----- | ----- |
-| `Error` | Failures requiring operator attention (state save, socket, metrics init) | 11 |
-| `Warn` | Degraded functionality (hotplug disabled, sd_notify failed, HID query failures, JPEG overflow, partial device, invalid env) | 14 |
-| `Info` | Normal lifecycle (daemon start/stop, device found, call events, PTZ) | 13 |
-| `Debug` | Verbose tracing (HID responses, web requests, CLI, benign cleanup) | 11 |
+| Level   | Usage                                                                                                                       | Count |
+| ------- | --------------------------------------------------------------------------------------------------------------------------- | ----- |
+| `Error` | Failures requiring operator attention (state save, socket, metrics init)                                                    | 11    |
+| `Warn`  | Degraded functionality (hotplug disabled, sd_notify failed, HID query failures, JPEG overflow, partial device, invalid env) | 14    |
+| `Info`  | Normal lifecycle (daemon start/stop, device found, call events, PTZ)                                                        | 13    |
+| `Debug` | Verbose tracing (HID responses, web requests, CLI, benign cleanup)                                                          | 11    |
 
 ### Verification
 
@@ -103,22 +103,22 @@ Every `d.state.*` mutation path verified:
 
 From `TODO_LIST.md`, remaining items (14 total):
 
-| # | Priority | Task |
-|---|----------|------|
-| 21 | P2 | Extract `Commander` interface for shell commands |
-| 23 | P2 | Extract `ProcessInspector` interface for `/proc` traversal |
-| 24 | P2 | Extract `UeventListener` interface for netlink |
-| 26 | P2 | Mobile-responsive web UI layout |
-| 30 | P2 | Camera preset support (save/recall PTZ positions) |
-| 31 | P3 | Integration test harness with fake devices |
-| 32 | P3 | Test coverage for `stream.go`, `process.go`, `hid.go` hardware paths |
-| 34 | P2 | Improve MJPEG stream reconnection |
-| 35 | P3 | Integration test with real hardware (build-tag guarded) |
-| 42 | P2 | PTZ readback accuracy (delay before readback) |
-| — | P1 | Move `main.go` to `cmd/emeet-pixyd/main.go` (structure linter CRITICAL) |
-| — | P0 | Split `cmdMu` from HID I/O serialization |
-| — | P3 | Surface `setSource` errors in `handleCallStart` |
-| — | P3 | `PTZValues.Get` should return `(int, bool)` |
+| #   | Priority | Task                                                                    |
+| --- | -------- | ----------------------------------------------------------------------- |
+| 21  | P2       | Extract `Commander` interface for shell commands                        |
+| 23  | P2       | Extract `ProcessInspector` interface for `/proc` traversal              |
+| 24  | P2       | Extract `UeventListener` interface for netlink                          |
+| 26  | P2       | Mobile-responsive web UI layout                                         |
+| 30  | P2       | Camera preset support (save/recall PTZ positions)                       |
+| 31  | P3       | Integration test harness with fake devices                              |
+| 32  | P3       | Test coverage for `stream.go`, `process.go`, `hid.go` hardware paths    |
+| 34  | P2       | Improve MJPEG stream reconnection                                       |
+| 35  | P3       | Integration test with real hardware (build-tag guarded)                 |
+| 42  | P2       | PTZ readback accuracy (delay before readback)                           |
+| —   | P1       | Move `main.go` to `cmd/emeet-pixyd/main.go` (structure linter CRITICAL) |
+| —   | P0       | Split `cmdMu` from HID I/O serialization                                |
+| —   | P3       | Surface `setSource` errors in `handleCallStart`                         |
+| —   | P3       | `PTZValues.Get` should return `(int, bool)`                             |
 
 ---
 
@@ -178,33 +178,33 @@ Session 10 did all the work but left everything uncommitted. Session 11 had to a
 
 ## f) Top #25 things we should get done next!
 
-| # | Priority | Task | Effort | Impact |
-|---|----------|------|--------|--------|
-| 1 | **P0** | Fix `TestHandleStream_NoFFmpeg` flaky test (skip when ffmpeg in PATH) | 30m | HIGH |
-| 2 | **P0** | Split `cmdMu` from HID I/O serialization | 4h | HIGH |
-| 3 | **P0** | Build fake device harness for integration tests | 6h | HIGH |
-| 4 | **P1** | Move `main.go` to `cmd/emeet-pixyd/main.go` | 3h | MEDIUM |
-| 5 | **P1** | Extract `Commander` interface for shell commands | 3h | MEDIUM |
-| 6 | **P1** | Camera preset support (save/recall PTZ) | 4h | MEDIUM |
-| 7 | **P2** | Extract `ProcessInspector` interface for `/proc` | 2h | MEDIUM |
-| 8 | **P2** | Extract `UeventListener` interface for netlink | 2h | MEDIUM |
-| 9 | **P2** | Improve MJPEG stream reconnection | 2h | MEDIUM |
-| 10 | **P2** | PTZ readback accuracy (delay or in-memory last-set) | 2h | MEDIUM |
-| 11 | **P2** | Mobile-responsive web UI polish | 3h | LOW |
-| 12 | **P2** | Real-hardware integration test (build-tag guarded) | 4h | MEDIUM |
-| 13 | **P3** | `PTZValues.Get` → `(int, bool)` API change | 1h | LOW |
-| 14 | **P3** | Surface `setSource` errors in `handleCallStart` | 1h | LOW |
-| 15 | **P3** | Named event subscriber type (`eventSubscriber`) | 30m | LOW |
-| 16 | **P3** | Coverage for `uevent.go` listener paths | 2h | LOW |
-| 17 | **P3** | Coverage for `hidrawDevice.SendRecv` timeout | 2h | LOW |
-| 18 | **P3** | Coverage for `v4l2Set` error path | 1h | LOW |
-| 19 | **P3** | Test `handleEvents` SSE context cancellation | 1h | LOW |
-| 20 | **P3** | Test concurrent SSE subscriber fan-out | 1h | LOW |
-| 21 | **P3** | Extract `handlers.go` to get under 350 lines | 1h | LOW |
-| 22 | **P3** | Extract `main.go` to get under 350 lines | 2h | LOW |
-| 23 | **P3** | Investigate `go-error-family` indirect dependency | 30m | LOW |
-| 24 | **P3** | Fix statix warnings in flake.nix (inherit pattern) | 30m | LOW |
-| 25 | **P3** | Document SSE protocol in AGENTS.md | 30m | LOW |
+| #   | Priority | Task                                                                  | Effort | Impact |
+| --- | -------- | --------------------------------------------------------------------- | ------ | ------ |
+| 1   | **P0**   | Fix `TestHandleStream_NoFFmpeg` flaky test (skip when ffmpeg in PATH) | 30m    | HIGH   |
+| 2   | **P0**   | Split `cmdMu` from HID I/O serialization                              | 4h     | HIGH   |
+| 3   | **P0**   | Build fake device harness for integration tests                       | 6h     | HIGH   |
+| 4   | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                           | 3h     | MEDIUM |
+| 5   | **P1**   | Extract `Commander` interface for shell commands                      | 3h     | MEDIUM |
+| 6   | **P1**   | Camera preset support (save/recall PTZ)                               | 4h     | MEDIUM |
+| 7   | **P2**   | Extract `ProcessInspector` interface for `/proc`                      | 2h     | MEDIUM |
+| 8   | **P2**   | Extract `UeventListener` interface for netlink                        | 2h     | MEDIUM |
+| 9   | **P2**   | Improve MJPEG stream reconnection                                     | 2h     | MEDIUM |
+| 10  | **P2**   | PTZ readback accuracy (delay or in-memory last-set)                   | 2h     | MEDIUM |
+| 11  | **P2**   | Mobile-responsive web UI polish                                       | 3h     | LOW    |
+| 12  | **P2**   | Real-hardware integration test (build-tag guarded)                    | 4h     | MEDIUM |
+| 13  | **P3**   | `PTZValues.Get` → `(int, bool)` API change                            | 1h     | LOW    |
+| 14  | **P3**   | Surface `setSource` errors in `handleCallStart`                       | 1h     | LOW    |
+| 15  | **P3**   | Named event subscriber type (`eventSubscriber`)                       | 30m    | LOW    |
+| 16  | **P3**   | Coverage for `uevent.go` listener paths                               | 2h     | LOW    |
+| 17  | **P3**   | Coverage for `hidrawDevice.SendRecv` timeout                          | 2h     | LOW    |
+| 18  | **P3**   | Coverage for `v4l2Set` error path                                     | 1h     | LOW    |
+| 19  | **P3**   | Test `handleEvents` SSE context cancellation                          | 1h     | LOW    |
+| 20  | **P3**   | Test concurrent SSE subscriber fan-out                                | 1h     | LOW    |
+| 21  | **P3**   | Extract `handlers.go` to get under 350 lines                          | 1h     | LOW    |
+| 22  | **P3**   | Extract `main.go` to get under 350 lines                              | 2h     | LOW    |
+| 23  | **P3**   | Investigate `go-error-family` indirect dependency                     | 30m    | LOW    |
+| 24  | **P3**   | Fix statix warnings in flake.nix (inherit pattern)                    | 30m    | LOW    |
+| 25  | **P3**   | Document SSE protocol in AGENTS.md                                    | 30m    | LOW    |
 
 ---
 
@@ -213,6 +213,7 @@ Session 10 did all the work but left everything uncommitted. Session 11 had to a
 **Should `cmdMu` be split into a separate HID lock, or should the command pipeline move to an async worker?**
 
 The current `cmdMu` serializes ALL mutating commands (track, idle, privacy, audio, gesture, center, auto, PTZ). This means:
+
 - A 200ms HID sleep blocks ALL other commands
 - A `v4l2-ctl` subprocess blocks ALL other commands
 - Auto-manage and manual commands compete for the same lock
@@ -229,19 +230,19 @@ I lean toward **Option C** (leave as-is) unless real-world latency complaints em
 
 ## Metrics
 
-| Metric | Value |
-| ------ | ----- |
-| Go source files | 25 (excluding generated/tests) |
-| Lines of Go code | ~11,146 total |
-| Test/benchmark/fuzz functions | 286 |
-| Test coverage | 72.8% total / 91.3% `internal/pixy` |
-| Lint issues | 0 |
-| `go vet` issues | 0 |
-| BuildFlow pre-commit steps | 25/25 (every commit) |
-| Commits since Session 10 | 8 |
-| `nix build` | PASS |
-| `nix flake check` | all checks passed |
-| Flaky tests | 1 (`TestHandleStream_NoFFmpeg` — hardware-dependent) |
+| Metric                        | Value                                                |
+| ----------------------------- | ---------------------------------------------------- |
+| Go source files               | 25 (excluding generated/tests)                       |
+| Lines of Go code              | ~11,146 total                                        |
+| Test/benchmark/fuzz functions | 286                                                  |
+| Test coverage                 | 72.8% total / 91.3% `internal/pixy`                  |
+| Lint issues                   | 0                                                    |
+| `go vet` issues               | 0                                                    |
+| BuildFlow pre-commit steps    | 25/25 (every commit)                                 |
+| Commits since Session 10      | 8                                                    |
+| `nix build`                   | PASS                                                 |
+| `nix flake check`             | all checks passed                                    |
+| Flaky tests                   | 1 (`TestHandleStream_NoFFmpeg` — hardware-dependent) |
 
 ---
 
