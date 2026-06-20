@@ -43,15 +43,15 @@ func postPTZFormValue(
 	return resp, string(respBody)
 }
 
-func assertV4L2Call(t *testing.T, v4l2Calls []struct{ axis, val string }, wantVal string) {
+func assertV4L2Call(t *testing.T, calls []v4l2Call, wantVal string) {
 	t.Helper()
 
-	if len(v4l2Calls) != 1 {
-		t.Fatalf("expected 1 v4l2 call, got %d", len(v4l2Calls))
+	if len(calls) != 1 {
+		t.Fatalf("expected 1 v4l2 call, got %d", len(calls))
 	}
 
-	if v4l2Calls[0].val != wantVal {
-		t.Errorf("v4l2 call val = %s, want %s", v4l2Calls[0].val, wantVal)
+	if calls[0].val != wantVal {
+		t.Errorf("v4l2 call val = %s, want %s", calls[0].val, wantVal)
 	}
 }
 

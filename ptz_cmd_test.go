@@ -69,12 +69,12 @@ func newPTZDaemon(opts ...testDaemonOption) *Daemon {
 	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", opts...)
 }
 
-func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]struct{ axis, val string }) {
-	var calls []struct{ axis, val string }
+func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
+	var calls []v4l2Call
 
 	d := newPTZDaemon(append(opts, func(d *Daemon) {
-		d.deps.v4l2Set = func(_ context.Context, _, axis, val string) error {
-			calls = append(calls, struct{ axis, val string }{axis, val})
+		d.deps.v4l2Set = func(_ context.Context, dev, ctrl, val string) error {
+			calls = append(calls, v4l2Call{dev: dev, ctrl: ctrl, val: val})
 
 			return nil
 		}
