@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GOWORK: off
+      GOPRIVATE: github.com/larsartmann/*,github.com/LarsArtmann/*
     steps:
       - uses: actions/checkout@v4
 
@@ -16,39 +19,32 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Configure git for private modules
+        run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
       - name: Vet
         run: go vet ./...
-        env:
-          GOWORK: off
 
       - name: Generate templ
         run: |
           go install github.com/a-h/templ/cmd/templ@latest
           templ generate
-        env:
-          GOWORK: off
 
       - name: Lint
         uses: golangci/golangci-lint-action@v7
         with:
           version: latest
           args: --timeout 2m
-        env:
-          GOWORK: off
 
       - name: Vulnerability check
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
-        env:
-          GOWORK: off
 
       - name: Test with coverage
         run: |
           go test -race -count=1 -coverprofile=coverage.out ./...
           go tool cover -func=coverage.out | tail -1
-        env:
-          GOWORK: off
 
       - name: Cache fuzz corpus
         uses: actions/cache@v4
@@ -63,5 +59,3 @@ jobs:
             echo "Fuzzing $target for 60s ..."
             go test -fuzz=$target -fuzztime=60s .
           done
-        env:
-          GOWORK: off
