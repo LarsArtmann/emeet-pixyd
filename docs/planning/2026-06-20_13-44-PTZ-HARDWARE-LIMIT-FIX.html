@@ -32,8 +32,14 @@
         --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         --font-mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         background: var(--surface);
         color: var(--text);
@@ -42,64 +48,262 @@
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
-      [id] { scroll-margin-top: 60px; }
+      [id] {
+        scroll-margin-top: 60px;
+      }
       .top-bar {
-        background: var(--text); color: var(--surface);
-        padding: 0.6rem 2rem; font-family: var(--font-mono);
-        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
-        text-transform: uppercase; display: flex; justify-content: space-between;
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
       }
-      .wrap { max-width: 1180px; margin: 0 auto; padding: 2rem 2rem 4rem; }
-      .hero { padding: 2rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 2rem 2rem 4rem;
+      }
+      .hero {
+        padding: 2rem 0 2.5rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2.5rem;
+      }
       .hero-badge {
-        display: inline-block; background: var(--accent); color: var(--surface);
-        font-family: var(--font-mono); font-size: 0.7rem; font-weight: 800;
-        letter-spacing: 0.14em; text-transform: uppercase; padding: 0.3rem 0.7rem; margin-bottom: 1rem;
+        display: inline-block;
+        background: var(--accent);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 1rem;
       }
-      .hero h1 { font-size: 2.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; }
-      .hero-subtitle { color: var(--text-muted); margin-top: 0.7rem; max-width: 70ch; }
-      h2 { font-size: 1.35rem; font-weight: 800; margin: 2.8rem 0 1.2rem; letter-spacing: -0.01em; }
-      h2 .num { font-family: var(--font-mono); color: var(--accent); margin-right: 0.6rem; font-size: 1.1rem; }
-      h3 { font-size: 1.05rem; font-weight: 700; margin: 1.5rem 0 0.6rem; }
-      p { margin-bottom: 0.9rem; color: var(--text-muted); }
-      strong { color: var(--text); font-weight: 700; }
-      code { font-family: var(--font-mono); font-size: 0.86em; background: var(--surface-sunken); padding: 0.1em 0.38em; }
-      .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.9rem; margin: 1.4rem 0; }
-      .stat-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.2rem; border-left: 3px solid var(--text-faint); }
-      .stat-card.stat-good { border-left-color: var(--solution); }
-      .stat-card.stat-warn { border-left-color: var(--warning); }
-      .stat-card.stat-bad { border-left-color: var(--problem); }
-      .stat-value { font-size: 1.9rem; font-weight: 900; line-height: 1; }
-      .stat-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem; }
-      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.3rem 1.4rem; margin-bottom: 1.2rem; }
-      .card-problem { border-left: 3px solid var(--problem); }
-      .card-solution { border-left: 3px solid var(--solution); }
-      .card-warning { border-left: 3px solid var(--warning); }
-      .callout { padding: 1rem 1.2rem; margin: 1rem 0; background: var(--surface-sunken); border-left: 3px solid var(--text-faint); }
-      .callout-solution { border-left-color: var(--solution); }
-      .callout-warning { border-left-color: var(--warning); }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
-      th { text-align: left; font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--border-strong); }
-      td { padding: 0.62rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-      tbody tr:hover { background: var(--surface-sunken); }
-      .badge { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 800; padding: 0.18rem 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-      .badge-critical { background: var(--problem); color: var(--surface); }
-      .badge-high { background: color-mix(in srgb, var(--warning) 70%, var(--surface)); color: var(--surface); }
-      .badge-medium { background: var(--solution); color: var(--surface); }
-      .badge-low { background: var(--surface-sunken); color: var(--text-muted); border: 1px solid var(--border); }
-      .badge-fixed { background: var(--solution); color: var(--surface); }
-      .tier-tag { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 800; padding: 0.16rem 0.45rem; }
-      .tier-1 { background: var(--problem); color: var(--surface); }
-      .tier-2 { background: var(--warning); color: var(--surface); }
-      .tier-3 { background: var(--solution); color: var(--surface); }
-      .tier-4 { background: var(--surface-sunken); color: var(--text-muted); border: 1px solid var(--border-strong); }
-      .mono-cell { font-family: var(--font-mono); font-size: 0.82rem; }
-      .compare-table td:nth-child(2) { color: var(--problem); font-family: var(--font-mono); }
-      .compare-table td:nth-child(3) { color: var(--solution); font-family: var(--font-mono); }
-      .diagram-box { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem; overflow-x: auto; margin: 1rem 0; }
-      .diagram-box svg { max-width: 100%; height: auto; }
-      .footer { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); }
-      @media (max-width: 720px) { .wrap { padding: 1.2rem; } .hero h1 { font-size: 1.5rem; } }
+      .hero h1 {
+        font-size: 2.1rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+      }
+      .hero-subtitle {
+        color: var(--text-muted);
+        margin-top: 0.7rem;
+        max-width: 70ch;
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin: 2.8rem 0 1.2rem;
+        letter-spacing: -0.01em;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        margin-right: 0.6rem;
+        font-size: 1.1rem;
+      }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 1.5rem 0 0.6rem;
+      }
+      p {
+        margin-bottom: 0.9rem;
+        color: var(--text-muted);
+      }
+      strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.86em;
+        background: var(--surface-sunken);
+        padding: 0.1em 0.38em;
+      }
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.9rem;
+        margin: 1.4rem 0;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.2rem;
+        border-left: 3px solid var(--text-faint);
+      }
+      .stat-card.stat-good {
+        border-left-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left-color: var(--problem);
+      }
+      .stat-value {
+        font-size: 1.9rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--text-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 0.5rem;
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.3rem 1.4rem;
+        margin-bottom: 1.2rem;
+      }
+      .card-problem {
+        border-left: 3px solid var(--problem);
+      }
+      .card-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .card-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .callout {
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        background: var(--surface-sunken);
+        border-left: 3px solid var(--text-faint);
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.88rem;
+      }
+      th {
+        text-align: left;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-faint);
+        padding: 0.6rem 0.7rem;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.62rem 0.7rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tbody tr:hover {
+        background: var(--surface-sunken);
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 800;
+        padding: 0.18rem 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: color-mix(in srgb, var(--warning) 70%, var(--surface));
+        color: var(--surface);
+      }
+      .badge-medium {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .badge-low {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .tier-tag {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 800;
+        padding: 0.16rem 0.45rem;
+      }
+      .tier-1 {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .tier-2 {
+        background: var(--warning);
+        color: var(--surface);
+      }
+      .tier-3 {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .tier-4 {
+        background: var(--surface-sunken);
+        color: var(--text-muted);
+        border: 1px solid var(--border-strong);
+      }
+      .mono-cell {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+      }
+      .compare-table td:nth-child(2) {
+        color: var(--problem);
+        font-family: var(--font-mono);
+      }
+      .compare-table td:nth-child(3) {
+        color: var(--solution);
+        font-family: var(--font-mono);
+      }
+      .diagram-box {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+      .diagram-box svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--text-faint);
+      }
+      @media (max-width: 720px) {
+        .wrap {
+          padding: 1.2rem;
+        }
+        .hero h1 {
+          font-size: 1.5rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -113,106 +317,335 @@
         <h1>Fix PTZ limits to match real EMEET PIXY hardware</h1>
         <p class="hero-subtitle">
           The daemon lies about the camera's pan/tilt/zoom range. Three constants in
-          <code>internal/pixy/pixy.go</code> are wrong, which artificially restricts tilt
-          (the user's complaint: "can you move up?") and over-promises on pan &amp; zoom.
-          The tilt sign convention is <strong>not</strong> a bug — positive=up is consistent
-          everywhere (CLI, web, V4L2 read/write, keyboard arrows).
+          <code>internal/pixy/pixy.go</code> are wrong, which artificially restricts tilt (the
+          user's complaint: "can you move up?") and over-promises on pan &amp; zoom. The tilt sign
+          convention is <strong>not</strong> a bug — positive=up is consistent everywhere (CLI, web,
+          V4L2 read/write, keyboard arrows).
         </p>
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card stat-bad"><div class="stat-value">3</div><div class="stat-label">Wrong constants</div></div>
-        <div class="stat-card stat-warn"><div class="stat-value">7</div><div class="stat-label">Test lines to fix</div></div>
-        <div class="stat-card stat-warn"><div class="stat-value">3</div><div class="stat-label">Docs files to fix</div></div>
-        <div class="stat-card stat-good"><div class="stat-value">19</div><div class="stat-label">Total tasks · ≤12 min ea.</div></div>
+        <div class="stat-card stat-bad">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Wrong constants</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">7</div>
+          <div class="stat-label">Test lines to fix</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Docs files to fix</div>
+        </div>
+        <div class="stat-card stat-good">
+          <div class="stat-value">19</div>
+          <div class="stat-label">Total tasks · ≤12 min ea.</div>
+        </div>
       </div>
 
       <h2><span class="num">01</span>Hardware reality vs. daemon config</h2>
-      <p>Verified empirically via <code>v4l2-ctl --list-ctrls</code> on <code>/dev/video0</code> (EMEET PIXY). V4L2 uses 1/3600° units.</p>
+      <p>
+        Verified empirically via <code>v4l2-ctl --list-ctrls</code> on
+        <code>/dev/video0</code> (EMEET PIXY). V4L2 uses 1/3600° units.
+      </p>
       <table class="compare-table">
         <thead>
-          <tr><th>Axis</th><th>Daemon says (now)</th><th>Hardware reality</th><th>Gap</th></tr>
+          <tr>
+            <th>Axis</th>
+            <th>Daemon says (now)</th>
+            <th>Hardware reality</th>
+            <th>Gap</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td>Pan</td><td>±170° (PanMin/Max)</td><td>±150° (±540000)</td><td><span class="badge badge-high">Over-promises</span></td></tr>
-          <tr><td>Tilt</td><td>±30° (TiltMin/Max)</td><td>±90° (±324000)</td><td><span class="badge badge-critical">Under-delivers</span></td></tr>
-          <tr><td>Zoom</td><td>100–400 (ZoomMax)</td><td>100–150</td><td><span class="badge badge-high">Over-promises</span></td></tr>
-          <tr><td>Tilt sign</td><td>positive = up</td><td>positive = up</td><td><span class="badge badge-fixed">Consistent ✓</span></td></tr>
+          <tr>
+            <td>Pan</td>
+            <td>±170° (PanMin/Max)</td>
+            <td>±150° (±540000)</td>
+            <td><span class="badge badge-high">Over-promises</span></td>
+          </tr>
+          <tr>
+            <td>Tilt</td>
+            <td>±30° (TiltMin/Max)</td>
+            <td>±90° (±324000)</td>
+            <td><span class="badge badge-critical">Under-delivers</span></td>
+          </tr>
+          <tr>
+            <td>Zoom</td>
+            <td>100–400 (ZoomMax)</td>
+            <td>100–150</td>
+            <td><span class="badge badge-high">Over-promises</span></td>
+          </tr>
+          <tr>
+            <td>Tilt sign</td>
+            <td>positive = up</td>
+            <td>positive = up</td>
+            <td><span class="badge badge-fixed">Consistent ✓</span></td>
+          </tr>
         </tbody>
       </table>
       <div class="callout callout-warning">
-        <strong>Root cause is ONE place.</strong> The constants in <code>pixy.go:304-309</code> are referenced by the clamp logic,
-        V4L2 multiplier map, template sliders, and all tests. Fix the 3 constants and the entire stack realigns — except the
-        ~7 test lines that hardcode the old literal numbers, and the docs that quote them.
+        <strong>Root cause is ONE place.</strong> The constants in <code>pixy.go:304-309</code> are
+        referenced by the clamp logic, V4L2 multiplier map, template sliders, and all tests. Fix the
+        3 constants and the entire stack realigns — except the ~7 test lines that hardcode the old
+        literal numbers, and the docs that quote them.
       </div>
 
       <h2><span class="num">02</span>Pareto breakdown</h2>
       <div class="grid">
         <div class="card card-problem">
           <h3>Tier 1 — 1% effort → 51% impact</h3>
-          <p>Fix the 3 PTZ limit constants. This <strong>directly solves the user's pain</strong> (tilt was capped at ±30°; camera
-          could barely look up/down). Everything downstream reads these constants. <strong>3 minutes total.</strong></p>
+          <p>
+            Fix the 3 PTZ limit constants. This
+            <strong>directly solves the user's pain</strong> (tilt was capped at ±30°; camera could
+            barely look up/down). Everything downstream reads these constants.
+            <strong>3 minutes total.</strong>
+          </p>
         </div>
         <div class="card card-warning">
           <h3>Tier 2 — 4% effort → 64% impact</h3>
-          <p>Update the 7 test lines that hardcode old literals. Without this, CI goes red and blocks the fix. Mechanical, low-risk.</p>
+          <p>
+            Update the 7 test lines that hardcode old literals. Without this, CI goes red and blocks
+            the fix. Mechanical, low-risk.
+          </p>
         </div>
         <div class="card card-solution">
           <h3>Tier 3 — 20% effort → 80% impact</h3>
-          <p>Update user-facing docs (README, FEATURES, CHANGELOG) so they stop telling users the wrong ranges. Honesty + trust.</p>
+          <p>
+            Update user-facing docs (README, FEATURES, CHANGELOG) so they stop telling users the
+            wrong ranges. Honesty + trust.
+          </p>
         </div>
       </div>
       <div class="callout callout-solution">
-        <strong>Remaining 20% (Tier 4):</strong> Build/test/lint verification, AGENTS.md gotcha update, hardware smoke-test, and
-        a separate investigation of the dead control socket (operational, not code).
+        <strong>Remaining 20% (Tier 4):</strong> Build/test/lint verification, AGENTS.md gotcha
+        update, hardware smoke-test, and a separate investigation of the dead control socket
+        (operational, not code).
       </div>
 
       <h2><span class="num">03</span>Comprehensive task list (max 12 min each)</h2>
-      <p>Sorted by importance / impact / effort / customer-value. <strong>Effort</strong> in minutes; <strong>Priority</strong>
-      reflects both customer value and whether it unblocks other work.</p>
+      <p>
+        Sorted by importance / impact / effort / customer-value. <strong>Effort</strong> in minutes;
+        <strong>Priority</strong> reflects both customer value and whether it unblocks other work.
+      </p>
       <table>
         <thead>
-          <tr><th>#</th><th>Tier</th><th>Task</th><th>File(s)</th><th>Effort</th><th>Impact</th><th>Priority</th></tr>
+          <tr>
+            <th>#</th>
+            <th>Tier</th>
+            <th>Task</th>
+            <th>File(s)</th>
+            <th>Effort</th>
+            <th>Impact</th>
+            <th>Priority</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td class="mono-cell">T1</td><td><span class="tier-tag tier-1">1</span></td><td>Fix <code>TiltMin</code>/<code>TiltMax</code>: −30/30 → <strong>−90/90</strong></td><td class="mono-cell">internal/pixy/pixy.go:306-307</td><td class="mono-cell">1m</td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-critical">1 — USER PAIN</span></td></tr>
-          <tr><td class="mono-cell">T2</td><td><span class="tier-tag tier-1">1</span></td><td>Fix <code>PanMin</code>/<code>PanMax</code>: −170/170 → <strong>−150/150</strong></td><td class="mono-cell">internal/pixy/pixy.go:304-305</td><td class="mono-cell">1m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-critical">2</span></td></tr>
-          <tr><td class="mono-cell">T3</td><td><span class="tier-tag tier-1">1</span></td><td>Fix <code>ZoomMax</code>: 400 → <strong>150</strong></td><td class="mono-cell">internal/pixy/pixy.go:309</td><td class="mono-cell">1m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-critical">3</span></td></tr>
-          <tr><td class="mono-cell">T4</td><td><span class="tier-tag tier-2">2</span></td><td>Update <code>TestClampInt</code> pan limits (−170/170 → −150/150)</td><td class="mono-cell">ptz_unit_test.go:89-91</td><td class="mono-cell">2m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-critical">4 — unblocks CI</span></td></tr>
-          <tr><td class="mono-cell">T5</td><td><span class="tier-tag tier-2">2</span></td><td>Update <code>TestClampInt</code> zoom limits (400 → 150)</td><td class="mono-cell">ptz_unit_test.go:92-94</td><td class="mono-cell">2m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-critical">5</span></td></tr>
-          <tr><td class="mono-cell">T6</td><td><span class="tier-tag tier-2">2</span></td><td>Update <code>Clamp</code> "within limits" case (Zoom 200 → 125)</td><td class="mono-cell">internal/pixy/ptz_test.go:15</td><td class="mono-cell">2m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">6</span></td></tr>
-          <tr><td class="mono-cell">T7</td><td><span class="tier-tag tier-2">2</span></td><td>Update behavior clamp test: pan expect <code>612000→540000</code></td><td class="mono-cell">behavior_ptz_test.go:104</td><td class="mono-cell">2m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">7</span></td></tr>
-          <tr><td class="mono-cell">T8</td><td><span class="tier-tag tier-2">2</span></td><td>Update behavior clamp test: tilt input −50→<strong>−100</strong>, expect <code>−324000</code></td><td class="mono-cell">behavior_ptz_test.go:106-110</td><td class="mono-cell">3m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">8</span></td></tr>
-          <tr><td class="mono-cell">T9</td><td><span class="tier-tag tier-2">2</span></td><td>Update behavior clamp test: zoom expect <code>400→150</code></td><td class="mono-cell">behavior_ptz_test.go:116</td><td class="mono-cell">2m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">9</span></td></tr>
-          <tr><td class="mono-cell">T10</td><td><span class="tier-tag tier-2">2</span></td><td>Update behavior web test: zoom value 200 → <strong>125</strong></td><td class="mono-cell">behavior_ptz_test.go:190</td><td class="mono-cell">2m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">10</span></td></tr>
-          <tr><td class="mono-cell">T11</td><td><span class="tier-tag tier-3">3</span></td><td>Update README PTZ ranges (pan, tilt, zoom + feature line)</td><td class="mono-cell">README.md:109-111,136</td><td class="mono-cell">3m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-medium">11</span></td></tr>
-          <tr><td class="mono-cell">T12</td><td><span class="tier-tag tier-3">3</span></td><td>Update FEATURES PTZ range line</td><td class="mono-cell">FEATURES.md:16</td><td class="mono-cell">2m</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-low">12</span></td></tr>
-          <tr><td class="mono-cell">T13</td><td><span class="tier-tag tier-3">3</span></td><td>Update CHANGELOG PTZ range line</td><td class="mono-cell">CHANGELOG.md:16</td><td class="mono-cell">2m</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-low">13</span></td></tr>
-          <tr><td class="mono-cell">T14</td><td><span class="tier-tag tier-4">4</span></td><td><code>templ generate</code> + <code>go build</code> (verify compile)</td><td class="mono-cell">—</td><td class="mono-cell">3m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">14</span></td></tr>
-          <tr><td class="mono-cell">T15</td><td><span class="tier-tag tier-4">4</span></td><td>Run <code>GOWORK=off go test -race -count=1 ./...</code></td><td class="mono-cell">—</td><td class="mono-cell">5m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">15</span></td></tr>
-          <tr><td class="mono-cell">T16</td><td><span class="tier-tag tier-4">4</span></td><td>Run <code>GOWORK=off golangci-lint run ./...</code></td><td class="mono-cell">—</td><td class="mono-cell">3m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-low">16</span></td></tr>
-          <tr><td class="mono-cell">T17</td><td><span class="tier-tag tier-4">4</span></td><td>Add AGENTS.md gotcha: hw-verified PTZ limits</td><td class="mono-cell">AGENTS.md</td><td class="mono-cell">5m</td><td><span class="badge badge-medium">Med</span></td><td><span class="badge badge-low">17</span></td></tr>
-          <tr><td class="mono-cell">T18</td><td><span class="tier-tag tier-4">4</span></td><td>Hardware smoke-test: tilt up/down, pan, zoom after rebuild</td><td class="mono-cell">/dev/video0</td><td class="mono-cell">8m</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">18</span></td></tr>
-          <tr><td class="mono-cell">T19</td><td><span class="tier-tag tier-4">4</span></td><td>Investigate dead control socket (separate op. issue)</td><td class="mono-cell">/run/emeet-pixyd/</td><td class="mono-cell">10m</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-low">19 — optional</span></td></tr>
+          <tr>
+            <td class="mono-cell">T1</td>
+            <td><span class="tier-tag tier-1">1</span></td>
+            <td>Fix <code>TiltMin</code>/<code>TiltMax</code>: −30/30 → <strong>−90/90</strong></td>
+            <td class="mono-cell">internal/pixy/pixy.go:306-307</td>
+            <td class="mono-cell">1m</td>
+            <td><span class="badge badge-critical">Critical</span></td>
+            <td><span class="badge badge-critical">1 — USER PAIN</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T2</td>
+            <td><span class="tier-tag tier-1">1</span></td>
+            <td>
+              Fix <code>PanMin</code>/<code>PanMax</code>: −170/170 → <strong>−150/150</strong>
+            </td>
+            <td class="mono-cell">internal/pixy/pixy.go:304-305</td>
+            <td class="mono-cell">1m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-critical">2</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T3</td>
+            <td><span class="tier-tag tier-1">1</span></td>
+            <td>Fix <code>ZoomMax</code>: 400 → <strong>150</strong></td>
+            <td class="mono-cell">internal/pixy/pixy.go:309</td>
+            <td class="mono-cell">1m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-critical">3</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T4</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update <code>TestClampInt</code> pan limits (−170/170 → −150/150)</td>
+            <td class="mono-cell">ptz_unit_test.go:89-91</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-critical">4 — unblocks CI</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T5</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update <code>TestClampInt</code> zoom limits (400 → 150)</td>
+            <td class="mono-cell">ptz_unit_test.go:92-94</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-critical">5</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T6</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update <code>Clamp</code> "within limits" case (Zoom 200 → 125)</td>
+            <td class="mono-cell">internal/pixy/ptz_test.go:15</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">6</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T7</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update behavior clamp test: pan expect <code>612000→540000</code></td>
+            <td class="mono-cell">behavior_ptz_test.go:104</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">7</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T8</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>
+              Update behavior clamp test: tilt input −50→<strong>−100</strong>, expect
+              <code>−324000</code>
+            </td>
+            <td class="mono-cell">behavior_ptz_test.go:106-110</td>
+            <td class="mono-cell">3m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">8</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T9</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update behavior clamp test: zoom expect <code>400→150</code></td>
+            <td class="mono-cell">behavior_ptz_test.go:116</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">9</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T10</td>
+            <td><span class="tier-tag tier-2">2</span></td>
+            <td>Update behavior web test: zoom value 200 → <strong>125</strong></td>
+            <td class="mono-cell">behavior_ptz_test.go:190</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">10</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T11</td>
+            <td><span class="tier-tag tier-3">3</span></td>
+            <td>Update README PTZ ranges (pan, tilt, zoom + feature line)</td>
+            <td class="mono-cell">README.md:109-111,136</td>
+            <td class="mono-cell">3m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-medium">11</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T12</td>
+            <td><span class="tier-tag tier-3">3</span></td>
+            <td>Update FEATURES PTZ range line</td>
+            <td class="mono-cell">FEATURES.md:16</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td><span class="badge badge-low">12</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T13</td>
+            <td><span class="tier-tag tier-3">3</span></td>
+            <td>Update CHANGELOG PTZ range line</td>
+            <td class="mono-cell">CHANGELOG.md:16</td>
+            <td class="mono-cell">2m</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td><span class="badge badge-low">13</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T14</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td><code>templ generate</code> + <code>go build</code> (verify compile)</td>
+            <td class="mono-cell">—</td>
+            <td class="mono-cell">3m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-medium">14</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T15</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td>Run <code>GOWORK=off go test -race -count=1 ./...</code></td>
+            <td class="mono-cell">—</td>
+            <td class="mono-cell">5m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-medium">15</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T16</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td>Run <code>GOWORK=off golangci-lint run ./...</code></td>
+            <td class="mono-cell">—</td>
+            <td class="mono-cell">3m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-low">16</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T17</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td>Add AGENTS.md gotcha: hw-verified PTZ limits</td>
+            <td class="mono-cell">AGENTS.md</td>
+            <td class="mono-cell">5m</td>
+            <td><span class="badge badge-medium">Med</span></td>
+            <td><span class="badge badge-low">17</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T18</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td>Hardware smoke-test: tilt up/down, pan, zoom after rebuild</td>
+            <td class="mono-cell">/dev/video0</td>
+            <td class="mono-cell">8m</td>
+            <td><span class="badge badge-high">High</span></td>
+            <td><span class="badge badge-medium">18</span></td>
+          </tr>
+          <tr>
+            <td class="mono-cell">T19</td>
+            <td><span class="tier-tag tier-4">4</span></td>
+            <td>Investigate dead control socket (separate op. issue)</td>
+            <td class="mono-cell">/run/emeet-pixyd/</td>
+            <td class="mono-cell">10m</td>
+            <td><span class="badge badge-low">Low</span></td>
+            <td><span class="badge badge-low">19 — optional</span></td>
+          </tr>
         </tbody>
       </table>
 
       <h2><span class="num">04</span>Execution graph (dependencies)</h2>
-      <p>Constants gate the tests; tests gate the build; build gates lint &amp; hardware verification. Docs are independent.</p>
+      <p>
+        Constants gate the tests; tests gate the build; build gates lint &amp; hardware
+        verification. Docs are independent.
+      </p>
       <div class="diagram-box">
-        <object type="image/svg+xml" data="ptz-fix.svg" style="width:100%; min-width:700px;">SVG graph unavailable — see ptz-fix.svg</object>
+        <object type="image/svg+xml" data="ptz-fix.svg" style="width: 100%; min-width: 700px">
+          SVG graph unavailable — see ptz-fix.svg
+        </object>
       </div>
 
       <h2><span class="num">05</span>Why no tilt-sign fix?</h2>
       <div class="card card-solution">
-        <p>Earlier I suggested "fixing the tilt sign convention." After full investigation that is <strong>wrong</strong>.
-        Positive=up is consistent across V4L2 read (<code>ptz.go:132</code>), V4L2 write (<code>ptz.go:174</code>), the web slider
-        (<code>templates.templ:194</code>), and keyboard arrows (<code>app.js:231-236</code>). The only tilt problem is the
-        <strong>range</strong> being capped at ±30°. Fixing that (T1) is what lets the camera look fully up.</p>
+        <p>
+          Earlier I suggested "fixing the tilt sign convention." After full investigation that is
+          <strong>wrong</strong>. Positive=up is consistent across V4L2 read
+          (<code>ptz.go:132</code>), V4L2 write (<code>ptz.go:174</code>), the web slider
+          (<code>templates.templ:194</code>), and keyboard arrows (<code>app.js:231-236</code>). The
+          only tilt problem is the <strong>range</strong> being capped at ±30°. Fixing that (T1) is
+          what lets the camera look fully up.
+        </p>
       </div>
 
       <div class="footer">
-        Generated 2026-06-20 · Reviewed against emeet-pixyd master @ 0e310ce · 19 tasks, all ≤12 min · Total est. ~58 min
+        Generated 2026-06-20 · Reviewed against emeet-pixyd master @ 0e310ce · 19 tasks, all ≤12 min
+        · Total est. ~58 min
       </div>
     </div>
   </body>
