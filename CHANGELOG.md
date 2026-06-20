@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: PTZ values are now always absolute by default. `emeet-pixyd tilt -90` sets tilt to -90° instead of "go -90° from current position". Relative mode requires an explicit `rel` prefix: `tilt rel-5`, `pan rel+10`.
+- **BREAKING**: PTZ limits corrected to match hardware reality: pan ±150° (was ±170°), tilt ±90° (was ±30°), zoom 100-150× (was 100-400×). Verified empirically via `v4l2-ctl --list-ctrls`.
+
+### Fixed
+
+- Flaky PTZ tests that read real `/dev/video0` state via `parsePTZValues` — now use `withNoopParsePTZ()` stub for deterministic behavior.
+
+### Added
+
+- `FuzzParsePTZValue` fuzz test for arbitrary CLI input robustness.
+
 ## [0.2.0] - 2026-06-07
 
 ### Added

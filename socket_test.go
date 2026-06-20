@@ -207,8 +207,10 @@ func TestSocket_PanTiltZoom(t *testing.T) {
 		wantErr bool
 	}{
 		{"pan with value", "pan 10", true},
-		{"tilt with value", "tilt -5", true},
-		{"zoom with value", "zoom 200", true},
+		{"tilt with absolute negative", "tilt -90", true},
+		{"tilt with relative", "tilt rel-5", true},
+		{"pan with relative", "pan rel+10", true},
+		{"zoom with value", "zoom 125", true},
 		{"pan missing value", pixy.AxisPan, false},
 		{"tilt missing value", "tilt", false},
 		{"zoom missing value", pixy.AxisZoom, false},
