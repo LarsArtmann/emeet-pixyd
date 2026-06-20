@@ -19,15 +19,17 @@ func TestParsePTZValue(t *testing.T) {
 		wantErr bool
 	}{
 		{"50", 50, false, false},
-		{"-30", -30, true, false},
-		{"+45", 45, true, false},
-		{"+0", 0, true, false},
-		{"-0", 0, true, false},
+		{"-30", -30, false, false},
+		{"-90", -90, false, false},
+		{"+45", 45, false, false},
 		{"0", 0, false, false},
+		{"rel+10", 10, true, false},
+		{"rel-5", -5, true, false},
+		{"rel0", 0, true, false},
+		{"rel", 0, false, true},
 		{"", 0, false, true},
-		{"+", 0, false, true},
-		{"-", 0, false, true},
 		{"abc", 0, false, true},
+		{"relabc", 0, false, true},
 	}
 
 	for _, tc := range tests {

@@ -183,11 +183,13 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 	return okResult(fmt.Sprintf("%s set to %d", axis, val))
 }
 
-// parsePTZValue parses a PTZ value string, detecting relative mode (+10, -5).
+// parsePTZValue parses a PTZ value string.
+// Bare numbers are always absolute (including negatives like "-90").
+// Relative mode requires an explicit "rel" prefix (e.g. "rel+10", "rel-5").
 // Returns the integer value, whether it's relative, and any parse error.
 func parsePTZValue(s string) (int, bool, error) {
-	if len(s) > 1 && (s[0] == '+' || s[0] == '-') {
-		v, err := strconv.Atoi(s)
+	if rest, ok := strings.CutPrefix(s, "rel"); ok {
+		v, err := strconv.Atoi(rest)
 		if err != nil {
 			return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
 		}
