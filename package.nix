@@ -11,10 +11,16 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-V9odnSmOX8+YAKjwhNrSdQn49OzUVGKKCrHfTZNK+9k=";
+  vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   proxyVendor = true;
 
   doCheck = false;
+
+  # go-cqrs-lite subdirectory modules need the Go module proxy (not direct VCS)
+  # which is blocked in the nix sandbox. The FOD inherits this env var.
+  overrideModAttrs = _: {
+    GOPROXY = "https://proxy.golang.org,direct";
+  };
 
   nativeBuildInputs = [ templ ];
 

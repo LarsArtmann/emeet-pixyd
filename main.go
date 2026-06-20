@@ -19,7 +19,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
-	"github.com/larsartmann/httputil"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
 // Build info, overridden via -ldflags.
@@ -51,9 +51,9 @@ type Daemon struct {
 
 	streamSema chan struct{}
 
-	// eventClients holds active Server-Sent Events subscribers. Each channel
-	// is buffered (cap 1) so broadcasts never block on slow readers.
-	eventClients map[chan struct{}]struct{}
+	// broadcaster distributes state-change events to all connected SSE
+	// clients via cqrs-htmx's thread-safe fan-out hub.
+	broadcaster *cqrshtmx.Broadcaster
 
 	deps Dependencies
 }
@@ -78,9 +78,10 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 
 	//nolint:exhaustruct // remaining fields set below or zero-valued
 	d := &Daemon{
-		config:     cfg,
-		state:      pixy.DefaultState(),
-		streamSema: make(chan struct{}, 1),
+		config:      cfg,
+		state:       pixy.DefaultState(),
+		streamSema:  make(chan struct{}, 1),
+		broadcaster: cqrshtmx.NewBroadcaster(),
 	}
 	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
 	d.deps = Dependencies{
@@ -144,9 +145,9 @@ func (d *Daemon) newHTTPServer() *http.Server {
 	//nolint:exhaustruct
 	return &http.Server{
 		Addr: d.config.WebAddr,
-		Handler: httputil.Chain(
-			mux, securityMiddleware, loggingMiddleware, requestIDMiddleware,
-		),
+		Handler: cqrshtmx.Chain(
+			securityMiddleware, loggingMiddleware, requestIDMiddleware,
+		)(mux),
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		ReadTimeout:       httpReadTimeout,
 		WriteTimeout:      httpWriteTimeout,
@@ -191,50 +192,14 @@ func (d *Daemon) Run() {
 	d.eventLoop(ctx, cancel, sigs, httpSrv)
 }
 
-// subscribeEvents registers a new SSE client and returns a buffered channel
-// that receives a signal whenever daemon state changes. Callers must pair
-// this with unsubscribeEvents to avoid leaking channels.
-func (d *Daemon) subscribeEvents() chan struct{} {
-	ch := make(chan struct{}, 1)
-
-	d.mu.Lock()
-	if d.eventClients == nil {
-		d.eventClients = make(map[chan struct{}]struct{})
-	}
-
-	d.eventClients[ch] = struct{}{}
-	d.mu.Unlock()
-
-	return ch
-}
-
-// unsubscribeEvents removes an SSE client and closes its channel.
-func (d *Daemon) unsubscribeEvents(ch chan struct{}) {
-	d.mu.Lock()
-	delete(d.eventClients, ch)
-	d.mu.Unlock()
-
-	close(ch)
-}
-
 // broadcastStateChanged notifies all active SSE clients that they should
-// refresh the UI. The notification is non-blocking; slow clients drop events.
+// refresh the UI. Uses cqrs-htmx's Broadcaster for race-safe, non-blocking
+// fan-out — slow clients drop events without stalling the daemon.
 func (d *Daemon) broadcastStateChanged() {
-	d.mu.RLock()
-
-	clients := make([]chan struct{}, 0, len(d.eventClients))
-	for ch := range d.eventClients {
-		clients = append(clients, ch)
-	}
-
-	d.mu.RUnlock()
-
-	for _, ch := range clients {
-		select {
-		case ch <- struct{}{}:
-		default:
-		}
-	}
+	d.broadcaster.Broadcast(cqrshtmx.SSEEvent{ //nolint:exhaustruct
+		Event: sseEventRefresh,
+		Data:  "{}",
+	})
 }
 
 func (d *Daemon) startHTTPServer() *http.Server {

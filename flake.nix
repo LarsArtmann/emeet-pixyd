@@ -120,9 +120,11 @@
               pname = "emeet-pixyd-lint";
               inherit version;
               src = checkSrc;
-              vendorHash = "sha256-V9odnSmOX8+YAKjwhNrSdQn49OzUVGKKCrHfTZNK+9k=";
+              vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
               proxyVendor = true;
               doCheck = false;
+
+              GOPROXY = "https://proxy.golang.org,direct";
 
               nativeBuildInputs = [
                 pkgs.templ

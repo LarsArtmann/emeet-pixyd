@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
-	"github.com/larsartmann/httputil"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
-
-const requestIDMask = 0xFFFFFFFF
 
 type cachingFS struct {
 	handler http.Handler
@@ -24,23 +21,16 @@ func (c cachingFS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //nolint:gochecknoglobals
-var loggingMiddleware httputil.Middleware = httputil.Logging(slog.Default())
+var loggingMiddleware = cqrshtmx.RequestLoggingSlog(slog.Default())
 
-//nolint:gochecknoglobals
-var securityMiddleware httputil.Middleware = httputil.SecurityHeaders(httputil.SecurityHeadersConfig{
-	ContentTypeNosniff:      true,
-	FrameOptions:            "DENY",
-	ReferrerPolicy:          "no-referrer",
-	StrictTransportSecurity: "",
+//nolint:gochecknoglobals,exhaustruct
+var securityMiddleware = cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
+	ContentTypeOptions: "nosniff",
+	FrameOptions:       "DENY",
+	ReferrerPolicy:     "no-referrer",
 	ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
 		"style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
 })
 
 //nolint:gochecknoglobals
-var requestIDMiddleware httputil.Middleware = httputil.RequestID(httputil.RequestIDConfig{
-	HeaderName:    "X-Request-ID",
-	ForwardHeader: "X-Request-ID",
-	GenerateID: func() string {
-		return fmt.Sprintf("%08x", time.Now().UnixNano()&requestIDMask)
-	},
-})
+var requestIDMiddleware = cqrshtmx.ContextEnrichmentMiddleware(nil)

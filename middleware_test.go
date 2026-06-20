@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
 func TestSecurityMiddleware(t *testing.T) {
@@ -70,20 +72,24 @@ func TestRequestIDMiddleware_Generated(t *testing.T) {
 		t.Error("X-Request-ID should be generated when not provided")
 	}
 
-	if len(capturedID) != 8 {
-		t.Errorf("generated ID length = %d, want 8", len(capturedID))
+	// cqrs-htmx's ContextEnrichmentMiddleware generates ULID-based request IDs (26 chars).
+	if len(capturedID) != 26 {
+		t.Errorf("generated ID length = %d, want 26 (ULID)", len(capturedID))
 	}
 }
 
 func TestRequestIDMiddleware_Passthrough(t *testing.T) {
 	t.Parallel()
 
+	// cqrs-htmx parses the X-Request-ID header as a ULID; valid ULIDs pass through.
+	rid := cqrshtmx.NewRequestID().String()
+
 	req := httptest.NewRequestWithContext(context.Background(), "GET", "/", nil)
-	req.Header.Set("X-Request-ID", "abcd1234")
+	req.Header.Set("X-Request-ID", rid)
 	capturedID := runRequestIDMiddleware(t, req)
 
-	if capturedID != "abcd1234" {
-		t.Errorf("X-Request-ID = %q, want %q", capturedID, "abcd1234")
+	if capturedID != rid {
+		t.Errorf("X-Request-ID = %q, want %q", capturedID, rid)
 	}
 }
 

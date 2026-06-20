@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
 const (
@@ -260,6 +261,7 @@ func newTestDaemon(
 		debounceInUse: 0,
 		debounceIdle:  0,
 		streamSema:    make(chan struct{}, 1),
+		broadcaster:   cqrshtmx.NewBroadcaster(),
 		deps: Dependencies{
 			isCameraInUse: func(string) bool { return false },
 			findSource:    noopFindSourceFn,

@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"embed"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -27,6 +27,9 @@ const (
 	toastTypeSuccess = "success"
 	toastTypeInfo    = "info"
 	toastTypeError   = "error"
+
+	sseEventConnected = "connected"
+	sseEventRefresh   = "refresh"
 
 	ptzCacheTTL = 2 * time.Second
 
@@ -143,24 +146,16 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 	camera := s.daemon.state.Camera
 	s.daemon.mu.RUnlock()
 
-	responseWriter.Header().Set("Content-Type", "application/json")
-
+	status := http.StatusOK
 	if !online {
-		responseWriter.WriteHeader(http.StatusServiceUnavailable)
+		status = http.StatusServiceUnavailable
 	}
 
-	data, err := json.Marshal(healthResponse{
+	_ = cqrshtmx.WriteJSON(responseWriter, status, healthResponse{
 		Status:  boolStr(online, "ok", "offline"),
 		Camera:  camera,
 		Version: buildVersion,
 	})
-	if err != nil {
-		slog.Error("failed to marshal health response", "error", err)
-
-		return
-	}
-
-	_, _ = responseWriter.Write(data)
 }
 
 type healthResponse struct {
@@ -175,41 +170,30 @@ func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, reques
 }
 
 func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
-	responseWriter.Header().Set("Content-Type", "text/event-stream")
-	responseWriter.Header().Set("Cache-Control", "no-cache")
-	responseWriter.Header().Set("Connection", "keep-alive")
+	stream := cqrshtmx.NewSSEStream(responseWriter, request)
+	defer stream.Close()
 
-	flusher, ok := responseWriter.(http.Flusher)
-	if !ok {
-		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
+	_ = stream.Send(cqrshtmx.SSEEvent{ //nolint:exhaustruct
+		Event: sseEventConnected,
+		Data:  "{}",
+	})
 
-		return
-	}
-
-	ch := s.daemon.subscribeEvents()
-	defer s.daemon.unsubscribeEvents(ch)
-
-	_, _ = fmt.Fprintf(responseWriter, "event: connected\ndata: {}\n\n")
-
-	flusher.Flush()
-
-	ctx := request.Context()
+	ch := s.daemon.broadcaster.Subscribe()
+	defer s.daemon.broadcaster.Unsubscribe(ch)
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-stream.Context().Done():
 			return
-		case _, ok := <-ch:
+		case event, ok := <-ch:
 			if !ok {
 				return
 			}
 
-			_, writeErr := fmt.Fprintf(responseWriter, "event: refresh\ndata: {}\n\n")
-			if writeErr != nil {
+			sendErr := stream.Send(event)
+			if sendErr != nil {
 				return
 			}
-
-			flusher.Flush()
 		}
 	}
 }
@@ -325,6 +309,7 @@ func (s *webServer) invalidatePTZCache() {
 
 func newWebMux(server *webServer) *http.ServeMux {
 	mux := http.NewServeMux()
+	mux.Handle("GET /static/htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
