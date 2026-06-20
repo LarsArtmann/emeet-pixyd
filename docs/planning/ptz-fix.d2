@@ -1,0 +1,60 @@
+direction: right
+title: PTZ Hardware-Limit Fix — Execution Graph
+
+# Tier 1: Root cause (1% -> 51%)
+T1_Fix_Tilt: Fix TiltMin/TiltMax\n(-30/30 -> -90/90)\nTier 1 • 1min • USER PAIN
+T1_Fix_Tilt.style.fill: "#f4d35e"
+T1_Fix_Tilt.style.stroke: "#e63946"
+T2_Fix_Pan: Fix PanMin/PanMax\n(-170/170 -> -150/150)\nTier 1 • 1min
+T3_Fix_Zoom: Fix ZoomMax\n(400 -> 150)\nTier 1 • 1min
+
+# Tier 2: Tests stay green (4% -> 64%)
+T4_UnitClamp_Pan: ptz_unit_test.go\npan clamp limits\nTier 2 • 2min
+T5_UnitClamp_Zoom: ptz_unit_test.go\nzoom clamp limits\nTier 2 • 2min
+T6_Clamp_Within: ptz_test.go\nwithin-limits Zoom\nTier 2 • 2min
+T7_Behav_Pan: behavior_ptz_test.go\npan 612000->540000\nTier 2 • 2min
+T8_Behav_Tilt: behavior_ptz_test.go\ntilt -50->-100\nTier 2 • 3min
+T9_Behav_Zoom: behavior_ptz_test.go\nzoom 400->150\nTier 2 • 2min
+T10_Behav_Web: behavior_ptz_test.go\nweb zoom 200->125\nTier 2 • 2min
+
+# Tier 3: Docs honesty (20% -> 80%)
+T11_README: README.md\nPTZ ranges\nTier 3 • 3min
+T12_FEATURES: FEATURES.md\nPTZ ranges\nTier 3 • 2min
+T13_CHANGELOG: CHANGELOG.md\nPTZ ranges\nTier 3 • 2min
+
+# Tier 4: Verification
+T14_Build: templ generate\n+ go build\nTier 4 • 3min
+T15_Test: go test -race\n./...\nTier 4 • 5min
+T16_Lint: golangci-lint run\nTier 4 • 3min
+T17_AGENTS: AGENTS.md gotchas\nhw-verified limits\nTier 4 • 5min
+T18_Hardware: Verify on real cam\ntilt/pan/zoom\nTier 4 • 8min
+T19_Socket: Investigate dead\ncontrol socket\nTier 4 • 10min
+
+# Dependencies: constants gate everything
+T1_Fix_Tilt -> T4_UnitClamp_Pan
+T2_Fix_Pan -> T4_UnitClamp_Pan
+T3_Fix_Zoom -> T5_UnitClamp_Zoom
+T1_Fix_Tilt -> T6_Clamp_Within
+T3_Fix_Zoom -> T6_Clamp_Within
+
+T1_Fix_Tilt -> T8_Behav_Tilt
+T2_Fix_Pan -> T7_Behav_Pan
+T3_Fix_Zoom -> T9_Behav_Zoom
+T3_Fix_Zoom -> T10_Behav_Web
+
+T1_Fix_Tilt -> T11_README
+T2_Fix_Pan -> T11_README
+T3_Fix_Zoom -> T11_README
+
+# Tests gate build verification
+T4_UnitClamp_Pan -> T15_Test
+T5_UnitClamp_Zoom -> T15_Test
+T6_Clamp_Within -> T15_Test
+T7_Behav_Pan -> T15_Test
+T8_Behav_Tilt -> T15_Test
+T9_Behav_Zoom -> T15_Test
+T10_Behav_Web -> T15_Test
+
+T14_Build -> T15_Test
+T15_Test -> T16_Lint
+T16_Lint -> T18_Hardware
