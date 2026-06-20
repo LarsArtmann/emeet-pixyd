@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -89,7 +90,7 @@ func assertPTZCacheInvalidated(t *testing.T, d *Daemon) {
 // requests can be observed against a non-zero baseline.
 func withSeededPTZCache() testDaemonOption {
 	return func(d *Daemon) {
-		d.ptzCache.Set(pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}, ptzCacheTTL)
+		d.ptzCache.Set(pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}, ptzCacheTTL)
 	}
 }
 
@@ -98,22 +99,22 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	d, v4l2Calls := newPTZCaptureDaemon()
 
-	// When pan is set beyond the maximum (200 → clamp to 150)
+	// When pan is set beyond the maximum (200 → clamp to PanMax)
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "200"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "540000")
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.PanMax*v4l2UnitsPerDegree))
 
-	// When tilt is set beyond minimum (-100 → clamp to -90)
+	// When tilt is set beyond minimum (-100 → clamp to TiltMin)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-100"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "-324000")
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.TiltMin*v4l2UnitsPerDegree))
 
-	// When zoom is set beyond maximum (500 → clamp to 150, no multiplier)
+	// When zoom is set beyond maximum (500 → clamp to ZoomMax, no multiplier)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "500"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "150")
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.ZoomMax))
 }
 
 func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
@@ -185,8 +186,8 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 		wantVal    string
 		wantSlider string
 	}{
-		{"pan", "45", "pan_absolute", "162000", `value="45"`},
-		{"tilt", "-30", "tilt_absolute", "-108000", `value="-30"`},
+		{"pan", "45", "pan_absolute", strconv.Itoa(45 * v4l2UnitsPerDegree), `value="45"`},
+		{"tilt", "-30", "tilt_absolute", strconv.Itoa(-30 * v4l2UnitsPerDegree), `value="-30"`},
 		{"zoom", "125", "zoom_absolute", "125", `value="125"`},
 	}
 

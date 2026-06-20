@@ -106,9 +106,9 @@ emeet-pixy auto [mode]      # Set auto mode (off, full, tracking-only, privacy-o
 emeet-pixy auto-on          # Enable full auto mode
 emeet-pixy auto-off         # Disable auto mode
 emeet-pixy toggle-auto      # Toggle auto mode
-emeet-pixy pan <value>      # Set pan (−150 to 150)
-emeet-pixy tilt <value>     # Set tilt (−90 to 90)
-emeet-pixy zoom <value>     # Set zoom (100 to 150)
+emeet-pixy pan <value>      # Set pan (−150 to 150; or rel+/-N for relative)
+emeet-pixy tilt <value>     # Set tilt (−90 to 90; or rel+/-N for relative)
+emeet-pixy zoom <value>     # Set zoom (100 to 150; or rel+/-N for relative)
 emeet-pixy sync             # Sync daemon state from camera hardware
 emeet-pixy probe            # Re-detect device (video + hidraw)
 emeet-pixy device           # Show current video device path

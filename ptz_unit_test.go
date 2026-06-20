@@ -86,12 +86,12 @@ func TestClampInt(t *testing.T) {
 		{5, 0, 10, 5},
 		{-5, 0, 10, 0},
 		{15, 0, 10, 10},
-		{0, -150, 150, 0},
-		{-200, -150, 150, -150},
-		{200, -150, 150, 150},
-		{100, 100, 150, 100},
-		{125, 100, 150, 125},
-		{500, 100, 150, 150},
+		{0, pixy.PanMin, pixy.PanMax, 0},
+		{-200, pixy.PanMin, pixy.PanMax, pixy.PanMin},
+		{200, pixy.PanMin, pixy.PanMax, pixy.PanMax},
+		{pixy.ZoomMin, pixy.ZoomMin, pixy.ZoomMax, pixy.ZoomMin},
+		{125, pixy.ZoomMin, pixy.ZoomMax, 125},
+		{500, pixy.ZoomMin, pixy.ZoomMax, pixy.ZoomMax},
 	}
 
 	for _, tc := range tests {
