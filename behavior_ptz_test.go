@@ -98,22 +98,22 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 
 	d, v4l2Calls := newPTZCaptureDaemon()
 
-	// When pan is set beyond the maximum (200 → clamp to 170)
+	// When pan is set beyond the maximum (200 → clamp to 150)
 	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "200"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "612000")
+	assertV4L2Call(t, *v4l2Calls, "540000")
 
-	// When tilt is set beyond minimum (-50 → clamp to -30)
+	// When tilt is set beyond minimum (-100 → clamp to -90)
 	*v4l2Calls = nil
-	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-50"})
+	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-100"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "-108000")
+	assertV4L2Call(t, *v4l2Calls, "-324000")
 
-	// When zoom is set beyond maximum (500 → clamp to 400, no multiplier)
+	// When zoom is set beyond maximum (500 → clamp to 150, no multiplier)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "500"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, "400")
+	assertV4L2Call(t, *v4l2Calls, "150")
 }
 
 func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
@@ -187,7 +187,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 	}{
 		{"pan", "45", "pan_absolute", "162000", `value="45"`},
 		{"tilt", "-30", "tilt_absolute", "-108000", `value="-30"`},
-		{"zoom", "200", "zoom_absolute", "200", `value="200"`},
+		{"zoom", "125", "zoom_absolute", "125", `value="125"`},
 	}
 
 	for _, tc := range tests {
@@ -202,6 +202,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 				"/dev/hidraw7",
 				withCaptureV4L2(&v4l2Calls),
 				withSeededPTZCache(),
+				withNoopParsePTZ(),
 			)
 			webSrv := &webServer{daemon: d}
 			mux := newWebMux(webSrv)

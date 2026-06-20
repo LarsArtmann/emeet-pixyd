@@ -13,7 +13,7 @@
 | **Privacy Mode**      | Physically blocks camera lens via HID                         | ✅ FULLY_FUNCTIONAL |
 | **Toggle Privacy**    | Switches between tracking ↔ privacy                           | ✅ FULLY_FUNCTIONAL |
 | **Center Camera**     | Resets pan=0, tilt=0, zoom=100 via `v4l2-ctl`                 | ✅ FULLY_FUNCTIONAL |
-| **PTZ Sliders (Web)** | Pan (±170°), Tilt (±30°), Zoom (100–400×) with 300ms debounce | ✅ FULLY_FUNCTIONAL |
+| **PTZ Sliders (Web)** | Pan (±150°), Tilt (±90°), Zoom (100–150×) with 300ms debounce | ✅ FULLY_FUNCTIONAL |
 | **PTZ CLI**           | `pan/tilt/zoom <value>` via socket/CLI with clamping          | ✅ FULLY_FUNCTIONAL |
 | **PTZ Relative Mode** | `pan+10`, `tilt-5` for relative adjustments via socket/CLI    | ✅ FULLY_FUNCTIONAL |
 | **Keyboard PTZ**      | Arrow keys: pan/tilt ±5°, +/-: zoom ±10                       | ✅ FULLY_FUNCTIONAL |

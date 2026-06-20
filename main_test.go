@@ -60,6 +60,16 @@ func withNoopV4L2() testDaemonOption {
 	}
 }
 
+// withNoopParsePTZ wires a deterministic parsePTZ stub so relative-mode PTZ
+// commands (e.g. "tilt -30") don't read real /dev/video0 hardware state.
+func withNoopParsePTZ() testDaemonOption {
+	return func(d *Daemon) {
+		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
+			return pixy.PTZValues{}
+		}
+	}
+}
+
 func withNoopTracking() testDaemonOption {
 	return func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, _ pixy.CameraState) error { return nil }

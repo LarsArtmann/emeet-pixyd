@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Full auto-management: call detection via `/proc/*/fd` scanning with debounced state transitions
 - Three auto modes: `full` (tracking + audio + source + privacy), `tracking-only`, `privacy-only`
 - HID bidirectional protocol for camera control (tracking, idle, privacy) and audio mode switching
-- V4L2 PTZ control via `v4l2-ctl` subprocess (pan ±170°, tilt ±30°, zoom 100–400×)
+- V4L2 PTZ control via `v4l2-ctl` subprocess (pan ±150°, tilt ±90°, zoom 100–150×)
 - HTMX web UI with dark glassmorphism theme, MJPEG preview, PTZ sliders, toast notifications
 - Keyboard shortcuts: T (track), I (idle), P (privacy), C (center)
 - Waybar integration with JSON output (icon, class, tooltip with full status)

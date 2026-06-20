@@ -59,9 +59,12 @@ func TestParsePTZValue(t *testing.T) {
 }
 
 func newPTZDaemon(opts ...testDaemonOption) *Daemon {
-	allOpts := append([]testDaemonOption{func(_ *Daemon) {}}, opts...)
+	// PTZ behavior tests must be hardware-independent: relative-mode commands
+	// (e.g. "tilt -30") read current position via parsePTZ. Wire a deterministic
+	// stub so relative math is reproducible regardless of real /dev/video0 state.
+	opts = append([]testDaemonOption{withNoopParsePTZ()}, opts...)
 
-	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", allOpts...)
+	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", opts...)
 }
 
 func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]struct{ axis, val string }) {
@@ -138,14 +141,14 @@ func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 
 	d, setCalls := newPTZCaptureDaemon()
 
-	d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "200"})
+	d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "125"})
 
 	if len(*setCalls) != 1 {
 		t.Fatalf("expected 1 call, got %d", len(*setCalls))
 	}
 
-	if (*setCalls)[0].val != "200" {
-		t.Errorf("zoom value = %s, want 200 (no multiplier)", (*setCalls)[0].val)
+	if (*setCalls)[0].val != "125" {
+		t.Errorf("zoom value = %s, want 125 (no multiplier)", (*setCalls)[0].val)
 	}
 }
 

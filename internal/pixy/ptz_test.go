@@ -12,7 +12,7 @@ func TestPTZValues_Clamp(t *testing.T) {
 		ptz  PTZValues
 		want PTZValues
 	}{
-		{"within limits", PTZValues{Pan: 0, Tilt: 0, Zoom: 200}, PTZValues{Pan: 0, Tilt: 0, Zoom: 200}},
+		{"within limits", PTZValues{Pan: 0, Tilt: 0, Zoom: 125}, PTZValues{Pan: 0, Tilt: 0, Zoom: 125}},
 		{"pan over max", PTZValues{Pan: 500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMax, Tilt: 0, Zoom: 100}},
 		{"pan under min", PTZValues{Pan: -500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMin, Tilt: 0, Zoom: 100}},
 		{"tilt over max", PTZValues{Pan: 0, Tilt: 100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltMax, Zoom: 100}},

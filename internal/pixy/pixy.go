@@ -301,12 +301,12 @@ func (p PTZValues) Set(axis string, val int) PTZValues {
 
 // PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
 const (
-	PanMin  = -170
-	PanMax  = 170
-	TiltMin = -30
-	TiltMax = 30
+	PanMin  = -150
+	PanMax  = 150
+	TiltMin = -90
+	TiltMax = 90
 	ZoomMin = 100
-	ZoomMax = 400
+	ZoomMax = 150
 	// ZoomDefault is the zoom value when the camera is centered/reset.
 	ZoomDefault = 100
 )
