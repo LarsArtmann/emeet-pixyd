@@ -15,74 +15,74 @@ Migrated the web infrastructure layer of `emeet-pixyd` from hand-rolled implemen
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **cqrs-htmx/v2 dependency added** | `go.mod`: `github.com/larsartmann/cqrs-htmx/v2 v2.5.0` as direct dep |
-| 2 | **SSE migrated to cqrshtmx.Broadcaster** | `main.go:56` — `broadcaster *cqrshtmx.Broadcaster` field; `broadcastStateChanged()` delegates to `Broadcaster.Broadcast()`. Old `eventClients map[chan struct{}]struct{}` + `subscribeEvents`/`unsubscribeEvents` methods deleted. |
-| 3 | **SSE handler uses cqrshtmx.SSEStream** | `handlers.go:173-195` — `NewSSEStream(w, r)` + `stream.Send()` + `stream.Context().Done()`. Old manual flusher/header code deleted. |
-| 4 | **Security headers migrated** | `middleware.go:27` — `cqrshtmx.SecurityHeadersMiddlewareWithConfig()` replaces `httputil.SecurityHeaders()` |
-| 5 | **Request logging migrated** | `middleware.go:24` — `cqrshtmx.RequestLoggingSlog()` replaces `httputil.Logging()` |
-| 6 | **Request ID migrated** | `middleware.go:36` — `cqrshtmx.ContextEnrichmentMiddleware(nil)` replaces `httputil.RequestID()`. IDs are now 26-char ULIDs (was 8-char hex). |
-| 7 | **Middleware chain migrated** | `main.go:148` — `cqrshtmx.Chain(mws...)(mux)` replaces `httputil.Chain(mux, mws...)` |
-| 8 | **HTMX JS served via embedded handler** | `handlers.go:312` — `cqrshtmx.HTMXScriptHandler()` at `/static/htmx.js` (embedded v2.0.9, ETag, immutable cache). Old `static/htmx-2.0.8.min.js` (82KB) deleted. |
-| 9 | **Template updated** | `templates.templ:55` — `<script src="/static/htmx.js">` (no version query param needed). `templates_templ.go` regenerated. |
-| 10 | **Health endpoint uses WriteJSON** | `handlers.go:154` — `cqrshtmx.WriteJSON()` replaces manual `json.Marshal` + write. `encoding/json` import removed from handlers.go. |
-| 11 | **httputil direct dependency removed** | `go.mod` — `httputil` is now only `// indirect` (cqrs-htmx uses it internally for `ClientIP`). No `.go` file imports it directly. |
-| 12 | **Tests updated** | `middleware_test.go` — Request ID tests expect 26-char ULIDs, passthrough test generates valid ULID via `cqrshtmx.NewRequestID()`. `main_test.go` — `newTestDaemon` initializes `broadcaster`. |
-| 13 | **SSE tests pass** | `sse_test.go` — `TestSSEEndpoint_SendsConnectedEvent` and `TestSSEEndpoint_BroadcastsRefresh` pass with new Broadcaster. |
-| 14 | **Lint clean (0 issues)** | `golangci-lint run --timeout 2m ./...` — 0 issues. `//nolint:exhaustruct` added for intentional partial struct initialization. |
-| 15 | **CI workflow updated** | `.github/workflows/go-test.yml` — `GOPRIVATE` env var + git config for private module access. `GOWORK: off` moved to job-level env. |
-| 16 | **AGENTS.md updated** | Middleware, SSE, HTMX JS, and external libraries sections rewritten to reflect cqrs-htmx adoption. |
-| 17 | **Build passes** | `go vet ./...` ✓, `go build ./...` ✓ |
+| #   | Item                                     | Evidence                                                                                                                                                                                                                           |
+| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **cqrs-htmx/v2 dependency added**        | `go.mod`: `github.com/larsartmann/cqrs-htmx/v2 v2.5.0` as direct dep                                                                                                                                                               |
+| 2   | **SSE migrated to cqrshtmx.Broadcaster** | `main.go:56` — `broadcaster *cqrshtmx.Broadcaster` field; `broadcastStateChanged()` delegates to `Broadcaster.Broadcast()`. Old `eventClients map[chan struct{}]struct{}` + `subscribeEvents`/`unsubscribeEvents` methods deleted. |
+| 3   | **SSE handler uses cqrshtmx.SSEStream**  | `handlers.go:173-195` — `NewSSEStream(w, r)` + `stream.Send()` + `stream.Context().Done()`. Old manual flusher/header code deleted.                                                                                                |
+| 4   | **Security headers migrated**            | `middleware.go:27` — `cqrshtmx.SecurityHeadersMiddlewareWithConfig()` replaces `httputil.SecurityHeaders()`                                                                                                                        |
+| 5   | **Request logging migrated**             | `middleware.go:24` — `cqrshtmx.RequestLoggingSlog()` replaces `httputil.Logging()`                                                                                                                                                 |
+| 6   | **Request ID migrated**                  | `middleware.go:36` — `cqrshtmx.ContextEnrichmentMiddleware(nil)` replaces `httputil.RequestID()`. IDs are now 26-char ULIDs (was 8-char hex).                                                                                      |
+| 7   | **Middleware chain migrated**            | `main.go:148` — `cqrshtmx.Chain(mws...)(mux)` replaces `httputil.Chain(mux, mws...)`                                                                                                                                               |
+| 8   | **HTMX JS served via embedded handler**  | `handlers.go:312` — `cqrshtmx.HTMXScriptHandler()` at `/static/htmx.js` (embedded v2.0.9, ETag, immutable cache). Old `static/htmx-2.0.8.min.js` (82KB) deleted.                                                                   |
+| 9   | **Template updated**                     | `templates.templ:55` — `<script src="/static/htmx.js">` (no version query param needed). `templates_templ.go` regenerated.                                                                                                         |
+| 10  | **Health endpoint uses WriteJSON**       | `handlers.go:154` — `cqrshtmx.WriteJSON()` replaces manual `json.Marshal` + write. `encoding/json` import removed from handlers.go.                                                                                                |
+| 11  | **httputil direct dependency removed**   | `go.mod` — `httputil` is now only `// indirect` (cqrs-htmx uses it internally for `ClientIP`). No `.go` file imports it directly.                                                                                                  |
+| 12  | **Tests updated**                        | `middleware_test.go` — Request ID tests expect 26-char ULIDs, passthrough test generates valid ULID via `cqrshtmx.NewRequestID()`. `main_test.go` — `newTestDaemon` initializes `broadcaster`.                                     |
+| 13  | **SSE tests pass**                       | `sse_test.go` — `TestSSEEndpoint_SendsConnectedEvent` and `TestSSEEndpoint_BroadcastsRefresh` pass with new Broadcaster.                                                                                                           |
+| 14  | **Lint clean (0 issues)**                | `golangci-lint run --timeout 2m ./...` — 0 issues. `//nolint:exhaustruct` added for intentional partial struct initialization.                                                                                                     |
+| 15  | **CI workflow updated**                  | `.github/workflows/go-test.yml` — `GOPRIVATE` env var + git config for private module access. `GOWORK: off` moved to job-level env.                                                                                                |
+| 16  | **AGENTS.md updated**                    | Middleware, SSE, HTMX JS, and external libraries sections rewritten to reflect cqrs-htmx adoption.                                                                                                                                 |
+| 17  | **Build passes**                         | `go vet ./...` ✓, `go build ./...` ✓                                                                                                                                                                                               |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | Status | What remains |
-|---|------|--------|-------------|
-| 1 | **CI workflow** | Updated but **uncommitted** | `.github/workflows/go-test.yml` is modified in working tree. Needs commit. |
-| 2 | **AGENTS.md** | Updated but **uncommitted** | Nix limitation documented. Needs commit. |
-| 3 | **package.nix** | Updated but **uncommitted** | Contains placeholder vendorHash + documentation comment about private dep limitation. Needs commit. |
-| 4 | **flake.nix** | Updated but **uncommitted** | Lint check vendorHash restored to original (broken). Needs commit. |
+| #   | Item            | Status                      | What remains                                                                                        |
+| --- | --------------- | --------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1   | **CI workflow** | Updated but **uncommitted** | `.github/workflows/go-test.yml` is modified in working tree. Needs commit.                          |
+| 2   | **AGENTS.md**   | Updated but **uncommitted** | Nix limitation documented. Needs commit.                                                            |
+| 3   | **package.nix** | Updated but **uncommitted** | Contains placeholder vendorHash + documentation comment about private dep limitation. Needs commit. |
+| 4   | **flake.nix**   | Updated but **uncommitted** | Lint check vendorHash restored to original (broken). Needs commit.                                  |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why |
-|---|------|-----|
-| 1 | **Nix build fix** | Requires making `go-cqrs-lite` public (external action outside this repo) |
-| 2 | **vendorHash update** | Cannot compute until nix FOD can access private deps |
-| 3 | **Benchmarks for new SSE** | No before/after benchmark comparing hand-rolled SSE vs cqrshtmx.Broadcaster |
-| 4 | **SSE reconnection support** | cqrs-htmx supports `LastEventID` + `SSEEventStore` for replay — not wired in emeet-pixyd |
-| 5 | **SSE heartbeat** | `stream.Heartbeat()` available but not used (proxy keepalive) |
+| #   | Item                         | Why                                                                                      |
+| --- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| 1   | **Nix build fix**            | Requires making `go-cqrs-lite` public (external action outside this repo)                |
+| 2   | **vendorHash update**        | Cannot compute until nix FOD can access private deps                                     |
+| 3   | **Benchmarks for new SSE**   | No before/after benchmark comparing hand-rolled SSE vs cqrshtmx.Broadcaster              |
+| 4   | **SSE reconnection support** | cqrs-htmx supports `LastEventID` + `SSEEventStore` for replay — not wired in emeet-pixyd |
+| 5   | **SSE heartbeat**            | `stream.Heartbeat()` available but not used (proxy keepalive)                            |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | Issue | Impact | Root Cause |
-|---|-------|--------|-----------|
-| 1 | **Nix build is broken** | `nix build` fails at go-modules FOD | `cqrs-htmx` depends on `go-cqrs-lite` (private repo, `github.com/larsartmann/go-cqrs-lite`). Not on Go module proxy. Nix sandbox has no SSH keys or GitHub credentials. Tried: `GOPROXY` env, `overrideModAttrs` with `GOPRIVATE`, `GIT_CONFIG_*`, `HOME`/`GOMODCACHE` override, `--option sandbox false`. All failed — nix FOD fundamentally cannot access private repos. |
-| 2 | **vendorHash is stale** | Build mismatch | The `vendorHash` in `package.nix` and `flake.nix` still reflects the OLD dependency set (pre-cqrs-htmx). Cannot compute the new hash. |
+| #   | Issue                   | Impact                              | Root Cause                                                                                                                                                                                                                                                                                                                                                                 |
+| --- | ----------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Nix build is broken** | `nix build` fails at go-modules FOD | `cqrs-htmx` depends on `go-cqrs-lite` (private repo, `github.com/larsartmann/go-cqrs-lite`). Not on Go module proxy. Nix sandbox has no SSH keys or GitHub credentials. Tried: `GOPROXY` env, `overrideModAttrs` with `GOPRIVATE`, `GIT_CONFIG_*`, `HOME`/`GOMODCACHE` override, `--option sandbox false`. All failed — nix FOD fundamentally cannot access private repos. |
+| 2   | **vendorHash is stale** | Build mismatch                      | The `vendorHash` in `package.nix` and `flake.nix` still reflects the OLD dependency set (pre-cqrs-htmx). Cannot compute the new hash.                                                                                                                                                                                                                                      |
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| # | Improvement | Rationale |
-|---|------------|-----------|
-| 1 | **Make `go-cqrs-lite` public** | Unblocks nix build, simplifies CI (no GOPRIVATE/token needed), enables other consumers |
-| 2 | **Add SSE heartbeat** | `stream.Heartbeat(ctx, 15s)` prevents proxy idle kills. Available in cqrs-htmx, just 1 line. |
-| 3 | **Wire SSE reconnection** | Use `stream.LastEventID()` + `SSEEventStore` so missed events replay after reconnect |
-| 4 | **Benchmark SSE before/after** | cqrs-htmx Broadcaster uses `reflect.ValueOf(ch).Pointer()` for O(1) unsubscribe — may have perf implications vs the old direct map key |
-| 5 | **Consider cqrshtmx.RecoveryMiddleware** | Currently no panic recovery on HTTP handlers. One middleware addition. |
-| 6 | **Evaluate cqrshtmx.HTMXMiddleware** | Would provide `HTMXFromContext` for partial vs full-page rendering decisions — currently all handlers render the same regardless of HTMX boost |
-| 7 | **Remove stale static dir reference** | `static/` now only has `app.js` + `style.css`. The embed still works but could be cleaner. |
-| 8 | **Update FEATURES.md** | No mention of cqrs-htmx adoption in the feature inventory |
-| 9 | **Pin cqrs-htmx version in nix** | Currently relies on `go get @latest`. Should pin to v2.5.0 explicitly in docs. |
-| 10 | **Add integration test for HTMX JS endpoint** | Verify `/static/htmx.js` returns correct Content-Type, ETag, and 304 on If-None-Match |
+| #   | Improvement                                   | Rationale                                                                                                                                      |
+| --- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Make `go-cqrs-lite` public**                | Unblocks nix build, simplifies CI (no GOPRIVATE/token needed), enables other consumers                                                         |
+| 2   | **Add SSE heartbeat**                         | `stream.Heartbeat(ctx, 15s)` prevents proxy idle kills. Available in cqrs-htmx, just 1 line.                                                   |
+| 3   | **Wire SSE reconnection**                     | Use `stream.LastEventID()` + `SSEEventStore` so missed events replay after reconnect                                                           |
+| 4   | **Benchmark SSE before/after**                | cqrs-htmx Broadcaster uses `reflect.ValueOf(ch).Pointer()` for O(1) unsubscribe — may have perf implications vs the old direct map key         |
+| 5   | **Consider cqrshtmx.RecoveryMiddleware**      | Currently no panic recovery on HTTP handlers. One middleware addition.                                                                         |
+| 6   | **Evaluate cqrshtmx.HTMXMiddleware**          | Would provide `HTMXFromContext` for partial vs full-page rendering decisions — currently all handlers render the same regardless of HTMX boost |
+| 7   | **Remove stale static dir reference**         | `static/` now only has `app.js` + `style.css`. The embed still works but could be cleaner.                                                     |
+| 8   | **Update FEATURES.md**                        | No mention of cqrs-htmx adoption in the feature inventory                                                                                      |
+| 9   | **Pin cqrs-htmx version in nix**              | Currently relies on `go get @latest`. Should pin to v2.5.0 explicitly in docs.                                                                 |
+| 10  | **Add integration test for HTMX JS endpoint** | Verify `/static/htmx.js` returns correct Content-Type, ETag, and 304 on If-None-Match                                                          |
 
 ---
 
@@ -144,31 +144,31 @@ The entire nix build pipeline is blocked on this. `cqrs-htmx/v2` (which is publi
 
 ## Metrics Snapshot
 
-| Metric | Value |
-|--------|-------|
-| Go source LOC (non-test, non-generated) | 3,981 |
-| Test functions | 710 |
-| `go test -race -count=1 ./...` | ✅ PASS |
-| `golangci-lint run --timeout 2m ./...` | ✅ 0 issues |
-| `go vet ./...` | ✅ PASS |
-| `nix build` | ❌ BROKEN (private dep) |
-| Direct deps in go.mod | 8 (added cqrs-htmx/v2, removed httputil direct) |
-| Indirect deps added | ~15 (casbin, nosurf, go-cqrs-lite/*, samber/lo, etc.) |
-| Files deleted | 1 (`static/htmx-2.0.8.min.js`, 82KB / 3449 lines) |
-| Files changed in migration commit | 12 (+127, -3571 lines net) |
+| Metric                                  | Value                                                  |
+| --------------------------------------- | ------------------------------------------------------ |
+| Go source LOC (non-test, non-generated) | 3,981                                                  |
+| Test functions                          | 710                                                    |
+| `go test -race -count=1 ./...`          | ✅ PASS                                                |
+| `golangci-lint run --timeout 2m ./...`  | ✅ 0 issues                                            |
+| `go vet ./...`                          | ✅ PASS                                                |
+| `nix build`                             | ❌ BROKEN (private dep)                                |
+| Direct deps in go.mod                   | 8 (added cqrs-htmx/v2, removed httputil direct)        |
+| Indirect deps added                     | ~15 (casbin, nosurf, go-cqrs-lite/\*, samber/lo, etc.) |
+| Files deleted                           | 1 (`static/htmx-2.0.8.min.js`, 82KB / 3449 lines)      |
+| Files changed in migration commit       | 12 (+127, -3571 lines net)                             |
 
 ---
 
 ## Migration Map (Before → After)
 
-| Component | Before | After | File:Line |
-|-----------|--------|-------|-----------|
-| SSE fan-out | `eventClients map[chan struct{}]struct{}` | `*cqrshtmx.Broadcaster` | `main.go:56` |
-| SSE handler | Manual headers + flusher + `fmt.Fprintf` | `cqrshtmx.NewSSEStream` + `stream.Send` | `handlers.go:173` |
-| Security headers | `httputil.SecurityHeaders()` | `cqrshtmx.SecurityHeadersMiddlewareWithConfig()` | `middleware.go:27` |
-| Request logging | `httputil.Logging(slog.Default())` | `cqrshtmx.RequestLoggingSlog(slog.Default())` | `middleware.go:24` |
-| Request ID | `httputil.RequestID()` (8-char hex) | `cqrshtmx.ContextEnrichmentMiddleware(nil)` (26-char ULID) | `middleware.go:36` |
-| Middleware chain | `httputil.Chain(mux, mws...)` | `cqrshtmx.Chain(mws...)(mux)` | `main.go:148` |
-| HTMX JS | `static/htmx-2.0.8.min.js` (82KB file) | `cqrshtmx.HTMXScriptHandler()` (embedded) | `handlers.go:312` |
-| Health JSON | `json.Marshal` + `Write(data)` | `cqrshtmx.WriteJSON()` | `handlers.go:154` |
-| Broadcast | `broadcastStateChanged()` manual loop | `Broadcaster.Broadcast(SSEEvent{...})` | `main.go:199` |
+| Component        | Before                                    | After                                                      | File:Line          |
+| ---------------- | ----------------------------------------- | ---------------------------------------------------------- | ------------------ |
+| SSE fan-out      | `eventClients map[chan struct{}]struct{}` | `*cqrshtmx.Broadcaster`                                    | `main.go:56`       |
+| SSE handler      | Manual headers + flusher + `fmt.Fprintf`  | `cqrshtmx.NewSSEStream` + `stream.Send`                    | `handlers.go:173`  |
+| Security headers | `httputil.SecurityHeaders()`              | `cqrshtmx.SecurityHeadersMiddlewareWithConfig()`           | `middleware.go:27` |
+| Request logging  | `httputil.Logging(slog.Default())`        | `cqrshtmx.RequestLoggingSlog(slog.Default())`              | `middleware.go:24` |
+| Request ID       | `httputil.RequestID()` (8-char hex)       | `cqrshtmx.ContextEnrichmentMiddleware(nil)` (26-char ULID) | `middleware.go:36` |
+| Middleware chain | `httputil.Chain(mux, mws...)`             | `cqrshtmx.Chain(mws...)(mux)`                              | `main.go:148`      |
+| HTMX JS          | `static/htmx-2.0.8.min.js` (82KB file)    | `cqrshtmx.HTMXScriptHandler()` (embedded)                  | `handlers.go:312`  |
+| Health JSON      | `json.Marshal` + `Write(data)`            | `cqrshtmx.WriteJSON()`                                     | `handlers.go:154`  |
+| Broadcast        | `broadcastStateChanged()` manual loop     | `Broadcaster.Broadcast(SSEEvent{...})`                     | `main.go:199`      |
