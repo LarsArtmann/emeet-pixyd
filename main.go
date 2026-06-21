@@ -192,7 +192,7 @@ func (d *Daemon) Run() {
 }
 
 // broadcastStateChanged notifies all active SSE clients that they should
-// refresh the UI. Uses cqrs-htmx's Broadcaster for race-safe, non-blocking
+// refresh the UI. Uses a thread-safe fan-out hub for race-safe, non-blocking
 // fan-out — slow clients drop events without stalling the daemon.
 func (d *Daemon) broadcastStateChanged() {
 	d.broadcaster.Broadcast(SSEEvent{ //nolint:exhaustruct
