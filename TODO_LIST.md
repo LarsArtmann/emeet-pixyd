@@ -1,6 +1,6 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-06-06 (Round 6)
+**Updated:** 2026-06-21 (Round 7)
 **Source docs verified:** docs/SUPERB_ROADMAP.md, AGENTS.md, all planning/status docs
 
 ---
@@ -114,24 +114,48 @@
 | 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream           | Self-Review 4.8 |
 | 62  | ✅ DONE | Enrich `PTZValues` with `Get(axis)`/`Set(axis, val)` methods, eliminate all hardcoded V4L2 control names | Session 7       |
 
+## Phase 9: Post-cqrs-htmx Removal Hardening (2026-06-21)
+
+|     | #       | Status                                                                                                   | Task            | Source     |
+| --- | ------- | -------------------------------------------------------------------------------------------------------- | --------------- | ---------- |
+| 63  | ✅ DONE | Removed `cqrs-htmx/v2` dependency (~30 transitive deps eliminated)                                       | Session 9       |
+| 64  | ✅ DONE | Reimplemented SSE `Broadcaster` + `sseStream` + middleware locally in `sse.go`/`http.go`                | Session 9       |
+| 65  | ✅ DONE | Fixed nix build: updated `vendorHash` in `package.nix` + `flake.nix`                                    | Session 9       |
+| 66  | ✅ DONE | Embedded HTMX v2.0.9 JS in `static/htmx.js` (was via `cqrshtmx.HTMXScriptHandler`)                      | Session 9       |
+| 67  | ✅ DONE | Split `sse.go` → `sse.go` (SSE-only) + `http.go` (HTTP helpers + middleware)                            | Session 9       |
+| 68  | ✅ DONE | Added 9 SSE unit tests (`writeSSEEvent`, `Broadcaster`, `splitSSELines`)                                | Session 9       |
+| 69  | ✅ DONE | CI cleanup: removed `GOPRIVATE`, added `FuzzParsePTZValue`, added `nix flake check`                     | Session 9       |
+| 70  | ✅ DONE | Updated CHANGELOG + AGENTS.md with cqrs-htmx removal docs                                               | Session 9       |
+| 71  | ⬜ TODO | Define + wire `Commander` interface for subprocess calls (v4l2-ctl, wpctl, ffmpeg, notify-send)         | Roadmap 1.1     |
+| 72  | ⬜ TODO | Define + wire `ProcessInspector` interface for /proc traversal                                          | Roadmap 1.3     |
+| 73  | ⬜ TODO | Define + wire `UeventListener` interface for netlink                                                    | Roadmap 1.4     |
+| 74  | ⬜ TODO | Camera preset support (save/recall PTZ positions)                                                       | Status F.9      |
+| 75  | ⬜ TODO | Mobile-responsive layout                                                                               | Roadmap 5.3     |
+| 76  | ⬜ TODO | Fake device test infrastructure (fake HID + fake video)                                                 | Roadmap 6.1     |
+| 77  | ⬜ TODO | PTZ readback accuracy — in-memory last-set value                                                       | Status E.1      |
+| 78  | ⬜ TODO | MJPEG stream reconnection with backoff                                                                 | Status E.4      |
+| 79  | ⬜ TODO | Evaluate removing `prometheus/client_golang` (only `promhttp.Handler` used)                            | Session 9       |
+| 80  | ⬜ TODO | Move `SSEEvent` + `toastType` to `internal/pixy` (domain types)                                         | Session 9       |
+| 81  | ⬜ TODO | Integration test with real hardware (build tag guarded)                                                 | Status F.15     |
+
 ---
 
 ## Docs Verified
 
 | File                   | Status                                           |
 | ---------------------- | ------------------------------------------------ |
-| AGENTS.md              | ✅ Current as of 2026-06-06                      |
+| AGENTS.md              | ✅ Current as of 2026-06-21                      |
 | FEATURES.md            | ✅ Verified — 44 features, all match code        |
 | docs/SUPERB_ROADMAP.md | ✅ Archived — completion status added 2026-06-05 |
 | README.md              | ✅ Current                                       |
-| CHANGELOG.md           | ✅ Current                                       |
+| CHANGELOG.md           | ✅ Current as of 2026-06-21                      |
 
 ## Summary
 
 |            | Status | Count |
 | ---------- | ------ | ----- |
-| ✅ DONE    | 47     |
+| ✅ DONE    | 55     |
 | 🔶 PARTIAL | 0      |
 | ❌ SKIP    | 1      |
-| ⬜ TODO    | 14     |
-| **Total**  | 62     |
+| ⬜ TODO    | 20     |
+| **Total**  | 76     |
