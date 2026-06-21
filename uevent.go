@@ -97,7 +97,11 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 		slog.Info("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
 		recordUevent(evt.Action, evt.Subsys) //nolint:contextcheck // uevent goroutine has no inherited context
 
-		ch <- struct{}{}
+		select {
+		case ch <- struct{}{}:
+		case <-ctx.Done():
+			return
+		}
 	}
 }
 

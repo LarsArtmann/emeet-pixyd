@@ -101,6 +101,7 @@ in
           OOMScoreAdjust = -100;
 
           ProtectSystem = "strict";
+          ReadWritePaths = [ "/run/emeet-pixyd" ];
           PrivateTmp = true;
           NoNewPrivileges = true;
           RestrictAddressFamilies = [
