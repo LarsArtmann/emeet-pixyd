@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **BREAKING**: Removed `cqrs-htmx/v2` dependency entirely (~30 transitive dependencies eliminated, including private `go-cqrs-lite`). SSE broadcasting, middleware, and HTTP helpers reimplemented locally in `sse.go` (~290 lines). HTMX JS embedded directly in `static/htmx.js` instead of served via library handler.
 - **BREAKING**: PTZ values are now always absolute by default. `emeet-pixyd tilt -90` sets tilt to -90° instead of "go -90° from current position". Relative mode requires an explicit `rel` prefix: `tilt rel-5`, `pan rel+10`.
 - **BREAKING**: PTZ limits corrected to match hardware reality: pan ±150° (was ±170°), tilt ±90° (was ±30°), zoom 100-150× (was 100-400×). Verified empirically via `v4l2-ctl --list-ctrls`.
 - **BREAKING**: PTZ limit constants replaced with `Range` struct type: `pixy.PanRange`, `pixy.TiltRange`, `pixy.ZoomRange` (was separate `PanMin`/`PanMax`/etc constants). Includes `Range.Clamp(v int) int` method.
@@ -24,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - `FuzzParsePTZValue` fuzz test for arbitrary CLI input robustness.
+- `sse.go`: Local reimplementation of `Broadcaster` (thread-safe SSE fan-out), `sseStream` (per-client SSE), `writeSSEEvent`, `writeJSON`, `chain` (middleware chaining), `securityHeadersMiddleware`, `requestIDMiddleware`, `loggingMiddlewareFactory`.
+- `static/htmx.js`: Embedded HTMX v2.0.9 minified JS (was served via `cqrshtmx.HTMXScriptHandler()`).
 - `TestBehavior_PTZAbsoluteNegativeTilt`: proves bare negative values are absolute, not relative (seeds non-zero baseline to distinguish).
 - `TestBehavior_PTZRelativeMath`: proves `rel` prefix triggers relative mode with correct math.
 - Named noop stub functions (`noopV4L2Set`, `noopSetTracking`, etc.) shared by `withNoop*` builders and `noopDependencies()`.

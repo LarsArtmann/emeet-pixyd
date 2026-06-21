@@ -11,16 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOWORK: off
-      GOPRIVATE: github.com/larsartmann/*,github.com/LarsArtmann/*
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - name: Configure git for private modules
-        run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: Vet
         run: go vet ./...
@@ -46,6 +42,13 @@ jobs:
           go test -race -count=1 -coverprofile=coverage.out ./...
           go tool cover -func=coverage.out | tail -1
 
+      - name: Nix flake check
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: nix --extra-experimental-features 'nix-command flakes' flake check
+
       - name: Cache fuzz corpus
         uses: actions/cache@v4
         with:
@@ -55,7 +58,7 @@ jobs:
 
       - name: Fuzz
         run: |
-          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse; do
+          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue; do
             echo "Fuzzing $target for 60s ..."
             go test -fuzz=$target -fuzztime=60s .
           done
