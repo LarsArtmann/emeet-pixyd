@@ -300,16 +300,10 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 		return
 	}
 
-	s.invalidatePTZCache()
-
 	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
 		info.Label, string(axis), info.Min, info.Max, intVal, info.Unit,
 		"", "",
 	)).ServeHTTP(responseWriter, request)
-}
-
-func (s *webServer) invalidatePTZCache() {
-	s.daemon.ptzCache.Invalidate()
 }
 
 func newWebMux(server *webServer) *http.ServeMux {

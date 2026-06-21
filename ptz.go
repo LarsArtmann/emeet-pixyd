@@ -175,7 +175,14 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		return errResult(string(axis), v4l2Err)
 	}
 
-	d.ptzCache.Invalidate()
+	// Update cache with known value for immediate accurate readback
+	// (avoids stale hardware readback while motor is still moving)
+	if cached, valid := d.ptzCache.Get(); valid {
+		d.ptzCache.Set(cached.Set(axis, val), ptzCacheTTL)
+	} else {
+		d.ptzCache.Invalidate()
+	}
+
 	d.broadcastStateChanged()
 
 	return okResult(fmt.Sprintf("%s set to %d", axis, val))

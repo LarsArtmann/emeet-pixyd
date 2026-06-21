@@ -81,11 +81,16 @@ func assertV4L2CallFull(t *testing.T, calls []v4l2Call, wantDev, wantCtrl, wantV
 	}
 }
 
-func assertPTZCacheInvalidated(t *testing.T, d *Daemon) {
+func assertPTZCacheUpdated(t *testing.T, d *Daemon, axis pixy.Axis, want int) {
 	t.Helper()
 
-	if _, valid := d.ptzCache.Get(); valid {
-		t.Error("PTZ cache should be invalidated after successful set")
+	cached, valid := d.ptzCache.Get()
+	if !valid {
+		t.Fatal("PTZ cache should be valid (updated) after successful set, not invalidated")
+	}
+
+	if got := cached.Get(axis); got != want {
+		t.Errorf("PTZ cache %s = %d, want %d", axis, got, want)
 	}
 }
 
@@ -189,8 +194,8 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 		t.Error("PTZ success toast should be suppressed")
 	}
 
-	// And the PTZ cache is invalidated
-	assertPTZCacheInvalidated(t, d)
+	// And the PTZ cache is updated with the set value
+	assertPTZCacheUpdated(t, d, pixy.AxisPan, 50)
 }
 
 func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
@@ -261,8 +266,9 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 			// And v4l2-ctl was called with the correct control and scaled value
 			assertV4L2CallFull(t, v4l2Calls, "/dev/video0", tc.wantCtrl, tc.wantVal)
 
-			// And the PTZ cache is invalidated
-			assertPTZCacheInvalidated(t, d)
+			// And the PTZ cache is updated with the set value
+			wantVal, _ := strconv.Atoi(tc.value)
+			assertPTZCacheUpdated(t, d, pixy.Axis(tc.axis), wantVal)
 		})
 	}
 }

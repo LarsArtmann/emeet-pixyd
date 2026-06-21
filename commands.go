@@ -239,7 +239,10 @@ func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
 		return errResult(cmdCenter, err)
 	}
 
-	d.ptzCache.Invalidate()
+	d.ptzCache.Set(
+		pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault},
+		ptzCacheTTL,
+	)
 	d.broadcastStateChanged()
 
 	return okResult(respCentered)
