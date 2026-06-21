@@ -10,14 +10,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **BREAKING**: PTZ values are now always absolute by default. `emeet-pixyd tilt -90` sets tilt to -90° instead of "go -90° from current position". Relative mode requires an explicit `rel` prefix: `tilt rel-5`, `pan rel+10`.
 - **BREAKING**: PTZ limits corrected to match hardware reality: pan ±150° (was ±170°), tilt ±90° (was ±30°), zoom 100-150× (was 100-400×). Verified empirically via `v4l2-ctl --list-ctrls`.
+- **BREAKING**: PTZ limit constants replaced with `Range` struct type: `pixy.PanRange`, `pixy.TiltRange`, `pixy.ZoomRange` (was separate `PanMin`/`PanMax`/etc constants). Includes `Range.Clamp(v int) int` method.
+- **BREAKING**: PTZ axis names are now a branded `pixy.Axis` type instead of raw strings. Prevents accidental substitution of arbitrary strings into axis-keyed maps and functions.
+- `queryHIDState` errors now include the device path for debugging (was generic "queryHIDState: ...").
+- Uevent channel send now uses `select` with `ctx.Done()` to prevent goroutine leak on shutdown.
 
 ### Fixed
 
 - Flaky PTZ tests that read real `/dev/video0` state via `parsePTZValues` — now use `withNoopParsePTZ()` stub for deterministic behavior.
+- Socket bind failure root cause: `ProtectSystem=strict` in NixOS module made `/run/emeet-pixyd` read-only. Added `ReadWritePaths` to allow socket creation.
+- `hidrawDevice.String()` receiver consistency (pointer, matching other methods).
 
 ### Added
 
 - `FuzzParsePTZValue` fuzz test for arbitrary CLI input robustness.
+- `TestBehavior_PTZAbsoluteNegativeTilt`: proves bare negative values are absolute, not relative (seeds non-zero baseline to distinguish).
+- `TestBehavior_PTZRelativeMath`: proves `rel` prefix triggers relative mode with correct math.
+- Named noop stub functions (`noopV4L2Set`, `noopSetTracking`, etc.) shared by `withNoop*` builders and `noopDependencies()`.
+- `assertSingleV4L2Call` helper deduplicates V4L2 call count assertions.
+- `doGet` shared GET helper used by both `get` and `getStream` test helpers.
+- `fmt.Stringer` embedded in `HIDDevice` interface for better error context.
 
 ## [0.2.0] - 2026-06-07
 
