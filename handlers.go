@@ -257,10 +257,10 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 
 func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	axis := request.PathValue("axis")
+	axis := pixy.Axis(request.PathValue("axis"))
 
 	val := request.FormValue("value")
-	if axis == "" || val == "" {
+	if string(axis) == "" || val == "" {
 		http.Error(responseWriter, "missing axis or value", http.StatusBadRequest)
 
 		return
@@ -281,14 +281,14 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 	info := ptzAxes[axis]
 	intVal = clampInt(intVal, info.Min, info.Max)
-	result := s.daemon.handleCommand(request.Context(), axis+" "+strconv.Itoa(intVal))
+	result := s.daemon.handleCommand(request.Context(), string(axis)+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", result.String())
 
 	if result.IsError() {
 		status := s.getWebStatusWithPTZ(request.Context())
 		sliderVal := ptzAxisValue(axis, status)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-			info.Label, axis, info.Min, info.Max, sliderVal, info.Unit,
+			info.Label, string(axis), info.Min, info.Max, sliderVal, info.Unit,
 			result.String(), toastTypeError,
 		)).ServeHTTP(responseWriter, request)
 
@@ -298,7 +298,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	s.invalidatePTZCache()
 
 	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-		info.Label, axis, info.Min, info.Max, intVal, info.Unit,
+		info.Label, string(axis), info.Min, info.Max, intVal, info.Unit,
 		"", "",
 	)).ServeHTTP(responseWriter, request)
 }

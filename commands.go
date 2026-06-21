@@ -70,6 +70,12 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 }
 
 func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) CommandResult {
+	// PTZ commands are routed by axis name (pan/tilt/zoom). Checked before
+	// the string switch because pixy.Axis is a branded type.
+	if ptzAxisValid(pixy.Axis(parts[0])) {
+		return d.handlePTZCommand(ctx, parts)
+	}
+
 	switch parts[0] {
 	case cmdTrack:
 		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTrack)
@@ -94,9 +100,6 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) Comm
 
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
-
-	case pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom:
-		return d.handlePTZCommand(ctx, parts)
 
 	default:
 		return errResultMsg("unknown command: " + parts[0])

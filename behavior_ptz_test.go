@@ -43,26 +43,30 @@ func postPTZFormValue(
 	return resp, string(respBody)
 }
 
-func assertV4L2Call(t *testing.T, calls []v4l2Call, wantVal string) {
+func assertSingleV4L2Call(t *testing.T, calls []v4l2Call) v4l2Call {
 	t.Helper()
 
 	if len(calls) != 1 {
 		t.Fatalf("expected 1 v4l2 call, got %d", len(calls))
 	}
 
-	if calls[0].val != wantVal {
-		t.Errorf("v4l2 call val = %s, want %s", calls[0].val, wantVal)
+	return calls[0]
+}
+
+func assertV4L2Call(t *testing.T, calls []v4l2Call, wantVal string) {
+	t.Helper()
+
+	call := assertSingleV4L2Call(t, calls)
+
+	if call.val != wantVal {
+		t.Errorf("v4l2 call val = %s, want %s", call.val, wantVal)
 	}
 }
 
 func assertV4L2CallFull(t *testing.T, calls []v4l2Call, wantDev, wantCtrl, wantVal string) {
 	t.Helper()
 
-	if len(calls) != 1 {
-		t.Fatalf("expected 1 v4l2 call, got %d", len(calls))
-	}
-
-	call := calls[0]
+	call := assertSingleV4L2Call(t, calls)
 
 	if call.dev != wantDev {
 		t.Errorf("v4l2 dev = %q, want %q", call.dev, wantDev)
@@ -100,21 +104,56 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	d, v4l2Calls := newPTZCaptureDaemon()
 
 	// When pan is set beyond the maximum (200 → clamp to PanMax)
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "200"})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "200"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.PanMax*v4l2UnitsPerDegree))
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.PanRange.Max*v4l2UnitsPerDegree))
 
 	// When tilt is set beyond minimum (-100 → clamp to TiltMin)
 	*v4l2Calls = nil
 	resp = d.handlePTZCommand(context.Background(), []string{"tilt", "-100"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.TiltMin*v4l2UnitsPerDegree))
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.TiltRange.Min*v4l2UnitsPerDegree))
 
 	// When zoom is set beyond maximum (500 → clamp to ZoomMax, no multiplier)
 	*v4l2Calls = nil
-	resp = d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "500"})
+	resp = d.handlePTZCommand(context.Background(), []string{string(pixy.AxisZoom), "500"})
 	notError(t, resp)
-	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.ZoomMax))
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.ZoomRange.Max))
+}
+
+// TestBehavior_PTZAbsoluteNegativeTilt proves that bare negative values are
+// treated as ABSOLUTE positions, not relative offsets. With parsePTZ seeded
+// to return tilt=10, an absolute "tilt -90" must produce V4L2 -324000
+// (=-90*3600), not -80*3600 which is what relative mode would yield.
+func TestBehavior_PTZAbsoluteNegativeTilt(t *testing.T) {
+	t.Parallel()
+
+	d, v4l2Calls := newPTZCaptureDaemon(func(d *Daemon) {
+		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
+			return pixy.PTZValues{Tilt: 10} // non-zero baseline
+		}
+	})
+
+	resp := d.handlePTZCommand(context.Background(), []string{"tilt", "-90"})
+	notError(t, resp)
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa(pixy.TiltRange.Min*v4l2UnitsPerDegree))
+}
+
+// TestBehavior_PTZRelativeMath proves that "rel" prefix triggers relative
+// mode: current position + relative delta. With parsePTZ seeded to pan=50,
+// "pan rel+10" must produce V4L2 216000 (=(50+10)*3600).
+func TestBehavior_PTZRelativeMath(t *testing.T) {
+	t.Parallel()
+
+	d, v4l2Calls := newPTZCaptureDaemon(func(d *Daemon) {
+		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
+			return pixy.PTZValues{Pan: 50}
+		}
+	})
+
+	resp := d.handlePTZCommand(context.Background(), []string{"pan", "rel+10"})
+	notError(t, resp)
+	assertV4L2Call(t, *v4l2Calls, strconv.Itoa((50+10)*v4l2UnitsPerDegree))
 }
 
 func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {

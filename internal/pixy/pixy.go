@@ -265,14 +265,14 @@ type PTZValues struct {
 
 func (p PTZValues) Clamp() PTZValues {
 	return PTZValues{
-		Pan:  max(PanMin, min(PanMax, p.Pan)),
-		Tilt: max(TiltMin, min(TiltMax, p.Tilt)),
-		Zoom: max(ZoomMin, min(ZoomMax, p.Zoom)),
+		Pan:  PanRange.Clamp(p.Pan),
+		Tilt: TiltRange.Clamp(p.Tilt),
+		Zoom: ZoomRange.Clamp(p.Zoom),
 	}
 }
 
-// Get returns the PTZ value for the given axis name (pan, tilt, zoom).
-func (p PTZValues) Get(axis string) int {
+// Get returns the PTZ value for the given axis.
+func (p PTZValues) Get(axis Axis) int {
 	switch axis {
 	case AxisPan:
 		return p.Pan
@@ -286,7 +286,7 @@ func (p PTZValues) Get(axis string) int {
 }
 
 // Set returns a copy with the given axis set to val.
-func (p PTZValues) Set(axis string, val int) PTZValues {
+func (p PTZValues) Set(axis Axis, val int) PTZValues {
 	switch axis {
 	case AxisPan:
 		p.Pan = val
@@ -299,21 +299,40 @@ func (p PTZValues) Set(axis string, val int) PTZValues {
 	return p
 }
 
+// Range pairs a minimum and maximum limit for a PTZ axis.
+type Range struct {
+	Min int
+	Max int
+}
+
+// Clamp restricts v to the inclusive [Min, Max] range.
+func (r Range) Clamp(v int) int {
+	return max(r.Min, min(r.Max, v))
+}
+
 // PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
+// Hardware-verified against the EMEET PIXY V4L2 capabilities.
+//
+//nolint:gochecknoglobals,mnd // hardware constants, never mutated at runtime
+var (
+	PanRange  = Range{Min: -150, Max: 150}
+	TiltRange = Range{Min: -90, Max: 90}
+	ZoomRange = Range{Min: 100, Max: 150}
+)
+
 const (
-	PanMin  = -150
-	PanMax  = 150
-	TiltMin = -90
-	TiltMax = 90
-	ZoomMin = 100
-	ZoomMax = 150
 	// ZoomDefault is the zoom value when the camera is centered/reset.
 	ZoomDefault = 100
 )
 
+// Axis is a PTZ axis name: pan, tilt, or zoom.
+// The branded type prevents accidental substitution of arbitrary strings
+// into axis-keyed maps and functions.
+type Axis string
+
 // PTZ axis names used in CLI commands and HTTP routes.
 const (
-	AxisPan  = "pan"
-	AxisTilt = "tilt"
-	AxisZoom = "zoom"
+	AxisPan  Axis = "pan"
+	AxisTilt Axis = "tilt"
+	AxisZoom Axis = "zoom"
 )

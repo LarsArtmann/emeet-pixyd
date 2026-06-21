@@ -13,16 +13,16 @@ func TestPTZValues_Clamp(t *testing.T) {
 		want PTZValues
 	}{
 		{"within limits", PTZValues{Pan: 0, Tilt: 0, Zoom: 125}, PTZValues{Pan: 0, Tilt: 0, Zoom: 125}},
-		{"pan over max", PTZValues{Pan: 500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMax, Tilt: 0, Zoom: 100}},
-		{"pan under min", PTZValues{Pan: -500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanMin, Tilt: 0, Zoom: 100}},
-		{"tilt over max", PTZValues{Pan: 0, Tilt: 100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltMax, Zoom: 100}},
-		{"tilt under min", PTZValues{Pan: 0, Tilt: -100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltMin, Zoom: 100}},
-		{"zoom under min", PTZValues{Pan: 0, Tilt: 0, Zoom: 0}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomMin}},
-		{"zoom over max", PTZValues{Pan: 0, Tilt: 0, Zoom: 500}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomMax}},
+		{"pan over max", PTZValues{Pan: 500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanRange.Max, Tilt: 0, Zoom: 100}},
+		{"pan under min", PTZValues{Pan: -500, Tilt: 0, Zoom: 100}, PTZValues{Pan: PanRange.Min, Tilt: 0, Zoom: 100}},
+		{"tilt over max", PTZValues{Pan: 0, Tilt: 100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltRange.Max, Zoom: 100}},
+		{"tilt under min", PTZValues{Pan: 0, Tilt: -100, Zoom: 100}, PTZValues{Pan: 0, Tilt: TiltRange.Min, Zoom: 100}},
+		{"zoom under min", PTZValues{Pan: 0, Tilt: 0, Zoom: 0}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomRange.Min}},
+		{"zoom over max", PTZValues{Pan: 0, Tilt: 0, Zoom: 500}, PTZValues{Pan: 0, Tilt: 0, Zoom: ZoomRange.Max}},
 		{
 			"all clamped",
 			PTZValues{Pan: -999, Tilt: 999, Zoom: 999},
-			PTZValues{Pan: PanMin, Tilt: TiltMax, Zoom: ZoomMax},
+			PTZValues{Pan: PanRange.Min, Tilt: TiltRange.Max, Zoom: ZoomRange.Max},
 		},
 	}
 	for _, tc := range tests {
@@ -50,7 +50,7 @@ func TestPTZValues_Get(t *testing.T) {
 		t.Errorf("Get(zoom) = %d, want 200", got)
 	}
 
-	if got := ptz.Get("unknown"); got != 0 {
+	if got := ptz.Get(Axis("unknown")); got != 0 {
 		t.Errorf("Get(unknown) = %d, want 0", got)
 	}
 }
@@ -72,7 +72,7 @@ func TestPTZValues_Set(t *testing.T) {
 		t.Errorf("Set(zoom, 300) = %+v, want {Pan:1, Tilt:2, Zoom:300}", got)
 	}
 
-	if got := ptz.Set("unknown", 999); got != ptz {
+	if got := ptz.Set(Axis("unknown"), 999); got != ptz {
 		t.Errorf("Set(unknown, 999) should return unchanged copy")
 	}
 }

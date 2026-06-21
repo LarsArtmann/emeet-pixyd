@@ -11,7 +11,7 @@ import (
 
 // assertAxisNotInMap fails if the given axis exists in ptzAxes.
 // Used to verify the map rejects unknown axis names.
-func assertAxisNotInMap(t *testing.T, axis string) {
+func assertAxisNotInMap(t *testing.T, axis pixy.Axis) {
 	t.Helper()
 
 	if _, ok := ptzAxes[axis]; ok {
@@ -23,7 +23,7 @@ func TestPTZAxisLabel(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		axis string
+		axis pixy.Axis
 		want string
 	}{
 		{pixy.AxisPan, "Pan"},
@@ -86,12 +86,12 @@ func TestClampInt(t *testing.T) {
 		{5, 0, 10, 5},
 		{-5, 0, 10, 0},
 		{15, 0, 10, 10},
-		{0, pixy.PanMin, pixy.PanMax, 0},
-		{-200, pixy.PanMin, pixy.PanMax, pixy.PanMin},
-		{200, pixy.PanMin, pixy.PanMax, pixy.PanMax},
-		{pixy.ZoomMin, pixy.ZoomMin, pixy.ZoomMax, pixy.ZoomMin},
-		{125, pixy.ZoomMin, pixy.ZoomMax, 125},
-		{500, pixy.ZoomMin, pixy.ZoomMax, pixy.ZoomMax},
+		{0, pixy.PanRange.Min, pixy.PanRange.Max, 0},
+		{-200, pixy.PanRange.Min, pixy.PanRange.Max, pixy.PanRange.Min},
+		{200, pixy.PanRange.Min, pixy.PanRange.Max, pixy.PanRange.Max},
+		{pixy.ZoomRange.Min, pixy.ZoomRange.Min, pixy.ZoomRange.Max, pixy.ZoomRange.Min},
+		{125, pixy.ZoomRange.Min, pixy.ZoomRange.Max, 125},
+		{500, pixy.ZoomRange.Min, pixy.ZoomRange.Max, pixy.ZoomRange.Max},
 	}
 
 	for _, tc := range tests {
@@ -105,19 +105,19 @@ func TestClampInt(t *testing.T) {
 func TestPTZLimits(t *testing.T) {
 	t.Parallel()
 
-	if info := ptzAxes[pixy.AxisPan]; info.Min != pixy.PanMin || info.Max != pixy.PanMax {
-		t.Errorf("pan limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.PanMin, pixy.PanMax)
+	if info := ptzAxes[pixy.AxisPan]; info.Min != pixy.PanRange.Min || info.Max != pixy.PanRange.Max {
+		t.Errorf("pan limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.PanRange.Min, pixy.PanRange.Max)
 	}
 
-	if info := ptzAxes[pixy.AxisTilt]; info.Min != pixy.TiltMin || info.Max != pixy.TiltMax {
-		t.Errorf("tilt limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.TiltMin, pixy.TiltMax)
+	if info := ptzAxes[pixy.AxisTilt]; info.Min != pixy.TiltRange.Min || info.Max != pixy.TiltRange.Max {
+		t.Errorf("tilt limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.TiltRange.Min, pixy.TiltRange.Max)
 	}
 
-	if info := ptzAxes[pixy.AxisZoom]; info.Min != pixy.ZoomMin || info.Max != pixy.ZoomMax {
-		t.Errorf("zoom limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.ZoomMin, pixy.ZoomMax)
+	if info := ptzAxes[pixy.AxisZoom]; info.Min != pixy.ZoomRange.Min || info.Max != pixy.ZoomRange.Max {
+		t.Errorf("zoom limits: got %d,%d, want %d,%d", info.Min, info.Max, pixy.ZoomRange.Min, pixy.ZoomRange.Max)
 	}
 
-	assertAxisNotInMap(t, "unknown")
+	assertAxisNotInMap(t, pixy.Axis("unknown"))
 }
 
 func TestPTZAxisValid(t *testing.T) {

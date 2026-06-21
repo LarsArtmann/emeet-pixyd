@@ -14,7 +14,7 @@ import (
 func TestCommandError_Error(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
+	err := &CommandError{Op: string(pixy.AxisPan), Err: ErrInvalidValue}
 
 	want := "error: pan: invalid value"
 	if got := err.Error(); got != want {
@@ -25,7 +25,7 @@ func TestCommandError_Error(t *testing.T) {
 func TestCommandError_Unwrap(t *testing.T) {
 	t.Parallel()
 
-	err := &CommandError{Op: pixy.AxisPan, Err: ErrInvalidValue}
+	err := &CommandError{Op: string(pixy.AxisPan), Err: ErrInvalidValue}
 
 	got := err.Unwrap()
 	if !errors.Is(got, ErrInvalidValue) {

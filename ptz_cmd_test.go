@@ -72,13 +72,7 @@ func newPTZDaemon(opts ...testDaemonOption) *Daemon {
 func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
 	var calls []v4l2Call
 
-	d := newPTZDaemon(append(opts, func(d *Daemon) {
-		d.deps.v4l2Set = func(_ context.Context, dev, ctrl, val string) error {
-			calls = append(calls, v4l2Call{dev: dev, ctrl: ctrl, val: val})
-
-			return nil
-		}
-	})...)
+	d := newPTZDaemon(append(opts, withCaptureV4L2(&calls))...)
 
 	return d, &calls
 }
@@ -88,7 +82,7 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan)})
 	assertStatusPrefix(t, resp.String(), "usage:", "usage message")
 }
 
@@ -97,7 +91,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 
 	d := newPTZDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "not-a-number"})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "not-a-number"})
 	expectError(t, resp)
 
 	assertCommandContains(t, resp.String(), "pan", "error")
@@ -108,7 +102,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 
 	d := newTestDaemon(pixy.StateTracking, "", "")
 
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	expectError(t, resp)
 
 	assertCommandContains(t, resp.String(), "device not found", "error")
@@ -123,7 +117,7 @@ func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 		}
 	})
 
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	expectError(t, resp)
 }
 
@@ -132,7 +126,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 
 	d, _ := newPTZCaptureDaemon()
 
-	resp := d.handlePTZCommand(context.Background(), []string{pixy.AxisPan, "10"})
+	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	notError(t, resp)
 
 	assertCommandContainsAnyOf(t, resp.String(), []string{"pan", "10"}, "response")
@@ -143,7 +137,7 @@ func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 
 	d, setCalls := newPTZCaptureDaemon()
 
-	d.handlePTZCommand(context.Background(), []string{pixy.AxisZoom, "125"})
+	d.handlePTZCommand(context.Background(), []string{string(pixy.AxisZoom), "125"})
 
 	if len(*setCalls) != 1 {
 		t.Fatalf("expected 1 call, got %d", len(*setCalls))

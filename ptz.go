@@ -32,17 +32,17 @@ type ptzAxisInfo struct {
 }
 
 //nolint:gochecknoglobals
-var ptzAxes = map[string]ptzAxisInfo{
+var ptzAxes = map[pixy.Axis]ptzAxisInfo{
 	pixy.AxisPan: {
-		Min: pixy.PanMin, Max: pixy.PanMax, Label: "Pan", Unit: "\u00b0",
+		Min: pixy.PanRange.Min, Max: pixy.PanRange.Max, Label: "Pan", Unit: "\u00b0",
 		V4L2Ctrl: "pan_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisTilt: {
-		Min: pixy.TiltMin, Max: pixy.TiltMax, Label: "Tilt", Unit: "\u00b0",
+		Min: pixy.TiltRange.Min, Max: pixy.TiltRange.Max, Label: "Tilt", Unit: "\u00b0",
 		V4L2Ctrl: "tilt_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisZoom: {
-		Min: pixy.ZoomMin, Max: pixy.ZoomMax, Label: "Zoom", Unit: "x",
+		Min: pixy.ZoomRange.Min, Max: pixy.ZoomRange.Max, Label: "Zoom", Unit: "x",
 		V4L2Ctrl: "zoom_absolute", Multiplier: 1,
 	},
 }
@@ -50,15 +50,15 @@ var ptzAxes = map[string]ptzAxisInfo{
 // ptzAxisOrder defines the deterministic order for V4L2 control listing.
 //
 //nolint:gochecknoglobals
-var ptzAxisOrder = []string{pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom}
+var ptzAxisOrder = []pixy.Axis{pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom}
 
 // v4l2CtrlToAxis maps V4L2 control names back to PTZ axis names.
 //
 //nolint:gochecknoglobals
 var v4l2CtrlToAxis = buildCtrlToAxis()
 
-func buildCtrlToAxis() map[string]string {
-	m := make(map[string]string, len(ptzAxes))
+func buildCtrlToAxis() map[string]pixy.Axis {
+	m := make(map[string]pixy.Axis, len(ptzAxes))
 	for axis, info := range ptzAxes {
 		m[info.V4L2Ctrl] = axis
 	}
@@ -66,13 +66,13 @@ func buildCtrlToAxis() map[string]string {
 	return m
 }
 
-func ptzAxisValid(axis string) bool {
+func ptzAxisValid(axis pixy.Axis) bool {
 	_, ok := ptzAxes[axis]
 
 	return ok
 }
 
-func ptzAxisValue(axis string, status webStatus) int {
+func ptzAxisValue(axis pixy.Axis, status webStatus) int {
 	return status.Get(axis)
 }
 
@@ -140,16 +140,16 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		return okResult(fmt.Sprintf("usage: %s <value>", parts[0]))
 	}
 
-	axis := parts[0]
+	axis := pixy.Axis(parts[0])
 
 	info, ok := ptzAxes[axis]
 	if !ok {
-		return errResultMsg("unknown PTZ axis: " + axis)
+		return errResultMsg("unknown PTZ axis: " + string(axis))
 	}
 
 	val, relative, parseErr := parsePTZValue(parts[1])
 	if parseErr != nil {
-		return errResult(axis, fmt.Errorf("%w: parse error", ErrInvalidValue))
+		return errResult(string(axis), fmt.Errorf("%w: parse error", ErrInvalidValue))
 	}
 
 	d.mu.RLock()
@@ -157,7 +157,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 	d.mu.RUnlock()
 
 	if videoDev == "" {
-		return errResult(axis, errDeviceNotFound)
+		return errResult(string(axis), errDeviceNotFound)
 	}
 
 	if relative {
@@ -174,7 +174,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		strconv.Itoa(val*info.Multiplier),
 	)
 	if v4l2Err != nil {
-		return errResult(axis, v4l2Err)
+		return errResult(string(axis), v4l2Err)
 	}
 
 	d.ptzCache.Invalidate()
