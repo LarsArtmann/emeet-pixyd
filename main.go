@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strings"
 	"sync"
@@ -108,12 +107,12 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	// NewDaemon runs before any goroutines exist, so we can call the
 	// _Locked variant directly without taking d.mu.
 	d.applyProbeResultLocked(probeDevices())
-	checkExternalDeps()
+	checkExternalDeps(d.deps.commander)
 
 	return d, nil
 }
 
-func checkExternalDeps() {
+func checkExternalDeps(commander CommandRunner) {
 	for _, dep := range []struct {
 		binary string
 		impact string
@@ -123,7 +122,7 @@ func checkExternalDeps() {
 		{wpctl, "PipeWire source switching unavailable"},
 		{notifySend, "desktop notifications unavailable"},
 	} {
-		_, err := exec.LookPath(dep.binary)
+		_, err := commander.LookPath(dep.binary)
 		if err != nil {
 			slog.Warn("optional dependency not found", "binary", dep.binary, "impact", dep.impact)
 		}

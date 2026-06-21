@@ -26,8 +26,6 @@ const (
 	sseEventConnected = "connected"
 	sseEventRefresh   = "refresh"
 
-	ptzCacheTTL = 2 * time.Second
-
 	toastTrackingEnabled = "Tracking enabled"
 	toastCameraIdle      = "Camera idle"
 	toastPrivacyOn       = "Privacy mode on"
@@ -40,15 +38,6 @@ const (
 )
 
 // toastType is the CSS class suffix for toast notifications.
-// Branded type prevents passing arbitrary strings as toast kind.
-type toastType string
-
-const (
-	toastTypeSuccess toastType = "success"
-	toastTypeInfo    toastType = "info"
-	toastTypeError   toastType = "error"
-)
-
 type actionToastInfo struct {
 	msg  string
 	kind toastType

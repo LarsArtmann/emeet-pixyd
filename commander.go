@@ -11,9 +11,14 @@ import (
 
 // CommandRunner abstracts subprocess execution for testability and
 // centralized logging/metrics.
+//
+// ffmpeg streaming is intentionally excluded: it needs StdoutPipe +
+// Start + long-lived process management, which doesn't fit the
+// Run/Output/LookPath pattern. See stream.go's ffmpegStreamCmd.
 type CommandRunner interface {
 	Run(ctx context.Context, name string, args ...string) error
 	Output(ctx context.Context, name string, args ...string) ([]byte, error)
+	LookPath(name string) (string, error)
 }
 
 // realCommandRunner wraps exec.CommandContext with structured logging.
@@ -39,6 +44,10 @@ func (realCommandRunner) Output(ctx context.Context, name string, args ...string
 	return out, err //nolint:wrapcheck // caller wraps with context
 }
 
+func (realCommandRunner) LookPath(name string) (string, error) {
+	return exec.LookPath(name) //nolint:wrapcheck // caller handles error
+}
+
 func logSubprocess(name string, args []string, duration time.Duration, err error) {
 	if err != nil {
 		slog.Warn("subprocess failed", "cmd", name, "args", args, "duration", duration, "error", err)
@@ -51,6 +60,11 @@ func logSubprocess(name string, args []string, duration time.Duration, err error
 type noopCommandRunner struct{}
 
 func (noopCommandRunner) Run(context.Context, string, ...string) error { return nil }
+
 func (noopCommandRunner) Output(context.Context, string, ...string) ([]byte, error) {
 	return nil, nil
+}
+
+func (noopCommandRunner) LookPath(string) (string, error) {
+	return "", nil
 }

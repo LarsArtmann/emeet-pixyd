@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -104,6 +105,8 @@ func (d *Daemon) parsePTZValues(ctx context.Context, dev string) pixy.PTZValues 
 		"--get-ctrl="+v4l2GetCtrlList(),
 	)
 	if err != nil {
+		slog.Warn("parsePTZValues: v4l2-ctl read failed", "device", dev, "error", err)
+
 		//nolint:exhaustruct
 		return pixy.PTZValues{}
 	}

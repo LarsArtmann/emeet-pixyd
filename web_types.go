@@ -20,3 +20,12 @@ type webStatus struct {
 	ToastType  toastType
 	Version    string
 }
+
+// toastType is a branded type for toast notification kinds (success, info, error).
+type toastType string
+
+const (
+	toastTypeSuccess toastType = "success"
+	toastTypeInfo    toastType = "info"
+	toastTypeError   toastType = "error"
+)

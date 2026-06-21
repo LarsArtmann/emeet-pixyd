@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -167,7 +167,7 @@ func writeSSEEvent(w io.Writer, event SSEEvent) error {
 }
 
 func splitSSELines(s string) []string {
-	if s == "" || !contains(s, '\n') {
+	if s == "" || strings.IndexByte(s, '\n') < 0 {
 		return []string{s}
 	}
 
@@ -191,8 +191,4 @@ func splitSSELines(s string) []string {
 	}
 
 	return lines
-}
-
-func contains(s string, c byte) bool {
-	return slices.Index([]byte(s), c) >= 0
 }

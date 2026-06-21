@@ -9,6 +9,9 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
+// ptzCacheTTL is the time-to-live for PTZ cache entries.
+const ptzCacheTTL = 2 * time.Second
+
 type lastFrameCache struct {
 	mu   sync.RWMutex
 	data []byte
