@@ -19,7 +19,6 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 )
 
 // Build info, overridden via -ldflags.
@@ -52,8 +51,8 @@ type Daemon struct {
 	streamSema chan struct{}
 
 	// broadcaster distributes state-change events to all connected SSE
-	// clients via cqrs-htmx's thread-safe fan-out hub.
-	broadcaster *cqrshtmx.Broadcaster
+	// clients via a thread-safe fan-out hub.
+	broadcaster *Broadcaster
 
 	deps Dependencies
 }
@@ -81,7 +80,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		config:      cfg,
 		state:       pixy.DefaultState(),
 		streamSema:  make(chan struct{}, 1),
-		broadcaster: cqrshtmx.NewBroadcaster(),
+		broadcaster: NewBroadcaster(),
 	}
 	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
 	d.deps = Dependencies{
@@ -145,8 +144,8 @@ func (d *Daemon) newHTTPServer() *http.Server {
 	//nolint:exhaustruct
 	return &http.Server{
 		Addr: d.config.WebAddr,
-		Handler: cqrshtmx.Chain(
-			securityMiddleware, loggingMiddleware, requestIDMiddleware,
+		Handler: chain(
+			securityHeaderMiddleware, loggingMiddleware, requestIDMW,
 		)(mux),
 		ReadHeaderTimeout: httpReadHeaderTimeout,
 		ReadTimeout:       httpReadTimeout,
@@ -196,7 +195,7 @@ func (d *Daemon) Run() {
 // refresh the UI. Uses cqrs-htmx's Broadcaster for race-safe, non-blocking
 // fan-out — slow clients drop events without stalling the daemon.
 func (d *Daemon) broadcastStateChanged() {
-	d.broadcaster.Broadcast(cqrshtmx.SSEEvent{ //nolint:exhaustruct
+	d.broadcaster.Broadcast(SSEEvent{ //nolint:exhaustruct
 		Event: sseEventRefresh,
 		Data:  "{}",
 	})

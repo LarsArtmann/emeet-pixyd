@@ -14,7 +14,6 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -157,7 +156,7 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 		status = http.StatusServiceUnavailable
 	}
 
-	_ = cqrshtmx.WriteJSON(responseWriter, status, healthResponse{
+	_ = writeJSON(responseWriter, status, healthResponse{
 		Status:  boolStr(online, "ok", "offline"),
 		Camera:  camera,
 		Version: buildVersion,
@@ -176,10 +175,10 @@ func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, reques
 }
 
 func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
-	stream := cqrshtmx.NewSSEStream(responseWriter, request)
+	stream := newSSEStream(responseWriter, request)
 	defer stream.Close()
 
-	_ = stream.Send(cqrshtmx.SSEEvent{ //nolint:exhaustruct
+	_ = stream.Send(SSEEvent{ //nolint:exhaustruct
 		Event: sseEventConnected,
 		Data:  "{}",
 	})
@@ -315,7 +314,6 @@ func (s *webServer) invalidatePTZCache() {
 
 func newWebMux(server *webServer) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("GET /static/htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
 	mux.HandleFunc("GET /{$}", server.handleIndex)
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
