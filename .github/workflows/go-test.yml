@@ -58,7 +58,7 @@ jobs:
 
       - name: Fuzz
         run: |
-          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue; do
+          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue FuzzWriteSSEEvent; do
             echo "Fuzzing $target for 60s ..."
             go test -fuzz=$target -fuzztime=60s .
           done

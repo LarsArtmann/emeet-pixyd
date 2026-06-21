@@ -5,6 +5,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -310,4 +311,62 @@ func TestSplitSSELines(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzWriteSSEEvent(f *testing.F) {
+	f.Add("refresh", `{"camera":"tracking"}`)
+	f.Add("", "")
+	f.Add("event", "multi\nline\ndata")
+	f.Add("a", "evil\r\nevent: hacked")
+
+	f.Fuzz(func(t *testing.T, event, data string) {
+		var buf bytes.Buffer
+
+		err := writeSSEEvent(&buf, SSEEvent{Event: event, Data: data})
+		if err != nil {
+			t.Fatalf("writeSSEEvent: %v", err)
+		}
+
+		output := buf.String()
+
+		if !strings.HasSuffix(output, "\n\n") {
+			t.Errorf("output must end with \\n\\n")
+		}
+	})
+}
+
+func BenchmarkWriteSSEEvent(b *testing.B) {
+	event := SSEEvent{Event: "refresh", Data: `{"camera":"tracking","audio":"nc"}`}
+
+	for range b.N {
+		_ = writeSSEEvent(io.Discard, event)
+	}
+}
+
+func BenchmarkBroadcasterBroadcast(b *testing.B) {
+	broadcaster := NewBroadcaster()
+	ch := broadcaster.Subscribe()
+
+	b.Cleanup(func() { broadcaster.Unsubscribe(ch) })
+
+	done := make(chan struct{})
+
+	go func() {
+		for range ch {
+		}
+
+		close(done)
+	}()
+
+	event := SSEEvent{Event: "refresh", Data: "{}"}
+
+	b.ResetTimer()
+
+	for range b.N {
+		broadcaster.Broadcast(event)
+	}
+
+	b.StopTimer()
+	broadcaster.Unsubscribe(ch)
+	<-done
 }
