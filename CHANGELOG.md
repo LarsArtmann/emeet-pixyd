@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **BREAKING**: PTZ axis names are now a branded `pixy.Axis` type instead of raw strings. Prevents accidental substitution of arbitrary strings into axis-keyed maps and functions.
 - `queryHIDState` errors now include the device path for debugging (was generic "queryHIDState: ...").
 - Uevent channel send now uses `select` with `ctx.Done()` to prevent goroutine leak on shutdown.
+- Subprocess calls (`v4l2-ctl`, `wpctl`, `notify-send`) now route through `CommandRunner` interface with centralized slog logging of command, args, and duration.
+- PTZ cache updated with set values instead of invalidated after a successful PTZ set, providing immediate accurate readback (avoids stale hardware values while motor is still moving).
 
 ### Fixed
 
@@ -33,6 +35,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `assertSingleV4L2Call` helper deduplicates V4L2 call count assertions.
 - `doGet` shared GET helper used by both `get` and `getStream` test helpers.
 - `fmt.Stringer` embedded in `HIDDevice` interface for better error context.
+- `commander.go`: `CommandRunner` interface with `realCommandRunner` (subprocess logging) and `noopCommandRunner`.
+- `http.go`: HTTP helpers extracted from `sse.go` (`writeJSON`, `chain`, `statusRecorder`, middleware).
+- `FuzzWriteSSEEvent` fuzz test for SSE event serialization robustness.
+- `BenchmarkWriteSSEEvent` and `BenchmarkBroadcasterBroadcast` for SSE performance baselines.
+- 9 unit tests for SSE internals: `writeSSEEvent` (5 cases), `Broadcaster` (3 cases), `splitSSELines` (6 cases).
 
 ## [0.2.0] - 2026-06-07
 
