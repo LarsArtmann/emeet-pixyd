@@ -55,32 +55,38 @@ func cameraInUseFn(string) bool { return true }
 
 func cameraNotInUseFn(string) bool { return false }
 
+// Named noop stubs shared by withNoop* builders and noopDependencies().
+// Eliminates closure duplication across test daemon wiring paths.
+func noopV4L2Set(_ context.Context, _, _, _ string) error { return nil }
+
+func noopSetTracking(_ context.Context, _ pixy.CameraState) error { return nil }
+
+func noopSetAudio(_ context.Context, _ pixy.AudioMode) error { return nil }
+
+func noopSetGesture(_ context.Context, _ bool) error { return nil }
+
+func noopCenterCamera(_ context.Context) error { return nil }
+
+func noopParsePTZ(_ context.Context, _ string) pixy.PTZValues {
+	return pixy.PTZValues{}
+}
+
 func withNoopV4L2() testDaemonOption {
-	return func(d *Daemon) {
-		d.deps.v4l2Set = func(_ context.Context, _, _, _ string) error { return nil }
-	}
+	return func(d *Daemon) { d.deps.v4l2Set = noopV4L2Set }
 }
 
 // withNoopParsePTZ wires a deterministic parsePTZ stub so relative-mode PTZ
 // commands (e.g. "tilt -30") don't read real /dev/video0 hardware state.
 func withNoopParsePTZ() testDaemonOption {
-	return func(d *Daemon) {
-		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
-			return pixy.PTZValues{}
-		}
-	}
+	return func(d *Daemon) { d.deps.parsePTZ = noopParsePTZ }
 }
 
 func withNoopTracking() testDaemonOption {
-	return func(d *Daemon) {
-		d.deps.setTracking = func(_ context.Context, _ pixy.CameraState) error { return nil }
-	}
+	return func(d *Daemon) { d.deps.setTracking = noopSetTracking }
 }
 
 func withNoopAudio() testDaemonOption {
-	return func(d *Daemon) {
-		d.deps.setAudio = func(_ context.Context, _ pixy.AudioMode) error { return nil }
-	}
+	return func(d *Daemon) { d.deps.setAudio = noopSetAudio }
 }
 
 type v4l2Call struct {
@@ -209,16 +215,16 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 // Dependencies without any real HID/V4L2 side effects.
 func noopDependencies() Dependencies {
 	return Dependencies{
-		isCameraInUse: func(string) bool { return false },
+		isCameraInUse: cameraNotInUseFn,
 		findSource:    noopFindSourceFn,
 		setSource:     noopSetSourceFn,
 		notify:        noopNotifyFn,
-		setTracking:   func(_ context.Context, _ pixy.CameraState) error { return nil },
-		setAudio:      func(_ context.Context, _ pixy.AudioMode) error { return nil },
-		setGesture:    func(_ context.Context, _ bool) error { return nil },
-		centerCamera:  func(_ context.Context) error { return nil },
-		v4l2Set:       func(_ context.Context, _, _, _ string) error { return nil },
-		parsePTZ:      func(_ context.Context, _ string) pixy.PTZValues { return pixy.PTZValues{} },
+		setTracking:   noopSetTracking,
+		setAudio:      noopSetAudio,
+		setGesture:    noopSetGesture,
+		centerCamera:  noopCenterCamera,
+		v4l2Set:       noopV4L2Set,
+		parsePTZ:      noopParsePTZ,
 	}
 }
 
@@ -364,6 +370,8 @@ func testV4L2ProbesPIXY(t *testing.T, devices []fakeVideoDev) {
 type failingHID struct {
 	err error
 }
+
+func (f *failingHID) String() string { return "failing-hid" }
 
 func (f *failingHID) Send(_ []byte) error { return f.err }
 

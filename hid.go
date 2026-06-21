@@ -21,14 +21,18 @@ var (
 )
 
 // HIDDevice abstracts HID communication for testability.
+// Embedding fmt.Stringer ensures every implementation identifies itself in errors.
 type HIDDevice interface {
 	Send(report []byte) error
 	SendRecv(ctx context.Context, report []byte) ([]byte, error)
+	fmt.Stringer
 }
 
 type hidrawDevice struct {
 	path string
 }
+
+func (h *hidrawDevice) String() string { return h.path }
 
 const (
 	hidByteTracking = 0x01
@@ -278,16 +282,16 @@ func queryHIDState[T any](
 
 	resp, err := dev.SendRecv(ctx, payload)
 	if err != nil {
-		return zero, fmt.Errorf("queryHIDState: %w", err)
+		return zero, fmt.Errorf("queryHIDState dev=%s: %w", dev, err)
 	}
 
 	if resp == nil {
-		return zero, fmt.Errorf("queryHIDState: %w", errNoHIDResponse)
+		return zero, fmt.Errorf("queryHIDState dev=%s: %w", dev, errNoHIDResponse)
 	}
 
 	parsed := parseHIDResponse(resp)
 	if !parsed.Got {
-		return zero, fmt.Errorf("queryHIDState: %w", errUnrecognizedHID)
+		return zero, fmt.Errorf("queryHIDState dev=%s: %w", dev, errUnrecognizedHID)
 	}
 
 	return extract(parsed), nil
