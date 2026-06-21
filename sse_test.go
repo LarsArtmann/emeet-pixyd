@@ -4,6 +4,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -107,5 +108,206 @@ func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for refresh event")
+	}
+}
+
+func TestWriteSSEEvent_DataOnly(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	err := writeSSEEvent(&buf, SSEEvent{Data: `{"key":"value"}`})
+	if err != nil {
+		t.Fatalf("writeSSEEvent: %v", err)
+	}
+
+	got := buf.String()
+
+	want := `data: {"key":"value"}` + "\n\n"
+	if got != want {
+		t.Errorf("output = %q, want %q", got, want)
+	}
+}
+
+func TestWriteSSEEvent_FullEvent(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	err := writeSSEEvent(&buf, SSEEvent{
+		Event: "refresh",
+		Data:  "ok",
+		ID:    "42",
+		Retry: 5000,
+	})
+	if err != nil {
+		t.Fatalf("writeSSEEvent: %v", err)
+	}
+
+	got := buf.String()
+	if !strings.HasPrefix(got, "event: refresh\n") {
+		t.Errorf("missing event line in %q", got)
+	}
+
+	if !strings.Contains(got, "data: ok\n") {
+		t.Errorf("missing data line in %q", got)
+	}
+
+	if !strings.Contains(got, "id: 42\n") {
+		t.Errorf("missing id line in %q", got)
+	}
+
+	if !strings.Contains(got, "retry: 5000\n") {
+		t.Errorf("missing retry line in %q", got)
+	}
+}
+
+func TestWriteSSEEvent_MultilineData(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	err := writeSSEEvent(&buf, SSEEvent{Data: "line1\nline2\nline3"})
+	if err != nil {
+		t.Fatalf("writeSSEEvent: %v", err)
+	}
+
+	got := buf.String()
+
+	want := "data: line1\ndata: line2\ndata: line3\n\n"
+	if got != want {
+		t.Errorf("output = %q, want %q", got, want)
+	}
+}
+
+func TestWriteSSEEvent_EmptyData(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	err := writeSSEEvent(&buf, SSEEvent{Event: "ping"})
+	if err != nil {
+		t.Fatalf("writeSSEEvent: %v", err)
+	}
+
+	got := buf.String()
+
+	want := "event: ping\ndata: \n\n"
+	if got != want {
+		t.Errorf("output = %q, want %q", got, want)
+	}
+}
+
+func TestWriteSSEEvent_NoCRLFInjection(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+
+	// Attempt CRLF injection — data with \r\n must not create a new SSE event field.
+	// Every line is prefixed with "data: " so "event:" can never appear as a field.
+	_ = writeSSEEvent(&buf, SSEEvent{Data: "evil\r\nevent: hacked"})
+
+	got := buf.String()
+	for line := range strings.SplitSeq(got, "\n") {
+		if strings.HasPrefix(line, "event:") {
+			t.Errorf("CRLF injection: line starts with 'event:' — %q in output %q", line, got)
+		}
+	}
+}
+
+func TestBroadcaster_SubscribeBroadcastReceive(t *testing.T) {
+	t.Parallel()
+
+	b := NewBroadcaster()
+	ch := b.Subscribe()
+
+	t.Cleanup(func() { b.Unsubscribe(ch) })
+
+	b.Broadcast(SSEEvent{Event: "test", Data: "hello"})
+
+	select {
+	case evt := <-ch:
+		if evt.Event != "test" || evt.Data != "hello" {
+			t.Errorf("received = %+v, want Event=test Data=hello", evt)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timeout waiting for broadcast event")
+	}
+}
+
+func TestBroadcaster_UnsubscribeClosesChannel(t *testing.T) {
+	t.Parallel()
+
+	b := NewBroadcaster()
+	ch := b.Subscribe()
+
+	t.Cleanup(func() { b.Unsubscribe(ch) })
+
+	b.Unsubscribe(ch)
+
+	b.Broadcast(SSEEvent{Event: "noop"})
+
+	select {
+	case _, ok := <-ch:
+		if ok {
+			t.Error("channel should be closed after unsubscribe")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timeout: channel not closed after unsubscribe")
+	}
+}
+
+func TestBroadcaster_NonBlockingDropOnFullBuffer(t *testing.T) {
+	t.Parallel()
+
+	b := NewBroadcaster()
+	ch := b.Subscribe()
+
+	t.Cleanup(func() { b.Unsubscribe(ch) })
+
+	// Flood past the buffer capacity — must not block.
+	for range sseSubscriberBuffer + 10 {
+		b.Broadcast(SSEEvent{Data: "flood"})
+	}
+
+	// Drain at least one event — proves the broadcaster survived.
+	select {
+	case <-ch:
+	case <-time.After(time.Second):
+		t.Fatal("timeout: no event received after flood")
+	}
+}
+
+func TestSplitSSELines(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		s    string
+		want []string
+	}{
+		{name: "empty", s: "", want: []string{""}},
+		{name: "single line", s: "hello", want: []string{"hello"}},
+		{name: "two lines", s: "a\nb", want: []string{"a", "b"}},
+		{name: "trailing newline", s: "a\n", want: []string{"a"}},
+		{name: "CRLF preserved", s: "a\r\nb", want: []string{"a\r", "b"}},
+		{name: "only newlines", s: "\n\n", want: []string{"", ""}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := splitSSELines(tt.s)
+			if len(got) != len(tt.want) {
+				t.Fatalf("len = %d, want %d (%q → %v vs %v)", len(got), len(tt.want), tt.s, got, tt.want)
+			}
+
+			for i := range got {
+				if got[i] != tt.want[i] {
+					t.Errorf("[%d] = %q, want %q", i, got[i], tt.want[i])
+				}
+			}
+		})
 	}
 }
