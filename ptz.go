@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os/exec"
 	"strconv"
 	"strings"
 
@@ -80,9 +79,8 @@ func clampInt(v, lo, hi int) int {
 	return max(lo, min(hi, v))
 }
 
-func v4l2Set(ctx context.Context, dev, ctrl, value string) error {
-	err := exec.CommandContext(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value).
-		Run()
+func (d *Daemon) v4l2Set(ctx context.Context, dev, ctrl, value string) error {
+	err := d.deps.commander.Run(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value)
 	if err != nil {
 		return fmt.Errorf("v4l2Set %s=%s on %s: %w", ctrl, value, dev, err)
 	}
@@ -100,11 +98,11 @@ func v4l2GetCtrlList() string {
 	return strings.Join(ctrls, ",")
 }
 
-func parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
-	out, err := exec.CommandContext(
+func (d *Daemon) parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
+	out, err := d.deps.commander.Output(
 		ctx, v4l2ctl, "-d", dev,
 		"--get-ctrl="+v4l2GetCtrlList(),
-	).Output()
+	)
 	if err != nil {
 		//nolint:exhaustruct
 		return pixy.PTZValues{}

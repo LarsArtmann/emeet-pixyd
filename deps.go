@@ -11,6 +11,7 @@ import (
 // Dependencies holds all external function dependencies for the daemon.
 // Tests override individual fields; production wiring happens in NewDaemon.
 type Dependencies struct {
+	commander     CommandRunner
 	isCameraInUse func(videoDev string) bool
 	findSource    func(ctx context.Context) (pixy.SourceID, error)
 	setSource     func(ctx context.Context, sourceID pixy.SourceID)

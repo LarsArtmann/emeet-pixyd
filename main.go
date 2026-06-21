@@ -84,17 +84,18 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	}
 	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
 	d.deps = Dependencies{
+		commander:     realCommandRunner{},
 		isCameraInUse: isCameraInUse,
-		findSource:    findPixySource,
-		setSource:     setDefaultSource,
-		notify:        notify,
+		findSource:    d.findPixySource,
+		setSource:     d.setDefaultSource,
+		notify:        d.notifyCmd,
 	}
 	d.deps.setTracking = d.setTracking
 	d.deps.setAudio = d.setAudio
 	d.deps.setGesture = d.setGesture
 	d.deps.centerCamera = d.centerCamera
-	d.deps.v4l2Set = v4l2Set
-	d.deps.parsePTZ = parsePTZValues
+	d.deps.v4l2Set = d.v4l2Set
+	d.deps.parsePTZ = d.parsePTZValues
 	// Persisted state wins on subsequent restarts; env-configured defaults apply
 	// only on first run (no valid state file present). This way EMEET_PIXYD_AUTO
 	// and EMEET_PIXYD_DEFAULT_AUDIO seed initial state, then the daemon takes over.

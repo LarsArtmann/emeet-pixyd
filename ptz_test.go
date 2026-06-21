@@ -33,7 +33,9 @@ func TestV4L2Set_CommandFormat(t *testing.T) {
 func TestParsePTZValues_InvalidDevice(t *testing.T) {
 	t.Parallel()
 
-	ptz := parsePTZValues(context.Background(), "/dev/nonexistent")
+	d := testDaemonNoDevice()
+
+	ptz := d.parsePTZValues(context.Background(), "/dev/nonexistent")
 	if ptz.Pan != 0 || ptz.Tilt != 0 || ptz.Zoom != 0 {
 		t.Errorf("expected zero values for nonexistent device, got pan=%d tilt=%d zoom=%d",
 			ptz.Pan, ptz.Tilt, ptz.Zoom)

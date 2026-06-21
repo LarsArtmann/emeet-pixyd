@@ -214,6 +214,7 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 // Dependencies without any real HID/V4L2 side effects.
 func noopDependencies() Dependencies {
 	return Dependencies{
+		commander:     noopCommandRunner{},
 		isCameraInUse: cameraNotInUseFn,
 		findSource:    noopFindSourceFn,
 		setSource:     noopSetSourceFn,
@@ -268,6 +269,7 @@ func newTestDaemon(
 		streamSema:    make(chan struct{}, 1),
 		broadcaster:   NewBroadcaster(),
 		deps: Dependencies{
+			commander:     realCommandRunner{},
 			isCameraInUse: func(string) bool { return false },
 			findSource:    noopFindSourceFn,
 			setSource:     noopSetSourceFn,
@@ -278,9 +280,9 @@ func newTestDaemon(
 	d.deps.setAudio = d.setAudio
 	d.deps.setGesture = d.setGesture
 	d.deps.centerCamera = d.centerCamera
-	d.deps.v4l2Set = v4l2Set
+	d.deps.v4l2Set = d.v4l2Set
 
-	d.deps.parsePTZ = parsePTZValues
+	d.deps.parsePTZ = d.parsePTZValues
 	if hidrawDev != "" {
 		d.hidDev = newHIDRawDevice(hidrawDev)
 	}

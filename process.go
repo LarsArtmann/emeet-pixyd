@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -114,8 +113,8 @@ func isCameraInUse(videoDev string) bool {
 	return false
 }
 
-func findPixySource(ctx context.Context) (pixy.SourceID, error) {
-	out, err := exec.CommandContext(ctx, wpctl, "status").Output()
+func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
+	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
 		return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", err)
 	}
@@ -136,15 +135,15 @@ func findPixySource(ctx context.Context) (pixy.SourceID, error) {
 	return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", ErrAudioSourceNotFound)
 }
 
-func setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
-	err := exec.CommandContext(ctx, wpctl, "set-default", sourceID.Get()).Run()
+func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
+	err := d.deps.commander.Run(ctx, wpctl, "set-default", sourceID.Get())
 	if err != nil {
 		slog.Error("failed to set default audio source", "id", sourceID.Get(), "error", err)
 	}
 }
 
-func notify(ctx context.Context, title, body string) {
-	err := exec.CommandContext(ctx, notifySend, "-a", "emeet-pixyd", title, body).Run()
+func (d *Daemon) notifyCmd(ctx context.Context, title, body string) {
+	err := d.deps.commander.Run(ctx, notifySend, "-a", "emeet-pixyd", title, body)
 	if err != nil {
 		slog.Warn("notification failed", "error", err)
 	}
