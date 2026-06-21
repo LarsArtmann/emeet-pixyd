@@ -91,7 +91,14 @@ func post(t *testing.T, url, contentType string, body io.Reader) *http.Response 
 func get(t *testing.T, url string) *http.Response {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	return doGet(t, context.Background(), url)
+}
+
+// doGet is the shared GET helper used by get and getStream.
+func doGet(t *testing.T, ctx context.Context, url string) *http.Response {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("new GET request: %v", err)
 	}
