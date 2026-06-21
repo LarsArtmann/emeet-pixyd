@@ -17,6 +17,6 @@ type webStatus struct {
 	Error      string
 	LastSynced string
 	Toast      string
-	ToastType  string
+	ToastType  toastType
 	Version    string
 }

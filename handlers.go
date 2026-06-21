@@ -24,10 +24,6 @@ const (
 
 	staticCacheMaxAge = 7 * 24 * time.Hour
 
-	toastTypeSuccess = "success"
-	toastTypeInfo    = "info"
-	toastTypeError   = "error"
-
 	sseEventConnected = "connected"
 	sseEventRefresh   = "refresh"
 
@@ -44,9 +40,19 @@ const (
 	toastAutoToggled     = "Auto mode toggled"
 )
 
+// toastType is the CSS class suffix for toast notifications.
+// Branded type prevents passing arbitrary strings as toast kind.
+type toastType string
+
+const (
+	toastTypeSuccess toastType = "success"
+	toastTypeInfo    toastType = "info"
+	toastTypeError   toastType = "error"
+)
+
 type actionToastInfo struct {
 	msg  string
-	kind string
+	kind toastType
 }
 
 //nolint:gochecknoglobals
@@ -214,7 +220,7 @@ func (s *webServer) action(command string) http.HandlerFunc {
 	}
 }
 
-func actionToast(command string) (string, string) {
+func actionToast(command string) (string, toastType) {
 	info, ok := actionToasts[command]
 	if !ok {
 		return "", ""
@@ -223,12 +229,12 @@ func actionToast(command string) (string, string) {
 	return info.msg, info.kind
 }
 
-func applyResultToStatus(result CommandResult, status *webStatus, toast, toastType string) {
+func applyResultToStatus(result CommandResult, status *webStatus, toast string, tt toastType) {
 	if result.IsError() {
 		status.Error = result.String()
 	} else {
 		status.Toast = toast
-		status.ToastType = toastType
+		status.ToastType = tt
 	}
 }
 
@@ -289,7 +295,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 		sliderVal := ptzAxisValue(axis, status)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
 			info.Label, string(axis), info.Min, info.Max, sliderVal, info.Unit,
-			result.String(), toastTypeError,
+			result.String(), string(toastTypeError),
 		)).ServeHTTP(responseWriter, request)
 
 		return
