@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.3
+  go: 1.26.4
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -126,6 +126,9 @@ linters:
     funlen:
       lines: 100
       statements: 80
+    ginkgolinter:
+      forbid-focus-container: true
+      forbid-spec-pollution: true
     gocritic:
       disabled-checks:
         - ifElseChain
@@ -151,6 +154,8 @@ linters:
         - stdlib
         - generic
         - github.com/LarsArtmann/emeet-pixyd.HIDDevice
+    makezero:
+      always: true
     mnd:
       ignored-numbers:
         - "2"
@@ -160,6 +165,10 @@ linters:
           name: exported
         - disabled: true
           name: package-comments
+    testifylint:
+      disable:
+        - go-require
+      enable-all: true
     varnamelen:
       ignore-map-index-ok: true
       ignore-names:
