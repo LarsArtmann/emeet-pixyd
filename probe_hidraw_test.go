@@ -233,7 +233,7 @@ func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := newTestDaemon(tc.initialCamera, "", "")
+			d := newTestDaemon(t, tc.initialCamera, "", "")
 			d.applyProbeResultLocked(probeDevices())
 
 			hasDev := d.videoDev != ""

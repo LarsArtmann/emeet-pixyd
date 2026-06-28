@@ -34,7 +34,7 @@ func assertLoadStateFalse(t *testing.T, d *Daemon, label string) {
 func TestStateDefaults(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 	assertCameraState(t, d, pixy.StatePrivacy)
 
 	if d.state.Audio != pixy.AudioNC {
@@ -116,7 +116,7 @@ func TestStateFileCorrupt(t *testing.T) {
 		t.Fatalf("write corrupt file: %v", err)
 	}
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	d.config = cfg
 	assertLoadStateFalse(t, d, "corrupt")
@@ -130,7 +130,7 @@ func TestStateFileMissing(t *testing.T) {
 	t.Parallel()
 
 	cfg := defaultTestConfig("/nonexistent")
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	d.config = cfg
 	assertLoadStateFalse(t, d, "missing")
@@ -143,7 +143,7 @@ func TestStateFileValid(t *testing.T) {
 
 	cfg := defaultTestConfig(t.TempDir())
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 	d.config = cfg
 
 	d.state = inCallState()
@@ -152,7 +152,7 @@ func TestStateFileValid(t *testing.T) {
 	}
 
 	// Simulate a fresh daemon start with a different in-memory default.
-	d2 := testDaemonNoDevice()
+	d2 := testDaemonNoDevice(t)
 	d2.config = cfg
 	d2.state = pixy.DefaultState()
 

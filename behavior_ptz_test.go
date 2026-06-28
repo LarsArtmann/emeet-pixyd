@@ -106,7 +106,7 @@ func withSeededPTZCache() testDaemonOption {
 func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 	t.Parallel()
 
-	d, v4l2Calls := newPTZCaptureDaemon()
+	d, v4l2Calls := newPTZCaptureDaemon(t)
 
 	// When pan is set beyond the maximum (200 → clamp to PanMax)
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "200"})
@@ -133,7 +133,7 @@ func TestBehavior_PTZClampingAndMultiplier(t *testing.T) {
 func TestBehavior_PTZAbsoluteNegativeTilt(t *testing.T) {
 	t.Parallel()
 
-	d, v4l2Calls := newPTZCaptureDaemon(func(d *Daemon) {
+	d, v4l2Calls := newPTZCaptureDaemon(t, func(d *Daemon) {
 		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
 			return pixy.PTZValues{Tilt: 10} // non-zero baseline
 		}
@@ -150,7 +150,7 @@ func TestBehavior_PTZAbsoluteNegativeTilt(t *testing.T) {
 func TestBehavior_PTZRelativeMath(t *testing.T) {
 	t.Parallel()
 
-	d, v4l2Calls := newPTZCaptureDaemon(func(d *Daemon) {
+	d, v4l2Calls := newPTZCaptureDaemon(t, func(d *Daemon) {
 		d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
 			return pixy.PTZValues{Pan: 50}
 		}
@@ -166,6 +166,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 
 	// Given a daemon with a device and a web server (cache has stale pan=0)
 	d := newTestDaemon(
+		t,
 		pixy.StateTracking,
 		"/dev/video0",
 		"/dev/hidraw7",
@@ -202,7 +203,7 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	t.Parallel()
 
 	// Given a daemon with no device
-	d := newTestDaemon(pixy.StateOffline, "", "", withNoopV4L2())
+	d := newTestDaemon(t, pixy.StateOffline, "", "", withNoopV4L2())
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 
@@ -242,6 +243,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 			var v4l2Calls []v4l2Call
 
 			d := newTestDaemon(
+				t,
 				pixy.StateTracking,
 				"/dev/video0",
 				"/dev/hidraw7",

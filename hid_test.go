@@ -231,7 +231,7 @@ func TestParseHIDResponseUnknownInterface(t *testing.T) {
 func TestHandleCommandSyncNoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.StateOffline, "", "")
 	result := d.handleCommand(context.Background(), cmdSync)
 	assertErrorPrefix(t, result.String())
 }
@@ -239,7 +239,7 @@ func TestHandleCommandSyncNoDevice(t *testing.T) {
 func TestHandleCommandSyncWithDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(pixy.StatePrivacy)
+	d := testDaemonWithDevice(t, pixy.StatePrivacy)
 	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), cmdSync)

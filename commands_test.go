@@ -166,7 +166,7 @@ func TestApplyResultToStatus_ErrorOverridesToast(t *testing.T) {
 func TestHandleQueryCommand_Version(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdVersion})
 	assertStatusPrefix(t, resp.String(), "emeet-pixyd ", "version")
@@ -175,7 +175,7 @@ func TestHandleQueryCommand_Version(t *testing.T) {
 func TestHandleQueryCommand_Waybar(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdWaybar})
 	assertCommandContains(t, resp.String(), `"class"`, "response")
@@ -184,7 +184,7 @@ func TestHandleQueryCommand_Waybar(t *testing.T) {
 func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
 	if resp.String() != respDeviceNotFound {
@@ -195,7 +195,7 @@ func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
 func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(pixy.StateTracking)
+	d := testDaemonWithDevice(t, pixy.StateTracking)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
 	assertCommandContains(t, resp.String(), "/dev/video", "response")
@@ -204,7 +204,7 @@ func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdSync})
 	expectError(t, resp)
@@ -213,7 +213,7 @@ func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
 func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.StateOffline, "", "")
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdProbe})
 	// probeDevices() scans real sysfs, so this test is flaky when a PIXY is connected.
@@ -229,7 +229,7 @@ func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
 func TestHandleMutatingCommand_Unknown(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleMutatingCommand(context.Background(), []string{"unknown-cmd"})
 	assertStatusPrefix(t, resp.String(), "error: unknown command:", "unknown command")
@@ -238,7 +238,7 @@ func TestHandleMutatingCommand_Unknown(t *testing.T) {
 func TestHandleCommand_QueryNoLock(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	tests := []struct {
 		cmd    string
@@ -262,7 +262,7 @@ func TestHandleCommand_QueryNoLock(t *testing.T) {
 func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(pixy.StatePrivacy)
+	d := testDaemonWithDevice(t, pixy.StatePrivacy)
 	d.config = defaultTestConfig(t.TempDir())
 
 	resp := d.handleCommand(context.Background(), cmdAutoOff)
@@ -277,7 +277,7 @@ func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
 func TestHandleCommand_EmptyCommandReturnsStatus(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	resp := d.handleCommand(context.Background(), "")
 	assertCommandContains(t, resp.String(), "camera=", "status response")

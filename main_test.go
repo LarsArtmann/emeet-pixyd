@@ -239,10 +239,13 @@ func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 }
 
 func newTestDaemon(
+	tb testing.TB,
 	camera pixy.CameraState,
 	videoDev, hidrawDev string,
 	opts ...testDaemonOption,
 ) *Daemon {
+	tb.Helper()
+
 	d := &Daemon{
 		mu: sync.RWMutex{},
 		state: pixy.State{
@@ -254,7 +257,7 @@ func newTestDaemon(
 		},
 
 		config: pixy.Config{
-			StateDir:      "/tmp",
+			StateDir:      tb.TempDir(),
 			PollInterval:  2 * time.Second,
 			DebounceCount: 3,
 			WebAddr:       "127.0.0.1:0",
@@ -296,16 +299,22 @@ func newTestDaemon(
 	return d
 }
 
-func testDaemonNoDevice() *Daemon {
-	return newTestDaemon(pixy.StatePrivacy, "", "")
+func testDaemonNoDevice(tb testing.TB) *Daemon {
+	tb.Helper()
+
+	return newTestDaemon(tb, pixy.StatePrivacy, "", "")
 }
 
-func testDaemonWithDevice(camera pixy.CameraState) *Daemon {
-	return newTestDaemon(camera, testVideoDev, testHIDDev)
+func testDaemonWithDevice(tb testing.TB, camera pixy.CameraState) *Daemon {
+	tb.Helper()
+
+	return newTestDaemon(tb, camera, testVideoDev, testHIDDev)
 }
 
-func testDaemonWithState(camera pixy.CameraState, inCall bool) *Daemon {
-	return newTestDaemon(camera, "", "", withInCall(inCall))
+func testDaemonWithState(tb testing.TB, camera pixy.CameraState, inCall bool) *Daemon {
+	tb.Helper()
+
+	return newTestDaemon(tb, camera, "", "", withInCall(inCall))
 }
 
 type parseTestCase[T comparable] struct {

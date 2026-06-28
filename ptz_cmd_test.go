@@ -60,19 +60,23 @@ func TestParsePTZValue(t *testing.T) {
 	}
 }
 
-func newPTZDaemon(opts ...testDaemonOption) *Daemon {
+func newPTZDaemon(tb testing.TB, opts ...testDaemonOption) *Daemon {
+	tb.Helper()
+
 	// PTZ behavior tests must be hardware-independent: relative-mode commands
 	// (e.g. "tilt -30") read current position via parsePTZ. Wire a deterministic
 	// stub so relative math is reproducible regardless of real /dev/video0 state.
 	opts = append([]testDaemonOption{withNoopParsePTZ()}, opts...)
 
-	return newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", opts...)
+	return newTestDaemon(tb, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", opts...)
 }
 
-func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
+func newPTZCaptureDaemon(tb testing.TB, opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
+	tb.Helper()
+
 	var calls []v4l2Call
 
-	d := newPTZDaemon(append(opts, withCaptureV4L2(&calls))...)
+	d := newPTZDaemon(tb, append(opts, withCaptureV4L2(&calls))...)
 
 	return d, &calls
 }
@@ -80,7 +84,7 @@ func newPTZCaptureDaemon(opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
 func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 	t.Parallel()
 
-	d := newPTZDaemon()
+	d := newPTZDaemon(t)
 
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan)})
 	assertStatusPrefix(t, resp.String(), "usage:", "usage message")
@@ -89,7 +93,7 @@ func TestHandlePTZCommand_MissingArgs(t *testing.T) {
 func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 	t.Parallel()
 
-	d := newPTZDaemon()
+	d := newPTZDaemon(t)
 
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "not-a-number"})
 	expectError(t, resp)
@@ -100,7 +104,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "", "")
+	d := newTestDaemon(t, pixy.StateTracking, "", "")
 
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	expectError(t, resp)
@@ -111,7 +115,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
 		d.deps.v4l2Set = func(context.Context, string, string, string) error {
 			return ErrInvalidValue
 		}
@@ -124,7 +128,7 @@ func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 func TestHandlePTZCommand_Success(t *testing.T) {
 	t.Parallel()
 
-	d, _ := newPTZCaptureDaemon()
+	d, _ := newPTZCaptureDaemon(t)
 
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	notError(t, resp)
@@ -135,7 +139,7 @@ func TestHandlePTZCommand_Success(t *testing.T) {
 func TestHandlePTZCommand_ZoomNoMultiplier(t *testing.T) {
 	t.Parallel()
 
-	d, setCalls := newPTZCaptureDaemon()
+	d, setCalls := newPTZCaptureDaemon(t)
 
 	d.handlePTZCommand(context.Background(), []string{string(pixy.AxisZoom), "125"})
 
@@ -153,7 +157,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 
 	var calls int
 
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
 	notError(t, resp)
@@ -166,7 +170,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 func TestHandleCenterCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "", "")
+	d := newTestDaemon(t, pixy.StateTracking, "", "")
 
 	resp := d.handleCenterCommand(context.Background())
 	expectError(t, resp)

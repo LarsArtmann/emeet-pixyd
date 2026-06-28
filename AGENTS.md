@@ -179,10 +179,10 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ### Testing
 
 - Standard `testing` package only (no testify)
-- **`newTestDaemon(camera, videoDev, hidrawDev, opts...)`** is the canonical builder — use `withInCall()` or custom `testDaemonOption` to inject mock deps
+- **`newTestDaemon(t, camera, videoDev, hidrawDev, opts...)`** is the canonical builder — uses `t.TempDir()` for `StateDir` so parallel tests never race on a shared state file, use `withInCall()` or custom `testDaemonOption` to inject mock deps
 - Function fields (`isCameraInUseFn`, `findSourceFn`, `setSourceFn`, `notifyFn`, `setTrackingFn`, `setAudioFn`, `setGestureFn`, `centerCameraFn`, `v4l2SetFn`) default to no-op stubs or real implementations in tests
 - Predefined test options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, `withNotifyCalled()`, `withNotifyMessages()`, `withFindSource()`, `withCaptureTracking()`, `withCaptureAudio()`, `withCaptureGesture()`, `withCaptureGestureArg()`, `withCaptureCenter()`, `withNoopV4L2()`, `withNoopTracking()`, `withNoopAudio()`, `withDebounceCount()`
-- `testDaemonNoDevice()` and `testDaemonWithDevice(camera)` are convenience wrappers
+- `testDaemonNoDevice(t)`, `testDaemonWithDevice(t, camera)`, and `testDaemonWithState(t, camera, inCall)` are convenience wrappers
 - `ptr[T any](v T) *T` generic helper for pointer literals (not Go's `new()` literal syntax)
 - `sendSC(t, socketPath, cmd)` consolidates `pixy.SendCommand` + error handling in tests
 - `assertPtrEqual[T]` generic helper for optional field comparison in tests

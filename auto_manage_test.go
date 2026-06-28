@@ -17,6 +17,7 @@ func TestHandleCallEnd_ClearsInCall(t *testing.T) {
 	var notifyCalled bool
 
 	d := testAutoDaemon(
+		t,
 		withInCall(true),
 		withNotifyCalled(&notifyCalled),
 	)
@@ -34,6 +35,7 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 	t.Parallel()
 
 	d := testAutoDaemon(
+		t,
 		withInCall(true),
 		func(d *Daemon) {
 			d.state.Camera = pixy.StateTracking
@@ -54,7 +56,7 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 		t.Skip("PIXY device physically connected — test requires no device")
 	}
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
 	d.autoManage(context.Background())
 
 	if camera := readCameraState(d); camera != pixy.StateOffline {
@@ -65,7 +67,7 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withAutoOff())
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withAutoOff())
 
 	d.autoManage(context.Background())
 
@@ -80,7 +82,7 @@ func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 func TestAutoManage_InUseNotEnoughDebounce(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withCameraInUse(true))
+	d := testAutoDaemon(t, withCameraInUse(true))
 
 	d.autoManage(context.Background())
 
@@ -98,6 +100,7 @@ func TestAutoManage_IdleTriggersCallEnd(t *testing.T) {
 	var notifyCalled bool
 
 	d := testAutoDaemon(
+		t,
 		withInCall(true),
 		withCameraInUse(false),
 		withNotifyCalled(&notifyCalled),
@@ -117,7 +120,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 	t.Parallel()
 
 	callCount := 0
-	d := testAutoDaemon(func(d *Daemon) {
+	d := testAutoDaemon(t, func(d *Daemon) {
 		d.deps.isCameraInUse = func(_ string) bool {
 			callCount++
 
@@ -154,7 +157,7 @@ func TestAutoManage_DebounceResetsOnStateChange(t *testing.T) {
 
 //nolint:paralleltest
 func TestAutoManage_UpdatesMetrics(t *testing.T) {
-	d := testAutoDaemon()
+	d := testAutoDaemon(t)
 	d.autoManage(context.Background())
 
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)
@@ -166,6 +169,7 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 
 	dir := t.TempDir()
 	d := newTestDaemon(
+		t,
 		pixy.StatePrivacy, testVideoDev, testHIDDev,
 		withConfig(dir), withCameraInUse(true), withDebounceCount(),
 	)
@@ -202,6 +206,7 @@ func TestAutoManage_UsesMockedTrackingFn(t *testing.T) {
 	var trackingCalls []pixy.CameraState
 
 	d := testAutoDaemon(
+		t,
 		withCameraInUse(true),
 		withDebounceCount(),
 		withCaptureTrackingSlice(&trackingCalls),
@@ -225,7 +230,7 @@ func TestAutoManage_UsesMockedAudioFn(t *testing.T) {
 
 	var audioCalls []pixy.AudioMode
 
-	d := testAutoDaemon(func(d *Daemon) {
+	d := testAutoDaemon(t, func(d *Daemon) {
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
@@ -252,6 +257,7 @@ func TestAutoManage_CallEndUsesMockedTrackingFn(t *testing.T) {
 	var trackingCalls []pixy.CameraState
 
 	d := testAutoDaemon(
+		t,
 		withInCall(true),
 		withCameraInUse(false),
 		withDebounceCount(),

@@ -39,7 +39,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 		notifyBodies   []string
 	)
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
 		d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
 		d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
 			setSourceCalls = append(setSourceCalls, id.Get())
@@ -90,7 +90,7 @@ func TestBehavior_DebounceFlipFlop(t *testing.T) {
 
 	// Given a daemon with debounce count 3
 	callStarted := false
-	d := testAutoDaemon(func(d *Daemon) {
+	d := testAutoDaemon(t, func(d *Daemon) {
 		d.config.DebounceCount = 3
 		d.deps.isCameraInUse = cameraNotInUseFn
 		d.deps.notify = func(context.Context, string, string) {
@@ -154,7 +154,7 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := testDaemonWithState(tc.camera, tc.inCall)
+			d := testDaemonWithState(t, tc.camera, tc.inCall)
 			d.state.Audio = tc.audio
 			d.state.AutoMode = tc.autoMode
 
@@ -190,7 +190,7 @@ func TestBehavior_ErrorDuringCallStart_StillSetsInCall(t *testing.T) {
 	t.Parallel()
 
 	// Given a daemon with video device but no hidraw (setDeviceState returns early)
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})

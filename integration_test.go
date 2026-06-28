@@ -21,13 +21,13 @@ const (
 func newIntegrationDaemon(t *testing.T) *Daemon {
 	t.Helper()
 
-	return newTestDaemon(pixy.StatePrivacy, "", "", withConfig(t.TempDir()))
+	return newTestDaemon(t, pixy.StatePrivacy, "", "", withConfig(t.TempDir()))
 }
 
 func newDaemonWithDevice(t *testing.T) *Daemon {
 	t.Helper()
 
-	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, withConfig(t.TempDir()))
+	return newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withConfig(t.TempDir()))
 }
 
 func getBody(t *testing.T, resp *http.Response) string {

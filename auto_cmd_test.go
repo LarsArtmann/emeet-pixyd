@@ -22,7 +22,7 @@ func assertAutoModeEquals(t *testing.T, d *Daemon, want pixy.AutoMode) {
 func TestHandleAutoCommand_SetMode(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdAuto, "full"})
 	notError(t, resp)
@@ -35,7 +35,7 @@ func TestHandleAutoCommand_SetMode(t *testing.T) {
 func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
 
 	resp := d.handleAutoCommand([]string{"auto", "invalid-mode"})
 	assertCommandContains(t, resp.String(), "usage:", "response")
@@ -44,7 +44,7 @@ func TestHandleAutoCommand_InvalidMode(t *testing.T) {
 func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{"auto-on"})
 	notError(t, resp)
@@ -54,7 +54,7 @@ func TestHandleAutoCommand_ToggleOff(t *testing.T) {
 func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoFull
 	})
 
@@ -66,7 +66,7 @@ func TestHandleAutoCommand_ToggleOn(t *testing.T) {
 func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withAutoOff())
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withAutoOff())
 
 	resp := d.handleAutoCommand([]string{cmdToggleAuto})
 	notError(t, resp)
@@ -76,7 +76,7 @@ func TestHandleAutoCommand_ToggleAuto(t *testing.T) {
 func TestHandleAutoCommand_BareAutoShowsCurrentMode(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StatePrivacy, "", "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
 	})
 

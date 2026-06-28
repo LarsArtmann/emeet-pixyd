@@ -56,7 +56,7 @@ func openSSEStream(t *testing.T, server *httptest.Server) *http.Response {
 func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 	server := newTestWebServer(t, d)
 
 	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
@@ -79,7 +79,7 @@ func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
 func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 	server := newTestWebServer(t, d)
 
 	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream

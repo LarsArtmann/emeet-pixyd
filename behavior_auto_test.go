@@ -16,6 +16,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 
 	// Given a daemon in a call with full auto mode
 	d := testAutoDaemon(
+		t,
 		withInCall(true),
 		func(d *Daemon) {
 			d.state.Camera = pixy.StateTracking
@@ -100,7 +101,7 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 
 	var audioCalls []pixy.AudioMode
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			d.mu.Lock()
@@ -142,7 +143,7 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 
 	var trackingCalls []pixy.CameraState
 
-	d := newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			d.mu.Lock()
 			d.state.Camera = s
@@ -179,7 +180,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := newTestDaemon(pixy.StatePrivacy, "", "", withConfig(dir))
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withConfig(dir))
 
 	// When user sets auto mode to tracking-only
 	d.handleAutoCommand([]string{"auto", "tracking-only"})
@@ -198,7 +199,7 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 
 	var notifyMessages []string
 
-	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
+	d := testAutoDaemon(t, withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
 		d.state.Camera = pixy.StatePrivacy
 		d.state.Audio = pixy.AudioLive
@@ -224,7 +225,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 
 	var notifyMessages []string
 
-	d := testAutoDaemon(withNotifyMessages(&notifyMessages), func(d *Daemon) {
+	d := testAutoDaemon(t, withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoPrivacyOnly
 		d.state.Camera = pixy.StateIdle
 		d.deps.isCameraInUse = cameraInUseFn

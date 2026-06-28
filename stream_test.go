@@ -15,7 +15,7 @@ import (
 func newStreamDaemon(t *testing.T) (*Daemon, *webServer, *httptest.Server) {
 	t.Helper()
 
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
@@ -51,7 +51,7 @@ func TestHandleStream_SemaphoreFull(t *testing.T) {
 func TestHandleStream_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.StateOffline, "", "")
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
@@ -67,7 +67,7 @@ func TestHandleStream_NoFFmpeg(t *testing.T) {
 	t.Parallel()
 
 	// Daemon with device but ffmpeg likely not in PATH during test
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
@@ -88,7 +88,7 @@ func TestHandleStream_NoFFmpeg(t *testing.T) {
 func TestHandleSnapshot_NoFrame(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 	server := httptest.NewServer(mux)
@@ -103,7 +103,7 @@ func TestHandleSnapshot_NoFrame(t *testing.T) {
 func TestHandleSnapshot_WithFrame(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
 	d.lastFrame.data = []byte{0xFF, 0xD8, 0x42, 0xFF, 0xD9}
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)

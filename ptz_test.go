@@ -33,7 +33,7 @@ func TestV4L2Set_CommandFormat(t *testing.T) {
 func TestParsePTZValues_InvalidDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonNoDevice()
+	d := testDaemonNoDevice(t)
 
 	ptz := d.parsePTZValues(context.Background(), "/dev/nonexistent")
 	if ptz.Pan != 0 || ptz.Tilt != 0 || ptz.Zoom != 0 {

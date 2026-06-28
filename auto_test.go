@@ -9,8 +9,10 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
-func testAutoDaemon(opts ...testDaemonOption) *Daemon {
-	return newTestDaemon(pixy.StatePrivacy, testVideoDev, testHIDDev, opts...)
+func testAutoDaemon(tb testing.TB, opts ...testDaemonOption) *Daemon {
+	tb.Helper()
+
+	return newTestDaemon(tb, pixy.StatePrivacy, testVideoDev, testHIDDev, opts...)
 }
 
 func readDebounce(d *Daemon) (_, _ int) {
@@ -27,7 +29,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 
 	var notifyCalled bool
 
-	d := testAutoDaemon(withNotifyCalled(&notifyCalled))
+	d := testAutoDaemon(t, withNotifyCalled(&notifyCalled))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
@@ -41,7 +43,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withCameraState(pixy.StatePrivacy))
+	d := testAutoDaemon(t, withCameraState(pixy.StatePrivacy))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
 
@@ -51,7 +53,7 @@ func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withAudioState(pixy.AudioLive))
+	d := testAutoDaemon(t, withAudioState(pixy.AudioLive))
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
 
@@ -61,7 +63,7 @@ func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withAudioState(pixy.AudioLive))
+	d := testAutoDaemon(t, withAudioState(pixy.AudioLive))
 
 	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
 
@@ -73,7 +75,7 @@ func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 func TestHandleCallStart_PrivacyOnlyNoTracking(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(withCameraState(pixy.StatePrivacy))
+	d := testAutoDaemon(t, withCameraState(pixy.StatePrivacy))
 
 	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoPrivacyOnly)
 
@@ -88,6 +90,7 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 	var setSourceCalled bool
 
 	d := testAutoDaemon(
+		t,
 		withFindSource("42"),
 		func(d *Daemon) {
 			d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
@@ -113,6 +116,7 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 	var setSourceCalled bool
 
 	d := testAutoDaemon(
+		t,
 		withFindSource("42"),
 		func(d *Daemon) {
 			d.deps.setSource = func(_ context.Context, _ pixy.SourceID) { setSourceCalled = true }
@@ -132,6 +136,7 @@ func TestAutoManage_InUseTriggersCallStart(t *testing.T) {
 	var notifyCalled bool
 
 	d := testAutoDaemon(
+		t,
 		withCameraInUse(true),
 		withNotifyCalled(&notifyCalled),
 		withDebounceCount(),
@@ -155,6 +160,7 @@ func TestHandleCallStart_FindSourceErrorSurfacesInAutoError(t *testing.T) {
 	t.Parallel()
 
 	d := testAutoDaemon(
+		t,
 		withNoopTracking(),
 		withNoopAudio(),
 		func(d *Daemon) {
@@ -179,6 +185,7 @@ func TestHandleCallStart_FindSourceSuccessClearsAutoError(t *testing.T) {
 	t.Parallel()
 
 	d := testAutoDaemon(
+		t,
 		withNoopTracking(),
 		withNoopAudio(),
 		withFindSource("42"),
