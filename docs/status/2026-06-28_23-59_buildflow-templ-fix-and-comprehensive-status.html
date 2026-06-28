@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emeet-pixyd Status · 2026-06-28 23:59 CEST</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .badge-done {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .callout-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 10%, transparent);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before {
+        background: var(--warning);
+      }
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value {
+        color: var(--problem);
+      }
+      .stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+        columns: 2;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .toc ul {
+          columns: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>emeet-pixyd Status Report</span>
+      <span>2026-06-28 23:59 CEST</span>
+      <span>Session Templ-Fix</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#fucked">Totally Fucked Up</a>
+          <a href="#improve">What to Improve</a>
+          <a href="#next">Top 25 Next</a>
+          <a href="#question">Open Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">BuildFlow Templ Fix</div>
+          <h1>emeet-pixyd Comprehensive Status</h1>
+          <p class="hero-subtitle">
+            Snapshot after restoring the build pipeline from an empty
+            <code>templates_templ.go</code> failure. BuildFlow 40/40 green, race tests pass, 49/49
+            features fully functional. 20 TODOs remain, mostly architectural extraction and
+            hardware-in-the-loop testing.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#done">Fully Done</a></li>
+            <li><a href="#partial">Partially Done</a></li>
+            <li><a href="#not-started">Not Started</a></li>
+            <li><a href="#fucked">Totally Fucked Up</a></li>
+            <li><a href="#improve">What to Improve</a></li>
+            <li><a href="#next">Top 25 Next</a></li>
+            <li><a href="#question">Open Question</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">49</div>
+            <div class="stat-label">Features Fully Functional</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">40/40</div>
+            <div class="stat-label">BuildFlow Steps Passing</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">73.2%</div>
+            <div class="stat-label">Go Test Coverage</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">20</div>
+            <div class="stat-label">TODOs Remaining</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Critical Incident Today</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Known Broken Features</div>
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Resolved</span>
+          <h3>BuildFlow test-race failed on empty templates_templ.go</h3>
+          <div class="where">templates_templ.go:1:1</div>
+          <p>
+            The generated templ file existed but was empty/EOF. Running
+            <code>templ generate</code> regenerated 970 lines of valid Go; subsequent
+            <code>buildflow --build-mode=dev</code> and <code>buildflow -s test-race</code> both
+            passed.
+          </p>
+        </div>
+
+        <h2 id="done"><span class="num">01</span>Fully Done</h2>
+
+        <h3>Production Features (49/49)</h3>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Camera control suite</strong>
+              <span>Tracking, idle, privacy, toggle privacy, center, PTZ sliders/CLI/relative/keyboard all verified in FEATURES.md.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Audio management</strong>
+              <span>NC/Live/Original modes via HID, PipeWire source switching on call start.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Auto-management</strong>
+              <span>/proc fd scanning, debounced state transitions, four auto modes, systemd notifications.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Web UI</strong>
+              <span>HTMX SSE live updates, MJPEG preview, security headers, keyboard shortcuts, dark glassmorphism theme.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Build &amp; packaging</strong>
+              <span>Nix flake builds cleanly with <code>proxyVendor=true</code>; lint, test, and fuzz checks all green.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>cqrs-htmx removal hardened</strong>
+              <span>Local SSE Broadcaster, middleware, embedded HTMX, 9 SSE unit tests, updated vendorHash.</span>
+            </div>
+          </div>
+        </div>
+
+        <h3>Quality Sweep Items (55/76 TODO_LIST.md)</h3>
+        <p>
+          All Phase 1 quick wins, Phase 2 decomposition, Phase 3 observability, Phase 4 partially
+          complete, Phase 7 code nits, and Phase 8 audit fixes are done. See TODO_LIST.md lines
+          20–136 for the full checklist.
+        </p>
+
+        <h2 id="partial"><span class="num">02</span>Partially Done</h2>
+
+        <div class="card card-warning">
+          <h4>Architectural interfaces (Phase 4)</h4>
+          <p>
+            <code>Commander</code> interface extracted in <code>commander.go</code> for subprocess
+            calls, but only covers command execution — not full orchestration of
+            <code>wpctl</code>/<code>v4l2-ctl</code>/<code>ffmpeg</code>/<code>notify-send</code>
+            policy. <code>HIDDevice</code> interface is complete; <code>ProcessInspector</code>,
+            <code>UeventListener</code>, and fake-device abstractions not started.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>PTZ readback accuracy</h4>
+          <p>
+            Cache is updated with set values immediately, but true in-memory "last set" tracking and
+            delayed hardware readback validation are not implemented. Relative PTZ tests require a
+            deterministic stub to avoid real <code>/dev/video0</code> flakiness.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Mobile-responsive layout</h4>
+          <p>
+            The CSS grid collapses on narrow viewports via media query, but no dedicated mobile UX
+            audit has been performed. The current responsive behavior is incidental, not designed.
+          </p>
+        </div>
+
+        <h2 id="not-started"><span class="num">03</span>Not Started</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Source</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Extract <code>ProcessInspector</code> interface for /proc traversal</td>
+                <td>Roadmap 1.3</td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Extract <code>UeventListener</code> interface for netlink</td>
+                <td>Roadmap 1.4</td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Camera preset support (save/recall PTZ positions)</td>
+                <td>Status F.9</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Integration test harness with fake HID + fake video devices</td>
+                <td>Roadmap 6.1</td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Test coverage for <code>stream.go</code>, <code>process.go</code>, <code>hid.go</code> real hardware paths</td>
+                <td>Status E.2</td>
+                <td><span class="badge badge-high">High</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Improve MJPEG stream reconnection with backoff</td>
+                <td>Status E.4</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Integration test with real hardware (build tag guarded)</td>
+                <td>Status F.15</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>PTZ readback accuracy — in-memory last-set value</td>
+                <td>Status E.1</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Evaluate removing <code>prometheus/client_golang</code> (only <code>promhttp.Handler</code> used)</td>
+                <td>Session 9</td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code> domain types</td>
+                <td>Session 9</td>
+                <td><span class="badge badge-low">Low</span></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Mobile-responsive layout design audit</td>
+                <td>Roadmap 5.3</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="fucked"><span class="num">04</span>Totally Fucked Up!</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Critical</span>
+          <h3>Generated templ file can silently become empty and break CI</h3>
+          <div class="where">templates_templ.go</div>
+          <p>
+            The project gitignines <code>*_templ.go</code>, and BuildFlow's
+            <code>templ-generate</code> step should recreate it. Today it produced an empty file
+            instead, causing the first Go compile to fail with <code>expected 'package', found
+            'EOF'</code>. The root cause is unknown — possibly a race between formatter and
+            generator, or a transient templ daemon state.
+          </p>
+          <div class="callout callout-problem">
+            <strong>Why it matters</strong>
+            CI and local builds depend on generated code that is not tracked. If generation flakes,
+            every contributor hits a cryptic compile error and loses trust in the build.
+          </div>
+          <div class="callout callout-solution">
+            <strong>Fix applied</strong>
+            Ran <code>templ generate</code> manually and verified the file regenerated 970 lines.
+            BuildFlow now passes, but the flake source is not fixed.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>BuildFlow CLI hint is misleading</h3>
+          <div class="where">buildflow output footer</div>
+          <p>
+            Both successful runs end with the tip <code>buildflow dev</code>, but
+            <code>buildflow dev</code> is not a valid subcommand. The correct invocation is
+            <code>buildflow --build-mode=dev</code>. This wastes time and erodes confidence in the
+            tool's own guidance.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>Five tools are stuck in check-only mode</h3>
+          <div class="where">buildflow --build-mode=dev</div>
+          <p>
+            BuildFlow reports "5 tool(s) in check-only mode (use --fix to apply fixes)". These are
+            likely formatters/linters that could auto-fix issues but are not configured to do so in
+            default runs, leaving manual cleanup work on the table.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+
+        <div class="grid-2">
+          <div class="card card-warning">
+            <h4>Reliability</h4>
+            <p>
+              Make templ generation idempotent and verified. Add a post-generation sanity check
+              (file size &gt; 0, contains <code>package main</code>) before allowing the build to
+              proceed.
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>Coverage</h4>
+            <p>
+              The 73.2% coverage is dragged down by hardware-facing paths in
+              <code>stream.go</code>, <code>process.go</code>, and <code>hid.go</code>. Introduce
+              interface seams and fake implementations to push coverage above 80% without requiring
+              a physical PIXY.
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>Documentation hygiene</h4>
+            <p>
+              AGENTS.md, TODO_LIST.md, and CHANGELOG.md were last updated 2026-06-21. Today's
+              templ fix and BuildFlow behavior observations should be folded back into AGENTS.md
+              gotchas.
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>Tooling messaging</h4>
+            <p>
+              Fix or suppress the <code>buildflow dev</code> hint and clarify which 5 tools are
+              check-only so contributors know whether to run <code>--fix</code>.
+            </p>
+          </div>
+        </div>
+
+        <h2 id="next"><span class="num">06</span>Top #25 Things to Get Done Next</h2>
+
+        <p>Sorted by impact first, effort second. P0 = unblock contributors, P1 = architecture debt, P2 = polish and test depth.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>P</th>
+                <th>Task</th>
+                <th>Why It Matters</th>
+                <th>Effort</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><span class="badge badge-critical">P0</span></td>
+                <td>Harden templ generate against empty-file flake</td>
+                <td>Eliminates CI/contributor breakage.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="badge badge-critical">P0</span></td>
+                <td>Fix or remove misleading <code>buildflow dev</code> hint</td>
+                <td>Restores trust in build tool output.</td>
+                <td><span class="badge badge-low">Tiny</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Extract <code>ProcessInspector</code> interface</td>
+                <td>Enables deterministic call-detection tests.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Extract <code>UeventListener</code> interface</td>
+                <td>Makes hotplug path testable.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Build fake HID + fake video test harness</td>
+                <td>Removes hardware dependency for integration tests.</td>
+                <td><span class="badge badge-high">Large</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Increase stream.go test coverage with fake ffmpeg</td>
+                <td>Coverage gap is large and high-risk.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Increase process.go test coverage with fake /proc</td>
+                <td>Call detection is core to the product.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>Increase hid.go real-path coverage</td>
+                <td>HID failures are the main runtime failure mode.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>Camera preset save/recall</td>
+                <td>User-facing feature; moderate value.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>Mobile-responsive layout audit + fixes</td>
+                <td>Web UI is desktop-first; phones get incidental layout.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>MJPEG stream reconnection with backoff</td>
+                <td>Better UX when ffmpeg crashes or device disconnects.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>PTZ readback accuracy: delayed or in-memory last-set</td>
+                <td>Removes stale hardware readback surprises.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>Real-hardware integration test (build tag guarded)</td>
+                <td>Catches regressions that fakes cannot.</td>
+                <td><span class="badge badge-high">Large</span></td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code></td>
+                <td>Cleaner domain boundaries.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Evaluate removing <code>prometheus/client_golang</code></td>
+                <td>One less dependency; use OTel promhttp only.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Complete <code>Commander</code> policy wiring</td>
+                <td>All subprocess calls governed by one interface.</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Clarify which 5 tools are check-only</td>
+                <td>Helps contributors decide when to use <code>--fix</code>.</td>
+                <td><span class="badge badge-low">Tiny</span></td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Refresh AGENTS.md with templ flake note</td>
+                <td>Future sessions avoid repeating today's debug.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Refresh TODO_LIST.md counts (55 done, 20 todo)</td>
+                <td>Docs reflect current reality.</td>
+                <td><span class="badge badge-low">Tiny</span></td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Add templ-generation validation to flake check</td>
+                <td>CI fails fast if generation breaks.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Document BuildFlow correct invocation in AGENTS.md</td>
+                <td>Replaces incorrect <code>buildflow dev</code> muscle memory.</td>
+                <td><span class="badge badge-low">Tiny</span></td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Investigate <code>go.sum</code> modification on every run</td>
+                <td>Uncommitted go.sum changes suggest toolchain drift.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Run shellcheck on any shell scripts</td>
+                <td>BuildFlow warns shellcheck is missing.</td>
+                <td><span class="badge badge-low">Tiny</span></td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Review fuzz corpus growth and CI storage</td>
+                <td>Continuous fuzz could accumulate corpus artifacts.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>Benchmark CI runtime trends</td>
+                <td>BuildFlow dev took ~39s today; watch for regressions.</td>
+                <td><span class="badge badge-low">Small</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="question"><span class="num">07</span>Top #1 Question I Cannot Figure Out Myself</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Unanswered</span>
+          <h3>Why did templ generate produce an empty <code>templates_templ.go</code>?</h3>
+          <div class="where">templates_templ.go</div>
+          <p>
+            The file existed at 42,968 bytes but the Go compiler saw EOF at line 1, column 1. After
+            running <code>templ generate</code> again it grew to 970 lines and compiled. I cannot
+            determine whether the empty state was caused by:
+          </p>
+          <ul style="margin: 0 0 1rem 1.2rem; color: var(--text-muted);">
+            <li>a race between <code>templ generate</code> and a formatter step truncating the file,</li>
+            <li>a stale templ language-server/daemon state,</li>
+            <li>a partial write or crash during an earlier generation, or</li>
+            <li>a file-size vs content mismatch in the error message.</li>
+          </ul>
+          <p>
+            Reproducing it requires running the generation step many times and inspecting the file
+            before Go compilation. Should I add a defensive generator check, or do you want to
+            investigate the root cause first?
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-06-28 23:59 CEST &middot; Branch master @ 1c4fc0c &middot; BuildFlow 40/40 &middot; Race tests passing &middot; 49/49 features functional
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
