@@ -704,7 +704,10 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Camera control suite</strong>
-              <span>Tracking, idle, privacy, toggle privacy, center, PTZ sliders/CLI/relative/keyboard all verified in FEATURES.md.</span>
+              <span
+                >Tracking, idle, privacy, toggle privacy, center, PTZ sliders/CLI/relative/keyboard
+                all verified in FEATURES.md.</span
+              >
             </div>
           </div>
           <div class="strength">
@@ -718,28 +721,40 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Auto-management</strong>
-              <span>/proc fd scanning, debounced state transitions, four auto modes, systemd notifications.</span>
+              <span
+                >/proc fd scanning, debounced state transitions, four auto modes, systemd
+                notifications.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Web UI</strong>
-              <span>HTMX SSE live updates, MJPEG preview, security headers, keyboard shortcuts, dark glassmorphism theme.</span>
+              <span
+                >HTMX SSE live updates, MJPEG preview, security headers, keyboard shortcuts, dark
+                glassmorphism theme.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Build &amp; packaging</strong>
-              <span>Nix flake builds cleanly with <code>proxyVendor=true</code>; lint, test, and fuzz checks all green.</span>
+              <span
+                >Nix flake builds cleanly with <code>proxyVendor=true</code>; lint, test, and fuzz
+                checks all green.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>cqrs-htmx removal hardened</strong>
-              <span>Local SSE Broadcaster, middleware, embedded HTMX, 9 SSE unit tests, updated vendorHash.</span>
+              <span
+                >Local SSE Broadcaster, middleware, embedded HTMX, 9 SSE unit tests, updated
+                vendorHash.</span
+              >
             </div>
           </div>
         </div>
@@ -820,7 +835,10 @@
               </tr>
               <tr>
                 <td>5</td>
-                <td>Test coverage for <code>stream.go</code>, <code>process.go</code>, <code>hid.go</code> real hardware paths</td>
+                <td>
+                  Test coverage for <code>stream.go</code>, <code>process.go</code>,
+                  <code>hid.go</code> real hardware paths
+                </td>
                 <td>Status E.2</td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
@@ -844,13 +862,19 @@
               </tr>
               <tr>
                 <td>9</td>
-                <td>Evaluate removing <code>prometheus/client_golang</code> (only <code>promhttp.Handler</code> used)</td>
+                <td>
+                  Evaluate removing <code>prometheus/client_golang</code> (only
+                  <code>promhttp.Handler</code> used)
+                </td>
                 <td>Session 9</td>
                 <td><span class="badge badge-low">Low</span></td>
               </tr>
               <tr>
                 <td>10</td>
-                <td>Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code> domain types</td>
+                <td>
+                  Move <code>SSEEvent</code> + <code>toastType</code> to
+                  <code>internal/pixy</code> domain types
+                </td>
                 <td>Session 9</td>
                 <td><span class="badge badge-low">Low</span></td>
               </tr>
@@ -873,9 +897,9 @@
           <p>
             The project gitignines <code>*_templ.go</code>, and BuildFlow's
             <code>templ-generate</code> step should recreate it. Today it produced an empty file
-            instead, causing the first Go compile to fail with <code>expected 'package', found
-            'EOF'</code>. The root cause is unknown — possibly a race between formatter and
-            generator, or a transient templ daemon state.
+            instead, causing the first Go compile to fail with
+            <code>expected 'package', found 'EOF'</code>. The root cause is unknown — possibly a
+            race between formatter and generator, or a transient templ daemon state.
           </p>
           <div class="callout callout-problem">
             <strong>Why it matters</strong>
@@ -935,9 +959,8 @@
           <div class="card card-warning">
             <h4>Documentation hygiene</h4>
             <p>
-              AGENTS.md, TODO_LIST.md, and CHANGELOG.md were last updated 2026-06-21. Today's
-              templ fix and BuildFlow behavior observations should be folded back into AGENTS.md
-              gotchas.
+              AGENTS.md, TODO_LIST.md, and CHANGELOG.md were last updated 2026-06-21. Today's templ
+              fix and BuildFlow behavior observations should be folded back into AGENTS.md gotchas.
             </p>
           </div>
           <div class="card card-warning">
@@ -951,7 +974,10 @@
 
         <h2 id="next"><span class="num">06</span>Top #25 Things to Get Done Next</h2>
 
-        <p>Sorted by impact first, effort second. P0 = unblock contributors, P1 = architecture debt, P2 = polish and test depth.</p>
+        <p>
+          Sorted by impact first, effort second. P0 = unblock contributors, P1 = architecture debt,
+          P2 = polish and test depth.
+        </p>
 
         <div class="table-wrap">
           <table>
@@ -1059,7 +1085,9 @@
               <tr>
                 <td>14</td>
                 <td><span class="badge badge-low">P3</span></td>
-                <td>Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code></td>
+                <td>
+                  Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code>
+                </td>
                 <td>Cleaner domain boundaries.</td>
                 <td><span class="badge badge-low">Small</span></td>
               </tr>
@@ -1155,8 +1183,10 @@
             running <code>templ generate</code> again it grew to 970 lines and compiled. I cannot
             determine whether the empty state was caused by:
           </p>
-          <ul style="margin: 0 0 1rem 1.2rem; color: var(--text-muted);">
-            <li>a race between <code>templ generate</code> and a formatter step truncating the file,</li>
+          <ul style="margin: 0 0 1rem 1.2rem; color: var(--text-muted)">
+            <li>
+              a race between <code>templ generate</code> and a formatter step truncating the file,
+            </li>
             <li>a stale templ language-server/daemon state,</li>
             <li>a partial write or crash during an earlier generation, or</li>
             <li>a file-size vs content mismatch in the error message.</li>
@@ -1169,7 +1199,8 @@
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 23:59 CEST &middot; Branch master @ 1c4fc0c &middot; BuildFlow 40/40 &middot; Race tests passing &middot; 49/49 features functional
+          Generated 2026-06-28 23:59 CEST &middot; Branch master @ 1c4fc0c &middot; BuildFlow 40/40
+          &middot; Race tests passing &middot; 49/49 features functional
         </footer>
       </main>
     </div>
