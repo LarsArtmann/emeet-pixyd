@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emeet-pixyd Status · 2026-06-28</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: #a0a0a8;
+        --text-faint: #6b6b73;
+        --border: #2a2a30;
+        --border-strong: #3a3a42;
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --radius: 0px;
+        --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        max-width: 1280px;
+        margin: 0 auto;
+        gap: 0;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 32px 24px;
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+      }
+      .sidebar .label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 6px 10px;
+        margin-left: -10px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 13px;
+        border-left: 2px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        border-left-color: var(--accent);
+      }
+      .sidebar nav a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
+
+      .main {
+        padding: 48px 56px 96px;
+        min-width: 0;
+      }
+
+      @media (max-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 32px 20px 64px;
+        }
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: 44px;
+        line-height: 1.05;
+        margin-bottom: 12px;
+      }
+      h2 {
+        font-size: 28px;
+        margin-top: 72px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      h2 .num {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        padding: 4px 8px;
+      }
+      h3 {
+        font-size: 17px;
+        margin-bottom: 6px;
+      }
+      h4 {
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      p {
+        margin-bottom: 10px;
+        color: var(--text-muted);
+      }
+      p strong {
+        color: var(--text);
+      }
+
+      .hero {
+        margin-bottom: 56px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+      }
+      .hero-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        padding: 6px 12px;
+        margin-bottom: 20px;
+      }
+      .hero-subtitle {
+        font-size: 18px;
+        color: var(--text-muted);
+        max-width: 680px;
+        margin-top: 4px;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+        font-size: 12px;
+        color: var(--text-faint);
+      }
+      .hero-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hero-meta span::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin: 24px 0 8px;
+      }
+      .stat-card {
+        background: var(--surface-raised);
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--border-strong);
+      }
+      .stat-card.stat-good {
+        border-left-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-left-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-left-color: var(--problem);
+      }
+      .stat-value {
+        font-size: 36px;
+        font-weight: 900;
+        line-height: 1;
+      }
+      .stat-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-top: 8px;
+      }
+
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+        margin-bottom: 12px;
+      }
+      .card-problem {
+        border-left: 3px solid var(--problem);
+      }
+      .card-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .card-warning {
+        border-left: 3px solid var(--warning);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      @media (max-width: 768px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .callout {
+        padding: 14px 18px;
+        margin: 12px 0;
+        font-size: 14px;
+        border-left: 3px solid var(--border-strong);
+        background: var(--surface-sunken);
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 8px;
+      }
+
+      .badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 12%, transparent);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .badge-medium {
+        color: var(--text-muted);
+        border-color: var(--border-strong);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .badge-done {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: var(--surface-sunken);
+      }
+      td.rank {
+        font-family: var(--font-mono);
+        color: var(--accent);
+        font-weight: 700;
+        width: 36px;
+      }
+
+      .strengths {
+        margin: 16px 0;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength:last-child {
+        border-bottom: none;
+      }
+      .strength .check {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--solution);
+        color: var(--surface);
+        font-weight: 900;
+        font-size: 14px;
+      }
+      .strength .text strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+      .strength .text span {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      code,
+      .mono {
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 1px 5px;
+      }
+
+      pre {
+        background: var(--surface-sunken);
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        line-height: 1.5;
+        margin: 12px 0;
+      }
+
+      .footer {
+        margin-top: 80px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-faint);
+      }
+
+      .question-box {
+        background: color-mix(in srgb, var(--accent) 8%, var(--surface-raised));
+        border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+        border-left: 3px solid var(--accent);
+        padding: 24px 28px;
+        margin-top: 16px;
+      }
+      .question-box h3 {
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 2px;
+        margin-left: 6px;
+      }
+      .pill-stale {
+        background: color-mix(in srgb, var(--warning) 18%, transparent);
+        color: var(--warning);
+      }
+    </style>
+  </head>
+  <body data-nav>
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fuckedup">Fucked Up</a>
+          <a href="#improve">Improvements</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-badge">Comprehensive Status Report</div>
+          <h1>emeet-pixyd</h1>
+          <p class="hero-subtitle">
+            Linux daemon for the EMEET PIXY dual-camera AI webcam. Build pipeline restored, 0 lint
+            issues, 300 tests passing, dependency upgrade clean.
+          </p>
+          <div class="hero-meta">
+            <span>2026-06-28 23:43 +0200</span>
+            <span>Version 0.3.1</span>
+            <span>Go 1.26.4</span>
+            <span>Branch master @ 14600fb</span>
+            <span>4 uncommitted files (this session's fixes)</span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Executive Summary</h2>
+          <p>
+            The project is in a <strong>strong, stable state</strong>. The session's work was narrow
+            and surgical: the Go 1.26.4 + dependency upgrade (commit <code>14600fb</code>) broke two
+            nix steps, and this session fixed both. The codebase is otherwise mature — 44 features
+            all functional, comprehensive test coverage (72.1% root / 91.4%
+            <code>internal/pixy</code>), zero lint issues across all enabled golangci-lint v2
+            linters, and clean BuildFlow.
+          </p>
+          <p>
+            The main open work is <strong>architectural hardening</strong> (interfaces for
+            <code>/proc</code> and netlink), <strong>frontend polish</strong> (mobile responsive,
+            camera presets), and <strong>test infrastructure</strong>
+            (fake devices, hardware-guarded integration tests). None of it is blocking; all of it is
+            net-positive.
+          </p>
+
+          <div class="stat-grid">
+            <div class="stat-card stat-good">
+              <div class="stat-value">44</div>
+              <div class="stat-label">Features Functional</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">300</div>
+              <div class="stat-label">Tests (287 + 9 bench + 4 fuzz)</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Lint Issues</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">2/2</div>
+              <div class="stat-label">Nix Steps Fixed</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">11</div>
+              <div class="stat-label">Open TODOs</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">2</div>
+              <div class="stat-label">Stale Doc Entries</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="done">
+          <h2><span class="num">01</span>Fully Done</h2>
+          <p>Verified against code this session.</p>
+
+          <div class="card card-solution">
+            <h3>This session: both BuildFlow failures fixed</h3>
+            <p>
+              <strong>nix-build</strong> — stale <code>vendorHash</code> after commit
+              <code>14600fb</code> pulled in <code>prometheus/procfs@v0.21.0</code> (transitive via
+              <code>client_golang@v1.23.2</code>). Updated <code>vendorHash</code> in
+              <code>flake.nix</code> and <code>package.nix</code> to
+              <code>sha256-v+Btv34kWoWz0gONlTjVKR7c2JklY3zOl5U9oglb9MY=</code>.
+            </p>
+            <p>
+              <strong>nix-flake-check</strong> — <code>makezero</code> with
+              <code>always: true</code> (added in <code>14600fb</code>) flagged all 9 legitimate
+              <code>make([]byte, N)</code> I/O read buffers. Changed to
+              <code>always: false</code> (still catches the real <code>make([]T,n)</code> +
+              <code>append</code> bug). AGENTS.md updated to prevent regression.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Full feature surface (44/44 functional)</h3>
+            <p>
+              Per <code>FEATURES.md</code>: HID camera control (track/idle/privacy/center), full PTZ
+              (CLI + web sliders + relative + keyboard), audio modes (NC/Live/Original + PipeWire
+              switching), 4 auto modes with debounce, gesture toggle, MJPEG web UI, SSE live
+              updates, toast notifications, security headers, Unix socket CLI, Waybar output,
+              Prometheus metrics, HID circuit breaker, hotplug detection, state persistence, NixOS
+              module with systemd hardening.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Build &amp; quality pipeline</h3>
+            <p>
+              BuildFlow completes in 2m5s with 0 failures. <code>nix build</code>,
+              <code>nix flake check</code>, <code>golangci-lint</code> (all v2 linters enabled, 0
+              issues), <code>go test -race</code>, 4 fuzz targets, <code>templ generate</code>,
+              <code>gitleaks</code>, <code>modernize</code>,
+              <code>gofumpt</code>/<code>oxfmt</code>, <code>statix</code>, <code>nix-fmt</code> —
+              all green.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Architectural milestones (recent sessions)</h3>
+            <p>
+              <code>cqrs-htmx</code> dependency fully removed (~30 transitive deps eliminated), SSE
+              + middleware reimplemented locally. <code>CommandRunner</code> interface extracted
+              (<code>commander.go</code>) —
+              <strong
+                >this is DONE even though <code>TODO_LIST.md</code> still marks it TODO</strong
+              >
+              (doc drift, see Fucked Up #2). <code>HIDDevice</code> interface,
+              <code>probeDevices()</code> pure function,
+              <code>PTZValues.Get/Set</code> axis-agnostic access, branded types (<code>PID</code>,
+              <code>SourceID</code>), <code>Dependencies</code> DI struct (10+ function pointers),
+              typed <code>CommandResult</code>.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h3>Observability &amp; hardening</h3>
+            <p>
+              OTel SDK metrics (lazy <code>sync.Once</code> registration, nil-safe recording), HID
+              circuit breaker (3 failures → re-probe), JPEG extraction iteration cap (10M), uevent
+              transient-error retry, systemd hardening (<code>ProtectSystem=strict</code>,
+              <code>MemoryMax=256M</code>, <code>NoNewPrivileges</code>), pprof gated behind
+              <code>Debug</code>, request IDs, CSP + security headers.
+            </p>
+          </div>
+        </section>
+
+        <section id="partial">
+          <h2><span class="num">02</span>Partially Done</h2>
+
+          <div class="card card-warning">
+            <h3>Documentation freshness — TODO_LIST.md is stale</h3>
+            <p>
+              <code>TODO_LIST.md</code> (updated 2026-06-21, "Round 7") lists
+              <strong>Commander interface (#21, #71) as TODO</strong>, but
+              <code>commander.go</code> exists and <code>deps.go</code> wires
+              <code>CommandRunner</code> into <code>Dependencies</code>. Commits
+              <code>aa07cbe</code> and <code>7642147</code> shipped it. The doc was not updated to
+              reflect this.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Impact:</strong> Future sessions will re-implement work that is already done.
+              Doc/code split brain.
+            </div>
+          </div>
+
+          <div class="card card-warning">
+            <h3>Test coverage gap — hardware paths</h3>
+            <p>
+              Root package coverage is 72.1%. The uncovered 28% is concentrated in
+              <code>stream.go</code> (ffmpeg MJPEG), <code>process.go</code> real
+              <code>/proc</code> traversal, and <code>hid.go</code> real
+              <code>/dev/hidraw</code> paths — all require real hardware or a fake-device harness
+              that does not yet exist (TODO #76, #32).
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h3>PTZ readback accuracy</h3>
+            <p>
+              Cache-based PTZ readback was improved (commit <code>847e918</code> updates cache with
+              set values), but TODO #77 (in-memory "last set" value with readback delay) remains
+              open. Relative PTZ relies on the cache being accurate; without real hardware
+              verification this is a latent risk.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h3>SSE / domain type boundary</h3>
+            <p>
+              SSE works and is tested, but <code>SSEEvent</code> and <code>toastType</code> still
+              live in the root package rather than <code>internal/pixy</code>
+              (TODO #80). This is a domain-purity concern, not a functional one.
+            </p>
+          </div>
+        </section>
+
+        <section id="notstarted">
+          <h2><span class="num">03</span>Not Started</h2>
+
+          <div class="grid-2">
+            <div class="card">
+              <h4>ProcessInspector interface <span class="badge badge-medium">#72</span></h4>
+              <p>
+                Abstract <code>/proc</code> traversal behind an interface for testability. Currently
+                only <code>isCameraInUseFn</code> is DI-wired; the rest of
+                <code>process.go</code> calls <code>os</code> directly.
+              </p>
+            </div>
+            <div class="card">
+              <h4>UeventListener interface <span class="badge badge-medium">#73</span></h4>
+              <p>
+                Abstract netlink uevent handling for testability. Currently
+                <code>listenUevents</code> is concrete with context cancellation but no interface
+                seam.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Camera presets <span class="badge badge-medium">#74</span></h4>
+              <p>Save/recall named PTZ positions. No schema, no UI, no persistence designed yet.</p>
+            </div>
+            <div class="card">
+              <h4>Mobile-responsive layout <span class="badge badge-medium">#75</span></h4>
+              <p>
+                Web UI is desktop-first glassmorphism. No media queries for mobile; PTZ sliders and
+                cards overflow on narrow screens.
+              </p>
+            </div>
+            <div class="card">
+              <h4>Fake device test infrastructure <span class="badge badge-medium">#76</span></h4>
+              <p>
+                Fake HID + fake video4linux devices for deterministic integration tests. The biggest
+                unlock for coverage.
+              </p>
+            </div>
+            <div class="card">
+              <h4>MJPEG reconnection w/ backoff <span class="badge badge-medium">#78</span></h4>
+              <p>
+                If ffmpeg dies, the stream does not auto-reconnect. Client must refresh the page.
+              </p>
+            </div>
+            <div class="card">
+              <h4>
+                Hardware-guarded integration tests <span class="badge badge-medium">#81</span>
+              </h4>
+              <p>
+                Build-tag-gated tests that run against a real PIXY when present. Currently only fuzz
+                + unit tests.
+              </p>
+            </div>
+            <div class="card">
+              <h4>
+                Evaluate removing prometheus/client_golang
+                <span class="badge badge-medium">#79</span>
+              </h4>
+              <p>
+                Only <code>promhttp.Handler</code> is used; OTel SDK provides everything else. Would
+                drop ~13 indirect deps.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="fuckedup">
+          <h2><span class="num">04</span>Totally Fucked Up</h2>
+          <p>
+            Nothing in the code is fucked up — the build is green, tests pass, lint is clean. But
+            two things are worth calling out as process failures:
+          </p>
+
+          <div class="card card-problem">
+            <h3>F1 · makezero: always:true shipped broken</h3>
+            <p>
+              Commit <code>14600fb</code> ("chore: upgrade Go to 1.26.4 and update dependencies")
+              added <code>makezero: { always: true }</code> to <code>.golangci.yml</code>. This
+              immediately produced <strong>9 false positives</strong> on every
+              <code>make([]byte, N)</code> I/O buffer in the codebase (hid, socket, uevent, stream,
+              cache, ipc). The commit message did not mention this change, and it broke
+              <code>nix flake check</code>.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Root cause:</strong> Either an automated tool (buildflow's
+              <code>golangci-lint-auto-configure</code>) flipped it, or a copy-paste from a
+              template. The <code>always: true</code> mode is wrong for any project that uses
+              <code>io.Reader.Read()</code> — which is every I/O project.
+            </div>
+            <p>
+              <strong>Fixed this session.</strong> Flagged in AGENTS.md with an explicit "Do NOT set
+              <code>always: true</code>" note.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>
+              F2 · TODO_LIST.md stale on Commander <span class="pill pill-stale">DOC DRIFT</span>
+            </h3>
+            <p>
+              <code>TODO_LIST.md</code> Phase 4 (#21) and Phase 9 (#71) both list "Extract Commander
+              interface" as <code>⬜ TODO</code>. But <code>commander.go</code> exists,
+              <code>deps.go</code> wires <code>CommandRunner</code>, and commits
+              <code>aa07cbe</code> + <code>7642147</code> implemented and extended it. The doc was
+              never updated.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Why it matters:</strong> A status report or planning session reading
+              <code>TODO_LIST.md</code> will believe 3+ hours of work remains that is actually done.
+              This is exactly the "split brain" the project tries hard to avoid.
+            </div>
+            <p>
+              <strong>Not fixed this session</strong> — user did not request doc edits beyond
+              AGENTS.md. Recommend fixing in a follow-up commit.
+            </p>
+          </div>
+        </section>
+
+        <section id="improve">
+          <h2><span class="num">05</span>What We Should Improve</h2>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">1</div>
+              <div class="text">
+                <strong>Doc-drift detection in CI</strong>
+                <span
+                  >TODO_LIST.md / FEATURES.md claim Commander is TODO; code says DONE. Add a check
+                  (or a hook) that flags TODO items whose keywords appear in commit messages or new
+                  files. The <code>todo-check</code> buildflow step exists but doesn't verify
+                  against code.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">2</div>
+              <div class="text">
+                <strong>Guardrail on lint config changes in dep-upgrade commits</strong>
+                <span
+                  >A "chore: upgrade dependencies" commit silently changed linter behavior
+                  (<code>makezero</code>). Dependency upgrades and config changes should not be
+                  co-mingled — or at least the commit message must enumerate config changes.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">3</div>
+              <div class="text">
+                <strong>Fake device harness — the coverage multiplier</strong>
+                <span
+                  >28% of the root package is uncovered because it needs hardware. A fake
+                  <code>HIDDevice</code> + fake <code>video4linux</code> sysfs tree (the probe tests
+                  already do this!) would unlock coverage for <code>hid.go</code>,
+                  <code>stream.go</code>, <code>device.go</code> sync paths.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">4</div>
+              <div class="text">
+                <strong>Domain type migration for SSE</strong>
+                <span
+                  ><code>SSEEvent</code> and <code>toastType</code> in root package leak
+                  presentation concerns into the daemon layer. Move to <code>internal/pixy</code> or
+                  a new <code>internal/event</code> package.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">5</div>
+              <div class="text">
+                <strong>Reduce indirect dependency surface</strong>
+                <span
+                  >13 indirect deps come from <code>prometheus/client_golang</code> for just
+                  <code>promhttp.Handler</code>. OTel exporter may offer an HTTP handler directly.
+                  Worth a spike.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">6</div>
+              <div class="text">
+                <strong>Hardware-in-the-loop CI tier</strong>
+                <span
+                  >A self-hosted runner with a real PIXY (build-tag <code>hardware</code>) would
+                  catch regressions that unit tests structurally cannot. Even a manual
+                  <code>go test -tags hardware</code> run before releases adds confidence.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">7</div>
+              <div class="text">
+                <strong>Consolidate status reports</strong>
+                <span
+                  ><code>docs/status/</code> has 10 markdown snapshots + this HTML. Consider an
+                  index or moving old ones to <code>archive/</code> to keep the directory
+                  scannable.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">8</div>
+              <div class="text">
+                <strong>CHANGELOG not updated for 0.3.x</strong>
+                <span
+                  >CHANGELOG still shows <code>[0.1.0]</code> as the latest dated release at the
+                  bottom, but <code>version = "0.3.1"</code> in flake.nix. The unreleased section is
+                  rich but never cut into a tagged version. Consider tagging 0.3.1.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="next25">
+          <h2><span class="num">06</span>Top 25 Things to Do Next</h2>
+          <p>Sorted by impact × effort ratio. P0 = do first.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Priority</th>
+                <th>Effort</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="rank">1</td>
+                <td>
+                  <strong>Fix TODO_LIST.md Commander status</strong> — mark #21 &amp; #71 DONE.
+                  Eliminates the doc/code split brain immediately.
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+                <td>5 min</td>
+                <td>Fucked Up #2</td>
+              </tr>
+              <tr>
+                <td class="rank">2</td>
+                <td>
+                  <strong>Tag release 0.3.1</strong> — CHANGELOG unreleased section is rich; cut it.
+                  <code>git tag v0.3.1</code>.
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+                <td>10 min</td>
+                <td>Improve #8</td>
+              </tr>
+              <tr>
+                <td class="rank">3</td>
+                <td>
+                  <strong>Commit this session's fixes</strong> — vendorHash + makezero + AGENTS.md.
+                  BuildFlow is green; don't let it sit uncommitted.
+                </td>
+                <td><span class="badge badge-critical">P0</span></td>
+                <td>2 min</td>
+                <td>This session</td>
+              </tr>
+              <tr>
+                <td class="rank">4</td>
+                <td>
+                  <strong>Update FEATURES.md "Updated" date</strong> — still says 2026-06-06; verify
+                  44 features still accurate post-cqrs-htmx removal.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>15 min</td>
+                <td>Improve #1</td>
+              </tr>
+              <tr>
+                <td class="rank">5</td>
+                <td>
+                  <strong>Fake HIDDevice implementation</strong> —
+                  <code>fakeHIDDevice</code> implementing <code>HIDDevice</code> with scriptable
+                  responses. Unlocks hid.go coverage.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>3–4h</td>
+                <td>TODO #76</td>
+              </tr>
+              <tr>
+                <td class="rank">6</td>
+                <td>
+                  <strong>Fake video4linux sysfs for stream tests</strong> — extend the existing
+                  <code>createFakeVideo4linux</code> probe helper into a full stream test fixture.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>4–6h</td>
+                <td>TODO #76</td>
+              </tr>
+              <tr>
+                <td class="rank">7</td>
+                <td>
+                  <strong>ProcessInspector interface</strong> — extract <code>/proc</code> traversal
+                  behind an interface; wire into <code>Dependencies</code>. Follow the
+                  <code>CommandRunner</code> pattern.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>2–3h</td>
+                <td>TODO #72</td>
+              </tr>
+              <tr>
+                <td class="rank">8</td>
+                <td>
+                  <strong>UeventListener interface</strong> — extract netlink behind an interface
+                  with a fake that emits uevents on a channel.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>2–3h</td>
+                <td>TODO #73</td>
+              </tr>
+              <tr>
+                <td class="rank">9</td>
+                <td>
+                  <strong>Camera preset schema + persistence</strong> — design
+                  <code>map[string]PTZValues</code> in state, add
+                  <code>preset save &lt;name&gt;</code> /
+                  <code>preset recall &lt;name&gt;</code> commands.
+                </td>
+                <td><span class="badge badge-high">P1</span></td>
+                <td>3–4h</td>
+                <td>TODO #74</td>
+              </tr>
+              <tr>
+                <td class="rank">10</td>
+                <td>
+                  <strong>Mobile-responsive web UI</strong> — add breakpoints, stack cards
+                  vertically &lt; 768px, make PTZ sliders touch-friendly.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2–3h</td>
+                <td>TODO #75</td>
+              </tr>
+              <tr>
+                <td class="rank">11</td>
+                <td>
+                  <strong>Preset UI in web panel</strong> — dropdown + save/recall buttons once
+                  backend (#9) lands.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>1–2h</td>
+                <td>TODO #74</td>
+              </tr>
+              <tr>
+                <td class="rank">12</td>
+                <td>
+                  <strong>PTZ readback: in-memory last-set value</strong> — replace cache-only
+                  readback with authoritative "last successfully set" value, optionally with a
+                  delayed v4l2 re-read for drift correction.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2h</td>
+                <td>TODO #77</td>
+              </tr>
+              <tr>
+                <td class="rank">13</td>
+                <td>
+                  <strong>MJPEG auto-reconnect with backoff</strong> — on ffmpeg process exit,
+                  restart stream; client-side reconnect with exponential backoff (SSE already does
+                  this pattern).
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2h</td>
+                <td>TODO #78</td>
+              </tr>
+              <tr>
+                <td class="rank">14</td>
+                <td>
+                  <strong>Move SSEEvent + toastType to internal/pixy</strong> — domain purity;
+                  presentation types should not live in <code>package main</code>.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>1h</td>
+                <td>TODO #80</td>
+              </tr>
+              <tr>
+                <td class="rank">15</td>
+                <td>
+                  <strong>Spike: drop prometheus/client_golang</strong> — check if OTel exporter
+                  exposes an HTTP handler directly. If yes, remove <code>promhttp</code> and ~13
+                  indirect deps.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2h spike</td>
+                <td>TODO #79</td>
+              </tr>
+              <tr>
+                <td class="rank">16</td>
+                <td>
+                  <strong>Hardware build tag + integration test skeleton</strong> —
+                  <code>//go:build hardware</code> tests that skip gracefully; run manually before
+                  releases.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2h</td>
+                <td>TODO #81</td>
+              </tr>
+              <tr>
+                <td class="rank">17</td>
+                <td>
+                  <strong>Doc-drift CI check</strong> — script that greps TODO_LIST.md "⬜ TODO"
+                  lines for keywords found in <code>*.go</code> file names or recent commit
+                  subjects. Fails CI on drift.
+                </td>
+                <td><span class="badge badge-medium">P2</span></td>
+                <td>2h</td>
+                <td>Improve #1</td>
+              </tr>
+              <tr>
+                <td class="rank">18</td>
+                <td>
+                  <strong>Archive old status reports</strong> — move 2026-06-* markdown reports to
+                  <code>docs/status/archive/</code>; keep only the latest 2–3 in the root.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>10 min</td>
+                <td>Improve #7</td>
+              </tr>
+              <tr>
+                <td class="rank">19</td>
+                <td>
+                  <strong>Add ROADMAP.md</strong> — referenced in AGENTS.md as a project doc but the
+                  file is empty/absent. Either populate or remove the reference.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>20 min</td>
+                <td>Doc hygiene</td>
+              </tr>
+              <tr>
+                <td class="rank">20</td>
+                <td>
+                  <strong>Deduplicate status report format</strong> — 10 markdown + 1 HTML. Pick one
+                  format (HTML for point-in-time, MD for living) and standardize.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>30 min</td>
+                <td>Improve #7</td>
+              </tr>
+              <tr>
+                <td class="rank">21</td>
+                <td>
+                  <strong>Benchmark the SSE broadcaster under load</strong> — add a benchmark for
+                  <code>Broadcaster.Broadcast</code> with N subscribers to quantify the "drop for
+                  slow clients" behavior.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>1h</td>
+                <td>Testing</td>
+              </tr>
+              <tr>
+                <td class="rank">22</td>
+                <td>
+                  <strong>Waybar module example in README</strong> — <code>waybar</code> command
+                  exists and is tested but README doesn't show how to wire it into a Waybar config.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>20 min</td>
+                <td>Docs</td>
+              </tr>
+              <tr>
+                <td class="rank">23</td>
+                <td>
+                  <strong>Audit slog log levels project-wide</strong> — AGENTS.md documents the
+                  convention but a full pass to verify every <code>slog.Error</code> truly needs
+                  attention hasn't been done since the convention was set.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>1h</td>
+                <td>Hygiene</td>
+              </tr>
+              <tr>
+                <td class="rank">24</td>
+                <td>
+                  <strong>encoding/json/v2 when Go lands it</strong> — TODO #59 skipped because Go
+                  1.26.2 lacks it. Revisit on next Go minor. Track the proposal.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>30 min</td>
+                <td>TODO #59</td>
+              </tr>
+              <tr>
+                <td class="rank">25</td>
+                <td>
+                  <strong>Contributing guide (CONTRIBUTING.md)</strong> — document the
+                  BuildFlow-based workflow, GOWORK=off gotcha, templ generate requirement, and the
+                  nix vendorHash update procedure for future contributors.
+                </td>
+                <td><span class="badge badge-low">P3</span></td>
+                <td>1h</td>
+                <td>Onboarding</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="question">
+          <h2><span class="num">07</span>Top Question I Cannot Answer Myself</h2>
+
+          <div class="question-box">
+            <h3>How was makezero: always:true introduced — by a tool, or by hand?</h3>
+            <p>
+              Commit <code>14600fb</code> ("chore: upgrade Go to 1.26.4 and update dependencies")
+              flipped <code>makezero</code> from <code>always: false</code> (the safe default) to
+              <code>always: true</code>, which broke <code>nix flake check</code> with 9 false
+              positives. The commit message says nothing about a lint config change. BuildFlow's
+              <code>golangci-lint-auto-configure</code> step ran in that session — did it rewrite
+              <code>.golangci.yml</code>? Or was it a manual edit that got swept into the
+              dependency-upgrade commit?
+            </p>
+            <p>
+              <strong>Why I cannot answer this:</strong> I can see the diff (<code
+                >git show 14600fb -- .golangci.yml</code
+              >), but the intent is ambiguous. If <code>golangci-lint-auto-configure</code> did it
+              automatically, we should disable that step or exclude <code>makezero</code> from
+              auto-configuration to prevent recurrence. If it was manual, the lesson is "don't
+              co-mingle config changes with dependency upgrades." I need to know
+              <em>which tool made the change</em> to choose the right guardrail — and only you were
+              present for that session.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Concrete ask:</strong> Was <code>makezero: always: true</code> added by
+              <code>buildflow --fix</code> / <code>golangci-lint-auto-configure</code>, or by a
+              manual edit during the Go 1.26.4 upgrade session? This determines whether we fix the
+              tool or fix the commit-discipline convention.
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-06-28 23:43 +0200 · Reviewed against emeet-pixyd v0.3.1 @ commit 14600fb
+          (with 4 uncommitted fix files from this session) · 62 Go source files, 37 test files,
+          12,883 lines of Go · 9 direct + 13 indirect dependencies.
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      // Progressive enhancement: scrollspy. Nav still works via anchors if JS disabled.
+      (function () {
+        var links = document.querySelectorAll(".sidebar nav a");
+        var sections = [];
+        links.forEach(function (link) {
+          var id = link.getAttribute("href").slice(1);
+          var el = document.getElementById(id);
+          if (el) sections.push({ link: link, el: el });
+        });
+        if (!("IntersectionObserver" in window)) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (l) {
+                  l.classList.remove("active");
+                });
+                var match = sections.find(function (s) {
+                  return s.el === entry.target;
+                });
+                if (match) match.link.classList.add("active");
+              }
+            });
+          },
+          { rootMargin: "-20% 0px -70% 0px" },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s.el);
+        });
+      })();
+    </script>
+  </body>
+</html>
