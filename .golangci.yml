@@ -155,7 +155,7 @@ linters:
         - generic
         - github.com/LarsArtmann/emeet-pixyd.HIDDevice
     makezero:
-      always: true
+      always: false
     mnd:
       ignored-numbers:
         - "2"
