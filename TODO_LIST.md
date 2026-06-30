@@ -1,7 +1,7 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-06-21 (Round 7)
-**Source docs verified:** docs/SUPERB_ROADMAP.md, AGENTS.md, all planning/status docs
+**Updated:** 2026-06-30 (Round 8 — comprehensive June audit, code-verified)
+**Source docs verified:** all June 2026 `.md` + `.html` (status, planning, ADR, roadmap, design), cross-referenced against actual code
 
 ---
 
@@ -50,13 +50,13 @@
 
 ## Phase 4: Architecture (P2-P3)
 
-| #   | Status  | Task                                                                                       | Source            |
-| --- | ------- | ------------------------------------------------------------------------------------------ | ----------------- |
-| 21  | ⬜ TODO | Extract `Commander` interface for shell commands (wpctl, notify-send, ffmpeg, v4l2-ctl)    | Roadmap 1.1       |
-| 22  | ✅ DONE | Extract `HIDDevice` interface for HID I/O (`Send`/`SendRecv` methods, `hidrawDevice` impl) | Roadmap 1.2       |
-| 23  | ⬜ TODO | Extract `ProcessInspector` interface for /proc traversal                                   | Roadmap 1.3       |
-| 24  | ⬜ TODO | Extract `UeventListener` interface for netlink                                             | Roadmap 1.4       |
-| 25  | ✅ DONE | `probeDevices()` — pure function returning `probeResult`, applied via `applyProbeResult`   | Quality sweep 4.1 |
+| #   | Status  | Task                                                                                                                                         | Source            |
+| --- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 21  | ✅ DONE | Extract `CommandRunner` interface for shell commands (`commander.go`: Run/Output/LookPath; ffmpeg intentionally excluded — needs StdoutPipe) | Roadmap 1.1       |
+| 22  | ✅ DONE | Extract `HIDDevice` interface for HID I/O (`Send`/`SendRecv` methods, `hidrawDevice` impl)                                                   | Roadmap 1.2       |
+| 23  | ⬜ TODO | Extract `ProcessInspector` interface for /proc traversal                                                                                     | Roadmap 1.3       |
+| 24  | ⬜ TODO | Extract `UeventListener` interface for netlink                                                                                               | Roadmap 1.4       |
+| 25  | ✅ DONE | `probeDevices()` — pure function returning `probeResult`, applied via `applyProbeResult`                                                     | Quality sweep 4.1 |
 
 ## Phase 5: Web UI (P2-P3)
 
@@ -116,46 +116,144 @@
 
 ## Phase 9: Post-cqrs-htmx Removal Hardening (2026-06-21)
 
-|     | #       | Status                                                                                          | Task        | Source |
-| --- | ------- | ----------------------------------------------------------------------------------------------- | ----------- | ------ |
-| 63  | ✅ DONE | Removed `cqrs-htmx/v2` dependency (~30 transitive deps eliminated)                              | Session 9   |
-| 64  | ✅ DONE | Reimplemented SSE `Broadcaster` + `sseStream` + middleware locally in `sse.go`/`http.go`        | Session 9   |
-| 65  | ✅ DONE | Fixed nix build: updated `vendorHash` in `package.nix` + `flake.nix`                            | Session 9   |
-| 66  | ✅ DONE | Embedded HTMX v2.0.9 JS in `static/htmx.js` (was via `cqrshtmx.HTMXScriptHandler`)              | Session 9   |
-| 67  | ✅ DONE | Split `sse.go` → `sse.go` (SSE-only) + `http.go` (HTTP helpers + middleware)                    | Session 9   |
-| 68  | ✅ DONE | Added 9 SSE unit tests (`writeSSEEvent`, `Broadcaster`, `splitSSELines`)                        | Session 9   |
-| 69  | ✅ DONE | CI cleanup: removed `GOPRIVATE`, added `FuzzParsePTZValue`, added `nix flake check`             | Session 9   |
-| 70  | ✅ DONE | Updated CHANGELOG + AGENTS.md with cqrs-htmx removal docs                                       | Session 9   |
-| 71  | ⬜ TODO | Define + wire `Commander` interface for subprocess calls (v4l2-ctl, wpctl, ffmpeg, notify-send) | Roadmap 1.1 |
-| 72  | ⬜ TODO | Define + wire `ProcessInspector` interface for /proc traversal                                  | Roadmap 1.3 |
-| 73  | ⬜ TODO | Define + wire `UeventListener` interface for netlink                                            | Roadmap 1.4 |
-| 74  | ⬜ TODO | Camera preset support (save/recall PTZ positions)                                               | Status F.9  |
-| 75  | ⬜ TODO | Mobile-responsive layout                                                                        | Roadmap 5.3 |
-| 76  | ⬜ TODO | Fake device test infrastructure (fake HID + fake video)                                         | Roadmap 6.1 |
-| 77  | ⬜ TODO | PTZ readback accuracy — in-memory last-set value                                                | Status E.1  |
-| 78  | ⬜ TODO | MJPEG stream reconnection with backoff                                                          | Status E.4  |
-| 79  | ⬜ TODO | Evaluate removing `prometheus/client_golang` (only `promhttp.Handler` used)                     | Session 9   |
-| 80  | ⬜ TODO | Move `SSEEvent` + `toastType` to `internal/pixy` (domain types)                                 | Session 9   |
-| 81  | ⬜ TODO | Integration test with real hardware (build tag guarded)                                         | Status F.15 |
+|     | #          | Status                                                                                                                                                                                                                                                                                                               | Task        | Source |
+| --- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------ |
+| 63  | ✅ DONE    | Removed `cqrs-htmx/v2` dependency (~30 transitive deps eliminated)                                                                                                                                                                                                                                                   | Session 9   |
+| 64  | ✅ DONE    | Reimplemented SSE `Broadcaster` + `sseStream` + middleware locally in `sse.go`/`http.go`                                                                                                                                                                                                                             | Session 9   |
+| 65  | ✅ DONE    | Fixed nix build: updated `vendorHash` in `package.nix` + `flake.nix`                                                                                                                                                                                                                                                 | Session 9   |
+| 66  | ✅ DONE    | Embedded HTMX v2.0.9 JS in `static/htmx.js` (was via `cqrshtmx.HTMXScriptHandler`)                                                                                                                                                                                                                                   | Session 9   |
+| 67  | ✅ DONE    | Split `sse.go` → `sse.go` (SSE-only) + `http.go` (HTTP helpers + middleware)                                                                                                                                                                                                                                         | Session 9   |
+| 68  | ✅ DONE    | Added 9 SSE unit tests (`writeSSEEvent`, `Broadcaster`, `splitSSELines`)                                                                                                                                                                                                                                             | Session 9   |
+| 69  | ✅ DONE    | CI cleanup: removed `GOPRIVATE`, added `FuzzParsePTZValue`, added `nix flake check`                                                                                                                                                                                                                                  | Session 9   |
+| 70  | ✅ DONE    | Updated CHANGELOG + AGENTS.md with cqrs-htmx removal docs                                                                                                                                                                                                                                                            | Session 9   |
+| 71  | ✅ DONE    | `CommandRunner` interface wired (`commander.go`) — centralized subprocess logging via `realCommandRunner`, `noopCommandRunner` for tests. ffmpeg excluded by design (streaming API). NOTE: a broader "unified Commander facade" was mooted but the testability+logging goal is fully achieved — see `deps.go` wiring | Session 9   |
+| 72  | ⬜ TODO    | Define + wire `ProcessInspector` interface for /proc traversal                                                                                                                                                                                                                                                       | Roadmap 1.3 |
+| 73  | ⬜ TODO    | Define + wire `UeventListener` interface for netlink                                                                                                                                                                                                                                                                 | Roadmap 1.4 |
+| 74  | ⬜ TODO    | Camera preset support (save/recall PTZ positions)                                                                                                                                                                                                                                                                    | Status F.9  |
+| 75  | ⬜ TODO    | Mobile-responsive layout                                                                                                                                                                                                                                                                                             | Roadmap 5.3 |
+| 76  | ⬜ TODO    | Fake device test infrastructure (fake HID + fake video)                                                                                                                                                                                                                                                              | Roadmap 6.1 |
+| 77  | ⬜ TODO    | PTZ readback accuracy — in-memory last-set value                                                                                                                                                                                                                                                                     | Status E.1  |
+| 78  | ⬜ TODO    | MJPEG stream reconnection with backoff                                                                                                                                                                                                                                                                               | Status E.4  |
+| 79  | ⬜ TODO    | Evaluate removing `prometheus/client_golang` (only `promhttp.Handler` used)                                                                                                                                                                                                                                          | Session 9   |
+| 80  | 🟡 PARTIAL | Move `SSEEvent` + `toastType` to `internal/pixy` (domain types) — `toastType` already moved to `web_types.go`; `SSEEvent` kept in `sse.go` by design decision (transport-layer DTO, not domain)                                                                                                                      | Session 9   |
+| 81  | ⬜ TODO    | Integration test with real hardware (build tag guarded)                                                                                                                                                                                                                                                              | Status F.15 |
+
+---
+
+## Phase 10: June 2026 Comprehensive Audit (verified against code)
+
+All items below were extracted by reading **every `.md`/`.html` doc from June 2026**, then **verified against the actual code** on 2026-06-30. Stale items found during verification are noted. Build confirmed green: `go test -race -count=1 ./...` passes, `golangci-lint` reports 0 issues.
+
+### Stale items corrected in this audit (were TODO, actually DONE)
+
+| Was                                                                                        | Now        | Evidence                                                                                                        |
+| ------------------------------------------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| #21 / #71 Commander interface                                                              | ✅ DONE    | `commander.go`: `CommandRunner` interface (Run/Output/LookPath), wired in `deps.go`. ffmpeg excluded by design. |
+| #80 toastType move                                                                         | 🟡 PARTIAL | `toastType` moved to `web_types.go`; `SSEEvent` kept in `sse.go` by design decision (transport DTO).            |
+| `setSource`/`findSource` error surfacing (old session-10 net-new)                          | ✅ DONE    | `auto.go:44-55` appends source errors to `errs`, joins into `autoError`, surfaced in web UI (`handlers.go:95`). |
+| `TestHandleStream_NoFFmpeg` hang on hardware (old session-11 bug)                          | ✅ FIXED   | `stream_test.go:66-86` accepts 503 or 200, bounded by 2s context timeout — no longer hangs.                     |
+| Continuous fuzz in CI / `nix flake check` in CI / govulncheck in CI (old net-new CI items) | ✅ DONE    | `.github/workflows/go-test.yml`: nix flake check (L45), govulncheck (L35), 4 fuzz targets 60s each (L59).       |
+| State-race in parallel tests (`newTestDaemon` shared `/tmp` state file)                    | ✅ DONE    | commit `241348f` — `newTestDaemon` takes `testing.TB`, uses `tb.TempDir()`. Stress-tested `-race -count=10`.    |
+
+### Genuinely open — Architecture & testability
+
+|     | #       | Status                                                                                                               | Task                                      | Source / Evidence |
+| --- | ------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------- |
+| 82  | ⬜ TODO | Extract `ProcessInspector` interface for `/proc` traversal (enables hardware-free testing)                           | Roadmap 1.3; absent in code               |
+| 83  | ⬜ TODO | Extract `UeventListener` interface for netlink (enables hardware-free testing)                                       | Roadmap 1.4; absent in code               |
+| 84  | ⬜ TODO | Split `cmdMu` from HID I/O serialization — 200ms HID sleep & v4l2-ctl subprocess block ALL mutating commands         | Sessions 10-11; deferred (4h design pass) |
+| 85  | ⬜ TODO | Move `main.go` → `cmd/emeet-pixyd/main.go` (go-structure-linter CRITICAL) — author leans against; unresolved tension | Sessions 9-11                             |
+| 86  | ⬜ TODO | `Daemon` struct (17 fields) decomposition — extract `broadcaster`+`cache` sub-structs. Low value; accepted as-is     | Session 9; verified 17 fields             |
+| 87  | ⬜ TODO | `PTZValues.Get(axis) int` → `(int, bool)` — silent zero on unknown axis is a latent bug                              | Session 10; `pixy.go:275`                 |
+
+### Genuinely open — Features & UX
+
+|     | #          | Status                                                                                                                                | Task                      | Source / Evidence |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------- |
+| 88  | ⬜ TODO    | Camera preset support (save/recall PTZ positions: type + state.json + CLI + web UI + tests)                                           | Roadmap; not started      |
+| 89  | 🟡 PARTIAL | Mobile-responsive layout — `@media (max-width:720px)` EXISTS (`style.css:110`) but incidental, never designed/tested on small screens | Roadmap 5.3; verified CSS |
+| 90  | ⬜ TODO    | MJPEG stream reconnection — exponential backoff + max-retry cap (SSE has backoff; MJPEG preview lacks it)                             | `app.js` retry has no cap |
+
+### Genuinely open — Quality & correctness
+
+|     | #       | Status                                                                                                                                                           | Task                                     | Source / Evidence |
+| --- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------- |
+| 91  | ⬜ TODO | PTZ readback accuracy — cache holds _requested_ value; if hardware rejects/rounds, UI shows a lie. Maintain authoritative in-memory last-set OR poll-after-delay | Status E.1; `cache.go` Set updates cache |
+| 92  | ⬜ TODO | Structured log-levels audit — conventions exist in AGENTS.md but misclassification audit (e.g. stream pipe err as Debug) not done                                | Roadmap 4.2; modularity.html #14         |
+
+### Genuinely open — Testing
+
+|     | #       | Status                                                                                                                         | Task                                                   | Source / Evidence |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | ----------------- |
+| 93  | ⬜ TODO | Fake device test harness (fake HIDDevice + fake video4linux) → enables real-path coverage in `stream.go`/`process.go`/`hid.go` | Roadmap 6.1; many tests still default to real `/dev/*` |
+| 94  | ⬜ TODO | Integration test with real hardware (`//go:build integration` tag guard)                                                       | Status F.15                                            |
+| 95  | ⬜ TODO | Coverage threshold enforcement in CI — currently prints coverage but enforces no minimum                                       | Session 9; `go-test.yml:43` only prints                |
+
+### Genuinely open — Dependencies / modernization
+
+|     | #                     | Status                                                                                           | Task                       | Source / Evidence |
+| --- | --------------------- | ------------------------------------------------------------------------------------------------ | -------------------------- | ----------------- |
+| 96  | ⬜ TODO               | Remove `prometheus/client_golang` — only `promhttp.Handler` used; replace with OTel HTTP handler | `go.mod:9` still present   |
+| 97  | ❌ SKIP               | `encoding/json/v2` — still needs `goexperiment.jsonv2` build tag; not usable until Go stabilizes | How-to-Go; verified absent |
+| 98  | 🟢 DECIDED (won't-do) | Move `SSEEvent` to `internal/pixy` — author decision: keep as transport DTO in `sse.go`          | Session 9 §g               |
+
+### Genuinely open — Build / CI hardening
+
+|     | #       | Status                                                                                                                    | Task                                               | Source / Evidence |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ----------------- |
+| 99  | ⬜ TODO | Post-`templ generate` validation — detect empty/EOF `*_templ.go` (latent flake hit on 2026-06-28; root cause never found) | 2026-06-28 status; `templates_templ.go` gitignored |
+| 100 | ⬜ TODO | `templ` CLI version alignment — CI uses `@latest`, nix pins a version, go.mod has another. Drift warning in build logs    | 2026-06-20 status                                  |
+| 101 | ⬜ TODO | Resolve `go-error-family` direct-vs-indirect dependency warning (transitive via go-branded-id)                            | Session 9; pre-commit warns                        |
+
+### Genuinely open — Docs / cleanup drift (found in this audit)
+
+|     | #       | Status                                                                                                                                                                          | Task                                      | Source / Evidence |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------- |
+| 102 | ⬜ TODO | `DESIGN.md` inaccuracies — claims `httputil` middleware library + "OTel-only metrics", but `prometheus/client_golang` is still a dep and middleware is local                    | `DESIGN.md:107-108` vs `go.mod:9`         |
+| 103 | ⬜ TODO | `README.md` source layout lists deleted `v4l2.go` (PTZ logic moved to `ptz.go`)                                                                                                 | `README.md:199`                           |
+| 104 | ⬜ TODO | `CHANGELOG.md` `[Unreleased]` missing 2026-06-28/29 work: makezero `always:false` fix, Go 1.26.4 dep upgrade vendorHash, state-race fix (`testing.TB`), templ regeneration note | `CHANGELOG.md` stops at cqrs-htmx removal |
+| 105 | ⬜ TODO | NixOS module nits: `RestartSec="3"` should be integer; `v4l-utils` redundant in both `systemPackages` and `path`                                                                | `modules/nixos.nix:60,99,118`             |
+
+### Low-value enhancements (brainstormed, consider only)
+
+These are genuinely optional ideas surfaced across June status docs. Listed for completeness, not as committed work.
+
+- Add `pan`/`tilt` to Waybar output (`waybar.go` currently only camera/audio/auto in tooltip)
+- PTZ patrol/sweep mode (automatic periodic pan)
+- `koanf` layered config (file + env, replacing env-only)
+- OpenTelemetry tracing (not just metrics) — trace PTZ command latency
+- SSE heartbeat (prevent proxy idle kills) + `LastEventID` replay after reconnect
+- HTTP panic-recovery middleware
+- Camera diagnostics endpoint (full V4L2 control dump)
+- PTZ movement speed control; configurable home position
+- Property-based test for `Range.Clamp` (gopter)
+- Benchmark PTZ and auto-manage paths in CI
 
 ---
 
 ## Docs Verified
 
-| File                   | Status                                           |
-| ---------------------- | ------------------------------------------------ |
-| AGENTS.md              | ✅ Current as of 2026-06-21                      |
-| FEATURES.md            | ✅ Verified — 44 features, all match code        |
-| docs/SUPERB_ROADMAP.md | ✅ Archived — completion status added 2026-06-05 |
-| README.md              | ✅ Current                                       |
-| CHANGELOG.md           | ✅ Current as of 2026-06-21                      |
+| File                                          | Status                                             |
+| --------------------------------------------- | -------------------------------------------------- |
+| AGENTS.md                                     | ✅ Current as of 2026-06-29                        |
+| FEATURES.md                                   | ✅ Re-audited against code 2026-06-30              |
+| docs/SUPERB_ROADMAP.md                        | ✅ Archived — completion status added 2026-06-05   |
+| README.md                                     | 🟡 Minor drift: lists deleted `v4l2.go` (see #103) |
+| CHANGELOG.md                                  | 🟡 Stale: missing 2026-06-28/29 work (see #104)    |
+| DESIGN.md                                     | 🟡 Drift: claims httputil + OTel-only (see #102)   |
+| All June 2026 status/planning `.md` + `.html` | ✅ Read & cross-referenced in this audit           |
 
 ## Summary
 
-|            | Status | Count |
-| ---------- | ------ | ----- |
-| ✅ DONE    | 55     |
-| 🔶 PARTIAL | 0      |
-| ❌ SKIP    | 1      |
-| ⬜ TODO    | 20     |
-| **Total**  | 76     |
+> Phase 10 supersedes and de-duplicates the open items from earlier phases (e.g. #23/#72→#82, #30/#74→#88). Counts below reflect unique actionable items.
+
+|                       | Status                                                                                   | Count |
+| --------------------- | ---------------------------------------------------------------------------------------- | ----- |
+| ✅ DONE               | 57                                                                                       |
+| 🟡 PARTIAL            | 2 (#80, #89)                                                                             |
+| 🟢 DECIDED (won't-do) | 1 (#98)                                                                                  |
+| ❌ SKIP               | 1 (#97)                                                                                  |
+| ⬜ TODO               | 21                                                                                       |
+| **Total**             | 82 unique actionable (items #1–#105, with #61 omitted) + ~10 unnumbered brainstorm ideas |
+
+**Open high-impact items:** ProcessInspector/UeventListener interfaces (#82/#83), cmdMu split (#84), camera presets (#88), fake-device test harness (#93), templ-gen hardening (#99). Nothing blocks release.
