@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-06-21 (Round 7)
+**Updated:** 2026-07-01 (Round 8 — all 21 TODO items resolved)
 
 ---
 
@@ -118,7 +118,11 @@ main() → NewDaemon() → Run()
 - **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. State dir defaults to `/run/emeet-pixyd`.
 - **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles).
 - **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` product `00c0`. Device name matching uses shared `isPixyName()` helper in `probe.go`.
-- **Uevent listener**: `listenUevents(ctx, ch)` is context-cancellable. A goroutine closes the netlink fd on context cancellation to unblock `fd.Read()` on shutdown.
+- **Uevent listener**: `UeventListener` interface (`uevent.go`) abstracts netlink. Production impl `netlinkUeventListener`; test impl `noopUeventListener`. Context-cancellable; a goroutine closes the netlink fd on cancellation.
+- **Camera presets**: PTZ positions can be saved/recalled by name (CLI: `preset save home`, web: `/api/preset/save/{name}`). Max 16 presets, persisted in `state.json` under `Presets map[string]PTZValues`.
+- **PTZ readback**: After each PTZ set, `schedulePTZReadback(ctx, videoDev)` runs a delayed (500ms) hardware readback via `context.WithoutCancel` to correct the cache with the actual motor position.
+- **Integration tests**: `integration_hardware_test.go` (`//go:build integration`) tests real HID/V4L2 paths. Run with: `go test -tags=integration ./...`.
+- **Fake device harness**: `fake_device_test.go` provides `fakeHIDDevice`, `fakeProcInspector`, `fakeUeventListener`, and `withFakeDevices()` option builder for hardware-free testing.
 
 ### External Dependencies at Runtime
 
@@ -129,19 +133,23 @@ main() → NewDaemon() → Run()
 
 ### Dependency Injection
 
-Daemon uses function fields for external dependencies, enabling test injectability:
+Daemon uses function fields and interfaces for external dependencies, enabling test injectability:
 
-| Field             | Default            | Purpose                                                  |
-| ----------------- | ------------------ | -------------------------------------------------------- |
-| `isCameraInUseFn` | `isCameraInUse`    | `/proc/*/fd` scanning                                    |
-| `findSourceFn`    | `findPixySource`   | `wpctl status` PipeWire lookup (returns `pixy.SourceID`) |
-| `setSourceFn`     | `setDefaultSource` | `wpctl set-default` (takes `pixy.SourceID`)              |
-| `notifyFn`        | `notify`           | `notify-send` desktop notifs                             |
-| `setTrackingFn`   | `d.setTracking`    | Camera state changes via HID                             |
-| `setAudioFn`      | `d.setAudio`       | Audio mode changes via HID                               |
-| `setGestureFn`    | `d.setGesture`     | Gesture toggle via HID                                   |
-| `centerCameraFn`  | `d.centerCamera`   | PTZ centering via v4l2-ctl                               |
-| `v4l2SetFn`       | `v4l2Set`          | Arbitrary V4L2 control setting                           |
+| Field            | Default                   | Purpose                                                   |
+| ---------------- | ------------------------- | --------------------------------------------------------- |
+| `commander`      | `realCommandRunner`       | Subprocess execution (`v4l2-ctl`, `wpctl`, `notify-send`) |
+| `procInspector`  | `procInspector{}`         | `/proc` traversal (`ProcessInspector` interface)          |
+| `ueventListener` | `netlinkUeventListener{}` | Netlink uevents (`UeventListener` interface)              |
+| `isCameraInUse`  | `isCameraInUse`           | `/proc/*/fd` scanning                                     |
+| `findSource`     | `d.findPixySource`        | `wpctl status` PipeWire lookup (returns `pixy.SourceID`)  |
+| `setSource`      | `d.setDefaultSource`      | `wpctl set-default` (takes `pixy.SourceID`)               |
+| `notify`         | `d.notifyCmd`             | `notify-send` desktop notifs                              |
+| `setTracking`    | `d.setTracking`           | Camera state changes via HID                              |
+| `setAudio`       | `d.setAudio`              | Audio mode changes via HID                                |
+| `setGesture`     | `d.setGesture`            | Gesture toggle via HID                                    |
+| `centerCamera`   | `d.centerCamera`          | PTZ centering via v4l2-ctl                                |
+| `v4l2Set`        | `d.v4l2Set`               | Arbitrary V4L2 control setting                            |
+| `parsePTZ`       | `d.parsePTZValues`        | V4L2 PTZ readback parsing                                 |
 
 `NewDaemon()` wires real implementations. Tests override via functional options (`testDaemonOption`).
 
@@ -152,7 +160,10 @@ Daemon uses function fields for external dependencies, enabling test injectabili
 ### Concurrency Model
 
 - `Daemon.mu` (`sync.RWMutex`) — protects `state`, `videoDev`, `hidrawDev`, debounce counters
-- `Daemon.cmdMu` (`sync.Mutex`) — serializes **mutating** commands only (track, idle, privacy, toggle-privacy, audio, gesture, center, auto, PTZ). Query commands (waybar, version, sync, probe, device, status) bypass cmdMu for concurrent read access.
+- `Daemon.cmdMu` (`sync.Mutex`) — **REPLACED** by `hidMu` + `v4l2Mu` (see below). Was serializing ALL mutating commands; now split for concurrency.
+- `Daemon.hidMu` (`sync.Mutex`) — serializes HID device access (tracking, audio, gesture). The 200ms HID protocol sleep no longer blocks V4L2 commands.
+- `Daemon.v4l2Mu` (`sync.Mutex`) — serializes V4L2 subprocess access (PTZ, center, preset save/load). v4l2-ctl subprocess no longer blocks HID commands.
+- State-only commands (auto mode, preset delete/list) use no I/O lock — only `d.mu`.
 - `Daemon.streamSema` (chan, cap 1) — limits to one MJPEG stream
 - `Daemon.lastFrame` — has its own `sync.RWMutex`
 - `Daemon.ptzCache` — has its own `sync.RWMutex`, 2-second TTL
