@@ -19,6 +19,34 @@ const (
 	notifySend = "notify-send"
 )
 
+// ProcessInspector abstracts /proc filesystem operations for testability.
+// The production implementation reads real /proc; tests can inject a fake
+// that returns deterministic results without depending on system state.
+type ProcessInspector interface {
+	// PPIDOf returns the parent PID of the given process, or zero if unknown.
+	PPIDOf(pid pixy.PID) pixy.PID
+	// IsDescendantOf reports whether pid is a descendant of ancestor.
+	IsDescendantOf(pid, ancestor pixy.PID) bool
+	// IsCameraInUse reports whether any non-self, non-descendant process
+	// has the given video device open.
+	IsCameraInUse(videoDev string) bool
+}
+
+// procInspector is the production ProcessInspector that reads real /proc.
+type procInspector struct{}
+
+func (procInspector) PPIDOf(pid pixy.PID) pixy.PID {
+	return ppidOf(pid)
+}
+
+func (procInspector) IsDescendantOf(pid, ancestor pixy.PID) bool {
+	return isDescendantOf(pid, ancestor)
+}
+
+func (procInspector) IsCameraInUse(videoDev string) bool {
+	return isCameraInUse(videoDev)
+}
+
 func ppidOf(pid pixy.PID) pixy.PID {
 	statData, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid.Get()), "stat"))
 	if err != nil {

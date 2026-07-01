@@ -83,11 +83,13 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	}
 	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
 	d.deps = Dependencies{
-		commander:     realCommandRunner{},
-		isCameraInUse: isCameraInUse,
-		findSource:    d.findPixySource,
-		setSource:     d.setDefaultSource,
-		notify:        d.notifyCmd,
+		commander:      realCommandRunner{},
+		procInspector:  procInspector{},
+		ueventListener: netlinkUeventListener{},
+		isCameraInUse:  isCameraInUse,
+		findSource:     d.findPixySource,
+		setSource:      d.setDefaultSource,
+		notify:         d.notifyCmd,
 	}
 	d.deps.setTracking = d.setTracking
 	d.deps.setAudio = d.setAudio
@@ -248,7 +250,7 @@ func (d *Daemon) eventLoop(
 	defer ticker.Stop()
 
 	ueventCh := make(chan struct{}, ueventChBufSize)
-	go d.listenUevents(ctx, ueventCh)
+	go d.deps.ueventListener.Listen(ctx, ueventCh)
 
 	for {
 		select {
@@ -297,6 +299,42 @@ func exitWithDaemonError(err error) {
 	}
 }
 
+// helpText is printed for --help. "preset" repeats as a command prefix.
+//
+//nolint:dupword // command help text naturally repeats the command prefix
+const helpText = `Usage: emeet-pixyd [command]
+
+Run without arguments to start the daemon.
+Run with a command to send it to a running daemon via Unix socket.
+
+Commands:
+  status            Show current camera status
+  waybar            Output waybar-compatible JSON
+  version           Print version
+  sync              Sync state from hardware
+  probe             Re-probe for PIXY
+  device            Show device paths
+  track             Enable tracking mode
+  idle              Set idle mode
+  privacy           Enable privacy mode
+  toggle-privacy    Toggle privacy on/off
+  center            Center camera (pan/tilt/zoom reset)
+  audio [mode]      Cycle or set audio mode (nc, live, org/original)
+  gesture-on        Enable gesture control
+  gesture-off       Disable gesture control
+  toggle-gesture    Toggle gesture control
+  auto              Show current auto mode
+  auto-on           Enable auto mode (full)
+  auto-off          Disable auto mode
+  toggle-auto       Toggle auto mode
+  pan <degrees>     Set pan position (absolute; rel+/- for relative)
+  tilt <degrees>    Set tilt position (absolute; rel+/- for relative)
+  zoom <value>      Set zoom level (absolute; rel+/- for relative)
+  preset save <name>    Save current PTZ position as named preset
+  preset load <name>    Recall a saved preset
+  preset delete <name>  Delete a saved preset
+  preset list           List all saved presets`
+
 func handleFlag() bool {
 	if len(os.Args) < 2 {
 		return false
@@ -311,10 +349,7 @@ func handleFlag() bool {
 
 		return true
 	case "--help", "-h":
-		_, _ = fmt.Fprintln(
-			os.Stdout,
-			"Usage: emeet-pixyd [command]\n\nRun without arguments to start the daemon.\nRun with a command to send it to a running daemon via Unix socket.\n\nCommands:\n  status            Show current camera status\n  waybar            Output waybar-compatible JSON\n  version           Print version\n  sync              Sync state from hardware\n  probe             Re-probe for PIXY\n  device            Show device paths\n  track             Enable tracking mode\n  idle              Set idle mode\n  privacy           Enable privacy mode\n  toggle-privacy    Toggle privacy on/off\n  center            Center camera (pan/tilt/zoom reset)\n  audio [mode]      Cycle or set audio mode (nc, live, org/original)\n  gesture-on        Enable gesture control\n  gesture-off       Disable gesture control\n  toggle-gesture    Toggle gesture control\n  auto              Show current auto mode\n  auto-on           Enable auto mode (full)\n  auto-off          Disable auto mode\n  toggle-auto       Toggle auto mode\n  pan <degrees>     Set pan position (absolute; rel+/- for relative)\n  tilt <degrees>    Set tilt position (absolute; rel+/- for relative)\n  zoom <value>      Set zoom level (absolute; rel+/- for relative)",
-		)
+		_, _ = fmt.Fprintln(os.Stdout, helpText)
 
 		return true
 	default:

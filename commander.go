@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"os/exec"
 	"time"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 // CommandRunner abstracts subprocess execution for testability and
@@ -68,3 +70,13 @@ func (noopCommandRunner) Output(context.Context, string, ...string) ([]byte, err
 func (noopCommandRunner) LookPath(string) (string, error) {
 	return "", nil
 }
+
+// noopProcessInspector is a no-op ProcessInspector for tests.
+// All methods report no camera usage and no process relationships.
+type noopProcessInspector struct{}
+
+func (noopProcessInspector) PPIDOf(pixy.PID) pixy.PID { return pixy.PID{} }
+
+func (noopProcessInspector) IsDescendantOf(pixy.PID, pixy.PID) bool { return false }
+
+func (noopProcessInspector) IsCameraInUse(string) bool { return false }

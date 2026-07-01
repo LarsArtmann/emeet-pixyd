@@ -214,17 +214,19 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 // Dependencies without any real HID/V4L2 side effects.
 func noopDependencies() Dependencies {
 	return Dependencies{
-		commander:     noopCommandRunner{},
-		isCameraInUse: cameraNotInUseFn,
-		findSource:    noopFindSourceFn,
-		setSource:     noopSetSourceFn,
-		notify:        noopNotifyFn,
-		setTracking:   noopSetTracking,
-		setAudio:      noopSetAudio,
-		setGesture:    noopSetGesture,
-		centerCamera:  noopCenterCamera,
-		v4l2Set:       noopV4L2Set,
-		parsePTZ:      noopParsePTZ,
+		commander:      noopCommandRunner{},
+		procInspector:  noopProcessInspector{},
+		ueventListener: noopUeventListener{},
+		isCameraInUse:  cameraNotInUseFn,
+		findSource:     noopFindSourceFn,
+		setSource:      noopSetSourceFn,
+		notify:         noopNotifyFn,
+		setTracking:    noopSetTracking,
+		setAudio:       noopSetAudio,
+		setGesture:     noopSetGesture,
+		centerCamera:   noopCenterCamera,
+		v4l2Set:        noopV4L2Set,
+		parsePTZ:       noopParsePTZ,
 	}
 }
 
