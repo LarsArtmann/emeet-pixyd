@@ -104,6 +104,6 @@ No blur-based elevation. Elevation is communicated through:
 - **CommandResult**: All command handlers return a typed `CommandResult` struct (not raw strings). Provides `.String()` for backward compatibility and `.IsError()` for error checking.
 - **Dependencies struct**: Nine DI function fields consolidated into single `Dependencies` struct. Production wiring in `NewDaemon()`, tests override individual fields.
 - **HIDDevice interface**: Abstracts HID communication (`Send`, `SendRecv`). Production implementation wraps `/dev/hidraw*`, enabling test doubles.
-- **Middleware**: Uses `httputil` library for security headers, request logging, and request ID middleware. No local reimplementation.
-- **Metrics**: OTel counters/gauges registered lazily via `sync.Once`. Includes command, probe, uevent, HID failure, stream duration, and frame counters.
+- **Middleware**: Security headers, request logging, and request ID middleware are implemented locally in `http.go` (was briefly via `cqrs-htmx/v2`, removed). Uses a simple `chain()` function for composition.
+- **Metrics**: OTel counters/gauges registered lazily via `sync.Once`. Includes command, probe, uevent, HID failure, stream duration, and frame counters. `promhttp.Handler()` (from `prometheus/client_golang`) serves the `/metrics` endpoint; all metric definitions use the OTel SDK.
 - **Circuit breaker**: HID failures tracked via `hidFailCount`. After 3 consecutive failures, commands skip HID re-probe. Reset on success or successful device probe.

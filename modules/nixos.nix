@@ -57,10 +57,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      v4l-utils
-    ];
-
     services.udev.extraRules = ''
       # EMEET PIXY HID access for camera control (tracking, audio, gesture, privacy)
       KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="328f", ATTRS{idProduct}=="00c0", GROUP="video", MODE="0660", TAG+="uaccess"
@@ -96,7 +92,7 @@ in
           Type = "notify";
           ExecStart = lib.getExe cfg.package;
           Restart = "on-failure";
-          RestartSec = "3";
+          RestartSec = 3;
           WatchdogSec = "30";
           OOMScoreAdjust = -100;
 

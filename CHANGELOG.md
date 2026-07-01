@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Race condition in parallel tests: `newTestDaemon` previously shared a fixed state directory under `/tmp`, causing data races when tests ran with `-race -count=N`. Now takes `testing.TB` and uses `t.TempDir()` so each test gets an isolated state file. Verified with `-race -count=10`.
+- `makezero` linter false-positives on every `make([]byte, N)` I/O buffer. Set `always: false` (default mode) — still catches the real bug (`make([]T, n)` + `append`) without flagging legitimate pre-sized buffer allocations across 9 call sites (hid, socket, uevent, stream, cache, ipc).
+- Empty `templates_templ.go` flake: `templ generate` can intermittently emit a zero-byte file, breaking the build. Root cause not fully resolved (tracked as TODO); CI now regenerates after checkout.
+
+### Changed
+
+- `newTestDaemon` signature changed: `func newTestDaemon(t testing.TB, ...)` — tests must pass the `*testing.T` or `*testing.B` as the first argument.
+
+### Dependencies
+
+- Updated `vendorHash` for Go 1.26.4 module cache. Required sync between `flake.nix` and `package.nix` (both share the hash under `proxyVendor = true`).
+
 ### Changed
 
 - **BREAKING**: Removed `cqrs-htmx/v2` dependency entirely (~30 transitive dependencies eliminated, including private `go-cqrs-lite`). SSE broadcasting, middleware, and HTTP helpers reimplemented locally in `sse.go` (~290 lines). HTMX JS embedded directly in `static/htmx.js` instead of served via library handler.

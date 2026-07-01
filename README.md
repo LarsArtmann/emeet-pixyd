@@ -191,20 +191,27 @@ main() → NewDaemon() → Run()
 ```
 main.go             Entry point, daemon lifecycle, signal handling, status/waybar output
 commands.go         Command routing (socket + CLI), PTZ/audio/auto/gesture handlers
-handlers.go         HTTP routing, web handlers, toast propagation
+handlers.go         HTTP routing, web handlers, toast propagation, PTZ axis lookup table
 metrics.go          OTel metrics registration and updates
-stream.go           MJPEG streaming, snapshot, JPEG frame extraction
-middleware.go       Security headers, request ID, caching FS, PTZ axis validation
+stream.go           MJPEG streaming, snapshot, JPEG frame extraction, checkDevice guard
+middleware.go       Middleware variable assignments (implementations live in http.go)
+sse.go              SSE-only: Broadcaster (thread-safe fan-out), per-client SSE, event helpers
+http.go             HTTP helpers: writeJSON, middleware chain, security/request/logging middleware
+ptz.go              PTZ logic: parsePTZValue, axis dispatch, V4L2 control via v4l2-ctl
 hid.go              HID bidirectional communication (config/query over hidraw)
-v4l2.go             V4L2 pan/tilt/zoom control via v4l2-ctl
+device.go           HID device state management: setDeviceState, setTracking/Audio/Gesture, centerCamera
 process.go          /proc scanning for call detection, PipeWire, notifications
-uevent.go           Netlink uevent listener for hotplug
+uevent.go           Netlink uevent listener for hotplug (context-cancellable)
 uevent_linux.go     Low-level unix.Socket for netlink
 auto.go             Auto-manage loop, call start/end, debounce logic
 state.go            State persistence (JSON, atomic write via tmpfile + rename)
 probe.go            Device probing (sysfs walks for video4linux + hidraw)
-errors.go           CommandError type, exported sentinel errors
+commander.go        CommandRunner interface (subprocess logging), realCommandRunner, noopCommandRunner
+deps.go             Dependencies struct (CommandRunner + DI function pointers)
+waybar.go           Waybar integration: waybarJSON struct, tooltip builder
 web_types.go        webStatus struct shared between handlers and templates
+errors.go           CommandError type, CommandResult, exported sentinel errors
+cache.go            Named cache types: lastFrameCache, ptzCache (encapsulated mutex access)
 templates.templ     HTML templates (compiled via templ generate)
 internal/pixy/      Shared types: Config, State, CameraState, AudioMode, PID, SourceID, PTZ constants
 static/             Frontend assets (HTMX, app.js, style.css) — go:embed
