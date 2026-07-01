@@ -53,10 +53,27 @@ func isRelevantUevent(evt uevent) bool {
 	return evt.Subsys == "video4linux" || evt.Subsys == "hidraw"
 }
 
-func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
+// UeventListener listens for kernel uevents and signals the provided channel
+// when a relevant device event (video4linux/hidraw add/remove) occurs.
+// The production implementation uses netlink; tests can inject a fake.
+type UeventListener interface {
+	Listen(ctx context.Context, ch chan<- struct{})
+}
+
+// netlinkUeventListener is the production UeventListener using real netlink.
+type netlinkUeventListener struct{}
+
+func (netlinkUeventListener) Listen(ctx context.Context, ch chan<- struct{}) {
+	listenNetlinkUevents(ctx, ch)
+}
+
+// listenNetlinkUevents connects to the kernel netlink socket and forwards
+// relevant device uevents to the provided channel. Returns early if the
+// socket cannot be opened (hotplug disabled).
+func listenNetlinkUevents(ctx context.Context, ch chan<- struct{}) {
 	f, err := os.Open("/sys/kernel/uevent_seqnum")
 	if err != nil {
-		slog.Warn("uevent: cannot open uevent_seqnum, disabling hotplug", "error", err)
+		slog.Error("uevent: cannot open uevent_seqnum, disabling hotplug", "error", err)
 
 		return
 	}
@@ -65,7 +82,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 
 	fd, err := unixSocketUevent()
 	if err != nil {
-		slog.Warn("uevent: cannot create netlink socket, disabling hotplug", "error", err)
+		slog.Error("uevent: cannot create netlink socket, disabling hotplug", "error", err)
 
 		return
 	}
@@ -94,7 +111,7 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 			continue
 		}
 
-		slog.Info("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
+		slog.Debug("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
 		recordUevent(evt.Action, evt.Subsys) //nolint:contextcheck // uevent goroutine has no inherited context
 
 		select {
@@ -104,6 +121,11 @@ func (d *Daemon) listenUevents(ctx context.Context, ch chan<- struct{}) {
 		}
 	}
 }
+
+// noopUeventListener is a no-op UeventListener for tests.
+type noopUeventListener struct{}
+
+func (noopUeventListener) Listen(context.Context, chan<- struct{}) {}
 
 func unixSocketUevent() (*os.File, error) {
 	fd, err := unixOpenNetlinkKobjectUevent()

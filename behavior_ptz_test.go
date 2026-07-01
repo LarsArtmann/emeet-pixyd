@@ -89,8 +89,8 @@ func assertPTZCacheUpdated(t *testing.T, d *Daemon, axis pixy.Axis, want int) {
 		t.Fatal("PTZ cache should be valid (updated) after successful set, not invalidated")
 	}
 
-	if got := cached.Get(axis); got != want {
-		t.Errorf("PTZ cache %s = %d, want %d", axis, got, want)
+	if got, ok := cached.Get(axis); got != want || !ok {
+		t.Errorf("PTZ cache %s = (%d, %v), want (%d, true)", axis, got, ok, want)
 	}
 }
 

@@ -60,20 +60,20 @@ func TestPTZAxisValue(t *testing.T) {
 	t.Parallel()
 
 	status := webStatus{PTZValues: pixy.PTZValues{Pan: -10, Tilt: 5, Zoom: 200}}
-	if got := ptzAxisValue(pixy.AxisPan, status); got != -10 {
-		t.Errorf("pan value = %d, want -10", got)
+	if got, ok := ptzAxisValue(pixy.AxisPan, status); got != -10 || !ok {
+		t.Errorf("pan value = (%d, %v), want (-10, true)", got, ok)
 	}
 
-	if got := ptzAxisValue(pixy.AxisTilt, status); got != 5 {
-		t.Errorf("tilt value = %d, want 5", got)
+	if got, ok := ptzAxisValue(pixy.AxisTilt, status); got != 5 || !ok {
+		t.Errorf("tilt value = (%d, %v), want (5, true)", got, ok)
 	}
 
-	if got := ptzAxisValue(pixy.AxisZoom, status); got != 200 {
-		t.Errorf("zoom value = %d, want 200", got)
+	if got, ok := ptzAxisValue(pixy.AxisZoom, status); got != 200 || !ok {
+		t.Errorf("zoom value = (%d, %v), want (200, true)", got, ok)
 	}
 
-	if got := ptzAxisValue("unknown", status); got != 0 {
-		t.Errorf("unknown axis = %d, want 0", got)
+	if got, ok := ptzAxisValue("unknown", status); got != 0 || ok {
+		t.Errorf("unknown axis = (%d, %v), want (0, false)", got, ok)
 	}
 }
 

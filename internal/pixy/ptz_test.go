@@ -38,20 +38,20 @@ func TestPTZValues_Get(t *testing.T) {
 
 	ptz := PTZValues{Pan: 10, Tilt: -5, Zoom: 200}
 
-	if got := ptz.Get(AxisPan); got != 10 {
-		t.Errorf("Get(pan) = %d, want 10", got)
+	if got, ok := ptz.Get(AxisPan); got != 10 || !ok {
+		t.Errorf("Get(pan) = (%d, %v), want (10, true)", got, ok)
 	}
 
-	if got := ptz.Get(AxisTilt); got != -5 {
-		t.Errorf("Get(tilt) = %d, want -5", got)
+	if got, ok := ptz.Get(AxisTilt); got != -5 || !ok {
+		t.Errorf("Get(tilt) = (%d, %v), want (-5, true)", got, ok)
 	}
 
-	if got := ptz.Get(AxisZoom); got != 200 {
-		t.Errorf("Get(zoom) = %d, want 200", got)
+	if got, ok := ptz.Get(AxisZoom); got != 200 || !ok {
+		t.Errorf("Get(zoom) = (%d, %v), want (200, true)", got, ok)
 	}
 
-	if got := ptz.Get(Axis("unknown")); got != 0 {
-		t.Errorf("Get(unknown) = %d, want 0", got)
+	if got, ok := ptz.Get(Axis("unknown")); got != 0 || ok {
+		t.Errorf("Get(unknown) = (%d, %v), want (0, false)", got, ok)
 	}
 }
 

@@ -233,11 +233,12 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 
 // State holds the current runtime state of the PIXY daemon.
 type State struct {
-	Camera   CameraState `json:"camera"`
-	Audio    AudioMode   `json:"audio"`
-	Gesture  bool        `json:"gesture"`
-	InCall   bool        `json:"inCall"`
-	AutoMode AutoMode    `json:"autoMode"`
+	Camera   CameraState          `json:"camera"`
+	Audio    AudioMode            `json:"audio"`
+	Gesture  bool                 `json:"gesture"`
+	InCall   bool                 `json:"inCall"`
+	AutoMode AutoMode             `json:"autoMode"`
+	Presets  map[string]PTZValues `json:"presets,omitempty"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
@@ -248,6 +249,7 @@ func DefaultState() State {
 		Gesture:  false,
 		InCall:   false,
 		AutoMode: AutoFull,
+		Presets:  make(map[string]PTZValues),
 	}
 }
 
@@ -258,9 +260,9 @@ func (s State) Valid() bool {
 
 // PTZValues holds the current pan/tilt/zoom position of the camera.
 type PTZValues struct {
-	Pan  int
-	Tilt int
-	Zoom int
+	Pan  int `json:"pan"`
+	Tilt int `json:"tilt"`
+	Zoom int `json:"zoom"`
 }
 
 func (p PTZValues) Clamp() PTZValues {
@@ -271,17 +273,18 @@ func (p PTZValues) Clamp() PTZValues {
 	}
 }
 
-// Get returns the PTZ value for the given axis.
-func (p PTZValues) Get(axis Axis) int {
+// Get returns the PTZ value for the given axis and true if the axis is
+// recognized, or 0 and false if the axis is unknown.
+func (p PTZValues) Get(axis Axis) (int, bool) {
 	switch axis {
 	case AxisPan:
-		return p.Pan
+		return p.Pan, true
 	case AxisTilt:
-		return p.Tilt
+		return p.Tilt, true
 	case AxisZoom:
-		return p.Zoom
+		return p.Zoom, true
 	default:
-		return 0
+		return 0, false
 	}
 }
 

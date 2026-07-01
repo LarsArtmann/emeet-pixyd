@@ -23,8 +23,23 @@ jobs:
 
       - name: Generate templ
         run: |
-          go install github.com/a-h/templ/cmd/templ@latest
+          # Pin templ version to match go.mod and nix pkgs.templ (prevents drift)
+          TEMPL_VERSION=$(grep 'a-h/templ' go.mod | awk '{print $2}')
+          go install github.com/a-h/templ/cmd/templ@${TEMPL_VERSION}
+          echo "Using templ $(templ version)"
           templ generate
+          # Validate generated files are non-empty (guards against templ intermittently
+          # emitting a zero-byte *_templ.go, which has caused silent CI breaks).
+          for f in *_templ.go; do
+            if [ ! -s "$f" ]; then
+              echo "ERROR: $f is empty after templ generate — re-running"
+              templ generate
+              if [ ! -s "$f" ]; then
+                echo "FATAL: $f still empty after retry"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Lint
         uses: golangci/golangci-lint-action@v7
@@ -41,6 +56,13 @@ jobs:
         run: |
           go test -race -count=1 -coverprofile=coverage.out ./...
           go tool cover -func=coverage.out | tail -1
+          # Enforce minimum coverage (70% root package threshold)
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $NF}' | tr -d '%')
+          echo "Total coverage: ${COVERAGE}%"
+          if [ "$(echo "$COVERAGE < 70" | bc)" -eq 1 ]; then
+            echo "ERROR: Coverage ${COVERAGE}% is below 70% threshold"
+            exit 1
+          fi
 
       - name: Nix flake check
         uses: nick-fields/retry@v3
