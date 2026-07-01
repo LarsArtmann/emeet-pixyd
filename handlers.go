@@ -280,7 +280,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 	if result.IsError() {
 		status := s.getWebStatusWithPTZ(request.Context())
-		sliderVal := ptzAxisValue(axis, status)
+		sliderVal, _ := ptzAxisValue(axis, status)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
 			info.Label, string(axis), info.Min, info.Max, sliderVal, info.Unit,
 			result.String(), string(toastTypeError),
@@ -293,6 +293,51 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 		info.Label, string(axis), info.Min, info.Max, intVal, info.Unit,
 		"", "",
 	)).ServeHTTP(responseWriter, request)
+}
+
+func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
+	name := request.PathValue("name")
+	if name == "" {
+		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+
+		return
+	}
+
+	result := s.daemon.handleCommand(request.Context(), cmdPreset+" save "+name)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+}
+
+func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request *http.Request) {
+	name := request.PathValue("name")
+	if name == "" {
+		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+
+		return
+	}
+
+	result := s.daemon.handleCommand(request.Context(), cmdPreset+" load "+name)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+}
+
+func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, request *http.Request) {
+	name := request.PathValue("name")
+	if name == "" {
+		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+
+		return
+	}
+
+	result := s.daemon.handleCommand(request.Context(), cmdPreset+" delete "+name)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
 func newWebMux(server *webServer) *http.ServeMux {
@@ -312,6 +357,9 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/center", server.action(cmdCenter))
 	mux.HandleFunc("POST /api/sync", server.action(cmdSync))
 	mux.HandleFunc("POST /api/probe", server.action(cmdProbe))
+	mux.HandleFunc("POST /api/preset/save/{name}", server.handlePresetSave)
+	mux.HandleFunc("POST /api/preset/load/{name}", server.handlePresetLoad)
+	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/ptz/", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "missing axis", http.StatusBadRequest)

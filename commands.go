@@ -4,6 +4,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -20,6 +22,8 @@ const (
 	respGestureOn      = "gesture on"
 	respGestureOff     = "gesture off"
 	respCentered       = "centered"
+	respPresetUsage    = "usage: preset <save|load|delete|list> [name]"
+	respPresetNotFound = "preset not found"
 
 	cmdStatus        = "status"
 	cmdGestureOn     = "gesture-on"
@@ -35,6 +39,7 @@ const (
 	cmdAudio         = "audio"
 	cmdCenter        = "center"
 	cmdAuto          = "auto"
+	cmdPreset        = "preset"
 	cmdVersion       = "version"
 	cmdSync          = "sync"
 	cmdProbe         = "probe"
@@ -100,6 +105,9 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) Comm
 
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)
+
+	case cmdPreset:
+		return d.handlePresetCommand(ctx, parts)
 
 	default:
 		return errResultMsg("unknown command: " + parts[0])
@@ -296,4 +304,156 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	}
 
 	return okResult("auto mode: " + mode.String())
+}
+
+const maxPresets = 16
+
+const minPresetParts = 3
+
+func isValidPresetSubcmd(s string) bool {
+	switch s {
+	case "save", "load", "delete", "list":
+		return true
+	default:
+		return false
+	}
+}
+
+func (d *Daemon) handlePresetCommand(ctx context.Context, parts []string) CommandResult {
+	if len(parts) < minCmdParts || !isValidPresetSubcmd(parts[1]) {
+		return okResult(respPresetUsage)
+	}
+
+	subcmd := parts[1]
+
+	switch subcmd {
+	case "list":
+		return d.handlePresetList()
+	case "save":
+		if len(parts) < minPresetParts {
+			return errResultMsg("preset save: missing name")
+		}
+
+		return d.handlePresetSave(ctx, parts[2])
+	case "load":
+		if len(parts) < minPresetParts {
+			return errResultMsg("preset load: missing name")
+		}
+
+		return d.handlePresetLoad(ctx, parts[2])
+	case "delete":
+		if len(parts) < minPresetParts {
+			return errResultMsg("preset delete: missing name")
+		}
+
+		return d.handlePresetDelete(parts[2])
+	}
+
+	return okResult(respPresetUsage)
+}
+
+func (d *Daemon) handlePresetList() CommandResult {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	if len(d.state.Presets) == 0 {
+		return okResult("no presets saved")
+	}
+
+	names := make([]string, 0, len(d.state.Presets))
+	for name := range d.state.Presets {
+		names = append(names, name)
+	}
+
+	slices.Sort(names)
+
+	var b strings.Builder
+	b.WriteString("presets:")
+
+	for _, name := range names {
+		v := d.state.Presets[name]
+		fmt.Fprintf(&b, "\n  %s: pan=%d tilt=%d zoom=%d", name, v.Pan, v.Tilt, v.Zoom)
+	}
+
+	return okResult(b.String())
+}
+
+func (d *Daemon) handlePresetSave(ctx context.Context, name string) CommandResult {
+	d.mu.RLock()
+	videoDev := d.videoDev
+	d.mu.RUnlock()
+
+	if videoDev == "" {
+		return errResultMsg(respDeviceNotFound)
+	}
+
+	values := d.deps.parsePTZ(ctx, videoDev)
+	clamped := values.Clamp()
+
+	d.mu.Lock()
+	if d.state.Presets == nil {
+		d.state.Presets = make(map[string]pixy.PTZValues)
+	}
+
+	if _, exists := d.state.Presets[name]; !exists && len(d.state.Presets) >= maxPresets {
+		d.mu.Unlock()
+
+		return errResultMsg(fmt.Sprintf("preset limit reached (%d)", maxPresets))
+	}
+
+	d.state.Presets[name] = clamped
+	d.saveStateOrLog("failed to save state")
+	d.mu.Unlock()
+	d.broadcastStateChanged()
+
+	return okResult(fmt.Sprintf(
+		"preset %q saved: pan=%d tilt=%d zoom=%d",
+		name, clamped.Pan, clamped.Tilt, clamped.Zoom,
+	))
+}
+
+func (d *Daemon) handlePresetLoad(ctx context.Context, name string) CommandResult {
+	d.mu.RLock()
+	videoDev := d.videoDev
+	values, ok := d.state.Presets[name]
+	d.mu.RUnlock()
+
+	if !ok {
+		return errResultMsg(respPresetNotFound)
+	}
+
+	if videoDev == "" {
+		return errResultMsg(respDeviceNotFound)
+	}
+
+	for _, axis := range ptzAxisOrder {
+		info := ptzAxes[axis]
+		val, _ := values.Get(axis)
+
+		setErr := d.deps.v4l2Set(ctx, videoDev, info.V4L2Ctrl, strconv.Itoa(val*info.Multiplier))
+		if setErr != nil {
+			return errResult("preset "+name, setErr)
+		}
+	}
+
+	d.ptzCache.Set(values.Clamp(), ptzCacheTTL)
+	d.schedulePTZReadback(ctx, videoDev)
+	d.broadcastStateChanged()
+
+	return okResult(fmt.Sprintf("preset %q loaded: pan=%d tilt=%d zoom=%d", name, values.Pan, values.Tilt, values.Zoom))
+}
+
+func (d *Daemon) handlePresetDelete(name string) CommandResult {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	if _, ok := d.state.Presets[name]; !ok {
+		return errResultMsg(respPresetNotFound)
+	}
+
+	delete(d.state.Presets, name)
+	d.saveStateOrLog("failed to save state")
+	d.broadcastStateChanged()
+
+	return okResult(fmt.Sprintf("preset %q deleted", name))
 }

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -72,7 +73,7 @@ func ptzAxisValid(axis pixy.Axis) bool {
 	return ok
 }
 
-func ptzAxisValue(axis pixy.Axis, status webStatus) int {
+func ptzAxisValue(axis pixy.Axis, status webStatus) (int, bool) {
 	return status.Get(axis)
 }
 
@@ -163,7 +164,8 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	if relative {
 		current := d.deps.parsePTZ(ctx, videoDev)
-		val = current.Get(axis) + val
+		base, _ := current.Get(axis)
+		val = base + val
 	}
 
 	val = clampInt(val, info.Min, info.Max)
@@ -186,9 +188,37 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		d.ptzCache.Invalidate()
 	}
 
+	// Schedule a delayed hardware readback to correct the cache with
+	// the actual motor position (hardware may round or clamp differently).
+	d.schedulePTZReadback(ctx, videoDev)
+
 	d.broadcastStateChanged()
 
 	return okResult(fmt.Sprintf("%s set to %d", axis, val))
+}
+
+// ptzReadbackDelay is the time to wait after a PTZ set before reading
+// back the hardware value. Allows the motor to settle.
+const ptzReadbackDelay = 500 * time.Millisecond
+
+func (d *Daemon) schedulePTZReadback(ctx context.Context, videoDev string) {
+	readbackCtx := context.WithoutCancel(ctx)
+
+	go func() {
+		timer := time.NewTimer(ptzReadbackDelay)
+		defer timer.Stop()
+
+		select {
+		case <-readbackCtx.Done():
+			return
+		case <-timer.C:
+		}
+
+		actual := d.deps.parsePTZ(readbackCtx, videoDev)
+		clamped := actual.Clamp()
+		d.ptzCache.Set(clamped, ptzCacheTTL)
+		d.broadcastStateChanged()
+	}()
 }
 
 // parsePTZValue parses a PTZ value string.

@@ -256,15 +256,40 @@
   (function () {
     var img = document.getElementById("preview-img");
     if (!img) return;
+    var STREAM_MAX_RETRIES = 10;
     var retryTimer = null;
+    var streamRetryCount = 0;
+
+    img.addEventListener("load", function () {
+      streamRetryDelay = STREAM_RETRY_INITIAL_MS;
+      streamRetryCount = 0;
+    });
+
     img.addEventListener("error", function () {
       if (retryTimer) return;
+      streamRetryCount++;
+
+      if (streamRetryCount > STREAM_MAX_RETRIES) {
+        this.style.display = "none";
+        var fallback = document.getElementById("preview-fallback");
+        if (fallback) {
+          fallback.style.display = "flex";
+          var label = fallback.querySelector("div:last-child");
+          if (label) label.textContent = "Stream unavailable \u2014 reload page to retry";
+        }
+        streamRetryDelay = STREAM_RETRY_INITIAL_MS;
+        streamRetryCount = 0;
+        return;
+      }
+
       this.style.display = "none";
       var fallback = document.getElementById("preview-fallback");
       if (fallback) {
         fallback.style.display = "flex";
         var label = fallback.querySelector("div:last-child");
-        if (label) label.textContent = "Reconnecting\u2026";
+        if (label)
+          label.textContent =
+            "Reconnecting\u2026 (" + streamRetryCount + "/" + STREAM_MAX_RETRIES + ")";
       }
       var delay = streamRetryDelay;
       retryTimer = setTimeout(function () {
