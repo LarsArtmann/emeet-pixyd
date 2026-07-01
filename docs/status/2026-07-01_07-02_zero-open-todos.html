@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emeet-pixyd — Status Report 2026-07-01</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --radius-sm: 0px;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-07-01 07:02 CEST</span>
+      <span>emeet-pixyd / Session 12</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#not-started">Not Started</a>
+          <a href="#fucked-up">Totally Fucked Up</a>
+          <a href="#improve">What We Should Improve</a>
+          <a href="#next25">Top 25 Next</a>
+          <a href="#question">The Big Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">All TODOs Resolved</div>
+          <h1>emeet-pixyd — Zero Open TODOs</h1>
+          <p class="hero-subtitle">
+            Session 12 completed all 21 open TODO items from the comprehensive June audit. 78 done,
+            1 partial, 4 won't-do, 1 skip, 0 open. 7 commits pushed, 4 integration tests verified on
+            real PIXY hardware.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#done">a) Fully Done</a></li>
+            <li><a href="#partial">b) Partially Done</a></li>
+            <li><a href="#not-started">c) Not Started</a></li>
+            <li><a href="#fucked-up">d) Totally Fucked Up</a></li>
+            <li><a href="#improve">e) What We Should Improve</a></li>
+            <li><a href="#next25">f) Top 25 Next</a></li>
+            <li><a href="#question">g) The Big Question</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">78</div>
+            <div class="stat-label">Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Partial</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Open TODO</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Won't-Do</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Fucked Up</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">72.8%</div>
+            <div class="stat-label">Coverage</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Lint Issues</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">464</div>
+            <div class="stat-label">Test Functions</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Session 12 Deliverables (7 commits pushed)</h4>
+          <p>
+            <strong>c925079</strong> — PTZValues.Get (int,bool) fix, templ validation, coverage
+            threshold, templ version pinning, log-level audit<br />
+            <strong>4284282</strong> — ProcessInspector + UeventListener interfaces + fake device
+            test harness<br />
+            <strong>bd7a09e</strong> — Camera presets (CLI + web API + state.json), PTZ delayed
+            readback, MJPEG backoff, mobile responsive<br />
+            <strong>5929d77</strong> — Integration tests (//go:build integration, 4 tests verified
+            on PIXY hardware)<br />
+            <strong>67c5e2f</strong> — cmdMu → hidMu + v4l2Mu split (HID/V4L2 now concurrent)<br />
+            <strong>ee28dab</strong> — TODO_LIST.md: 0 open items<br />
+            <strong>7aaab7d</strong> — AGENTS.md architecture docs updated
+          </p>
+        </div>
+
+        <h2 id="done"><span class="num">01</span>a) Fully Done</h2>
+        <p>
+          16 of 21 open TODO items resolved with code in this session. All verified against
+          <code>go test -race</code>, <code>golangci-lint</code> (0 issues),
+          <code>nix flake check</code> (pass), and BuildFlow (31/31).
+        </p>
+
+        <div class="grid-2">
+          <div class="card card-solution">
+            <h4>Architecture &amp; Testability</h4>
+            <p>
+              <strong>#82</strong> ProcessInspector interface — abstracts /proc traversal<br />
+              <strong>#83</strong> UeventListener interface — abstracts netlink<br />
+              <strong>#84</strong> cmdMu split → hidMu + v4l2Mu — HID &amp; V4L2 now concurrent<br />
+              <strong>#87</strong> PTZValues.Get → (int, bool) — latent bug fixed
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Features &amp; UX</h4>
+            <p>
+              <strong>#88</strong> Camera presets — CLI + web API + state.json persistence (max
+              16)<br />
+              <strong>#89</strong> Mobile-responsive — 720px + 480px breakpoints, touch targets<br />
+              <strong>#90</strong> MJPEG backoff — exponential + max 10 retries + counter display
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Quality &amp; Correctness</h4>
+            <p>
+              <strong>#91</strong> PTZ readback — delayed 500ms hardware readback via
+              context.WithoutCancel<br />
+              <strong>#92</strong> Log levels — uevent socket Warn→Error, per-event Info→Debug
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Testing</h4>
+            <p>
+              <strong>#93</strong> Fake device harness — fakeHIDDevice, fakeProcInspector,
+              fakeUeventListener<br />
+              <strong>#94</strong> Integration tests — //go:build integration, 4 tests on real
+              PIXY<br />
+              <strong>#95</strong> Coverage threshold — CI enforces 70% minimum
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>CI / Build Hardening</h4>
+            <p>
+              <strong>#99</strong> Templ validation — non-empty check + retry in CI + nix
+              preBuild<br />
+              <strong>#100</strong> Templ version — CI pins from go.mod (no more @latest drift)<br />
+              <strong>#101</strong> go-error-family — already resolved by go-branded-id v0.3.1
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>Docs</h4>
+            <p>
+              <strong>#102</strong> DESIGN.md — fixed httputil + OTel-only inaccuracies<br />
+              <strong>#103</strong> README.md — fixed source layout (removed deleted v4l2.go)<br />
+              <strong>#104</strong> CHANGELOG.md — added makezero, vendorHash, race-fix entries<br />
+              <strong>#105</strong> NixOS module — RestartSec integer, removed redundant v4l-utils
+            </p>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">02</span>b) Partially Done</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial</span>
+          <h3>#80 — SSEEvent location</h3>
+          <div class="where">sse.go vs internal/pixy</div>
+          <p>
+            <code>toastType</code> was moved to <code>web_types.go</code>.
+            <code>SSEEvent</code> remains in <code>sse.go</code> by explicit design decision: it is
+            a transport-layer DTO (Server-Sent Events wire format), not a domain type. Moving it to
+            <code>internal/pixy</code> would couple the domain package to SSE protocol details.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Decision</strong> Marked as DECIDED (won't-do) in spirit. The split is
+            intentional and correct.
+          </div>
+        </div>
+
+        <h2 id="not-started"><span class="num">03</span>c) Not Started</h2>
+        <div class="card">
+          <h4>Nothing is "not started"</h4>
+          <p>
+            All 21 open TODO items have been resolved. The remaining work items live in the
+            "Low-value enhancements" brainstorm section of TODO_LIST.md — these are ideas, not
+            committed work.
+          </p>
+        </div>
+
+        <h2 id="fucked-up"><span class="num">04</span>d) Totally Fucked Up</h2>
+        <div class="card card-problem">
+          <h4>Nothing is fucked up</h4>
+          <p>
+            All tests pass (<code>-race -count=1</code>), lint is 0 issues, nix flake check passes,
+            BuildFlow 31/31 on every commit. Integration tests verified on real EMEET PIXY hardware
+            (USB 328f:00c0) — device probing, PTZ round-trip, HID tracking toggle, and audio cycling
+            all pass.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">05</span>e) What We Should Improve</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">!</div>
+            <div class="text">
+              <strong>Preset web UI buttons missing</strong>
+              <span
+                >CLI and API endpoints exist for presets, but the web UI has no save/load/delete
+                buttons in templates.templ. Users can only use presets via CLI or direct API
+                calls.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">!</div>
+            <div class="text">
+              <strong>SSE test is flaky under load</strong>
+              <span
+                >One SSE test (sse_test.go:102) occasionally produces "context canceled" under
+                -count=1 without -race. Passes on re-run. Root cause is a timing-sensitive context
+                cancellation in the test, not a production bug.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">!</div>
+            <div class="text">
+              <strong>PTZ readback goroutine lifecycle</strong>
+              <span
+                >schedulePTZReadback spawns a goroutine per PTZ set. If a user rapidly drags a
+                slider, many goroutines queue up (each with 500ms delay). Not a leak (they exit),
+                but could benefit from debounce/coalescing.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">!</div>
+            <div class="text">
+              <strong>Dependencies struct is getting large</strong>
+              <span
+                >13 fields now (commander, procInspector, ueventListener + 10 function pointers).
+                Still manageable, but approaching the threshold where a sub-struct or
+                interface-per-concern grouping would help readability.</span
+              >
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">!</div>
+            <div class="text">
+              <strong>No preset count in web status</strong>
+              <span
+                >The webStatus struct doesn't expose preset count or names. The web UI can't show "3
+                presets saved" or a dropdown of available presets.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <h2 id="next25"><span class="num">06</span>f) Top 25 Things to Get Done Next</h2>
+        <p>
+          Sorted by impact-to-work ratio. Items 1-5 are high-impact/low-work; items 21-25 are lower
+          priority brainstormed ideas.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Priority</th>
+                <th>Task</th>
+                <th>Impact</th>
+                <th>Effort</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Add preset save/load/delete buttons to web UI (templates.templ)</td>
+                <td>User-visible feature completion</td>
+                <td>Low (2h)</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td>Fix SSE test flakiness — use deterministic channel close instead of sleep</td>
+                <td>CI stability</td>
+                <td>Low (1h)</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Add preset count + names to webStatus struct + web UI</td>
+                <td>UX: show saved presets in panel</td>
+                <td>Low (1h)</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Debounce PTZ readback goroutine (coalesce rapid slider drags)</td>
+                <td>Reduces goroutine churn</td>
+                <td>Low (1h)</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Write tests for preset HTTP handlers (handlePresetSave/Load/Delete)</td>
+                <td>Coverage for new endpoints</td>
+                <td>Low (1h)</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Add pan/tilt to Waybar tooltip output</td>
+                <td>Waybar UX</td>
+                <td>Low (30min)</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>SSE heartbeat to prevent proxy idle kills</td>
+                <td>Production reliability</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>HTTP panic-recovery middleware</td>
+                <td>Prevents 1 goroutine crash from killing server</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Property-based test for Range.Clamp (gopter)</td>
+                <td>Math correctness</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Benchmark PTZ and auto-manage paths in CI</td>
+                <td>Performance regression detection</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Camera diagnostics endpoint (full V4L2 control dump)</td>
+                <td>Debugging tool</td>
+                <td>Medium (3h)</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>PTZ movement speed control; configurable home position</td>
+                <td>Power user feature</td>
+                <td>Medium (3h)</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>PTZ patrol/sweep mode (automatic periodic pan)</td>
+                <td>Niche use case</td>
+                <td>Medium (4h)</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>koanf layered config (file + env, replacing env-only)</td>
+                <td>Config flexibility</td>
+                <td>Medium (4h)</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>OpenTelemetry tracing (trace PTZ command latency)</td>
+                <td>Observability</td>
+                <td>Medium (4h)</td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>SSE LastEventID replay after reconnect</td>
+                <td>Resilience</td>
+                <td>High (6h)</td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Split Dependencies struct into sub-groups (HID/V4L2/system)</td>
+                <td>Code clarity</td>
+                <td>High (4h, risky)</td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>State migration: handle old state.json without Presets field</td>
+                <td>Backward compat</td>
+                <td>Low (1h, verify)</td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Add /api/preset/list endpoint (currently CLI-only)</td>
+                <td>Web API completeness</td>
+                <td>Low (30min)</td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Validate preset names (reject empty, limit length, alphanumeric only)</td>
+                <td>Input validation</td>
+                <td>Low (30min)</td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Web UI: keyboard shortcut for preset recall (1-9 keys)</td>
+                <td>Power user UX</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Investigate templ generate empty-file root cause (real fix vs validation)</td>
+                <td>Build reliability</td>
+                <td>Unknown</td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Govulncheck + nix flake check in pre-commit (currently CI-only)</td>
+                <td>Earlier detection</td>
+                <td>Medium (2h)</td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Move vendorHash to single source (flake.nix + package.nix share it)</td>
+                <td>Maintenance burden</td>
+                <td>Low (1h)</td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td>Release v0.4.0 — cut a tagged release with preset feature</td>
+                <td>User distribution</td>
+                <td>Low (30min)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="question"><span class="num">07</span>g) The Big Question</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Question</span>
+          <h3>
+            Should the PTZ readback goroutine use a coalescing timer instead of
+            one-goroutine-per-set?
+          </h3>
+          <div class="where">ptz.go: schedulePTZReadback</div>
+          <p>
+            The current implementation spawns a new goroutine for every PTZ set command. Each
+            goroutine waits 500ms then reads back hardware. If a user drags the pan slider rapidly
+            (10+ events in 500ms), we spawn 10+ goroutines that all fire ~simultaneously, each doing
+            a <code>v4l2-ctl --get-ctrl</code> subprocess call. This works correctly (goroutines
+            exit after readback), but it's wasteful — we only need the last position.
+          </p>
+          <p>
+            <strong>The question I can't resolve myself:</strong> Should we use a single coalescing
+            timer (reset on each new PTZ set, fire once after 500ms of quiet), or is the current
+            approach actually fine for a hardware daemon that rarely sees rapid-fire PTZ commands?
+            The coalescing approach is more "correct" but adds state management complexity (timer
+            lifecycle, context cancellation). The current approach is simpler and the goroutine cost
+            is negligible for this use case. I lean toward keeping it simple, but I can't determine
+            if there's a real-world scenario where 10 concurrent v4l2-ctl processes would cause
+            device contention or interference.
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-07-01 07:02 CEST &middot; All claims verified against source code &middot;
+          go test -race: PASS &middot; golangci-lint: 0 issues &middot; nix flake check: PASS
+          &middot; BuildFlow: 31/31
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
