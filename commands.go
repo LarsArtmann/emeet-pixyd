@@ -63,15 +63,50 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 	case cmdWaybar, cmdVersion, cmdSync, cmdProbe, cmdDevice:
 		result = d.handleQueryCommand(ctx, parts)
 
-	default:
-		d.cmdMu.Lock()
+	case cmdTrack, cmdIdle, cmdPrivacy, cmdTogglePrivacy, cmdAudio,
+		cmdGestureOn, cmdGestureOff, cmdToggleGesture:
+		d.hidMu.Lock()
 		result = d.handleMutatingCommand(ctx, parts)
-		d.cmdMu.Unlock()
+		d.hidMu.Unlock()
+
+	case cmdCenter:
+		d.v4l2Mu.Lock()
+		result = d.handleMutatingCommand(ctx, parts)
+		d.v4l2Mu.Unlock()
+
+	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
+		result = d.handleMutatingCommand(ctx, parts)
+
+	case cmdPreset:
+		result = d.handlePresetWithLock(ctx, parts)
+
+	default:
+		if ptzAxisValid(pixy.Axis(parts[0])) {
+			d.v4l2Mu.Lock()
+			result = d.handleMutatingCommand(ctx, parts)
+			d.v4l2Mu.Unlock()
+		} else {
+			result = errResultMsg("unknown command: " + parts[0])
+		}
 	}
 
 	recordCommandMetric(ctx, parts[0], result)
 
 	return result
+}
+
+// handlePresetWithLock routes preset subcommands to the correct lock:
+// save/load need V4L2 I/O (v4l2Mu); delete/list are state-only (no I/O lock).
+func (d *Daemon) handlePresetWithLock(ctx context.Context, parts []string) CommandResult {
+	needsV4L2 := len(parts) >= minCmdParts &&
+		(parts[1] == presetSave || parts[1] == presetLoad)
+
+	if needsV4L2 {
+		d.v4l2Mu.Lock()
+		defer d.v4l2Mu.Unlock()
+	}
+
+	return d.handleMutatingCommand(ctx, parts)
 }
 
 func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) CommandResult {
@@ -308,11 +343,17 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 
 const maxPresets = 16
 
-const minPresetParts = 3
+const (
+	presetSave     = "save"
+	presetLoad     = "load"
+	presetDelete   = "delete"
+	presetList     = "list"
+	minPresetParts = 3
+)
 
 func isValidPresetSubcmd(s string) bool {
 	switch s {
-	case "save", "load", "delete", "list":
+	case presetSave, presetLoad, presetDelete, presetList:
 		return true
 	default:
 		return false
@@ -327,21 +368,21 @@ func (d *Daemon) handlePresetCommand(ctx context.Context, parts []string) Comman
 	subcmd := parts[1]
 
 	switch subcmd {
-	case "list":
+	case presetList:
 		return d.handlePresetList()
-	case "save":
+	case presetSave:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset save: missing name")
 		}
 
 		return d.handlePresetSave(ctx, parts[2])
-	case "load":
+	case presetLoad:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset load: missing name")
 		}
 
 		return d.handlePresetLoad(ctx, parts[2])
-	case "delete":
+	case presetDelete:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset delete: missing name")
 		}

@@ -88,8 +88,8 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 }
 
 func (d *Daemon) autoManage(ctx context.Context) {
-	d.cmdMu.Lock()
-	defer d.cmdMu.Unlock()
+	d.hidMu.Lock()
+	defer d.hidMu.Unlock()
 
 	d.mu.RLock()
 	videoDev := d.videoDev

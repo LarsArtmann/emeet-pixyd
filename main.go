@@ -27,7 +27,8 @@ var buildVersion = "dev"
 
 type Daemon struct {
 	mu        sync.RWMutex
-	cmdMu     sync.Mutex
+	hidMu     sync.Mutex
+	v4l2Mu    sync.Mutex
 	state     pixy.State
 	config    pixy.Config
 	videoDev  string
@@ -269,7 +270,8 @@ func (d *Daemon) eventLoop(
 			return
 		case <-ueventCh:
 			slog.Info("device event detected, re-probing")
-			d.cmdMu.Lock()
+			d.hidMu.Lock()
+			d.v4l2Mu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
 			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
@@ -282,7 +284,8 @@ func (d *Daemon) eventLoop(
 
 				_ = d.syncState(ctx)
 			}
-			d.cmdMu.Unlock()
+			d.v4l2Mu.Unlock()
+			d.hidMu.Unlock()
 		case <-ticker.C:
 			d.autoManage(ctx)
 			sdNotify("WATCHDOG=1")
