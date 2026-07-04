@@ -151,26 +151,14 @@
             });
           };
 
-          devShells = {
-            default = pkgs.mkShellNoCC {
-              packages = [
-                pkgs.go_1_26
-                pkgs.golangci-lint
-                pkgs.templ
-              ];
+          devShells.default = pkgs.mkShellNoCC {
+            packages = [
+              pkgs.go_1_26
+              pkgs.golangci-lint
+              pkgs.templ
+            ];
 
-              GOWORK = "off";
-            };
-
-            ci = pkgs.mkShellNoCC {
-              packages = [
-                pkgs.go_1_26
-                pkgs.golangci-lint
-                pkgs.templ
-              ];
-
-              GOWORK = "off";
-            };
+            GOWORK = "off";
           };
         };
 

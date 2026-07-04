@@ -269,7 +269,7 @@ func pixyConfig(iface, modeByte byte) []byte {
 }
 
 func pixyCommit(iface byte) []byte {
-	return []byte{0x09, iface, 0x01, iface}
+	return []byte{cameraConfigPrefix, iface, cameraConfigMarker, iface}
 }
 
 func queryHIDState[T any](

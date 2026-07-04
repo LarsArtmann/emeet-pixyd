@@ -16,6 +16,7 @@ const (
 	respPrivacyOn      = "privacy on"
 	respTrackingOff    = "tracking off"
 	respAutoModeOff    = "auto mode: off"
+	respAutoModePrefix = "auto mode: "
 	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
 	respDeviceNotFound = "device not found"
 	respGestureOn      = "gesture on"
@@ -303,7 +304,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 
-		return okResult("auto mode: " + mode.String())
+		return okResult(respAutoModePrefix + mode.String())
 	}
 
 	cmd := parts[0]
@@ -324,7 +325,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 		mode = d.state.AutoMode
 		d.mu.RUnlock()
 
-		return okResult("auto mode: " + mode.String())
+		return okResult(respAutoModePrefix + mode.String())
 	}
 
 	d.mu.Lock()
@@ -337,7 +338,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 		return okResult(respAutoModeOff)
 	}
 
-	return okResult("auto mode: " + mode.String())
+	return okResult(respAutoModePrefix + mode.String())
 }
 
 const (
