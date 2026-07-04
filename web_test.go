@@ -323,3 +323,17 @@ func TestWeb_PanelHidesPresetsWhenOffline(t *testing.T) {
 		t.Error("preset section should not appear when offline")
 	}
 }
+
+func TestWeb_PresetSaveRejectsInvalidName(t *testing.T) {
+	t.Parallel()
+
+	daemon := newDaemonWithDevice(t)
+	srv := newTestWebServer(t, daemon)
+
+	longName := strings.Repeat("a", pixy.MaxPresetNameLength+1)
+
+	resp := post(t, srv.URL+"/api/preset/save/"+longName, "application/json", nil)
+	defer resp.Body.Close() //nolint:errcheck
+
+	assertStatusCode(t, resp, http.StatusBadRequest)
+}

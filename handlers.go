@@ -306,8 +306,9 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
 	name := request.PathValue("name")
-	if name == "" {
-		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+	err := pixy.ValidatePresetName(name)
+	if err != nil {
+		http.Error(responseWriter, err.Error(), http.StatusBadRequest)
 
 		return
 	}
