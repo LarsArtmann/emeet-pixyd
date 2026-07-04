@@ -207,6 +207,7 @@ templ statusPanel(s webStatus) {
 						</div>
 						<div class="spacer"></div>
 						<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
+						@presetSection(s.PresetNames)
 					</div>
 				} else {
 					<div class="card card-muted">
@@ -294,6 +295,59 @@ templ ptzRadar(pan, tilt int) {
 		<div class="ptz-radar-field">
 			<div class="ptz-radar-dot"></div>
 		</div>
+	</div>
+}
+
+// ---------------------------------------------------------------------------
+// Preset Section (save input + preset chips)
+// ---------------------------------------------------------------------------
+templ presetSection(names []string) {
+	<div class="preset-section">
+		<div class="preset-header">
+			<span class="preset-label">Presets</span>
+			if len(names) > 0 {
+				<span class="preset-count">{ fmt.Sprintf("%d/%d", len(names), maxPresets) }</span>
+			}
+		</div>
+		<div class="preset-save-row">
+			<input
+				type="text"
+				class="preset-input"
+				id="preset-name-input"
+				placeholder="Save current position\u2026"
+				maxlength="32"
+				autocomplete="off"
+			/>
+			<button class="btn btn-small" id="preset-save-btn" type="button" aria-label="Save preset">Save</button>
+		</div>
+		if len(names) > 0 {
+			<div class="preset-chips">
+				for _, name := range names {
+					@presetChip(name)
+				}
+			</div>
+		}
+	</div>
+}
+
+templ presetChip(name string) {
+	<div class="preset-chip">
+		<button
+			class="preset-chip-load"
+			hx-post={ fmt.Sprintf("/api/preset/load/%s", name) }
+			hx-target="#status-panel"
+			aria-label={ fmt.Sprintf("Load preset %s", name) }
+		>
+			{ name }
+		</button>
+		<button
+			class="preset-chip-delete"
+			hx-post={ fmt.Sprintf("/api/preset/delete/%s", name) }
+			hx-target="#status-panel"
+			aria-label={ fmt.Sprintf("Delete preset %s", name) }
+		>
+			&times;
+		</button>
 	</div>
 }
 
