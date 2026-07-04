@@ -138,8 +138,6 @@ func TestWriteSSEEvent_FullEvent(t *testing.T) {
 	err := writeSSEEvent(&buf, SSEEvent{
 		Event: "refresh",
 		Data:  "ok",
-		ID:    "42",
-		Retry: 5000,
 	})
 	if err != nil {
 		t.Fatalf("writeSSEEvent: %v", err)
@@ -154,12 +152,12 @@ func TestWriteSSEEvent_FullEvent(t *testing.T) {
 		t.Errorf("missing data line in %q", got)
 	}
 
-	if !strings.Contains(got, "id: 42\n") {
-		t.Errorf("missing id line in %q", got)
+	if strings.Contains(got, "id:") {
+		t.Errorf("unexpected id line in %q", got)
 	}
 
-	if !strings.Contains(got, "retry: 5000\n") {
-		t.Errorf("missing retry line in %q", got)
+	if strings.Contains(got, "retry:") {
+		t.Errorf("unexpected retry line in %q", got)
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -18,8 +17,6 @@ const sseSubscriberBuffer = 8
 type SSEEvent struct {
 	Event string
 	Data  string
-	ID    string
-	Retry int
 }
 
 // Broadcaster distributes SSE events to all subscribed clients via
@@ -144,18 +141,6 @@ func writeSSEEvent(w io.Writer, event SSEEvent) error {
 	for _, line := range splitSSELines(event.Data) {
 		buf = append(buf, "data: "...)
 		buf = append(buf, line...)
-		buf = append(buf, '\n')
-	}
-
-	if event.ID != "" {
-		buf = append(buf, "id: "...)
-		buf = append(buf, event.ID...)
-		buf = append(buf, '\n')
-	}
-
-	if event.Retry > 0 {
-		buf = append(buf, "retry: "...)
-		buf = append(buf, strconv.Itoa(event.Retry)...)
 		buf = append(buf, '\n')
 	}
 

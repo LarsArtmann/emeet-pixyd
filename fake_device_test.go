@@ -15,7 +15,6 @@ import (
 type fakeHIDDevice struct {
 	mu         sync.Mutex
 	sentBytes  [][]byte
-	sendErr    error
 	sendRecvFn func(report []byte) ([]byte, error)
 }
 
@@ -31,7 +30,7 @@ func (f *fakeHIDDevice) Send(report []byte) error {
 
 	f.sentBytes = append(f.sentBytes, append([]byte(nil), report...))
 
-	return f.sendErr
+	return nil
 }
 
 func (f *fakeHIDDevice) SendRecv(_ context.Context, report []byte) ([]byte, error) {
