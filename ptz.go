@@ -24,8 +24,7 @@ const parsePTZValueErrStr = "invalid PTZ value"
 const v4l2UnitsPerDegree = 3600
 
 type ptzAxisInfo struct {
-	Min        int
-	Max        int
+	Range      pixy.Range
 	Label      string
 	Unit       string
 	V4L2Ctrl   string
@@ -35,15 +34,15 @@ type ptzAxisInfo struct {
 //nolint:gochecknoglobals
 var ptzAxes = map[pixy.Axis]ptzAxisInfo{
 	pixy.AxisPan: {
-		Min: pixy.PanRange.Min, Max: pixy.PanRange.Max, Label: "Pan", Unit: "\u00b0",
+		Range: pixy.PanRange, Label: "Pan", Unit: "\u00b0",
 		V4L2Ctrl: "pan_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisTilt: {
-		Min: pixy.TiltRange.Min, Max: pixy.TiltRange.Max, Label: "Tilt", Unit: "\u00b0",
+		Range: pixy.TiltRange, Label: "Tilt", Unit: "\u00b0",
 		V4L2Ctrl: "tilt_absolute", Multiplier: v4l2UnitsPerDegree,
 	},
 	pixy.AxisZoom: {
-		Min: pixy.ZoomRange.Min, Max: pixy.ZoomRange.Max, Label: "Zoom", Unit: "x",
+		Range: pixy.ZoomRange, Label: "Zoom", Unit: "x",
 		V4L2Ctrl: "zoom_absolute", Multiplier: 1,
 	},
 }
@@ -71,14 +70,6 @@ func ptzAxisValid(axis pixy.Axis) bool {
 	_, ok := ptzAxes[axis]
 
 	return ok
-}
-
-func ptzAxisValue(axis pixy.Axis, status webStatus) (int, bool) {
-	return status.Get(axis)
-}
-
-func clampInt(v, lo, hi int) int {
-	return max(lo, min(hi, v))
 }
 
 func (d *Daemon) v4l2Set(ctx context.Context, dev, ctrl, value string) error {
@@ -168,7 +159,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 		val = base + val
 	}
 
-	val = clampInt(val, info.Min, info.Max)
+	val = info.Range.Clamp(val)
 
 	v4l2Err := d.deps.v4l2Set(
 		ctx,

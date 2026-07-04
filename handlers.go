@@ -276,15 +276,15 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	}
 
 	info := ptzAxes[axis]
-	intVal = clampInt(intVal, info.Min, info.Max)
+	intVal = info.Range.Clamp(intVal)
 	result := s.daemon.handleCommand(request.Context(), string(axis)+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", result.String())
 
 	if result.IsError() {
 		status := s.getWebStatusWithPTZ(request.Context())
-		sliderVal, _ := ptzAxisValue(axis, status)
+		sliderVal, _ := status.Get(axis)
 		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-			info.Label, string(axis), info.Min, info.Max, sliderVal, info.Unit,
+			info.Label, string(axis), info.Range.Min, info.Range.Max, sliderVal, info.Unit,
 			result.String(), string(toastTypeError),
 		)).ServeHTTP(responseWriter, request)
 
@@ -292,7 +292,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	}
 
 	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-		info.Label, string(axis), info.Min, info.Max, intVal, info.Unit,
+		info.Label, string(axis), info.Range.Min, info.Range.Max, intVal, info.Unit,
 		"", "",
 	)).ServeHTTP(responseWriter, request)
 }
