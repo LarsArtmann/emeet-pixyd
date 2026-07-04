@@ -15,6 +15,10 @@
   var consecutiveErrors = 0;
   var streamRetryDelay = STREAM_RETRY_INITIAL_MS;
 
+  /* -------------------------------------------------------------------- */
+  /*  Action dispatch (keyboard shortcuts → HTMX POST)                     */
+  /* -------------------------------------------------------------------- */
+
   document.body.addEventListener("doAction", function (e) {
     var url = e.detail.url;
     if (!url || url.indexOf("/api/") !== 0) return;
@@ -25,6 +29,10 @@
     });
   });
 
+  /* -------------------------------------------------------------------- */
+  /*  PTZ helpers                                                          */
+  /* -------------------------------------------------------------------- */
+
   function getPTZAxis(path) {
     if (path.indexOf("/api/ptz/") !== 0) return null;
     return path.split("/").pop();
@@ -33,6 +41,32 @@
   function getSlider(axis) {
     return axis ? document.getElementById("slider-" + axis) : null;
   }
+
+  function updateRadar() {
+    var radar = document.querySelector(".ptz-radar");
+    if (!radar) return;
+
+    var panSlider = document.getElementById("slider-pan");
+    var tiltSlider = document.getElementById("slider-tilt");
+    if (!panSlider || !tiltSlider) return;
+
+    var pan = parseInt(panSlider.value, 10) || 0;
+    var tilt = parseInt(tiltSlider.value, 10) || 0;
+    var panMin = parseInt(panSlider.min, 10);
+    var panMax = parseInt(panSlider.max, 10);
+    var tiltMin = parseInt(tiltSlider.min, 10);
+    var tiltMax = parseInt(tiltSlider.max, 10);
+
+    var panPct = ((pan - panMin) / (panMax - panMin)) * 100;
+    var tiltPct = ((tiltMax - tilt) / (tiltMax - tiltMin)) * 100;
+
+    radar.style.setProperty("--pan-x", panPct.toFixed(1) + "%");
+    radar.style.setProperty("--pan-y", tiltPct.toFixed(1) + "%");
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*  HTMX request lifecycle                                              */
+  /* -------------------------------------------------------------------- */
 
   document.addEventListener("htmx:configRequest", function (e) {
     var pathInfo = e.detail.pathInfo;
@@ -51,37 +85,12 @@
     if (!e.target.classList.contains("ptz-slider")) return;
     var axis = e.target.id.replace("slider-", "");
     var valEl = document.getElementById("val-" + axis);
-    if (!valEl) return;
-    var suffix = axis === "zoom" ? "x" : "\u00b0";
-    valEl.textContent = e.target.value + suffix;
+    if (valEl) {
+      var suffix = axis === "zoom" ? "x" : "\u00b0";
+      valEl.textContent = e.target.value + suffix;
+    }
+    updateRadar();
   });
-
-  function showToast(msg, type) {
-    type = type || "success";
-    var container = document.getElementById("toast-container");
-    var toast = document.createElement("div");
-    toast.className = "toast toast-" + type + " show";
-    toast.textContent = msg;
-    container.appendChild(toast);
-    setTimeout(function () {
-      toast.classList.remove("show");
-      setTimeout(function () {
-        toast.remove();
-      }, TOAST_FADE_MS);
-    }, TOAST_DISPLAY_MS);
-  }
-
-  function showOfflineBanner() {
-    var panel = document.getElementById("status-panel");
-    if (!panel || panel.querySelector(".offline-banner")) return;
-    var banner = document.createElement("div");
-    banner.className = "error-banner offline-banner";
-    var dot = document.createElement("span");
-    dot.className = "offline-dot";
-    banner.appendChild(dot);
-    banner.appendChild(document.createTextNode(" Daemon unreachable \u2014 reconnecting\u2026"));
-    panel.insertBefore(banner, panel.firstChild);
-  }
 
   document.addEventListener("htmx:beforeRequest", function (e) {
     var path = e.detail.pathInfo && e.detail.pathInfo.requestPath;
@@ -120,6 +129,7 @@
           var suffix = errAxis === "zoom" ? "x" : "\u00b0";
           valEl.textContent = errSlider.dataset.lastGood + suffix;
         }
+        updateRadar();
       }
       if (consecutiveErrors >= CONSECUTIVE_ERROR_THRESHOLD) {
         showOfflineBanner();
@@ -155,6 +165,41 @@
   document.addEventListener("htmx:timeout", function () {
     showToast("Request timed out", "error");
   });
+
+  /* -------------------------------------------------------------------- */
+  /*  Toast & offline banner                                              */
+  /* -------------------------------------------------------------------- */
+
+  function showToast(msg, type) {
+    type = type || "success";
+    var container = document.getElementById("toast-container");
+    var toast = document.createElement("div");
+    toast.className = "toast toast-" + type + " show";
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(function () {
+      toast.classList.remove("show");
+      setTimeout(function () {
+        toast.remove();
+      }, TOAST_FADE_MS);
+    }, TOAST_DISPLAY_MS);
+  }
+
+  function showOfflineBanner() {
+    var panel = document.getElementById("status-panel");
+    if (!panel || panel.querySelector(".offline-banner")) return;
+    var banner = document.createElement("div");
+    banner.className = "error-banner offline-banner";
+    var dot = document.createElement("span");
+    dot.className = "offline-dot";
+    banner.appendChild(dot);
+    banner.appendChild(document.createTextNode(" Daemon unreachable \u2014 reconnecting\u2026"));
+    panel.insertBefore(banner, panel.firstChild);
+  }
+
+  /* -------------------------------------------------------------------- */
+  /*  SSE — live state updates                                            */
+  /* -------------------------------------------------------------------- */
 
   var evtSource = null;
   var evtRetryDelay = STREAM_RETRY_INITIAL_MS;
@@ -195,6 +240,10 @@
 
   connectEvents();
 
+  /* -------------------------------------------------------------------- */
+  /*  Keyboard shortcuts                                                  */
+  /* -------------------------------------------------------------------- */
+
   document.addEventListener("keydown", function (e) {
     if (
       e.target.tagName === "INPUT" ||
@@ -202,6 +251,17 @@
       e.target.tagName === "SELECT"
     )
       return;
+
+    if (e.key === "?") {
+      e.preventDefault();
+      toggleLegend();
+      return;
+    }
+
+    if (e.key === "Escape") {
+      toggleLegend(false);
+    }
+
     var actionMap = {
       t: "/api/track",
       i: "/api/idle",
@@ -252,6 +312,77 @@
     slider.value = next;
     htmx.trigger(slider, "input");
   });
+
+  /* -------------------------------------------------------------------- */
+  /*  Shortcut legend toggle                                              */
+  /* -------------------------------------------------------------------- */
+
+  function toggleLegend(force) {
+    var legend = document.getElementById("shortcut-legend");
+    var fab = document.getElementById("shortcut-fab");
+    if (!legend) return;
+    var shouldShow = force !== undefined ? force : legend.hidden;
+    legend.hidden = !shouldShow;
+    if (fab) fab.setAttribute("aria-expanded", String(shouldShow));
+  }
+
+  (function () {
+    var fab = document.getElementById("shortcut-fab");
+    var closeBtn = document.getElementById("legend-close");
+    if (fab) {
+      fab.setAttribute("aria-expanded", "false");
+      fab.addEventListener("click", function () {
+        toggleLegend();
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        toggleLegend(false);
+      });
+    }
+  })();
+
+  /* -------------------------------------------------------------------- */
+  /*  Snapshot button                                                     */
+  /* -------------------------------------------------------------------- */
+
+  (function () {
+    var snapshotBtn = document.getElementById("snapshot-btn");
+    if (!snapshotBtn) return;
+
+    snapshotBtn.addEventListener("click", function () {
+      snapshotBtn.classList.add("flash");
+      setTimeout(function () {
+        snapshotBtn.classList.remove("flash");
+      }, 400);
+
+      fetch("/api/snapshot?ts=" + Date.now())
+        .then(function (resp) {
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          return resp.blob();
+        })
+        .then(function (blob) {
+          if (blob.size === 0) throw new Error("empty");
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download =
+            "pixy-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".jpg";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast("Snapshot saved", "success");
+        })
+        .catch(function () {
+          showToast("Snapshot unavailable", "error");
+        });
+    });
+  })();
+
+  /* -------------------------------------------------------------------- */
+  /*  Preview stream error recovery                                       */
+  /* -------------------------------------------------------------------- */
 
   (function () {
     var img = document.getElementById("preview-img");

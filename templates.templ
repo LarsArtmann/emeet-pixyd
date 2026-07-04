@@ -7,50 +7,109 @@ import (
 )
 
 //go:generate templ generate
+
+// ---------------------------------------------------------------------------
+// Icons (inline SVG, Lucide-style stroke icons)
+// ---------------------------------------------------------------------------
+templ iconLens() {
+	<svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+		<circle cx="12" cy="12" r="10"></circle>
+		<circle cx="12" cy="12" r="4.5"></circle>
+		<circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+	</svg>
+}
+
+templ iconTarget() {
+	<svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+		<circle cx="12" cy="12" r="8"></circle>
+		<circle cx="12" cy="12" r="3"></circle>
+		<line x1="12" y1="2" x2="12" y2="5"></line>
+		<line x1="12" y1="19" x2="12" y2="22"></line>
+		<line x1="2" y1="12" x2="5" y2="12"></line>
+		<line x1="19" y1="12" x2="22" y2="12"></line>
+	</svg>
+}
+
+templ iconStandby() {
+	<svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+		<circle cx="12" cy="12" r="8"></circle>
+		<path d="M12 7.5v4.5"></path>
+		<circle cx="12" cy="16" r="0.6" fill="currentColor" stroke="none"></circle>
+	</svg>
+}
+
+templ iconEyeOff() {
+	<svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+		<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 9 5 9 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+		<path d="M6.61 6.61A13.526 13.526 0 0 0 3 12c0 2 4 7 9 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+		<line x1="3" y1="3" x2="21" y2="21"></line>
+	</svg>
+}
+
+templ iconCamera() {
+	<svg class="snap-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2z"></path>
+		<circle cx="12" cy="13" r="4"></circle>
+	</svg>
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 templ page(s webStatus) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="color-scheme" content="dark"/>
+			<meta name="theme-color" content="#0a0c10"/>
+			<meta name="description" content="Control panel for the EMEET PIXY dual-camera AI webcam"/>
 			<title>EMEET PIXY — { s.Camera }</title>
-			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4F7;</text></svg>"/>
+			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b8def' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%235b8def' stroke='none'/%3E%3C/svg%3E"/>
 			<link rel="stylesheet" href={ fmt.Sprintf("/static/style.css?v=%s", s.Version) }/>
 		</head>
 		<body>
 			<main class="container">
 				<header>
-					<h1>EMEET PIXY</h1>
-					if s.Online {
-						<span class="header-badge header-badge-online">Online</span>
-					} else {
-						<span class="header-badge header-badge-offline">Offline</span>
-					}
-				</header>
-				<div class="grid">
-					<div>
-						<div class="card">
-							<div class="card-title">Preview</div>
-							<div class="preview-container" id="preview">
-								if s.Online && s.Device != "" {
-									<div class="preview-live-dot"></div>
-									<img src="/api/stream" id="preview-img" alt="Live camera feed" aria-label="Live camera preview"/>
-									<div id="preview-fallback" class="preview-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column">
-										<div class="icon">&#x1F4F7;</div>
-										<div>Camera in use or unavailable</div>
-									</div>
-								} else {
-									<div class="preview-placeholder">
-										<div class="icon">&#x1F4F7;</div>
-										<div>Camera offline</div>
-									</div>
-								}
-							</div>
-						</div>
+					<div class="brand">
+						@iconLens()
+						<h1>EMEET PIXY</h1>
 					</div>
-					@statusPanel(s)
-				</div>
+					<div class="header-meta">
+						if s.Online {
+							<span class="header-badge header-badge-online">Online</span>
+						} else {
+							<span class="header-badge header-badge-offline">Offline</span>
+						}
+					</div>
+				</header>
+				<section class="preview-wrap">
+					<div class="preview-container" id="preview">
+						if s.Online && s.Device != "" {
+							<div class="preview-live-dot"></div>
+							<img src="/api/stream" id="preview-img" alt="Live camera feed" aria-label="Live camera preview"/>
+							<div id="preview-fallback" class="preview-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column">
+								<div class="icon">&#x1F4F7;</div>
+								<div>Camera in use or unavailable</div>
+							</div>
+							<button class="preview-snapshot" id="snapshot-btn" type="button" aria-label="Take snapshot">
+								@iconCamera()
+								<span>Snapshot</span>
+							</button>
+						} else {
+							<div class="preview-placeholder">
+								<div class="icon">&#x1F4F7;</div>
+								<div>Camera offline</div>
+							</div>
+						}
+					</div>
+				</section>
+				@statusPanel(s)
 			</main>
+			@shortcutLegend()
+			<button class="shortcut-fab" id="shortcut-fab" type="button" aria-label="Show keyboard shortcuts">?</button>
 			<div id="toast-container"></div>
 			<script src="/static/htmx.js"></script>
 			<script src={ fmt.Sprintf("/static/app.js?v=%s", s.Version) }></script>
@@ -58,6 +117,189 @@ templ page(s webStatus) {
 	</html>
 }
 
+// ---------------------------------------------------------------------------
+// Status Panel (swapped via HTMX)
+// ---------------------------------------------------------------------------
+templ statusPanel(s webStatus) {
+	<div
+		id="status-panel"
+		hx-get="/panel"
+		hx-trigger="refresh from:body"
+		hx-swap="outerHTML"
+		hx-indicator="#status-panel"
+		style="position:relative"
+	>
+		if s.Error != "" {
+			<div class="error-banner" role="alert">{ s.Error }</div>
+		}
+		if s.InCall {
+			<div class="status-strip">
+				<span class="status-call-dot"></span>
+				In call
+			</div>
+		}
+		<div class="mode-grid">
+			@cameraModeCard("track", "/api/track", "Track", "Follows movement", "T", s.Camera == pixy.StateTracking, s.Online)
+			@cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Online)
+			@cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Online)
+		</div>
+		<div class="controls-grid">
+			<div class="controls-col">
+				<div class="card">
+					<div class="card-title">Audio</div>
+					<div class="segmented">
+						@audioSegment("nc", "Noise Cancel", s.Audio == pixy.AudioNC, s.Online)
+						@audioSegment("live", "Live", s.Audio == pixy.AudioLive, s.Online)
+						@audioSegment("org", "Original", s.Audio == pixy.AudioOriginal, s.Online)
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-title">Settings</div>
+					<div class="toggle-row">
+						<div class="toggle-info">
+							<span class="toggle-label" id="gesture-label">Gesture Control</span>
+							<span class="toggle-desc">Hand gestures to control camera</span>
+						</div>
+						<button
+							class={ "toggle", templ.KV("on", s.Gesture) }
+							hx-post="/api/gesture"
+							hx-target="#status-panel"
+							aria-labelledby="gesture-label"
+							role="switch"
+							aria-checked={ fmt.Sprintf("%t", s.Gesture) }
+							if !s.Online {
+								disabled=""
+							}
+						></button>
+					</div>
+					<div class="toggle-row">
+						<div class="toggle-info">
+							<span class="toggle-label" id="auto-label">
+								Auto Mode
+								if !s.Auto.IsOff() {
+									<span class="badge-mini">{ s.Auto.String() }</span>
+								}
+							</span>
+							<span class="toggle-desc">Auto-activate in calls</span>
+						</div>
+						<button
+							class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
+							hx-post="/api/auto"
+							hx-target="#status-panel"
+							aria-labelledby="auto-label"
+							role="switch"
+							aria-checked={ fmt.Sprintf("%t", !s.Auto.IsOff()) }
+						></button>
+					</div>
+				</div>
+			</div>
+			<div class="controls-col">
+				if s.Online {
+					<div class="card">
+						<div class="card-title">Position</div>
+						<div class="ptz-layout">
+							@ptzRadar(s.Pan, s.Tilt)
+							<div class="ptz-controls">
+								@ptzSlider("Pan", "pan", pixy.PanRange.Min, pixy.PanRange.Max, s.Pan, "&#176;")
+								@ptzSlider("Tilt", "tilt", pixy.TiltRange.Min, pixy.TiltRange.Max, s.Tilt, "&#176;")
+								@ptzSlider("Zoom", "zoom", pixy.ZoomRange.Min, pixy.ZoomRange.Max, s.Zoom, "x")
+							</div>
+						</div>
+						<div class="spacer"></div>
+						<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
+					</div>
+				} else {
+					<div class="card card-muted">
+						<div class="card-title">Position</div>
+						<div class="card-empty">Connect device to control position</div>
+					</div>
+				}
+			</div>
+		</div>
+		<div class="footer-bar">
+			<div class="footer-actions">
+				<button class="btn btn-ghost" hx-post="/api/sync" hx-target="#status-panel" aria-label="Sync state">Sync</button>
+				<button class="btn btn-ghost" hx-post="/api/probe" hx-target="#status-panel" aria-label="Probe devices">Probe</button>
+			</div>
+			if s.LastSynced != "" {
+				<span class="last-synced">Last synced { s.LastSynced } · v{ s.Version }</span>
+			} else if s.Version != "" {
+				<span class="last-synced">v{ s.Version }</span>
+			}
+		</div>
+	</div>
+	@toastOOB(s.Toast, string(s.ToastType))
+}
+
+// ---------------------------------------------------------------------------
+// Camera Mode Card
+// ---------------------------------------------------------------------------
+templ cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, online bool) {
+	<button
+		class={ "mode-card", "mode-" + mode, templ.KV("active", active) }
+		hx-post={ endpoint }
+		hx-target="#status-panel"
+		aria-label={ name }
+		if !online {
+			disabled=""
+		}
+	>
+		<div class="mode-icon-wrap">
+			if mode == "track" {
+				@iconTarget()
+			} else if mode == "idle" {
+				@iconStandby()
+			} else if mode == "privacy" {
+				@iconEyeOff()
+			}
+		</div>
+		<span class="mode-name">{ name }</span>
+		<span class="mode-desc">{ desc }</span>
+		<span class="kbd mode-kbd">{ shortcut }</span>
+	</button>
+}
+
+// ---------------------------------------------------------------------------
+// Audio Segment (segmented control button)
+// ---------------------------------------------------------------------------
+templ audioSegment(mode string, label string, active bool, online bool) {
+	<button
+		class={ "segment", templ.KV("active", active) }
+		hx-post="/api/audio"
+		hx-vals={ fmt.Sprintf(`{"mode":"%s"}`, mode) }
+		hx-target="#status-panel"
+		aria-label={ label }
+		if !online {
+			disabled=""
+		}
+	>
+		{ label }
+	</button>
+}
+
+// ---------------------------------------------------------------------------
+// PTZ Radar (spatial position indicator)
+// ---------------------------------------------------------------------------
+templ ptzRadar(pan, tilt int) {
+	<div
+		class="ptz-radar"
+		style={ fmt.Sprintf(
+			"--pan-x: %.1f%%; --pan-y: %.1f%%",
+			float64(pan-pixy.PanRange.Min)/float64(pixy.PanRange.Max-pixy.PanRange.Min)*100,
+			float64(pixy.TiltRange.Max-tilt)/float64(pixy.TiltRange.Max-pixy.TiltRange.Min)*100,
+		) }
+	>
+		<div class="ptz-radar-ring"></div>
+		<div class="ptz-radar-center"></div>
+		<div class="ptz-radar-field">
+			<div class="ptz-radar-dot"></div>
+		</div>
+	</div>
+}
+
+// ---------------------------------------------------------------------------
+// PTZ Slider (also used as standalone HTMX response — keep self-contained)
+// ---------------------------------------------------------------------------
 templ ptzSlider(label, axis string, min, max, value int, unit string) {
 	<div class="slider-row" id={ "ptz-" + axis }>
 		<span class="slider-label">{ label }</span>
@@ -82,6 +324,9 @@ templ ptzSliderWithToast(label, axis string, min, max, value int, unit string, t
 	@toastOOB(toastMsg, toastType)
 }
 
+// ---------------------------------------------------------------------------
+// Toast (out-of-band swap target)
+// ---------------------------------------------------------------------------
 templ toastOOB(msg, toastType string) {
 	<div id="toast-container" hx-swap-oob="innerHTML">
 		if msg != "" {
@@ -90,124 +335,24 @@ templ toastOOB(msg, toastType string) {
 	</div>
 }
 
-templ stateIndicator(prefix, value string) {
-	<div class={ prefix + "-indicator", prefix + "-" + value }>
-		<span class={ prefix + "-dot" }></span>
-		<span>{ value }</span>
-	</div>
-}
-
-templ cameraBtn(color string, endpoint string, label string, shortcut string, ariaLabel string, active bool, online bool) {
-	<button
-		class={ "btn", color, templ.KV("btn-active", active) }
-		hx-post={ endpoint }
-		hx-target="#status-panel"
-		aria-label={ ariaLabel }
-		if !online {
-			disabled=""
-		}
-	>
-		{ label }<span class="kbd">{ shortcut }</span>
-	</button>
-}
-
-templ audioBtn(color string, mode string, label string, ariaLabel string, active bool, online bool) {
-	<button
-		class={ "btn", templ.KV(color, color != ""), templ.KV("btn-active", active) }
-		hx-post="/api/audio"
-		hx-vals={ fmt.Sprintf(`{"mode":"%s"}`, mode) }
-		hx-target="#status-panel"
-		aria-label={ ariaLabel }
-		if !online {
-			disabled=""
-		}
-	>
-		{ label }
-	</button>
-}
-
-templ statusPanel(s webStatus) {
-	<div id="status-panel" hx-get="/panel" hx-trigger="refresh from:body" hx-swap="outerHTML" hx-indicator="#status-panel" style="position:relative">
-		if s.Error != "" {
-			<div class="error-banner" role="alert">{ s.Error }</div>
-		}
-		<div class="card">
-			<div class="card-title">Camera</div>
-			@stateIndicator("state", string(s.Camera))
-			<div class="btn-group">
-				@cameraBtn("btn-green", "/api/track", "Track", "T", "Enable tracking", s.Camera == pixy.StateTracking, s.Online)
-				@cameraBtn("btn-yellow", "/api/idle", "Idle", "I", "Set idle", s.Camera == pixy.StateIdle, s.Online)
-				@cameraBtn("btn-red", "/api/privacy", "Privacy", "P", "Enable privacy", s.Camera == pixy.StatePrivacy, s.Online)
-			</div>
+// ---------------------------------------------------------------------------
+// Keyboard Shortcut Legend
+// ---------------------------------------------------------------------------
+templ shortcutLegend() {
+	<aside class="shortcut-legend" id="shortcut-legend" hidden>
+		<div class="legend-header">
+			<span class="legend-title">Shortcuts</span>
+			<button class="legend-close" id="legend-close" type="button" aria-label="Close shortcuts">&times;</button>
 		</div>
-		<div class="card">
-			<div class="card-title">Audio Mode</div>
-			@stateIndicator("audio", string(s.Audio))
-			<div class="btn-group">
-				@audioBtn("btn-green", "nc", "Noise Cancel", "Noise cancel", s.Audio == pixy.AudioNC, s.Online)
-				@audioBtn("btn-yellow", "live", "Live", "Live audio", s.Audio == pixy.AudioLive, s.Online)
-				@audioBtn("", "org", "Original", "Original audio", s.Audio == pixy.AudioOriginal, s.Online)
-			</div>
+		<div class="legend-list">
+			<div class="legend-row"><kbd>T</kbd><span>Track</span></div>
+			<div class="legend-row"><kbd>I</kbd><span>Idle</span></div>
+			<div class="legend-row"><kbd>P</kbd><span>Privacy</span></div>
+			<div class="legend-row"><kbd>C</kbd><span>Center</span></div>
+			<div class="legend-row"><kbd>&larr;</kbd><kbd>&rarr;</kbd><span>Pan</span></div>
+			<div class="legend-row"><kbd>&uarr;</kbd><kbd>&darr;</kbd><span>Tilt</span></div>
+			<div class="legend-row"><kbd>+</kbd><kbd>&minus;</kbd><span>Zoom</span></div>
+			<div class="legend-row"><kbd>?</kbd><span>This help</span></div>
 		</div>
-		<div class="card">
-			<div class="card-title">Settings</div>
-			<div class="toggle-row">
-				<span class="toggle-label" id="gesture-label">Gesture Control</span>
-				<button
-					class={ "toggle", templ.KV("on", s.Gesture) }
-					hx-post="/api/gesture"
-					hx-target="#status-panel"
-					aria-labelledby="gesture-label"
-					role="switch"
-					aria-checked={ fmt.Sprintf("%t", s.Gesture) }
-					if !s.Online {
-						disabled=""
-					}
-				></button>
-			</div>
-			<div class="toggle-row">
-				<span class="toggle-label" id="auto-label">
-					Auto Mode
-					if !s.Auto.IsOff() {
-						<span class="meta">{ s.Auto.String() }</span>
-					}
-				</span>
-				<button
-					class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
-					hx-post="/api/auto"
-					hx-target="#status-panel"
-					aria-labelledby="auto-label"
-					role="switch"
-					aria-checked={ fmt.Sprintf("%t", !s.Auto.IsOff()) }
-				></button>
-			</div>
-			if s.InCall {
-				<div class="meta meta-call">
-					<span>&#x25CF; In call</span>
-				</div>
-			}
-		</div>
-		if s.Online {
-			<div class="card">
-				<div class="card-title">PTZ</div>
-				@ptzSlider("Pan", "pan", pixy.PanRange.Min, pixy.PanRange.Max, s.Pan, "&#176;")
-				@ptzSlider("Tilt", "tilt", pixy.TiltRange.Min, pixy.TiltRange.Max, s.Tilt, "&#176;")
-				@ptzSlider("Zoom", "zoom", pixy.ZoomRange.Min, pixy.ZoomRange.Max, s.Zoom, "x")
-				<div class="spacer"></div>
-				<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
-			</div>
-		}
-		<div class="card">
-			<div class="footer-actions">
-				<button class="btn" hx-post="/api/sync" hx-target="#status-panel" aria-label="Sync state">&#x21BB; Sync</button>
-				<button class="btn" hx-post="/api/probe" hx-target="#status-panel" aria-label="Probe devices">&#x1F50D; Probe</button>
-			</div>
-			if s.LastSynced != "" {
-				<div class="last-synced">Last synced: { s.LastSynced } · v{ s.Version }</div>
-			} else if s.Version != "" {
-				<div class="last-synced">v{ s.Version }</div>
-			}
-		</div>
-	</div>
-	@toastOOB(s.Toast, string(s.ToastType))
+	</aside>
 }

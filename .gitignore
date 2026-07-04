@@ -52,6 +52,11 @@ ehthumbs.db
 *.log
 *.temp
 
+## Buildflow artifacts
+audit-log.*
+workflow-audit-log.*
+.buildflow-workflow-baseline.json
+
 ## Go
 *.exe
 *.dll

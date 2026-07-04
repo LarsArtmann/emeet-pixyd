@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/pprof"
+	"slices"
 	"strconv"
 	"time"
 
@@ -99,6 +100,14 @@ func (s *webServer) getWebStatus() webStatus {
 	if status.Online {
 		status.Zoom = pixy.ZoomDefault
 	}
+
+	presetNames := make([]string, 0, len(s.daemon.state.Presets))
+	for name := range s.daemon.state.Presets {
+		presetNames = append(presetNames, name)
+	}
+
+	slices.Sort(presetNames)
+	status.PresetNames = presetNames
 
 	return status
 }
