@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -16,7 +15,6 @@ import (
 type fakeHIDDevice struct {
 	mu         sync.Mutex
 	sentBytes  [][]byte
-	recvBytes  [][]byte
 	sendErr    error
 	sendRecvFn func(report []byte) ([]byte, error)
 }
@@ -47,27 +45,8 @@ func (f *fakeHIDDevice) SendRecv(_ context.Context, report []byte) ([]byte, erro
 	}
 
 	resp := make([]byte, hidRespBufSize)
-	f.recvBytes = append(f.recvBytes, resp)
 
 	return resp, nil
-}
-
-func (f *fakeHIDDevice) calls() int {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	return len(f.sentBytes)
-}
-
-func (f *fakeHIDDevice) lastSent() []byte {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	if len(f.sentBytes) == 0 {
-		return nil
-	}
-
-	return f.sentBytes[len(f.sentBytes)-1]
 }
 
 // fakeProcInspector is a configurable ProcessInspector for testing
@@ -130,15 +109,6 @@ func (f *fakeUeventListener) Listen(_ context.Context, ch chan<- struct{}) {
 	f.ch = ch
 }
 
-func (f *fakeUeventListener) trigger() {
-	if f.ch != nil {
-		select {
-		case f.ch <- struct{}{}:
-		default:
-		}
-	}
-}
-
 // withFakeDevices wires all dependency interfaces to fake implementations,
 // enabling tests to exercise real code paths (setTracking, setAudio, autoManage)
 // without touching /dev/hidraw*, /dev/video*, or real /proc.
@@ -181,36 +151,6 @@ func withFakeDevices() testDaemonOption {
 	}
 }
 
-// withFakeCameraInUse configures the fake process inspector to report
-// the camera as in-use (or not). Requires withFakeDevices().
-func withFakeCameraInUse(inUse bool) testDaemonOption {
-	return func(d *Daemon) {
-		if fake, ok := d.deps.procInspector.(*fakeProcInspector); ok {
-			fake.cameraInUse = inUse
-		}
-	}
-}
-
-// withFakeHIDResponse sets a custom SendRecv handler on the fake HID device.
-// Requires withFakeDevices().
-func withFakeHIDResponse(fn func(report []byte) ([]byte, error)) testDaemonOption {
-	return func(d *Daemon) {
-		if fake, ok := d.hidDev.(*fakeHIDDevice); ok {
-			fake.sendRecvFn = fn
-		}
-	}
-}
-
-// withFakePPID sets a parent-child relationship in the fake process inspector.
-// Requires withFakeDevices().
-func withFakePPID(child, parent int) testDaemonOption {
-	return func(d *Daemon) {
-		if fake, ok := d.deps.procInspector.(*fakeProcInspector); ok {
-			fake.ppidMap[child] = parent
-		}
-	}
-}
-
 // withFakeParsePTZ sets a deterministic PTZ readback value for the fake harness.
 func withFakeParsePTZ(pan, tilt, zoom int) testDaemonOption {
 	return func(d *Daemon) {
@@ -219,7 +159,3 @@ func withFakeParsePTZ(pan, tilt, zoom int) testDaemonOption {
 		}
 	}
 }
-
-// fakeSleepDuration is a short sleep for fake-device tests that need to wait
-// for async operations (e.g., PTZ readback goroutine) to complete.
-const fakeSleepDuration = 600 * time.Millisecond
