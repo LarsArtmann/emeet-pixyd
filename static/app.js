@@ -48,20 +48,26 @@
 
     var panSlider = document.getElementById("slider-pan");
     var tiltSlider = document.getElementById("slider-tilt");
-    if (!panSlider || !tiltSlider) return;
+    var zoomSlider = document.getElementById("slider-zoom");
+    if (!panSlider || !tiltSlider || !zoomSlider) return;
 
     var pan = parseInt(panSlider.value, 10) || 0;
     var tilt = parseInt(tiltSlider.value, 10) || 0;
+    var zoom = parseInt(zoomSlider.value, 10) || 0;
     var panMin = parseInt(panSlider.min, 10);
     var panMax = parseInt(panSlider.max, 10);
     var tiltMin = parseInt(tiltSlider.min, 10);
     var tiltMax = parseInt(tiltSlider.max, 10);
+    var zoomMin = parseInt(zoomSlider.min, 10);
+    var zoomMax = parseInt(zoomSlider.max, 10);
 
     var panPct = ((pan - panMin) / (panMax - panMin)) * 100;
     var tiltPct = ((tiltMax - tilt) / (tiltMax - tiltMin)) * 100;
+    var zoomPct = ((zoom - zoomMin) / (zoomMax - zoomMin)) * 100;
 
     radar.style.setProperty("--pan-x", panPct.toFixed(1) + "%");
     radar.style.setProperty("--pan-y", tiltPct.toFixed(1) + "%");
+    radar.style.setProperty("--zoom-pct", zoomPct.toFixed(1) + "%");
   }
 
   /* -------------------------------------------------------------------- */
