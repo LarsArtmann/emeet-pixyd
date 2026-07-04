@@ -280,3 +280,46 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 		t.Error("panel still has 'load' trigger (infinite loop bug)")
 	}
 }
+
+func TestWeb_PanelShowsPresetsWhenOnline(t *testing.T) {
+	t.Parallel()
+
+	daemon := newDaemonWithDevice(t)
+	daemon.mu.Lock()
+	daemon.state.Presets = map[string]pixy.PTZValues{
+		"home":    {Pan: 0, Tilt: 0, Zoom: 100},
+		"wide":    {Pan: 30, Tilt: -10, Zoom: 120},
+		"closeup": {Pan: -20, Tilt: 5, Zoom: 140},
+	}
+	daemon.mu.Unlock()
+
+	srv := newTestWebServer(t, daemon)
+
+	resp := get(t, srv.URL+"/panel")
+	defer resp.Body.Close() //nolint:errcheck
+
+	body := getBody(t, resp)
+
+	assertContains(t, body, "preset-section", "preset section")
+	assertContains(t, body, "preset-chip", "preset chips")
+	assertContains(t, body, "/api/preset/load/home", "load home preset")
+	assertContains(t, body, "/api/preset/delete/wide", "delete wide preset")
+	assertContains(t, body, "preset-name-input", "save input")
+	assertContains(t, body, "3/16", "preset count")
+}
+
+func TestWeb_PanelHidesPresetsWhenOffline(t *testing.T) {
+	t.Parallel()
+
+	daemon := newIntegrationDaemon(t)
+	srv := newTestWebServer(t, daemon)
+
+	resp := get(t, srv.URL+"/panel")
+	defer resp.Body.Close() //nolint:errcheck
+
+	body := getBody(t, resp)
+
+	if strings.Contains(body, "preset-section") {
+		t.Error("preset section should not appear when offline")
+	}
+}
