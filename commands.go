@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -341,8 +340,6 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	return okResult("auto mode: " + mode.String())
 }
 
-const maxPresets = 16
-
 const (
 	presetSave     = "save"
 	presetLoad     = "load"
@@ -401,17 +398,10 @@ func (d *Daemon) handlePresetList() CommandResult {
 		return okResult("no presets saved")
 	}
 
-	names := make([]string, 0, len(d.state.Presets))
-	for name := range d.state.Presets {
-		names = append(names, name)
-	}
-
-	slices.Sort(names)
-
 	var b strings.Builder
 	b.WriteString("presets:")
 
-	for _, name := range names {
+	for _, name := range d.state.Presets.SortedNames() {
 		v := d.state.Presets[name]
 		fmt.Fprintf(&b, "\n  %s: pan=%d tilt=%d zoom=%d", name, v.Pan, v.Tilt, v.Zoom)
 	}
@@ -438,13 +428,13 @@ func (d *Daemon) handlePresetSave(ctx context.Context, name string) CommandResul
 
 	d.mu.Lock()
 	if d.state.Presets == nil {
-		d.state.Presets = make(map[string]pixy.PTZValues)
+		d.state.Presets = pixy.NewPresetMap()
 	}
 
-	if _, exists := d.state.Presets[name]; !exists && len(d.state.Presets) >= maxPresets {
+	if _, exists := d.state.Presets[name]; !exists && d.state.Presets.IsFull() {
 		d.mu.Unlock()
 
-		return errResultMsg(fmt.Sprintf("preset limit reached (%d)", maxPresets))
+		return errResultMsg(fmt.Sprintf("preset limit reached (%d)", pixy.MaxPresets))
 	}
 
 	d.state.Presets[name] = clamped

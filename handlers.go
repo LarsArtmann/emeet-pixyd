@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/pprof"
-	"slices"
 	"strconv"
 	"time"
 
@@ -101,13 +100,7 @@ func (s *webServer) getWebStatus() webStatus {
 		status.Zoom = pixy.ZoomDefault
 	}
 
-	presetNames := make([]string, 0, len(s.daemon.state.Presets))
-	for name := range s.daemon.state.Presets {
-		presetNames = append(presetNames, name)
-	}
-
-	slices.Sort(presetNames)
-	status.PresetNames = presetNames
+	status.PresetNames = s.daemon.state.Presets.SortedNames()
 
 	return status
 }
@@ -306,6 +299,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
 	name := request.PathValue("name")
+
 	err := pixy.ValidatePresetName(name)
 	if err != nil {
 		http.Error(responseWriter, err.Error(), http.StatusBadRequest)

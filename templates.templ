@@ -316,7 +316,7 @@ templ presetSection(names []string) {
 		<div class="preset-header">
 			<span class="preset-label">Presets</span>
 			if len(names) > 0 {
-				<span class="preset-count">{ fmt.Sprintf("%d/%d", len(names), maxPresets) }</span>
+				<span class="preset-count">{ fmt.Sprintf("%d/%d", len(names), pixy.MaxPresets) }</span>
 			}
 		</div>
 		<div class="preset-save-row">

@@ -5,6 +5,7 @@ package pixy
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -236,12 +237,12 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 
 // State holds the current runtime state of the PIXY daemon.
 type State struct {
-	Camera   CameraState          `json:"camera"`
-	Audio    AudioMode            `json:"audio"`
-	Gesture  bool                 `json:"gesture"`
-	InCall   bool                 `json:"inCall"`
-	AutoMode AutoMode             `json:"autoMode"`
-	Presets  map[string]PTZValues `json:"presets,omitempty"`
+	Camera   CameraState `json:"camera"`
+	Audio    AudioMode   `json:"audio"`
+	Gesture  bool        `json:"gesture"`
+	InCall   bool        `json:"inCall"`
+	AutoMode AutoMode    `json:"autoMode"`
+	Presets  PresetMap   `json:"presets,omitempty"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
@@ -252,7 +253,7 @@ func DefaultState() State {
 		Gesture:  false,
 		InCall:   false,
 		AutoMode: AutoFull,
-		Presets:  make(map[string]PTZValues),
+		Presets:  NewPresetMap(),
 	}
 }
 
@@ -377,3 +378,32 @@ func ValidatePresetName(name string) error {
 
 	return nil
 }
+
+// PresetMap is a named collection of saved PTZ positions.
+// It serializes as a plain JSON object (map), preserving the on-disk format.
+type PresetMap map[string]PTZValues
+
+// NewPresetMap returns an empty, initialized PresetMap.
+func NewPresetMap() PresetMap { return make(PresetMap) }
+
+// SortedNames returns the preset names sorted alphabetically.
+func (p PresetMap) SortedNames() []string {
+	names := make([]string, 0, len(p))
+	for name := range p {
+		names = append(names, name)
+	}
+
+	slices.Sort(names)
+
+	return names
+}
+
+// Get returns the PTZ values for name, or false if not found.
+func (p PresetMap) Get(name string) (PTZValues, bool) {
+	v, ok := p[name]
+
+	return v, ok
+}
+
+// IsFull reports whether the preset collection has reached MaxPresets.
+func (p PresetMap) IsFull() bool { return len(p) >= MaxPresets }
