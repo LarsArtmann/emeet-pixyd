@@ -115,7 +115,7 @@ main() → NewDaemon() → Run()
 ### Key Interactions
 
 - **HID protocol**: Commands are 9-byte config reports followed by a commit report, with a 200ms sleep between them. Responses are 64-byte reads parsed by byte position.
-- **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. State dir defaults to `/run/emeet-pixyd`.
+- **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. State dir defaults to `/run/emeet-pixyd`. State carries a `SchemaVersion` field (`"v"` in JSON) — `loadState` logs a warning when the on-disk version differs from `pixy.CurrentSchemaVersion`, but still loads the data (best-effort backward compatibility). Old state files missing `"v"` load as version 0.
 - **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles).
 - **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` product `00c0`. Device name matching uses shared `isPixyName()` helper in `probe.go`.
 - **Uevent listener**: `UeventListener` interface (`uevent.go`) abstracts netlink. Production impl `netlinkUeventListener`; test impl `noopUeventListener`. Context-cancellable; a goroutine closes the netlink fd on cancellation.
