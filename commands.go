@@ -420,6 +420,11 @@ func (d *Daemon) handlePresetList() CommandResult {
 }
 
 func (d *Daemon) handlePresetSave(ctx context.Context, name string) CommandResult {
+	err := pixy.ValidatePresetName(name)
+	if err != nil {
+		return errResultMsg(err.Error())
+	}
+
 	d.mu.RLock()
 	videoDev := d.videoDev
 	d.mu.RUnlock()

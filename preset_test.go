@@ -160,6 +160,22 @@ func TestPreset_LoadSetsPTZCache(t *testing.T) {
 	}
 }
 
+func TestPreset_SaveRejectsInvalidName(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(
+		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		withFakeDevices(),
+	)
+
+	for _, name := range []string{"home/base", "a\\b"} {
+		result := d.handleCommand(t.Context(), "preset save "+name)
+		if !result.IsError() {
+			t.Errorf("preset save %q: expected error, got %q", name, result.String())
+		}
+	}
+}
+
 func TestPreset_PresetsPersistInState(t *testing.T) {
 	t.Parallel()
 
