@@ -134,8 +134,9 @@
               preBuild = "templ generate && for f in *_templ.go; do [ -s \"$$f\" ] || { echo 'FATAL: $$f empty after templ generate' >&2; exit 1; }; done";
 
               buildPhase = ''
-                runHook preBuild
                 export HOME=$TMPDIR
+                export GOCACHE=$TMPDIR/go-cache
+                runHook preBuild
                 golangci-lint run --timeout 2m ./...
                 runHook postBuild
               '';
