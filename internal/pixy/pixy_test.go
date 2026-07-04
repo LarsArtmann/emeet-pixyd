@@ -4,6 +4,7 @@ package pixy
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -285,5 +286,39 @@ func TestSourceIDBrand_Name(t *testing.T) {
 	var b sourceIDBrand
 	if got := b.Name(); got != "SourceID" {
 		t.Errorf("sourceIDBrand.Name() = %q, want %q", got, "SourceID")
+	}
+}
+
+func TestValidatePresetName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"empty", "", true},
+		{"whitespace only", "   ", true},
+		{"simple", "home", false},
+		{"with spaces", "living room", false},
+		{"leading trailing whitespace trimmed", "  home  ", false},
+		{"slash", "home/base", true},
+		{"backslash", "home\\base", true},
+		{"control char", "home\x00base", true},
+		{"newline", "home\nbase", true},
+		{"max length", strings.Repeat("a", MaxPresetNameLength), false},
+		{"over max length", strings.Repeat("a", MaxPresetNameLength+1), true},
+		{"unicode allowed", "客厅", false},
+	}
+
+	for _, tc := range tests {
+		err := ValidatePresetName(tc.input)
+		if (err != nil) != tc.wantErr {
+			t.Errorf("ValidatePresetName(%q) error = %v, wantErr %v", tc.input, err, tc.wantErr)
+		}
+
+		if err != nil && !errors.Is(err, ErrInvalidPresetName) {
+			t.Errorf("ValidatePresetName(%q) error does not wrap ErrInvalidPresetName: %v", tc.input, err)
+		}
 	}
 }

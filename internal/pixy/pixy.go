@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // Default paths, intervals, and permission bits for the daemon.
@@ -42,6 +43,8 @@ var (
 	ErrInvalidAudioMode = errors.New("invalid audio mode")
 	// ErrInvalidCameraState is returned when parsing an unknown camera state string.
 	ErrInvalidCameraState = errors.New("invalid camera state")
+	// ErrInvalidPresetName is returned when a preset name fails validation.
+	ErrInvalidPresetName = errors.New("invalid preset name")
 	// ErrHIDDeviceNotAvailable is returned when the HIDRAW device path is empty.
 	ErrHIDDeviceNotAvailable = errors.New("PIXY HID device not available")
 	// ErrPIXYNotConnected is returned when the V4L2 device path is empty.
@@ -339,3 +342,38 @@ const (
 	AxisTilt Axis = "tilt"
 	AxisZoom Axis = "zoom"
 )
+
+// Preset limits.
+const (
+	// MaxPresets is the maximum number of named PTZ presets that can be stored.
+	MaxPresets = 16
+	// MaxPresetNameLength is the maximum length of a preset name in characters.
+	MaxPresetNameLength = 32
+)
+
+// ValidatePresetName reports whether name is an acceptable preset label.
+// A valid name is non-empty (after trimming), at most MaxPresetNameLength
+// runes, contains no path separators, and contains no control characters.
+func ValidatePresetName(name string) error {
+	trimmed := strings.TrimSpace(name)
+	if trimmed == "" {
+		return fmt.Errorf("preset name is empty: %w", ErrInvalidPresetName)
+	}
+
+	if len([]rune(trimmed)) > MaxPresetNameLength {
+		return fmt.Errorf(
+			"preset name too long (%d > %d): %w",
+			len([]rune(trimmed)),
+			MaxPresetNameLength,
+			ErrInvalidPresetName,
+		)
+	}
+
+	for _, r := range trimmed {
+		if r == '/' || r == '\\' || unicode.IsControl(r) {
+			return fmt.Errorf("preset name %q contains an illegal character: %w", trimmed, ErrInvalidPresetName)
+		}
+	}
+
+	return nil
+}
