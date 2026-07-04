@@ -432,4 +432,38 @@
       streamRetryDelay = Math.min(streamRetryDelay * 2, STREAM_RETRY_MAX_MS);
     });
   })();
+
+  /* -------------------------------------------------------------------- */
+  /*  Preset save (delegated — input lives inside swapped panel)          */
+  /* -------------------------------------------------------------------- */
+
+  function savePreset() {
+    var input = document.getElementById("preset-name-input");
+    if (!input) return;
+    var name = input.value.trim();
+    if (!name) {
+      showToast("Enter a preset name", "error");
+      input.focus();
+      return;
+    }
+    input.value = "";
+    htmx.ajax("POST", "/api/preset/save/" + encodeURIComponent(name), {
+      target: "#status-panel",
+      swap: "outerHTML",
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "preset-save-btn") {
+      e.preventDefault();
+      savePreset();
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target && e.target.id === "preset-name-input" && e.key === "Enter") {
+      e.preventDefault();
+      savePreset();
+    }
+  });
 })();
