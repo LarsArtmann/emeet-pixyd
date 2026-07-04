@@ -1308,12 +1308,7 @@ button.htmx-request {
 }
 
 /* ========================================================================== */
-/*  HTMX Loading States                                                       */
-/* ========================================================================== */
-
-.htmx-indicator {
-  display: none;
-}
+/* HTMX Loading States */
 
 #status-panel.htmx-request {
   opacity: 0.88;

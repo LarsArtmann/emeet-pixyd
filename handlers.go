@@ -84,7 +84,6 @@ func (s *webServer) getWebStatus() webStatus {
 	defer s.daemon.mu.RUnlock()
 	//nolint:exhaustruct
 	status := webStatus{
-		PTZValues:  pixy.PTZValues{},
 		Camera:     s.daemon.state.Camera,
 		Audio:      s.daemon.state.Audio,
 		Gesture:    s.daemon.state.Gesture,
@@ -97,7 +96,7 @@ func (s *webServer) getWebStatus() webStatus {
 		Version:    buildVersion,
 	}
 	if status.Online {
-		status.Zoom = pixy.ZoomDefault
+		status.PTZValues = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}
 	}
 
 	status.PresetNames = s.daemon.state.Presets.SortedNames()
