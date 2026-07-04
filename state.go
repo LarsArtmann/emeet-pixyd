@@ -70,6 +70,19 @@ func (d *Daemon) loadState() bool {
 
 	d.state = loaded
 
+	if loaded.SchemaVersion != pixy.CurrentSchemaVersion {
+		slog.Warn(
+			"state file schema version mismatch — loading anyway",
+			"path",
+			d.config.StateFile(),
+			"got",
+			loaded.SchemaVersion,
+			"want",
+			pixy.CurrentSchemaVersion,
+		)
+		d.state.SchemaVersion = pixy.CurrentSchemaVersion
+	}
+
 	return true
 }
 

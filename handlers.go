@@ -169,7 +169,7 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 	stream := newSSEStream(responseWriter, request)
 	defer stream.Close()
 
-	_ = stream.Send(SSEEvent{ //nolint:exhaustruct
+	_ = stream.Send(SSEEvent{
 		Event: sseEventConnected,
 		Data:  "{}",
 	})

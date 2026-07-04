@@ -235,25 +235,32 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 	}
 }
 
+// CurrentSchemaVersion is the state file format version. Increment when
+// the JSON schema changes. Old state files with a lower version are
+// logged as stale but still loaded (best-effort backward compatibility).
+const CurrentSchemaVersion = 1
+
 // State holds the current runtime state of the PIXY daemon.
 type State struct {
-	Camera   CameraState `json:"camera"`
-	Audio    AudioMode   `json:"audio"`
-	Gesture  bool        `json:"gesture"`
-	InCall   bool        `json:"inCall"`
-	AutoMode AutoMode    `json:"autoMode"`
-	Presets  PresetMap   `json:"presets,omitempty"`
+	SchemaVersion int         `json:"v"`
+	Camera        CameraState `json:"camera"`
+	Audio         AudioMode   `json:"audio"`
+	Gesture       bool        `json:"gesture"`
+	InCall        bool        `json:"inCall"`
+	AutoMode      AutoMode    `json:"autoMode"`
+	Presets       PresetMap   `json:"presets,omitempty"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
 func DefaultState() State {
 	return State{
-		Camera:   StatePrivacy,
-		Audio:    AudioNC,
-		Gesture:  false,
-		InCall:   false,
-		AutoMode: AutoFull,
-		Presets:  NewPresetMap(),
+		SchemaVersion: CurrentSchemaVersion,
+		Camera:        StatePrivacy,
+		Audio:         AudioNC,
+		Gesture:       false,
+		InCall:        false,
+		AutoMode:      AutoFull,
+		Presets:       NewPresetMap(),
 	}
 }
 
