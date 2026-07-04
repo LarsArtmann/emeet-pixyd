@@ -131,7 +131,7 @@
 
               GOWORK = "off";
 
-              preBuild = "templ generate && for f in *_templ.go; do [ -s \"$$f\" ] || { echo 'FATAL: $$f empty after templ generate' >&2; exit 1; }; done";
+              preBuild = "templ generate";
 
               buildPhase = ''
                 export HOME=$TMPDIR

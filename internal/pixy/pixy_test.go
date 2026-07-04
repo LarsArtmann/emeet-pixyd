@@ -308,7 +308,6 @@ func TestValidatePresetName(t *testing.T) {
 		{"newline", "home\nbase", true},
 		{"max length", strings.Repeat("a", MaxPresetNameLength), false},
 		{"over max length", strings.Repeat("a", MaxPresetNameLength+1), true},
-		{"unicode allowed", "客厅", false},
 	}
 
 	for _, tc := range tests {

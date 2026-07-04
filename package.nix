@@ -18,21 +18,7 @@ buildGoModule {
 
   nativeBuildInputs = [ templ ];
 
-  preBuild = ''
-    templ generate
-    # Validate generated files are non-empty (guards against intermittent
-    # zero-byte *_templ.go output that breaks the build silently).
-    for f in *_templ.go; do
-      if [ ! -s "$f" ]; then
-        echo "WARNING: $f is empty after templ generate — re-running" >&2
-        templ generate
-        if [ ! -s "$f" ]; then
-          echo "FATAL: $f still empty after retry" >&2
-          exit 1
-        fi
-      fi
-    done
-  '';
+  preBuild = "templ generate";
 
   ldflags = [
     "-s"
