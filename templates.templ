@@ -54,6 +54,14 @@ templ iconCamera() {
 	</svg>
 }
 
+templ iconCameraOff() {
+	<svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2z"></path>
+		<circle cx="12" cy="13" r="4"></circle>
+		<line x1="3" y1="3" x2="21" y2="21"></line>
+	</svg>
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -91,7 +99,7 @@ templ page(s webStatus) {
 							<div class="preview-live-dot"></div>
 							<img src="/api/stream" id="preview-img" alt="Live camera feed" aria-label="Live camera preview"/>
 							<div id="preview-fallback" class="preview-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column">
-								<div class="icon">&#x1F4F7;</div>
+								@iconCameraOff()
 								<div>Camera in use or unavailable</div>
 							</div>
 							<button class="preview-snapshot" id="snapshot-btn" type="button" aria-label="Take snapshot">
@@ -100,7 +108,7 @@ templ page(s webStatus) {
 							</button>
 						} else {
 							<div class="preview-placeholder">
-								<div class="icon">&#x1F4F7;</div>
+								@iconCameraOff()
 								<div>Camera offline</div>
 							</div>
 						}
