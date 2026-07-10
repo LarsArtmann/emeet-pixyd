@@ -23,7 +23,7 @@
       treefmt-nix,
     }:
     let
-      version = "0.3.1";
+      version = self.rev or self.dirtyRev or "dev";
 
       inherit (nixpkgs) lib;
 
