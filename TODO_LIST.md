@@ -1,7 +1,7 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-07-01 (Round 9 — all 21 open items resolved)
-**Source docs verified:** all June 2026 `.md` + `.html` (status, planning, ADR, roadmap, design), cross-referenced against actual code
+**Updated:** 2026-07-13 (Docs-health audit — open work extracted from 2026-07-04 self-review status report)
+**Source docs verified:** all June–July 2026 `.md` + `.html` (status, planning, ADR, roadmap, design), cross-referenced against actual code
 
 ---
 
@@ -14,6 +14,63 @@
 - ❌ SKIP — Blocked by external constraints
 
 ---
+
+## Open Work (2026-07-13)
+
+Actionable items surfaced by the 2026-07-04 self-review status report
+(`docs/status/2026-07-04_16-29_self-review-and-cleanup-status.md`). Ranked by
+impact/effort. Vague or long-term ideas live in the "Low-value enhancements"
+brainstorm section below and in `docs/SUPERB_ROADMAP.md`.
+
+### UX / Accessibility
+
+| #   | Status  | Task                                                                                       | Impact | Effort | Evidence             |
+| --- | ------- | ------------------------------------------------------------------------------------------ | ------ | ------ | -------------------- |
+| 106 | ⬜ TODO | Add `hx-on::after-swap` focus management for keyboard users (HTMX `outerHTML` loses focus) | MED    | LOW    | status report §e.8   |
+| 107 | ⬜ TODO | Add SSE connection status indicator (green/red dot) in the UI                              | MED    | LOW    | status report §e.9   |
+| 108 | ⬜ TODO | Add gesture toggle button to web UI mode cards (backend supports it, CLI works)            | MED    | LOW    | status report §e.10  |
+| 109 | ⬜ TODO | Screen reader test pass (manual, document findings)                                        | MED    | LOW    | status report §f.3   |
+| 110 | ⬜ TODO | WCAG 2.1 AA audit                                                                          | MED    | MED    | status report §f.15  |
+| 111 | ⬜ TODO | Preset name autocomplete in web UI save input                                              | LOW    | MED    | status report §f.21  |
+| 112 | ⬜ TODO | Mobile device testing pass (real phone/iPad/landscape)                                     | MED    | MED    | FEATURES.md (Mobile) |
+
+### Architecture
+
+| #   | Status  | Task                                                                    | Impact | Effort | Evidence                                        |
+| --- | ------- | ----------------------------------------------------------------------- | ------ | ------ | ----------------------------------------------- |
+| 113 | ⬜ TODO | Wire `errors.Is` checks for the 9 sentinel errors in production callers | MED    | LOW    | status report §e.1                              |
+| 114 | ⬜ TODO | Consolidate `commandMsgError` into the `CommandError` pattern           | LOW    | MED    | status report §e.2                              |
+| 115 | ⬜ TODO | Add `DisallowUnknownFields` to state JSON decoder (strict schema)       | LOW    | LOW    | status report §f.17                             |
+| 116 | ⬜ TODO | Structured command types instead of `strings.Fields` string dispatch    | HIGH   | HIGH   | status report §e.4, §g (design decision needed) |
+
+### Testing
+
+| #   | Status  | Task                                                            | Impact | Effort | Evidence            |
+| --- | ------- | --------------------------------------------------------------- | ------ | ------ | ------------------- |
+| 117 | ⬜ TODO | Snapshot testing for web panel HTML (`go-snaps`)                | MED    | MED    | status report §f.8  |
+| 118 | ⬜ TODO | Property-based tests for `ValidatePresetName` and `Range.Clamp` | LOW    | MED    | status report §f.9  |
+| 119 | ⬜ TODO | `go-snaps` snapshot test for waybar JSON output                 | LOW    | LOW    | status report §f.18 |
+| 120 | ⬜ TODO | Integration test: full auto-manage lifecycle with fake devices  | MED    | MED    | status report §f.20 |
+| 121 | ⬜ TODO | Add `wpctl` mock for PipeWire integration tests                 | LOW    | MED    | status report §f.24 |
+
+### Docs
+
+| #   | Status  | Task                                               | Impact | Effort | Evidence            |
+| --- | ------- | -------------------------------------------------- | ------ | ------ | ------------------- |
+| 122 | ⬜ TODO | Document HID protocol reverse-engineering findings | LOW    | LOW    | status report §f.23 |
+
+### Open design question
+
+| #   | Status  | Question                                                                                                                                                                                                                          |
+| --- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 123 | ❓ OPEN | How to handle multi-word preset names through CLI `strings.Fields` dispatch? Web UI works; CLI silently truncates. Options: quote support / join-remaining-parts / structured commands / accept limitation. See status report §g. |
+
+---
+
+## Resolved History (archive)
+
+All items below are completed, decided, or skipped. Kept as a historical record
+of resolved work. New open work is tracked in the "Open Work" section above.
 
 ## Phase 1: Quick Wins (P0)
 
@@ -247,7 +304,9 @@ These are genuinely optional ideas surfaced across June status docs. Listed for 
 
 ## Summary
 
-> Phase 10 supersedes and de-duplicates the open items from earlier phases (e.g. #23/#72→#82, #30/#74→#88). Counts below reflect unique actionable items.
+> The "Open Work (2026-07-13)" section above supersedes the resolved history below. The history (items #1–#105) is complete; counts reflect the resolved archive only.
+
+**Resolved history (items #1–#105):**
 
 |                       | Status                                                                                   | Count |
 | --------------------- | ---------------------------------------------------------------------------------------- | ----- |
@@ -255,7 +314,6 @@ These are genuinely optional ideas surfaced across June status docs. Listed for 
 | 🟡 PARTIAL            | 1 (#80)                                                                                  |
 | 🟢 DECIDED (won't-do) | 4 (#85, #86, #96, #98)                                                                   |
 | ❌ SKIP               | 1 (#97)                                                                                  |
-| ⬜ TODO               | 0                                                                                        |
-| **Total**             | 84 unique actionable (items #1–#105, with #61 omitted) + ~10 unnumbered brainstorm ideas |
+| **Total resolved**    | 84 unique actionable (items #1–#105, with #61 omitted) + ~10 unnumbered brainstorm ideas |
 
-**All items resolved.** The TODO list is complete. Remaining work items are in the "Low-value enhancements" brainstorm section below.
+**Open work (items #106–#123):** 17 actionable TODO items + 1 open design question, ranked in the "Open Work" section above.

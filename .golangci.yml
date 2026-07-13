@@ -82,7 +82,6 @@ linters:
     - nilnil
     - nlreturn
     - noctx
-    - noinlineerr
     - nolintlint
     - nonamedreturns
     - nosprintfhostport
@@ -116,6 +115,8 @@ linters:
     - wrapcheck
     - wsl_v5
     - zerologlint
+  disable:
+    - noinlineerr
   settings:
     cyclop:
       max-complexity: 20
@@ -217,6 +218,7 @@ linters:
         linters:
           - unused
     paths:
+      - \./
       - \.gen\.go$
       - _templ\.go$
       - vendor/
@@ -232,6 +234,7 @@ formatters:
   exclusions:
     generated: lax
     paths:
+      - \./
       - _templ\.go$
 issues:
   max-issues-per-linter: 50

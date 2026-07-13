@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Web UI overhaul**: camera preview is now a full-width hero above the status panel (does not re-render on HTMX swaps). Camera mode cards (Track/Idle/Privacy) with inline SVG icons, descriptions, per-mode color glow, and keyboard-shortcut badges replace the old button group. Audio selector is a pill-style segmented control. PTZ radar indicator (120px circular position display with crosshair, zoom ring, and glowing position dot) added. Snapshot button overlays the preview. Keyboard shortcut legend (FAB + `?` key + `Escape`) lists all shortcuts. Preset UI (save input + chips with load/delete, delegated events that survive HTMX panel swaps). All UI icons are now inline SVG (Lucide-style) — no emoji anywhere. Responsive breakpoints at 860px/640px/400px + `prefers-reduced-motion` + `hover:none`.
+- Camera preset web UI: save/load/delete named PTZ positions via `/api/preset/{save,load,delete}/{name}` with preset count display (N/16).
+- State schema versioning: `pixy.CurrentSchemaVersion = 1` + `State.SchemaVersion` field (`"v"` in JSON). `loadState` logs a warning on version mismatch and loads old files as version 0 (best-effort backward compatibility).
+- Preset name validation: `pixy.ValidatePresetName()` — non-empty, ≤32 runes, no path separators, no control chars. Wired at both CLI and HTTP save boundaries (security/data-integrity gap closed).
+- `pixy.PresetMap` domain type with `SortedNames()`, `Get()`, `IsFull()` methods. `State.Presets` is now typed. `MaxPresets` constant moved from package main to `internal/pixy`.
+
+### Changed
+
+- `maxPresets` moved to `internal/pixy` as `pixy.MaxPresets`; template references updated.
+- `pixyCommit` now uses named constants instead of raw hex bytes. `respAutoModePrefix` extracted from 3 repetitions.
+- `getWebStatus` PTZ initialization fixed: explicit `PTZValues{Pan:0, Tilt:0, Zoom:ZoomDefault}` (was zoom-only init leaving Pan/Tilt implicit).
+- Duplicate `ci` devShell in `flake.nix` removed.
+
+### Fixed
+
+- **`nix flake check` failure** (broken since project inception): the go-modules FOD inherited `preBuild` with an empty-file validation guard that killed the FOD when `templ generate` produced empty output (no modules available). Simplified `preBuild` to bare `templ generate`; reordered `HOME=$TMPDIR` before `runHook preBuild`.
+- Dead `SSEEvent.ID` and `SSEEvent.Retry` fields removed (never set in production — only in one test). Dead `writeSSEEvent` branches removed; `strconv` import dropped.
+- Dead CSS removed: `.htmx-indicator` class was never used (project uses `#status-panel.htmx-request`).
+
 ### Fixed
 
 - Race condition in parallel tests: `newTestDaemon` previously shared a fixed state directory under `/tmp`, causing data races when tests ran with `-race -count=N`. Now takes `testing.TB` and uses `t.TempDir()` so each test gets an isolated state file. Verified with `-race -count=10`.

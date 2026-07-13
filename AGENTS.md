@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-07-04 (Self-review — preset safety, PresetMap type, dead code purge, nix flake check fix)
+**Updated:** 2026-07-13 (Docs-health audit — benchmark count fix, DOMAIN_LANGUAGE rebuild, FEATURES/CHANGELOG/TODO sync)
 
 ---
 
@@ -269,7 +269,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`matchesPixyID` unified probe helper**: Single function replaces `hasPixyProduct` and `hasPixyVendorProduct`. Takes prefix, separator, and vendor/product index parameters to handle both `PRODUCT=vendor/product/version` and `HID_ID=bus:vendor:product`.
 - **Partial device match logging**: `probeDevices()` logs a warning when only video or only hidraw is found (partial match).
 - **`v4l2SetMultiple` removed**: Center camera now uses per-axis `v4l2SetFn` calls. The batch function is no longer needed.
-- **Benchmarks**: 4 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`.
+- **Benchmarks**: 9 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`, `BenchmarkHandleCommand_Query`, `BenchmarkHandleCommand_Mutating`, `BenchmarkGetWebStatus`, `BenchmarkWriteSSEEvent`, `BenchmarkBroadcasterBroadcast`.
 - **`ParseAudioMode` accepts full names**: Both `org` (shorthand) and `original` (full name) are accepted. This lets users type `audio original` on the CLI.
 - **`Config.Validate()` checks enum fields**: Validates `AutoMode` and `DefaultAudio` in addition to StateDir, PollInterval, DebounceCount, and WebAddr. Invalid enum values prevent the daemon from starting.
 - **Bare `auto` command shows current mode**: `auto` without arguments reports the current auto mode instead of silently setting it to full. Use `auto-on`, `auto-off`, or `auto <mode>` to change.

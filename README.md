@@ -130,13 +130,15 @@ The daemon supports four auto-management strategies:
 
 The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 
-- Live MJPEG camera preview
-- Camera state buttons (Track / Idle / Privacy) with keyboard shortcuts (T / I / P / C)
+- Live MJPEG camera preview (full-width hero)
+- Camera mode cards (Track / Idle / Privacy) with SVG icons and keyboard shortcuts (T / I / P / C)
 - Audio mode selector (Noise Cancel / Live / Original)
-- PTZ sliders (pan ±150°, tilt ±90°, zoom 100–150×)
+- PTZ sliders (pan ±150°, tilt ±90°, zoom 100–150×) with a spatial position radar
+- Snapshot button to capture still frames
+- Preset save/load/delete chips
 - Gesture control and auto-mode toggles
 - Toast notifications for state changes
-- Auto-refresh every 3 seconds via HTMX
+- Live updates via SSE (Server-Sent Events)
 
 ## Configuration
 

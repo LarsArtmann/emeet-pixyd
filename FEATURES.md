@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 >
-> **Last code-verified:** 2026-06-30 (build green: `go test -race -count=1 ./...` passes, `golangci-lint` reports 0 issues).
+> **Last code-verified:** 2026-07-13 (build green: `go test -race -count=1 ./...` passes, `golangci-lint` reports 0 issues).
 
 ## Status legend
 
@@ -21,18 +21,19 @@
 
 ## Camera Control
 
-| Feature           | Status                    | Notes                                                                                                                                                                                                                                                                                       |
-| ----------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Face Tracking     | 🟢 `FULLY_FUNCTIONAL`     | HID config+commit in `hid.go`; routed via `setTracking` DI. Covered by `behavior_test.go`.                                                                                                                                                                                                  |
-| Idle Mode         | 🟢 `FULLY_FUNCTIONAL`     | Camera powered, no tracking. `cmdIdle` handler.                                                                                                                                                                                                                                             |
-| Privacy Mode      | 🟢 `FULLY_FUNCTIONAL`     | Lens physically blocked via HID.                                                                                                                                                                                                                                                            |
-| Toggle Privacy    | 🟢 `FULLY_FUNCTIONAL`     | Switches tracking ↔ privacy; extracted `handleTogglePrivacy` (`commands.go`).                                                                                                                                                                                                               |
-| Center Camera     | 🟢 `FULLY_FUNCTIONAL`     | pan=0/tilt=0/zoom=100 via per-axis `v4l2SetFn` DI (`centerCamera`).                                                                                                                                                                                                                         |
-| PTZ Sliders (Web) | 🟢 `FULLY_FUNCTIONAL`     | Pan ±150°, Tilt ±90°, Zoom 100–150× (`Range.Clamp` in `internal/pixy/pixy.go`); 300ms debounce in `app.js`.                                                                                                                                                                                 |
-| PTZ CLI           | 🟢 `FULLY_FUNCTIONAL`     | `pan/tilt/zoom <value>` via socket/CLI; bare numbers absolute (incl. negatives). `parsePTZValue` (`ptz.go`).                                                                                                                                                                                |
-| PTZ Relative Mode | 🟢 `FULLY_FUNCTIONAL`     | `rel+10`/`rel-5` prefix; `FuzzParsePTZValue` + `TestBehavior_PTZRelativeMath`.                                                                                                                                                                                                              |
-| Keyboard PTZ      | 🟢 `FULLY_FUNCTIONAL`     | Arrow keys pan/tilt ±5°, +/- zoom ±10 (`app.js`).                                                                                                                                                                                                                                           |
-| PTZ Readback      | 🟡 `PARTIALLY_FUNCTIONAL` | Cache updated with _requested_ value on set (`cache.go:Set`), giving instant UI feedback — **but** if the hardware rejects/rounds a value, the slider shows the requested value, not reality. Authoritative in-memory last-set or poll-after-delay not implemented. See `TODO_LIST.md` #91. |
+| Feature           | Status                | Notes                                                                                                                                                                                                        |
+| ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Face Tracking     | 🟢 `FULLY_FUNCTIONAL` | HID config+commit in `hid.go`; routed via `setTracking` DI. Covered by `behavior_test.go`.                                                                                                                   |
+| Idle Mode         | 🟢 `FULLY_FUNCTIONAL` | Camera powered, no tracking. `cmdIdle` handler.                                                                                                                                                              |
+| Privacy Mode      | 🟢 `FULLY_FUNCTIONAL` | Lens physically blocked via HID.                                                                                                                                                                             |
+| Toggle Privacy    | 🟢 `FULLY_FUNCTIONAL` | Switches tracking ↔ privacy; extracted `handleTogglePrivacy` (`commands.go`).                                                                                                                                |
+| Center Camera     | 🟢 `FULLY_FUNCTIONAL` | pan=0/tilt=0/zoom=100 via per-axis `v4l2SetFn` DI (`centerCamera`).                                                                                                                                          |
+| PTZ Sliders (Web) | 🟢 `FULLY_FUNCTIONAL` | Pan ±150°, Tilt ±90°, Zoom 100–150× (`Range.Clamp` in `internal/pixy/pixy.go`); 300ms debounce in `app.js`.                                                                                                  |
+| PTZ CLI           | 🟢 `FULLY_FUNCTIONAL` | `pan/tilt/zoom <value>` via socket/CLI; bare numbers absolute (incl. negatives). `parsePTZValue` (`ptz.go`).                                                                                                 |
+| PTZ Relative Mode | 🟢 `FULLY_FUNCTIONAL` | `rel+10`/`rel-5` prefix; `FuzzParsePTZValue` + `TestBehavior_PTZRelativeMath`.                                                                                                                               |
+| Keyboard PTZ      | 🟢 `FULLY_FUNCTIONAL` | Arrow keys pan/tilt ±5°, +/- zoom ±10 (`app.js`).                                                                                                                                                            |
+| PTZ Readback      | 🟢 `FULLY_FUNCTIONAL` | Cache set to requested value for instant UI feedback, then `schedulePTZReadback` (`ptz.go:195`) runs a delayed (500ms) hardware readback via `parsePTZ` to correct the cache with the actual motor position. |
+| Camera Presets    | 🟢 `FULLY_FUNCTIONAL` | Save/recall/delete named PTZ positions; max 16 (`pixy.MaxPresets`); names validated by `pixy.ValidatePresetName`; persisted in `state.json`. CLI multi-word names limited by `strings.Fields` dispatch.      |
 
 ## Audio
 
@@ -61,19 +62,25 @@
 
 ## Web UI (`http://127.0.0.1:8090`)
 
-| Feature                   | Status                    | Notes                                                                                                                                                                                  |
-| ------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Live MJPEG Preview        | 🟢 `FULLY_FUNCTIONAL`     | ffmpeg → MJPEG, single-client semaphore (`streamSema` cap 1). `extractJPEGFrame` 10M guard.                                                                                            |
-| Snapshot API              | 🟢 `FULLY_FUNCTIONAL`     | `GET /api/snapshot` returns last JPEG frame (`image/jpeg`, `no-store`).                                                                                                                |
-| SSE Live Updates          | 🟢 `FULLY_FUNCTIONAL`     | `/api/events` local `Broadcaster` fan-out; replaces 3s polling. 9 SSE unit tests.                                                                                                      |
-| Toast Notifications       | 🟢 `FULLY_FUNCTIONAL`     | success/info/error toasts via `applyResponseToStatus`; auto-dismiss 2.5s.                                                                                                              |
-| Keyboard Shortcuts        | 🟢 `FULLY_FUNCTIONAL`     | T=Track, I=Idle, P=Privacy, C=Center (disabled in inputs).                                                                                                                             |
-| Offline Banner            | 🟢 `FULLY_FUNCTIONAL`     | "Daemon unreachable" banner after failures (`app.js`).                                                                                                                                 |
-| PTZ Visual Feedback       | 🟢 `FULLY_FUNCTIONAL`     | Slider "sending" state, reverts to last-known-good on failure.                                                                                                                         |
-| Dark Glassmorphism Theme  | 🟢 `FULLY_FUNCTIONAL`     | CSS variables, glass cards, pulsing dots, responsive 2→1 grid.                                                                                                                         |
-| Mobile-Responsive Layout  | 🟡 `PARTIALLY_FUNCTIONAL` | `@media (max-width:720px)` exists (`style.css:110`) but **incidental, never designed or tested on small screens**. Touch targets/slider ergonomics unverified. See `TODO_LIST.md` #89. |
-| Security Headers          | 🟢 `FULLY_FUNCTIONAL`     | CSP, X-Frame-Options DENY, Referrer-Policy, X-Content-Type-Options, request IDs (`http.go`).                                                                                           |
-| MJPEG Stream Reconnection | 🟡 `PARTIALLY_FUNCTIONAL` | Retry logic exists (`app.js`) but has **no max-retry cap and no exponential backoff**; SSE side has backoff. See `TODO_LIST.md` #90.                                                   |
+| Feature                   | Status                    | Notes                                                                                                                                                                                                    |
+| ------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Live MJPEG Preview        | 🟢 `FULLY_FUNCTIONAL`     | ffmpeg → MJPEG, single-client semaphore (`streamSema` cap 1). `extractJPEGFrame` 10M guard.                                                                                                              |
+| Snapshot API              | 🟢 `FULLY_FUNCTIONAL`     | `GET /api/snapshot` returns last JPEG frame (`image/jpeg`, `no-store`).                                                                                                                                  |
+| SSE Live Updates          | 🟢 `FULLY_FUNCTIONAL`     | `/api/events` local `Broadcaster` fan-out; replaces 3s polling. 9 SSE unit tests.                                                                                                                        |
+| Toast Notifications       | 🟢 `FULLY_FUNCTIONAL`     | success/info/error toasts via `applyResponseToStatus`; auto-dismiss 2.5s.                                                                                                                                |
+| Keyboard Shortcuts        | 🟢 `FULLY_FUNCTIONAL`     | T=Track, I=Idle, P=Privacy, C=Center; arrow keys pan/tilt ±5°, +/- zoom ±10; `?` toggles shortcut legend. Disabled in inputs.                                                                            |
+| Offline Banner            | 🟢 `FULLY_FUNCTIONAL`     | "Daemon unreachable" banner after failures (`app.js`).                                                                                                                                                   |
+| PTZ Visual Feedback       | 🟢 `FULLY_FUNCTIONAL`     | Slider "sending" state, reverts to last-known-good on failure.                                                                                                                                           |
+| Dark Glassmorphism Theme  | 🟢 `FULLY_FUNCTIONAL`     | CSS variables, glass cards, pulsing dots, responsive 2→1 grid.                                                                                                                                           |
+| Mobile-Responsive Layout  | 🟡 `PARTIALLY_FUNCTIONAL` | Deliberate breakpoints at 860px/640px/400px + `prefers-reduced-motion` + `hover:none` (`style.css`). Touch targets sized. **Not tested on real small-screen devices** (phone/iPad/landscape unverified). |
+| Security Headers          | 🟢 `FULLY_FUNCTIONAL`     | CSP, X-Frame-Options DENY, Referrer-Policy, X-Content-Type-Options, request IDs (`http.go`).                                                                                                             |
+| MJPEG Stream Reconnection | 🟢 `FULLY_FUNCTIONAL`     | Exponential backoff (doubling delay capped at max), max 10 retries (`STREAM_MAX_RETRIES`), retry counter display (`app.js:396-438`).                                                                     |
+| Camera Mode Cards         | 🟢 `FULLY_FUNCTIONAL`     | Selectable Track/Idle/Privacy cards with inline SVG icons, descriptions, and per-mode color glow (`templates.templ` `cameraModeCard`).                                                                   |
+| Audio Segmented Control   | 🟢 `FULLY_FUNCTIONAL`     | Pill-style segmented control (NC/Live/Original) replacing individual buttons (`audioSegment` template).                                                                                                  |
+| PTZ Radar Indicator       | 🟢 `FULLY_FUNCTIONAL`     | 120px circular position indicator with crosshair, zoom ring, and glowing position dot; CSS custom properties `--pan-x`/`--pan-y`/`--zoom-pct`; live JS updates (`ptzRadar` template).                    |
+| Shortcut Legend           | 🟢 `FULLY_FUNCTIONAL`     | Fixed-position help panel (bottom-left), toggled via `?` key, FAB button, or `Escape`; lists all shortcuts (`shortcutLegend` template).                                                                  |
+| Preset UI (Web)           | 🟢 `FULLY_FUNCTIONAL`     | Save input + chips with load/delete; delegated events survive HTMX panel swaps; preset count N/16 (`presetSection` template).                                                                            |
+| SVG Placeholder Icons     | 🟢 `FULLY_FUNCTIONAL`     | Inline SVG icons for all states (Lucide-style stroke); offline/fallback use `iconCameraOff` — no emoji anywhere.                                                                                         |
 
 ## CLI / Unix Socket
 
@@ -126,9 +133,9 @@
 
 ## NixOS Module
 
-| Feature           | Status                | Notes                                                                                                                                                                       |
-| ----------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NixOS Integration | 🟢 `FULLY_FUNCTIONAL` | `hardware.emeet-pixy` options, udev rules, systemd user service, tmpfiles.d. Hardened: `ProtectSystem=strict`, `MemoryMax=256M`. Minor nits open (see `TODO_LIST.md` #105). |
+| Feature           | Status                | Notes                                                                                                                            |
+| ----------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| NixOS Integration | 🟢 `FULLY_FUNCTIONAL` | `hardware.emeet-pixy` options, udev rules, systemd user service, tmpfiles.d. Hardened: `ProtectSystem=strict`, `MemoryMax=256M`. |
 
 ## Nix Build
 
@@ -140,10 +147,10 @@
 
 ## Summary
 
-- **Total features:** 52
-- 🟢 Fully functional: 49
-- 🟡 Partially functional: 3 (PTZ Readback accuracy, Mobile-Responsive layout, MJPEG Stream Reconnection)
+- **Total features:** 59
+- 🟢 Fully functional: 58
+- 🟡 Partially functional: 1 (Mobile-Responsive Layout — untested on real devices)
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 
-The codebase is mature and production-ready. The three `PARTIALLY_FUNCTIONAL` items are all edge-case refinements (UI accuracy / small-screen ergonomics / reconnect robustness) — no core functionality is missing or broken. Each is tracked with concrete next steps in `TODO_LIST.md`.
+The codebase is mature and production-ready. The single `PARTIALLY_FUNCTIONAL` item is an edge-case refinement (small-screen device testing) — no core functionality is missing or broken.
