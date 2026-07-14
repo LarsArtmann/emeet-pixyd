@@ -130,6 +130,7 @@
               ];
 
               GOWORK = "off";
+              GOEXPERIMENT = "jsonv2";
 
               preBuild = "templ generate";
 
@@ -160,6 +161,7 @@
             ];
 
             GOWORK = "off";
+            GOEXPERIMENT = "jsonv2";
           };
         };
 

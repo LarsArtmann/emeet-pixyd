@@ -3,7 +3,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"

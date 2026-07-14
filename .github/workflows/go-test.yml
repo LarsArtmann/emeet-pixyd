@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOWORK: off
+      GOEXPERIMENT: jsonv2
     steps:
       - uses: actions/checkout@v4
 

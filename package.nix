@@ -14,6 +14,8 @@ buildGoModule {
   vendorHash = "sha256-ZJbdwa1nuZvi0+syO4slvQvRRLpU6L0fcB5Cwxdx/YI=";
   proxyVendor = true;
 
+  GOEXPERIMENT = "jsonv2";
+
   doCheck = false;
 
   nativeBuildInputs = [ templ ];

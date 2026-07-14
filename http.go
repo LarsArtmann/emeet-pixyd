@@ -4,7 +4,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,7 +19,7 @@ import (
 func writeJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
 
-	err := json.NewEncoder(&buf).Encode(v)
+	err := json.MarshalWrite(&buf, v)
 	if err != nil {
 		return fmt.Errorf("encode JSON response (status %d): %w", status, err)
 	}

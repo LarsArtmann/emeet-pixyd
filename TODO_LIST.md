@@ -151,27 +151,27 @@ of resolved work. New open work is tracked in the "Open Work" section above.
 
 ## Phase 8: From 15-Skill Comprehensive Audit (2026-05-12)
 
-|     | #       | Status                                                                                                   | Task            | Source |
-| --- | ------- | -------------------------------------------------------------------------------------------------------- | --------------- | ------ |
-| 43  | ✅ DONE | Fix `hidSendRecv` nil error wrapping bug (zero-write produces `%!w(<nil>)`)                              | Code Review C1  |
-| 44  | ✅ DONE | Fix `hasPixyVendorProduct` — `return false` → `continue` on malformed HID_ID                             | Code Review C4  |
-| 45  | ✅ DONE | Fix `flake.nix` — remove invalid `env` attribute from app definition                                     | Nix Review      |
-| 46  | ✅ DONE | Fix `package.nix` — deduplicate version string via `let version` binding                                 | Nix Review      |
-| 47  | ✅ DONE | Fix `autoManage` — only call `saveState` when state actually changed                                     | Self-Review 4   |
-| 48  | ✅ DONE | Validate loaded state in `loadState()` — reject garbage CameraState/AudioMode/AutoMode values            | Code Review C2  |
-| 49  | ✅ DONE | Fix `uevent.go` — transient read errors permanently disable hotplug, added retry with continue           | Code Review C5  |
-| 50  | ✅ DONE | Moved PTZ limits to shared constants in `internal/pixy/` (eliminated split brain with templates)         | Self-Review S1  |
-| 51  | ✅ DONE | Consolidate 10 DI function pointers into `Dependencies` struct in `deps.go`                              | Architecture 3  |
-| 52  | ✅ DONE | Replace `handleCommand(string) string` with typed `CommandResult` struct                                 | Architecture 2  |
-| 53  | ✅ DONE | Consolidate PTZ logic into `ptz.go` (extracted from handlers.go + v4l2.go, v4l2.go deleted)              | Architecture 3  |
-| 54  | ✅ DONE | Added systemd hardening to NixOS module (ProtectSystem, PrivateTmp, NoNewPrivileges, MemoryMax)          | Nix Review H2   |
-| 55  | ✅ DONE | Fixed false-positive tests — proper assertions for sync/toggle-privacy commands                          | BDD Review P0   |
-| 56  | ✅ DONE | Removed `, change` from PTZ slider hx-trigger (was doubling requests)                                    | Frontend Review |
-| 57  | ✅ DONE | Suppress toast spam during PTZ slider drag (empty toast on success)                                      | Frontend Review |
-| 58  | ✅ DONE | Added `role="alert"` to error banners for screen reader announcement                                     | Frontend A11y   |
-| 59  | ❌ SKIP | `encoding/json/v2` not available in Go 1.26.2 stdlib — revisit when landed                               | How-to-Go       |
-| 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream           | Self-Review 4.8 |
-| 62  | ✅ DONE | Enrich `PTZValues` with `Get(axis)`/`Set(axis, val)` methods, eliminate all hardcoded V4L2 control names | Session 7       |
+|     | #       | Status                                                                                                         | Task            | Source |
+| --- | ------- | -------------------------------------------------------------------------------------------------------------- | --------------- | ------ |
+| 43  | ✅ DONE | Fix `hidSendRecv` nil error wrapping bug (zero-write produces `%!w(<nil>)`)                                    | Code Review C1  |
+| 44  | ✅ DONE | Fix `hasPixyVendorProduct` — `return false` → `continue` on malformed HID_ID                                   | Code Review C4  |
+| 45  | ✅ DONE | Fix `flake.nix` — remove invalid `env` attribute from app definition                                           | Nix Review      |
+| 46  | ✅ DONE | Fix `package.nix` — deduplicate version string via `let version` binding                                       | Nix Review      |
+| 47  | ✅ DONE | Fix `autoManage` — only call `saveState` when state actually changed                                           | Self-Review 4   |
+| 48  | ✅ DONE | Validate loaded state in `loadState()` — reject garbage CameraState/AudioMode/AutoMode values                  | Code Review C2  |
+| 49  | ✅ DONE | Fix `uevent.go` — transient read errors permanently disable hotplug, added retry with continue                 | Code Review C5  |
+| 50  | ✅ DONE | Moved PTZ limits to shared constants in `internal/pixy/` (eliminated split brain with templates)               | Self-Review S1  |
+| 51  | ✅ DONE | Consolidate 10 DI function pointers into `Dependencies` struct in `deps.go`                                    | Architecture 3  |
+| 52  | ✅ DONE | Replace `handleCommand(string) string` with typed `CommandResult` struct                                       | Architecture 2  |
+| 53  | ✅ DONE | Consolidate PTZ logic into `ptz.go` (extracted from handlers.go + v4l2.go, v4l2.go deleted)                    | Architecture 3  |
+| 54  | ✅ DONE | Added systemd hardening to NixOS module (ProtectSystem, PrivateTmp, NoNewPrivileges, MemoryMax)                | Nix Review H2   |
+| 55  | ✅ DONE | Fixed false-positive tests — proper assertions for sync/toggle-privacy commands                                | BDD Review P0   |
+| 56  | ✅ DONE | Removed `, change` from PTZ slider hx-trigger (was doubling requests)                                          | Frontend Review |
+| 57  | ✅ DONE | Suppress toast spam during PTZ slider drag (empty toast on success)                                            | Frontend Review |
+| 58  | ✅ DONE | Added `role="alert"` to error banners for screen reader announcement                                           | Frontend A11y   |
+| 59  | ✅ DONE | Migrated to `encoding/json/v2` via `GOEXPERIMENT=jsonv2` (5 files: http.go, state.go, waybar.go, 2 test files) | How-to-Go       |
+| 60  | ✅ DONE | Added `extractJPEGFrame` max-iterations guard (10M) to prevent infinite loop on corrupt stream                 | Self-Review 4.8 |
+| 62  | ✅ DONE | Enrich `PTZValues` with `Get(axis)`/`Set(axis, val)` methods, eliminate all hardcoded V4L2 control names       | Session 7       |
 
 ## Phase 9: Post-cqrs-htmx Removal Hardening (2026-06-21)
 
@@ -250,11 +250,11 @@ All items below were extracted by reading **every `.md`/`.html` doc from June 20
 
 ### Resolved — Dependencies / modernization
 
-|     | #                     | Status                                                                                           | Task                       | Source / Evidence |
-| --- | --------------------- | ------------------------------------------------------------------------------------------------ | -------------------------- | ----------------- |
-| 96  | 🟢 DECIDED (won't-do) | `prometheus/client_golang` cannot be removed — OTel exporter depends on it transitively          | `go mod graph` verified    |
-| 97  | ❌ SKIP               | `encoding/json/v2` — still needs `goexperiment.jsonv2` build tag; not usable until Go stabilizes | How-to-Go; verified absent |
-| 98  | 🟢 DECIDED (won't-do) | Move `SSEEvent` to `internal/pixy` — author decision: keep as transport DTO in `sse.go`          | Session 9 §g               |
+|     | #                     | Status                                                                                                  | Task                        | Source / Evidence |
+| --- | --------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------- | ----------------- |
+| 96  | 🟢 DECIDED (won't-do) | `prometheus/client_golang` cannot be removed — OTel exporter depends on it transitively                 | `go mod graph` verified     |
+| 97  | ✅ DONE               | Migrated to `encoding/json/v2` via `GOEXPERIMENT=jsonv2` — enabled in nix build, lint, devShell, and CI | How-to-Go; verified working |
+| 98  | 🟢 DECIDED (won't-do) | Move `SSEEvent` to `internal/pixy` — author decision: keep as transport DTO in `sse.go`                 | Session 9 §g                |
 
 ### Resolved — Build / CI hardening
 

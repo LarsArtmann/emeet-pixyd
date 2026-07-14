@@ -13,15 +13,15 @@ Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`
 nix build                          # production build (preferred)
 go build -o emeet-pixyd .          # manual build (needs `templ generate` first for template changes)
 
-# Test (IMPORTANT: use GOWORK=off if a parent go.work exists)
-GOWORK=off go test -race -count=1 ./...  # CI runs this
-GOWORK=off go test ./...                 # without race detector
-GOWORK=off go test -run TestName ./...   # single test
+# Test (IMPORTANT: use GOWORK=off if a parent go.work exists; GOEXPERIMENT=jsonv2 for encoding/json/v2)
+GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...  # CI runs this
+GOEXPERIMENT=jsonv2 GOWORK=off go test ./...                 # without race detector
+GOEXPERIMENT=jsonv2 GOWORK=off go test -run TestName ./...   # single test
 
 # Lint (IMPORTANT: use GOWORK=off)
-GOWORK=off golangci-lint run --timeout 2m ./...  # CI runs this
-GOWORK=off golangci-lint run ./...              # without timeout
-GOWORK=off golangci-lint run handlers.go        # single file
+GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run --timeout 2m ./...  # CI runs this
+GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run ./...              # without timeout
+GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run handlers.go        # single file
 
 # Generate templ templates
 templ generate                      # required after editing templates.templ
@@ -37,7 +37,7 @@ emeet-pixyd --help                  # show CLI usage
 
 ### CI
 
-GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`) on ubuntu-latest. All Go steps use `GOWORK: off`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
+GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`) on ubuntu-latest. All Go steps use `GOWORK: off` and `GOEXPERIMENT: jsonv2`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
 
 ---
 
@@ -210,6 +210,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 ## Gotchas
 
 - **GOWORK=off required**: Parent directory has a `go.work` that doesn't include this project. Always use `GOWORK=off` for `go build`/`go test`. CI is configured with `GOWORK: off` env var.
+- **GOEXPERIMENT=jsonv2 required**: The project uses `encoding/json/v2` (the new experimental JSON API). All `go build`/`go test`/`golangci-lint` commands must set `GOEXPERIMENT=jsonv2`. Set in CI (`go-test.yml`), nix build (`package.nix`), lint derivation and devShell (`flake.nix`). When Go 1.27 ships, `encoding/json/v2` becomes stable and the flag can be removed.
 - **Audio mode shorthand**: CLI accepts `"org"` but the stored/displayed value is `"original"`. `ParseAudioMode` maps both.
 - **PTZ units**: V4L2 uses 1/3600-degree units internally (`v4l2UnitsPerDegree = 3600`). The daemon presents user-facing degrees but multiplies before sending to `v4l2-ctl`. Zoom is not multiplied.
 - **PTZ limits are hardware-verified**: `PanRange = Range{Min: -150, Max: 150}`, `TiltRange = Range{Min: -90, Max: 90}`, `ZoomRange = Range{Min: 100, Max: 150}` in `internal/pixy/pixy.go`. These were verified empirically against the EMEET PIXY via `v4l2-ctl --list-ctrls` (`pan_absolute`/`tilt_absolute` range ±540000/±324000 at 3600 units/°, `zoom_absolute` 100–150). Tilt sign convention: **positive = up** everywhere (V4L2 read, V4L2 write, web slider, keyboard arrows) — no inversion anywhere.
