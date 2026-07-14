@@ -1,0 +1,69 @@
+---
+title: Changelog
+description: Release history and breaking changes
+---
+
+All notable changes to emeet-pixyd are documented here.
+
+## Unreleased
+
+- Documentation website launched at `emeet-pixyd.lars.software`
+
+## Key Milestones
+
+### Call Detection & Auto-Activation
+
+- `/proc/*/fd` scanning for universal call detection
+- Debounced state transitions (configurable count + interval)
+- Four auto modes: full, tracking-only, privacy-only, off
+
+### Web UI
+
+- Dark-themed glass-morphism control panel
+- Live MJPEG camera preview with snapshot
+- PTZ sliders with spatial position radar
+- Camera mode cards with SVG icons and keyboard shortcuts
+- Preset save/load/delete chips
+- Server-Sent Events for live state updates
+
+### Audio Switching
+
+- Automatic PipeWire default source switching via `wpctl`
+- Three audio modes: Noise Cancel, Live, Original
+
+### PTZ Control
+
+- Hardware-verified pan (-150 to 150 degrees), tilt (-90 to 90), zoom (100 to 150)
+- Absolute and relative positioning modes
+- Delayed hardware readback (500ms) to correct cache
+- Named presets with validation
+
+### System Integration
+
+- NixOS module with udev rules, systemd user service, tmpfiles.d
+- Waybar JSON output with CSS class variants
+- Prometheus metrics via OpenTelemetry SDK
+- Netlink uevent listener for USB hotplug
+- systemd sd_notify (READY=1, WATCHDOG=1)
+
+### Architecture
+
+- Dependency injection via function fields (no interfaces for external deps)
+- Branded types (`PID`, `SourceID`) for compile-time safety
+- Split locks (`hidMu` + `v4l2Mu`) for concurrency
+- Atomic state persistence (`.tmp` + rename)
+- Schema-versioned state file for forward compatibility
+
+## Breaking Changes
+
+### Auto Mode Legacy Values
+
+`EMEET_PIXYD_AUTO=true` / `false` / `1` / `0` are still accepted but mapped to `full` / `off`. New code should use the explicit enum values.
+
+### Audio Mode Shorthand
+
+CLI accepts `"org"` as shorthand for `"original"`. The stored value is always `"original"`. Both are accepted by `ParseAudioMode`.
+
+### State Schema Versioning
+
+The state file now carries a `"v"` field. Old state files missing this field load as version 0. The daemon logs a warning but still loads the data.

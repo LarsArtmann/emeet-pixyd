@@ -2,7 +2,7 @@
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
 
-**Updated:** 2026-07-13 (Docs-health audit — benchmark count fix, DOMAIN_LANGUAGE rebuild, FEATURES/CHANGELOG/TODO sync)
+**Updated:** 2026-07-14 (MIT license change, website added at `website/`)
 
 ---
 
@@ -102,6 +102,7 @@ main() → NewDaemon() → Run()
 | `errors.go`        | `CommandError` type, `CommandResult`, `errStr` helper, exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`)                                                                                                                                                                                                                                                                                                   |
 | `cache.go`         | Named cache types: `lastFrameCache` (Get/Set), `ptzCache` (Get/Set/Invalidate) with encapsulated mutex access                                                                                                                                                                                                                                                                                                                   |
 | `internal/pixy/`   | Shared types: `Config`, `State`, `CameraState`, `AudioMode`, `PID`, `SourceID`, constants, `SendCommand`                                                                                                                                                                                                                                                                                                                        |
+| `website/`         | Astro + Starlight documentation website (landing page + 16 docs pages), deployed to `emeet-pixyd.lars.software` via Firebase Hosting                                                                                                                                                                                                                                                                                            |
 | `static/`          | Frontend assets (`app.js`, `style.css`, `htmx.js`) — embedded via `//go:embed`. HTMX v2.0.9 served as static file at `/static/htmx.js` (was previously via `cqrshtmx.HTMXScriptHandler()`)                                                                                                                                                                                                                                      |
 | `behavior_test.go` | BDD-style behavioral tests: full auto lifecycle, debounce flip-flop, PTZ clamping, waybar tooltip, privacy toggle, audio cycle, state restart                                                                                                                                                                                                                                                                                   |
 | `commands_test.go` | Unit tests for PTZ, auto, gesture, audio, tracking commands, actionToast, applyResponseToStatus                                                                                                                                                                                                                                                                                                                                 |
@@ -315,6 +316,8 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - **`cqrs-htmx/v2`** (same author): HTMX-aware web infrastructure library. **Evaluated and REMOVED** — was briefly adopted for SSE, middleware, embedded HTMX JS, and WriteJSON, but pulled in ~30 transitive deps including a private repo (`go-cqrs-lite`) that broke `nix build`. The 8 used features were reimplemented locally in `sse.go` (~290 lines). All deps are now on the public Go module proxy.
 - **`templ-components`** (same author): Tailwind CSS component library for templ. Not adopted because emeet-pixyd uses hand-crafted custom CSS (glass morphism dark theme with CSS variables), not Tailwind. The UI is a purpose-built hardware control panel with 6 cards — generic component library overhead is unjustified.
 
+- **License**: MIT. The `flake.nix` (`license` block), `package.nix` (`lib.licenses.mit`), `LICENSE` file, `README.md`, and website (`package.json`, JSON-LD, footer) are all consistent. Previously was Proprietary but changed to MIT on 2026-07-14.
+
 ---
 
 ## NixOS Module
@@ -326,5 +329,38 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - systemd user service (runs after pipewire + graphical-session)
 - Installs `v4l-utils`, `wireplumber`, `libnotify` in service PATH
 - Creates `/run/emeet-pixyd` tmpfiles.d entry
+
+---
+
+## Website
+
+The `website/` directory contains an Astro + Starlight documentation site deployed to Firebase Hosting at `emeet-pixyd.lars.software`.
+
+| File                                      | Purpose                                                                                |
+| ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| `website/astro.config.mjs`                | Astro config: Starlight sidebar, sitemap, CSP, Tailwind, fonts                         |
+| `website/firebase.json`                   | Firebase Hosting config (target: `emeet-pixyd`, cache headers, CSP)                    |
+| `website/.firebaserc`                     | Firebase project mapping (project: `lars-software`, target: `emeet-pixyd`)             |
+| `website/flake.nix`                       | Nix flake with `dev`, `build`, `preview`, `deploy` apps                                |
+| `website/package.json`                    | Dependencies: Astro 7, Starlight, Tailwind v4, astro-og-canvas                         |
+| `website/scripts/fix-csp.mjs`             | Post-build script that hashes inline scripts and injects CSP SHA-256 hashes            |
+| `website/src/pages/index.astro`           | Landing page composition                                                               |
+| `website/src/pages/og/[...slug].ts`       | OG image generation via astro-og-canvas (violet border)                                |
+| `website/src/layouts/LandingLayout.astro` | HTML shell (SEO, OG, JSON-LD, CSP)                                                     |
+| `website/src/components/`                 | 14 Astro components (Hero, Features, HowItWorks, Comparison, etc.)                     |
+| `website/src/data/`                       | TypeScript data modules (config, features, sections, types, hero-code)                 |
+| `website/src/styles/`                     | global.css (Tailwind v4 + violet theme) + starlight.css (Starlight overrides)          |
+| `website/src/content/docs/`               | 16 MDX documentation pages                                                             |
+| `website/public/`                         | favicon.svg, manifest.json, robots.txt, JS (theme-init, header, copy-code, animations) |
+
+### Website Conventions
+
+- **Accent color**: Violet (`#8b5cf6`) — distinct from go-atomic-write (emerald) and gogenfilter (cyan)
+- **CSP enabled** via Astro's `security.csp` config + post-build `fix-csp.mjs` script
+- **OG images** generated per-page via astro-og-canvas with violet border
+- **Build**: `npm run build` runs `astro build && node scripts/fix-csp.mjs`
+- **Deploy**: `nix run .#deploy` runs `npm run build && firebase deploy --only hosting`
+- **Node 24** (`.node-version`)
+- **TypeScript strict** mode — clean typecheck expected
 
 ---

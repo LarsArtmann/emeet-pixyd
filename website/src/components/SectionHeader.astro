@@ -1,0 +1,17 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+}
+
+const { title, subtitle, eyebrow } = Astro.props;
+---
+
+<div class="text-center mb-12">
+  {eyebrow && (
+    <div class="inline-block text-xs font-mono uppercase tracking-[0.2em] text-accent mb-3">{eyebrow}</div>
+  )}
+  <h2 class="text-[clamp(1.625rem,4vw,2.25rem)] font-bold text-text-primary tracking-tight mb-4">{title}</h2>
+  {subtitle && <p class="text-base text-text-secondary max-w-2xl mx-auto">{subtitle}</p>}
+</div>

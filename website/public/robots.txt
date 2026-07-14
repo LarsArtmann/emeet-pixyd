@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://emeet-pixyd.lars.software/sitemap-index.xml

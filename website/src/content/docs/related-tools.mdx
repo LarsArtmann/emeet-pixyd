@@ -1,0 +1,60 @@
+---
+title: Related Tools
+description: Other Linux webcam and automation tools in the ecosystem
+---
+
+## Webcam Management
+
+### v4l2-ctl
+
+The standard V4L2 command-line tool for camera control. emeet-pixyd uses it under the hood for PTZ control. Part of `v4l-utils`.
+
+### OBS Studio
+
+Professional streaming software. When OBS opens the camera device, emeet-pixyd detects it as a "call" and activates tracking. The two work together seamlessly.
+
+## Audio
+
+### PipeWire / WirePlumber
+
+The modern Linux audio/video stack. emeet-pixyd uses `wpctl` (WirePlumber CLI) to switch the default audio source to the PIXY microphone on call start.
+
+### easyeffects
+
+Real-time audio effects for PipeWire. Complements the PIXY's built-in noise cancellation if you need additional audio processing.
+
+## Desktop Integration
+
+### Waybar
+
+Highly customizable Wayland status bar. emeet-pixyd provides JSON output (`emeet-pixy waybar`) for custom modules with camera state, tooltip, and CSS classes.
+
+### systemd
+
+emeet-pixyd integrates with systemd via `sd_notify` (READY=1, WATCHDOG=1) and ships as a systemd user service in the NixOS module.
+
+## Monitoring
+
+### Prometheus / Grafana
+
+emeet-pixyd exposes OpenTelemetry-based metrics at `/metrics` in Prometheus format. Point your scraper at `localhost:8090/metrics` and visualize probe results, stream duration, and command latency.
+
+## NixOS Ecosystem
+
+### Home Manager
+
+Declarative user package and dotfile management for NixOS. Works alongside the emeet-pixyd NixOS module.
+
+### Nix Flakes
+
+emeet-pixyd is distributed as a Nix flake. Add it as an input and consume the NixOS module or build directly.
+
+## Similar Projects
+
+### webcamoid
+
+Cross-platform webcam suite with effects and virtual cameras. More general-purpose; emeet-pixyd is specifically optimized for the EMEET PIXY's hardware features (AI tracking, hardware privacy shutter, HID protocol).
+
+### v4l2loopback
+
+Kernel module for creating virtual video devices. Useful if you want to pipe the PIXY feed through processing before presenting it to applications.

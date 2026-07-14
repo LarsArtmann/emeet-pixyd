@@ -1,0 +1,96 @@
+---
+title: Contributing
+description: Development setup, build commands, and code style
+---
+
+## Development Setup
+
+### Prerequisites
+
+- **Nix** (with flakes enabled) — recommended
+- Or manually: Go 1.26+, `templ`, `golangci-lint`, `v4l-utils`
+
+### Enter Dev Shell
+
+```bash
+nix develop
+```
+
+This provides Go, golangci-lint, templ, and all other tools.
+
+## Build
+
+```bash
+nix build                 # Production build (preferred)
+go build -o emeet-pixyd . # Manual build (needs `templ generate` first)
+```
+
+## Test
+
+:::note[Important]
+Always use `GOWORK=off` because a parent directory has a `go.work` that doesn't include this project. Also use `GOEXPERIMENT=jsonv2` because the project uses `encoding/json/v2`.
+:::
+
+```bash
+# Full test suite with race detector (CI runs this)
+GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...
+
+# Without race detector
+GOEXPERIMENT=jsonv2 GOWORK=off go test ./...
+
+# Single test
+GOEXPERIMENT=jsonv2 GOWORK=off go test -run TestName ./...
+```
+
+## Lint
+
+```bash
+GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run --timeout 2m ./...
+```
+
+All golangci-lint v2 linters are enabled. Lint is expected to be clean (0 issues).
+
+## Templates
+
+```bash
+templ generate    # Required after editing .templ files
+go generate ./... # Alternative
+```
+
+Generated `_templ.go` files are gitignored. CI runs `templ generate` before lint/test.
+
+## Format
+
+```bash
+nix fmt    # Alejandra for .nix files
+```
+
+## Code Style
+
+- Standard `testing` package only (no testify)
+- `fmt.Errorf("label: %w", err)` for error wrapping
+- Named constants for all command strings, response strings, and binary names
+- `//nolint` directives at call sites for intentional suppressions
+- All source files use `//go:build linux`
+- No `init()` functions — metrics registration is lazy via `sync.Once`
+
+## Testing Patterns
+
+- **`newTestDaemon(t, camera, videoDev, hidrawDev, opts...)`** is the canonical test builder
+- Uses `t.TempDir()` for `StateDir` so parallel tests never race on state files
+- `t.Parallel()` used consistently
+- Predefined test options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, etc.
+- Fuzz tests: `FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`
+- Integration tests: `//go:build integration` tag
+
+## Pull Request Checklist
+
+- [ ] `GOWORK=off go test -race -count=1 ./...` passes
+- [ ] `GOWORK=off golangci-lint run --timeout 2m ./...` passes with 0 issues
+- [ ] `templ generate` has been run (if templates changed)
+- [ ] No hardcoded strings for command names or binary names
+- [ ] Tests use `t.Parallel()` and `t.TempDir()`
+
+## CI
+
+GitHub Actions runs: `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets.

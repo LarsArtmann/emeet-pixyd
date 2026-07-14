@@ -1,0 +1,80 @@
+---
+title: Auto Modes
+description: Four automation strategies for call lifecycle management
+---
+
+emeet-pixyd supports four auto-management strategies, configured via `EMEET_PIXYD_AUTO` or the NixOS `auto` option.
+
+## Mode Reference
+
+| Mode             | On call start                                               | On call end  |
+| ---------------- | ----------------------------------------------------------- | ------------ |
+| `full` (default) | Face tracking + noise cancellation + PipeWire source switch | Privacy mode |
+| `tracking-only`  | Face tracking                                               | Privacy mode |
+| `privacy-only`   | Nothing                                                     | Privacy mode |
+| `off`            | Nothing                                                     | Nothing      |
+
+## Changing Modes
+
+### CLI
+
+```bash
+emeet-pixy auto full              # Full automation
+emeet-pixy auto tracking-only     # Just tracking
+emeet-pixy auto privacy-only      # Just privacy on call end
+emeet-pixy auto off               # Disable all automation
+emeet-pixy auto                   # Show current mode
+emeet-pixy auto-on                # Shortcut: set to full
+emeet-pixy auto-off               # Shortcut: set to off
+emeet-pixy toggle-auto            # Toggle between off and full
+```
+
+### Environment Variable
+
+```bash
+EMEET_PIXYD_AUTO=tracking-only emeet-pixyd
+```
+
+Legacy values `true`/`1` (maps to `full`) and `false`/`0` (maps to `off`) are still accepted for backward compatibility.
+
+### NixOS Module
+
+```nix
+hardware.emeet-pixy.auto = "full";
+```
+
+## How Call Detection Works
+
+The daemon scans `/proc/*/fd` every 2 seconds (configurable) for processes holding the video device open. It excludes itself and its own descendants to avoid false positives.
+
+Detection is debounced — by default, 3 consecutive cycles must agree before a state change is triggered. This prevents flicker from apps that briefly probe the camera.
+
+| Setting        | Default | Environment Variable         |
+| -------------- | ------- | ---------------------------- |
+| Poll interval  | `2s`    | `EMEET_PIXYD_POLL_INTERVAL`  |
+| Debounce count | `3`     | `EMEET_PIXYD_DEBOUNCE_COUNT` |
+
+With defaults, a call start is detected within ~6 seconds and a call end within ~6 seconds.
+
+## Call Lifecycle
+
+### On Call Start (`full` mode)
+
+1. Face tracking enabled via HID
+2. Audio mode set to noise cancellation (`nc`) via HID
+3. PipeWire default source switched to PIXY microphone via `wpctl`
+4. Desktop notification sent via `notify-send`
+
+### On Call End (`full` mode)
+
+1. Camera enters privacy mode (hardware lens shutter) via HID
+2. PipeWire default source restored to previous
+3. Desktop notification sent
+
+## When Auto Mode is Off
+
+You can still control everything manually via CLI or web UI. Auto mode only affects the automatic call-start/call-end behavior.
+
+## Toggle Behavior
+
+The `toggle-auto` command cycles between `off` and `full`. If auto mode is any value other than `off`, toggling sets it to `off`. If it's `off`, toggling sets it to `full`.

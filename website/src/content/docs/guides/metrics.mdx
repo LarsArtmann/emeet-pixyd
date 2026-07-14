@@ -1,0 +1,73 @@
+---
+title: Prometheus Metrics
+description: OpenTelemetry-based metrics exposed at /metrics
+---
+
+emeet-pixyd exposes Prometheus-compatible metrics at `/metrics` using the OpenTelemetry SDK with the Prometheus exporter.
+
+## Accessing Metrics
+
+```bash
+curl http://127.0.0.1:8090/metrics
+```
+
+Or add a scrape target to your Prometheus config:
+
+```yaml
+scrape_configs:
+  - job_name: "emeet-pixyd"
+    static_configs:
+      - targets: ["localhost:8090"]
+    metrics_path: /metrics
+```
+
+## Available Metrics
+
+### Gauges
+
+| Metric                     | Type         | Description                                                        |
+| -------------------------- | ------------ | ------------------------------------------------------------------ |
+| `emeet_pixyd_camera_state` | Float64Gauge | Current camera state (0=offline, 1=tracking, 2=idle, 3=privacy)    |
+| `emeet_pixyd_in_call`      | Float64Gauge | Whether a call is detected (1=yes, 0=no)                           |
+| `emeet_pixyd_auto_mode`    | Float64Gauge | Current auto mode (0=off, 1=full, 2=tracking-only, 3=privacy-only) |
+
+### Counters
+
+| Metric                           | Type         | Description                      |
+| -------------------------------- | ------------ | -------------------------------- |
+| `emeet_pixyd_commands_total`     | Int64Counter | Total commands processed         |
+| `emeet_pixyd_uevents_total`      | Int64Counter | Total netlink uevents received   |
+| `emeet_pixyd_probes_total`       | Int64Counter | Total device probes              |
+| `emeet_pixyd_hid_failures_total` | Int64Counter | Total HID communication failures |
+| `emeet_pixyd_frames_total`       | Int64Counter | Total MJPEG frames served        |
+
+### Histograms
+
+| Metric                                | Type             | Description                                   |
+| ------------------------------------- | ---------------- | --------------------------------------------- |
+| `emeet_pixyd_stream_duration_seconds` | Float64Histogram | MJPEG stream session duration (unit: seconds) |
+
+## Implementation Details
+
+- Metrics use `go.opentelemetry.io/otel` SDK with `go.opentelemetry.io/otel/exporters/prometheus`
+- `prometheus/client_golang` is kept only for `promhttp.Handler()`
+- Metric registration is lazy via `sync.Once` — no `init()` functions
+- All `record*` functions are nil-safe — if OTel exporter init fails, metric recording silently no-ops
+
+## Health Endpoint
+
+A JSON health endpoint is also available:
+
+```bash
+curl http://127.0.0.1:8090/api/health
+```
+
+```json
+{
+  "status": "ok",
+  "camera": "tracking",
+  "version": "v1.0.0"
+}
+```
+
+Returns `503` when the device is offline, `200` when online.

@@ -1,0 +1,33 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { siteConfig } from '../data/config';
+---
+
+<header role="banner">
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-border backdrop-blur-xl bg-bg-primary/60" aria-label="Main navigation">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 group no-underline">
+      <Logo class="transition-transform duration-200 group-hover:rotate-12" />
+      <span class="text-base font-semibold text-text-primary tracking-tight">{siteConfig.name}</span>
+    </a>
+    <button class="nav-toggle bg-transparent border-none text-text-muted cursor-pointer p-1 hover:text-text-primary transition-colors lg:hidden" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-links">
+      <span class="menu-icon"><Icon name="menu" size={22} /></span>
+      <span class="close-icon hidden"><Icon name="close" size={22} /></span>
+    </button>
+    <div class="nav-links flex items-center gap-5 max-sm:hidden max-sm:absolute max-sm:top-16 max-sm:inset-x-0 max-sm:flex-col max-sm:p-6 max-sm:gap-4 max-sm:bg-bg-primary max-sm:backdrop-blur-[40px] max-sm:border-b max-sm:border-border [&.open]:max-sm:flex" id="nav-links">
+      <button id="theme-toggle" class="bg-transparent border-none text-text-muted cursor-pointer p-1 hover:text-text-primary transition-colors" aria-label="Toggle light/dark mode">
+        <span class="theme-icon-light"><Icon name="sun" size={18} /></span>
+        <span class="theme-icon-dark hidden"><Icon name="moon" size={18} /></span>
+      </button>
+      <a href="/getting-started/installation/" data-astro-prefetch class="text-sm text-text-secondary hover:text-text-primary transition-colors duration-150 no-underline nav-link">Docs</a>
+      <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="text-sm text-text-secondary hover:text-text-primary transition-colors duration-150 flex items-center gap-1.5 no-underline nav-link">
+        <span class="text-text-muted"><Icon name="github" size={16} /></span>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+</header>
+
+<script is:inline src="/js/header.js"></script>

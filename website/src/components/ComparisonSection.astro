@@ -1,0 +1,44 @@
+---
+import { comparisonMatrix } from '../data/sections';
+import SectionHeader from './SectionHeader.astro';
+
+const checkSvg = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+const xSvg = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>';
+---
+
+<SectionHeader eyebrow="Comparison" title="Why emeet-pixyd?" subtitle="Manual is error-prone. Browser extensions only work in the browser. This daemon works with everything." />
+
+<div class="overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
+    <thead>
+      <tr>
+        <th class="text-left py-3 px-4 font-medium text-text-muted text-xs uppercase tracking-wider border-b border-border"></th>
+        {comparisonMatrix.columns.map((col, index) => (
+          <th class={`py-3 px-4 font-semibold text-center border-b border-border ${index === 2 ? 'text-accent' : 'text-text-secondary'}`}>
+            {col}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {comparisonMatrix.rows.map((row) => (
+        <tr class="border-b border-border/50 hover:bg-bg-card/50 transition-colors">
+          <td class="py-3 px-4 text-text-secondary font-medium text-left">{row.feature}</td>
+          {row.values.map((value, valueIndex) => (
+            <td class={`py-3 px-4 text-center ${valueIndex === 2 ? 'bg-accent-dim' : ''}`}>
+              {value === 'yes' ? (
+                <span class="inline-flex items-center justify-center text-success" set:html={checkSvg} />
+              ) : value === 'no' ? (
+                <span class="inline-flex items-center justify-center text-danger" set:html={xSvg} />
+              ) : value === 'partial' ? (
+                <span class="inline-flex items-center justify-center text-amber text-xs font-mono">~</span>
+              ) : (
+                <span class="font-mono text-text-secondary text-xs">{value}</span>
+              )}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

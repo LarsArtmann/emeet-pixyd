@@ -1,0 +1,103 @@
+---
+title: Architecture Overview
+description: How the daemon is structured — control flow, concurrency, and key design decisions
+---
+
+## Control Flow
+
+```
+main() -> NewDaemon() -> Run()
+  |-- Unix socket listener    Command routing (status, track, privacy, PTZ, ...)
+  |-- HTTP server              Web UI + API + Prometheus /metrics
+  |-- Polling ticker (2s)      /proc scanning -> call detection + debounce
+  |-- Netlink uevent listener  USB hotplug detection
+  `-- systemd sd_notify        READY=1 + WATCHDOG=1
+```
+
+## Source Layout
+
+| File              | Purpose                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| `main.go`         | Daemon struct, lifecycle, signal handling, entry point       |
+| `commands.go`     | Command routing for Unix socket and CLI                      |
+| `handlers.go`     | HTTP routing, web handlers, toast propagation                |
+| `ptz.go`          | PTZ logic: parsing, axis dispatch, V4L2 control              |
+| `metrics.go`      | OTel metrics registration and updates                        |
+| `stream.go`       | MJPEG streaming, snapshot, JPEG frame extraction             |
+| `sse.go`          | SSE broadcaster (thread-safe fan-out)                        |
+| `http.go`         | HTTP helpers: writeJSON, middleware, security headers        |
+| `hid.go`          | HID bidirectional communication over hidraw                  |
+| `device.go`       | HID device state management                                  |
+| `process.go`      | `/proc` scanning for call detection, PipeWire, notifications |
+| `uevent.go`       | Netlink uevent listener for hotplug                          |
+| `auto.go`         | Auto-manage loop, call start/end handling, debounce          |
+| `state.go`        | State persistence (JSON, atomic write)                       |
+| `probe.go`        | Device probing (sysfs walks for video4linux + hidraw)        |
+| `waybar.go`       | Waybar integration: JSON struct, tooltip builder             |
+| `cache.go`        | Named cache types: lastFrameCache, ptzCache                  |
+| `templates.templ` | HTML templates (compiled via templ generate)                 |
+| `internal/pixy/`  | Shared types: Config, State, CameraState, AudioMode          |
+
+## Concurrency Model
+
+| Lock                              | Scope                                                        |
+| --------------------------------- | ------------------------------------------------------------ |
+| `Daemon.mu` (`sync.RWMutex`)      | Protects `state`, `videoDev`, `hidrawDev`, debounce counters |
+| `Daemon.hidMu` (`sync.Mutex`)     | Serializes HID device access (tracking, audio, gesture)      |
+| `Daemon.v4l2Mu` (`sync.Mutex`)    | Serializes V4L2 subprocess access (PTZ, center, presets)     |
+| `Daemon.streamSema` (chan, cap 1) | Limits to one MJPEG stream                                   |
+| `Daemon.lastFrame`                | Has its own `sync.RWMutex`                                   |
+| `Daemon.ptzCache`                 | Has its own `sync.RWMutex`, 2-second TTL                     |
+| `Daemon.broadcaster`              | Thread-safe SSE fan-out, non-blocking sends                  |
+
+The HID and V4L2 locks are separate to allow concurrency: the 200ms HID protocol sleep does not block V4L2 commands.
+
+## Key Design Decisions
+
+### HID Protocol
+
+Commands are 9-byte config reports followed by a commit report, with a 200ms sleep between them. Responses are 64-byte reads parsed by byte position.
+
+### State Persistence
+
+JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. Loaded state always wins over defaults. The state file carries a schema version for forward compatibility.
+
+### Call Detection
+
+Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles x 2s = 6s).
+
+### Dependency Injection
+
+All external interactions (HID, v4l2, PipeWire, notifications) are function fields on `Daemon`, enabling full test injectability without interfaces.
+
+### Branded Types
+
+`PID` and `SourceID` use phantom-type branding (`go-branded-id`) to prevent mixing process IDs and PipeWire source IDs at compile time.
+
+## API Endpoints
+
+| Endpoint                    | Method | Description                            |
+| --------------------------- | ------ | -------------------------------------- |
+| `/`                         | GET    | Web UI (HTML)                          |
+| `/panel`                    | GET    | Status panel (HTMX partial)            |
+| `/api/events`               | GET    | SSE stream for live updates            |
+| `/api/health`               | GET    | JSON health check                      |
+| `/api/snapshot`             | GET    | Capture still frame                    |
+| `/api/stream`               | GET    | MJPEG stream                           |
+| `/api/track`                | POST   | Enable tracking                        |
+| `/api/idle`                 | POST   | Set idle                               |
+| `/api/privacy`              | POST   | Enable privacy                         |
+| `/api/toggle-privacy`       | POST   | Toggle privacy                         |
+| `/api/audio`                | POST   | Set audio mode                         |
+| `/api/auto`                 | POST   | Toggle auto mode                       |
+| `/api/gesture`              | POST   | Toggle gesture                         |
+| `/api/center`               | POST   | Center camera                          |
+| `/api/sync`                 | POST   | Sync state from hardware               |
+| `/api/probe`                | POST   | Re-probe device                        |
+| `/api/ptz/{axis}`           | POST   | Set PTZ value (pan, tilt, zoom)        |
+| `/api/preset/save/{name}`   | POST   | Save preset                            |
+| `/api/preset/load/{name}`   | POST   | Load preset                            |
+| `/api/preset/delete/{name}` | POST   | Delete preset                          |
+| `/metrics`                  | GET    | Prometheus metrics                     |
+| `/static/*`                 | GET    | Embedded assets (JS, CSS, HTMX)        |
+| `/debug/pprof/*`            | GET    | pprof endpoints (only when debug=true) |

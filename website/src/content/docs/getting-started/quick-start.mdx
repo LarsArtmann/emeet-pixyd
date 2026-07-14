@@ -1,0 +1,100 @@
+---
+title: Quick Start
+description: Get emeet-pixyd running and managing your PIXY webcam in 5 minutes
+---
+
+## 1. Start the Daemon
+
+```bash
+emeet-pixyd
+```
+
+The daemon starts listening on:
+
+- **Unix socket** at `/run/emeet-pixyd/socket` for CLI commands
+- **HTTP server** at `http://127.0.0.1:8090` for the web UI
+
+## 2. Verify Detection
+
+```bash
+emeet-pixy status
+```
+
+Output:
+
+```
+Camera:  tracking
+Audio:   nc
+Gesture: off
+PTZ:     pan=0 tilt=0 zoom=100
+In call: false
+Auto:    full
+```
+
+If the camera shows `offline`, check your USB connection and udev rules:
+
+```bash
+lsusb | grep 328f
+# Should show: Bus 001 Device 004: ID 328f:00c0 ...
+
+emeet-pixy probe    # Re-detect device
+```
+
+## 3. Open the Web UI
+
+Navigate to `http://127.0.0.1:8090` in your browser. You'll see:
+
+- **Live MJPEG camera preview** (full-width hero)
+- **Camera mode cards** — Track, Idle, Privacy (keyboard shortcuts: `T`, `I`, `P`)
+- **Audio segmented control** — Noise Cancel, Live, Original
+- **PTZ sliders** with spatial position radar
+- **Snapshot button**
+- **Preset save/load chips**
+- **Toast notifications** for state changes
+
+## 4. Start a Call
+
+Open Zoom, Teams, Google Meet, OBS, or any application that opens `/dev/video*`. The daemon detects this automatically and:
+
+1. Enables face tracking + noise cancellation
+2. Switches your PipeWire audio source to the PIXY microphone
+
+When the call ends, the daemon enters **privacy mode** — the hardware lens shutter physically blocks the camera.
+
+## 5. Manual Control
+
+Any command can be sent via the CLI:
+
+```bash
+emeet-pixy track          # Enable face tracking
+emeet-pixy idle           # Set camera to idle
+emeet-pixy privacy        # Enable privacy mode (lens blocked)
+emeet-pixy center         # Center camera (pan=0, tilt=0, zoom=100)
+emeet-pixy pan -90        # Pan left 90 degrees
+emeet-pixy tilt 45        # Tilt up 45 degrees
+emeet-pixy zoom 120       # Zoom to 120x
+```
+
+## Auto Modes
+
+The daemon supports four automation strategies. The default is `full`:
+
+| Mode            | On call start                                     | On call end  |
+| --------------- | ------------------------------------------------- | ------------ |
+| `full`          | Face tracking + noise cancellation + audio switch | Privacy mode |
+| `tracking-only` | Face tracking                                     | Privacy mode |
+| `privacy-only`  | Nothing                                           | Privacy mode |
+| `off`           | Nothing                                           | Nothing      |
+
+Change auto mode:
+
+```bash
+emeet-pixy auto tracking-only
+emeet-pixy auto-off     # Disable all automation
+```
+
+## Next Steps
+
+- [Configuration](/guides/configuration/) — all environment variables and NixOS options
+- [Web UI](/guides/web-ui/) — detailed guide to the control panel
+- [PTZ Control](/guides/ptz-control/) — pan, tilt, zoom, and relative positioning

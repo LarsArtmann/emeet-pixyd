@@ -1,0 +1,28 @@
+---
+import { steps } from '../data/sections';
+import SectionHeader from './SectionHeader.astro';
+---
+
+<SectionHeader eyebrow="How it works" title="Detect. Activate. Protect." subtitle="The daemon watches /proc for camera usage and manages your PIXY automatically." />
+
+<div class="grid gap-3 lg:grid-cols-4 lg:gap-0 text-left relative">
+  {steps.map((step, index) => (
+    <div class={`relative p-5 rounded-xl border border-border bg-bg-card backdrop-blur-sm lg:rounded-none lg:border-r-0 lg:first:rounded-l-xl lg:last:rounded-r-xl lg:last:border-r ${step.stepColor === 'amber' ? 'lg:border-t-2 lg:border-t-amber/30' : 'lg:border-t-2 lg:border-t-accent/30'}`}>
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-mono font-bold ${step.stepColor === 'accent' ? 'bg-accent-dim text-accent border border-border-accent' : 'bg-amber/10 text-amber border border-amber/20'}`}>{step.step}</div>
+        <h3 class="font-semibold text-text-primary text-sm">{step.title}</h3>
+      </div>
+      <p class="text-xs text-text-muted leading-relaxed mb-3">{step.desc}</p>
+      {step.code && (
+        <code class="block bg-code-inline-bg/60 px-2.5 py-1.5 rounded text-[0.6875rem] text-accent/80 font-mono leading-relaxed">{step.code}</code>
+      )}
+      {index < steps.length - 1 && (
+        <div class="hidden lg:flex absolute top-1/2 -right-2.5 -translate-y-1/2 w-5 h-5 items-center justify-center text-text-muted z-10 bg-bg-primary">
+          <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 10 10" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 5h6m0 0L5.5 2.5M8 5L5.5 7.5" />
+          </svg>
+        </div>
+      )}
+    </div>
+  ))}
+</div>

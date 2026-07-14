@@ -1,0 +1,19 @@
+---
+import { useCases } from '../data/sections';
+import Icon from './Icon.astro';
+import SectionHeader from './SectionHeader.astro';
+---
+
+<SectionHeader eyebrow="Use Cases" title="Works with anything." subtitle="If it opens /dev/video*, the daemon knows about it." />
+
+<div class="grid gap-3 sm:grid-cols-3">
+  {useCases.map((useCase) => (
+    <div class="p-6 rounded-xl border border-border bg-bg-card backdrop-blur-sm text-center hover:border-border-hover transition-all duration-200 hover:-translate-y-0.5">
+      <div class="mx-auto mb-3 text-accent w-11 h-11 rounded-lg bg-accent-dim border border-border-accent flex items-center justify-center">
+        <Icon name={useCase.icon} size={20} />
+      </div>
+      <h3 class="font-semibold text-text-primary text-sm mb-1">{useCase.title}</h3>
+      <p class="text-xs text-text-muted leading-relaxed">{useCase.desc}</p>
+    </div>
+  ))}
+</div>

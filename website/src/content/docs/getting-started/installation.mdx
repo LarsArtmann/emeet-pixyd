@@ -1,0 +1,89 @@
+---
+title: Installation
+description: Install emeet-pixyd on NixOS or build from source
+---
+
+import { CardGrid, Card } from "@astrojs/starlight/components";
+
+emeet-pixyd runs on Linux only (x86_64) and requires an EMEET PIXY dual-camera AI webcam (USB `328f:00c0`).
+
+## Prerequisites
+
+- **Linux** (x86_64) — the daemon uses Linux-specific APIs (`/proc`, netlink, V4L2, hidraw)
+- **EMEET PIXY** webcam connected via USB
+- **Go 1.26+** (only for building from source)
+
+## NixOS (recommended)
+
+Add the flake input and enable the module:
+
+```nix
+# flake.nix
+inputs.emeet-pixyd.url = "github:LarsArtmann/emeet-pixyd";
+
+# In your nixosConfiguration:
+inputs.emeet-pixyd.nixosModules.default
+```
+
+Then in your configuration:
+
+```nix
+hardware.emeet-pixy = {
+  enable = true;
+  auto = "full";           # off | full | tracking-only | privacy-only
+  defaultAudio = "nc";     # nc | live | org
+  debug = false;
+};
+```
+
+That's it. The module installs:
+
+- The daemon binary (`emeet-pixyd`)
+- A CLI symlink (`emeet-pixy`)
+- udev rules for PIXY hidraw + video4linux access
+- A systemd user service (runs after PipeWire + graphical-session)
+- All runtime dependencies in PATH (`v4l-utils`, `wireplumber`, `libnotify`)
+- A tmpfiles.d entry for `/run/emeet-pixyd`
+
+## Build from Source
+
+```bash
+git clone https://github.com/LarsArtmann/emeet-pixyd.git
+cd emeet-pixyd
+nix build    # or: go build -o emeet-pixyd .
+```
+
+> **Note:** If building with `go build` directly, run `templ generate` first if you've modified any `.templ` files.
+
+### Manual Dependencies
+
+If not using the NixOS module, ensure these are in your `PATH`:
+
+| Tool          | Purpose                           | Required            |
+| ------------- | --------------------------------- | ------------------- |
+| `v4l2-ctl`    | Pan/tilt/zoom control via V4L2    | Yes                 |
+| `ffmpeg`      | MJPEG streaming in web UI         | For preview only    |
+| `wpctl`       | PipeWire default source switching | For audio switching |
+| `notify-send` | Desktop notifications             | Optional            |
+
+## Verify Installation
+
+Start the daemon:
+
+```bash
+emeet-pixyd
+```
+
+Check status:
+
+```bash
+emeet-pixy status
+```
+
+If the PIXY is connected, you should see camera state, audio mode, PTZ position, and auto mode.
+
+## Next Steps
+
+- [Quick Start](/getting-started/quick-start/) — get running in 5 minutes
+- [Auto Modes](/guides/auto-modes/) — understand the four automation strategies
+- [CLI Reference](/guides/cli-reference/) — all available commands

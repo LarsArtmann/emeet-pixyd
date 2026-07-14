@@ -1,0 +1,102 @@
+---
+title: Web UI
+description: Dark-themed HTMX control panel with live preview and PTZ control
+---
+
+The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` (configurable via `EMEET_PIXYD_WEB_ADDR`).
+
+## Layout
+
+The UI is composed of two sections:
+
+1. **Camera preview** — full-width hero at the top, rendered once on page load
+2. **Status panel** — below the preview, re-renders via HTMX swaps
+
+## Camera Mode Cards
+
+Three selectable cards replace the old button group:
+
+| Mode    | Icon    | Shortcut | Description                   |
+| ------- | ------- | -------- | ----------------------------- |
+| Track   | Target  | `T`      | AI face tracking enabled      |
+| Idle    | Standby | `I`      | Camera on but no tracking     |
+| Privacy | Eye-off | `P`      | Hardware lens shutter engaged |
+
+Active mode is highlighted with a per-mode color glow:
+
+- **Track** — green
+- **Idle** — yellow
+- **Privacy** — red
+
+## Audio Segmented Control
+
+Three buttons inside a segmented container:
+
+| Mode   | Label        | Description                       |
+| ------ | ------------ | --------------------------------- |
+| `nc`   | Noise Cancel | Hardware noise cancellation + DSP |
+| `live` | Live         | Raw audio, no processing          |
+| `org`  | Original     | Original mode (shorthand: `org`)  |
+
+Clicking a segment POSTs to `/api/audio` with the mode value.
+
+## PTZ Control
+
+### Sliders
+
+Three sliders for pan, tilt, and zoom:
+
+| Axis | Range        | Unit    |
+| ---- | ------------ | ------- |
+| Pan  | -150 to +150 | degrees |
+| Tilt | -90 to +90   | degrees |
+| Zoom | 100 to 150   | times   |
+
+Positive tilt = up. No sign inversion anywhere.
+
+### Radar
+
+A circular position indicator shows the current pan/tilt/zoom spatially:
+
+- A glowing dot represents the camera position
+- Crosshair and rings provide reference
+- Zoom ring size scales from 30% to 80% of radar diameter
+
+The radar updates live as you drag sliders.
+
+### Keyboard Shortcuts
+
+| Key        | Action                     |
+| ---------- | -------------------------- |
+| Arrow keys | Pan/tilt by 5-degree steps |
+| `+` / `=`  | Zoom in (step of 10)       |
+| `-` / `_`  | Zoom out (step of 10)      |
+| `C`        | Center camera              |
+
+Shortcuts are ignored when typing in an input field.
+
+Press `?` to toggle the keyboard shortcut legend (bottom-left panel). `Escape` closes it.
+
+## Presets
+
+Save and recall named PTZ positions:
+
+1. Type a name in the input field
+2. Press Enter or click Save
+3. The preset chip appears below
+
+Click a preset name to recall it. Click the `x` button to delete.
+
+Maximum 16 presets. Names must be non-empty, 32 characters or fewer, with no path separators or control characters.
+
+## Snapshot
+
+Click the camera icon overlay on the preview to capture a still frame. The image downloads as `pixy-YYYY-MM-DD-HH-MM-SS.jpg`.
+
+## Live Updates
+
+The UI uses Server-Sent Events (SSE) for real-time state updates. When the daemon state changes (from CLI, auto-mode, or another browser tab), all connected clients update instantly without polling.
+
+## Offline State
+
+When the PIXY is not connected, the PTZ section is replaced with a placeholder card. The preview shows an SVG camera-off icon. The daemon automatically re-detects the device via netlink uevents when it's plugged back in.

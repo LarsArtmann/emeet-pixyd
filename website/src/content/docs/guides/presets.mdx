@@ -1,0 +1,66 @@
+---
+title: Presets
+description: Save and recall named PTZ positions
+---
+
+Presets let you save and recall PTZ positions by name. They're persisted in `state.json` and survive daemon restarts.
+
+## Saving Presets
+
+### CLI
+
+```bash
+emeet-pixy preset save home     # Save current position as "home"
+emeet-pixy preset save desk     # Save another position
+```
+
+### Web UI
+
+Type a name in the preset input field and press Enter (or click Save).
+
+## Recalling Presets
+
+### CLI
+
+```bash
+emeet-pixy preset load home     # Recall the "home" preset
+```
+
+### Web UI
+
+Click a preset name chip to recall it.
+
+## Deleting Presets
+
+```bash
+emeet-pixy preset delete home   # Delete the "home" preset
+```
+
+In the web UI, click the `x` button on a preset chip.
+
+## Listing Presets
+
+```bash
+emeet-pixy preset list
+```
+
+## Limitations
+
+- Maximum **16 presets** (`pixy.MaxPresets`)
+- Names must be **non-empty** and **32 runes or fewer**
+- Names cannot contain **path separators** (`/`, `\`) or **control characters**
+- Names are validated at both CLI and HTTP save boundaries
+
+## HTTP API
+
+Presets are also accessible via HTTP:
+
+| Endpoint                    | Method | Description                |
+| --------------------------- | ------ | -------------------------- |
+| `/api/preset/save/{name}`   | POST   | Save current PTZ as preset |
+| `/api/preset/load/{name}`   | POST   | Recall a preset            |
+| `/api/preset/delete/{name}` | POST   | Delete a preset            |
+
+## Storage
+
+Presets are stored in `state.json` under the `Presets` key as a `PresetMap`. The `SortedNames()` method provides alphabetically sorted iteration for consistent display.

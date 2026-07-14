@@ -1,0 +1,86 @@
+---
+title: HID Protocol
+description: How the daemon communicates with the PIXY over hidraw
+---
+
+The EMEET PIXY exposes a HID interface over `/dev/hidraw*`. The daemon uses this for camera mode control, audio mode selection, and gesture toggling.
+
+## Device Identification
+
+The PIXY presents as USB vendor `328f` product `00c0`. The daemon probes `/sys/class/hidraw` matching this vendor/product pair.
+
+## Command Structure
+
+Each command consists of:
+
+1. A **9-byte config report** written to the hidraw device
+2. A **commit report** to trigger execution
+3. A **200ms sleep** between reports to respect the device's processing time
+
+Responses are **64-byte reads** parsed by byte position.
+
+## Bidirectional Communication
+
+The daemon supports both writing (sending commands) and reading (querying state) over the same hidraw device.
+
+### Writing
+
+```go
+// Config report: 9 bytes
+// Commit report: triggers execution
+// 200ms sleep between them
+```
+
+### Reading
+
+```go
+// 64-byte response read
+// Parsed by byte position
+```
+
+## Operations
+
+### Set Camera State
+
+Controls the camera mode:
+
+| Mode     | Description                   |
+| -------- | ----------------------------- |
+| Tracking | AI face tracking enabled      |
+| Idle     | Camera on, no tracking        |
+| Privacy  | Hardware lens shutter engaged |
+
+### Set Audio Mode
+
+Controls the audio processing:
+
+| Mode     | Value      | Description              |
+| -------- | ---------- | ------------------------ |
+| NC       | `nc`       | Noise cancellation + DSP |
+| Live     | `live`     | Raw audio                |
+| Original | `original` | Original mode            |
+
+### Set Gesture
+
+Toggles gesture control on/off.
+
+## Error Handling
+
+- HID send failures trigger a `probeDevices()` re-scan to find the correct device path
+- The `HIDDevice` interface embeds `fmt.Stringer` — every implementation must provide `String()` for error context
+- `queryHIDState[T]` is a generic function for type-safe HID queries
+- Errors include `dev=%s` context for the device path
+
+## Generic HID Query
+
+```go
+func queryHIDState[T any](dev HIDDevice, query []byte, parse func([]byte) T) (T, error)
+```
+
+This generic function abstracts the write-read-parse pattern for type-safe HID queries.
+
+## Concurrency
+
+HID access is serialized by `Daemon.hidMu` (`sync.Mutex`). This ensures only one HID operation runs at a time, preventing protocol corruption from concurrent writes.
+
+The lock is separate from the V4L2 lock (`v4l2Mu`) so that the 200ms HID sleep does not block PTZ commands.

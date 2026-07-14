@@ -1,0 +1,92 @@
+---
+title: Configuration
+description: Environment variables and NixOS module options
+---
+
+All configuration is via environment variables. The daemon does not use CLI flags — `os.Args` is reserved for socket commands.
+
+## Environment Variables
+
+| Variable                     | Default            | Description                                       |
+| ---------------------------- | ------------------ | ------------------------------------------------- |
+| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)     |
+| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)            |
+| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)     |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change             |
+| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`         |
+| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                 |
+
+### Duration Format
+
+`EMEET_PIXYD_POLL_INTERVAL` accepts Go duration strings:
+
+- `2s` — 2 seconds
+- `500ms` — 500 milliseconds
+- `1m` — 1 minute
+
+### Legacy Values
+
+`EMEET_PIXYD_AUTO` accepts legacy boolean values for backward compatibility:
+
+- `true` / `1` → `full`
+- `false` / `0` → `off`
+
+## NixOS Module Options
+
+| Option                             | Type   | Default  | Description                             |
+| ---------------------------------- | ------ | -------- | --------------------------------------- |
+| `hardware.emeet-pixy.enable`       | bool   | `false`  | Enable the daemon                       |
+| `hardware.emeet-pixy.user`         | string | `"lars"` | User owning the runtime state directory |
+| `hardware.emeet-pixy.auto`         | enum   | `"full"` | Auto-management strategy                |
+| `hardware.emeet-pixy.defaultAudio` | enum   | `"nc"`   | Default audio mode                      |
+| `hardware.emeet-pixy.debug`        | bool   | `false`  | Enable debug mode                       |
+
+The NixOS module passes all options as `Environment=` vars. The `auto` option maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` to `EMEET_PIXYD_DEFAULT_AUDIO`, and `debug` to `EMEET_PIXYD_DEBUG`.
+
+## State Persistence
+
+The daemon persists state to `{StateDir}/state.json`. This includes:
+
+- Current camera mode
+- Audio mode
+- Gesture state
+- Auto mode
+- Saved PTZ presets
+
+State is written atomically (`.tmp` file + rename). On startup, persisted state always wins over defaults.
+
+### Schema Versioning
+
+The state file carries a schema version (`"v"` field). If the on-disk version differs from the current version, a warning is logged but the state is still loaded (best-effort backward compatibility).
+
+## Systemd Hardening
+
+The NixOS module applies systemd security hardening:
+
+- `ProtectSystem=strict`
+- `PrivateTmp=true`
+- `NoNewPrivileges=true`
+- `RestrictAddressFamilies=[AF_UNIX AF_NETLINK AF_INET]`
+- `MemoryMax=256M`
+- `ReadWritePaths=["/run/emeet-pixyd"]` (for socket file creation)
+
+## Debug Mode
+
+When `EMEET_PIXYD_DEBUG=true` (or `hardware.emeet-pixy.debug = true`):
+
+- pprof endpoints available at `/debug/pprof/`
+- More verbose logging
+
+## Validation
+
+`Config.Validate()` checks all fields at startup:
+
+- `AutoMode` must be a valid enum value
+- `DefaultAudio` must be a valid enum value
+- `StateDir` must be non-empty
+- `PollInterval` must be positive
+- `DebounceCount` must be positive
+- `WebAddr` must be non-empty
+
+Invalid configuration prevents the daemon from starting.

@@ -11,6 +11,10 @@
 </p>
 
 <p align="center">
+  <a href="https://emeet-pixyd.lars.software">
+    <img alt="Documentation" src="https://img.shields.io/badge/docs-emeet--pixyd.lars.software-8b5cf6?logo=astro">
+  </a>
+  <br>
   <a href="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/go-test.yml">
     <img alt="Go tests" src="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/go-test.yml/badge.svg">
   </a>
@@ -21,6 +25,9 @@
   <img alt="Linux only" src="https://img.shields.io/badge/platform-Linux-FCC624?logo=linux">
   <a href="https://www.emeet.com">
     <img alt="EMEET PIXY" src="https://img.shields.io/badge/device-EMEET_PIXY-328f00?logo=usb">
+  </a>
+  <a href="LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg">
   </a>
 </p>
 
@@ -255,4 +262,10 @@ GOWORK=off golangci-lint run --timeout 2m ./...
 
 ## License
 
-Proprietary — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  <a href="https://emeet-pixyd.lars.software">Full documentation at emeet-pixyd.lars.software</a>
+</p>

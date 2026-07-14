@@ -1,0 +1,97 @@
+---
+title: Call Detection
+description: How the daemon detects video calls by scanning /proc
+---
+
+emeet-pixyd detects video calls by monitoring which processes hold the camera device open. This works with **any** application — no per-app integration needed.
+
+## Mechanism
+
+Every `EMEET_PIXYD_POLL_INTERVAL` (default 2s), the daemon:
+
+1. Identifies the current video device path (e.g., `/dev/video0`)
+2. Scans `/proc/*/fd/*` for any file descriptor pointing to that device
+3. Filters out itself and its own descendant processes
+4. If any remaining process holds the device open, the camera is "in use"
+
+## Process Tree Exclusion
+
+The daemon excludes itself and its descendants to avoid false positives from its own MJPEG streaming or probing:
+
+```go
+func isDescendantOf(pid, ancestor PID) bool
+// Walks /proc/*/stat to check if pid is a descendant of ancestor
+```
+
+## Debouncing
+
+State changes are debounced to prevent flicker. The daemon requires `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) consecutive agreeing cycles before triggering a state change.
+
+| Setting        | Default | Total delay |
+| -------------- | ------- | ----------- |
+| Poll interval  | 2s      | -           |
+| Debounce count | 3       | 6s          |
+
+This means:
+
+- A call start is detected within ~6 seconds
+- A call end is detected within ~6 seconds
+- Momentary camera probes (e.g., from browser permission checks) don't trigger false positives
+
+### Debounce Counters
+
+Two independent counters track consecutive "in use" and "idle" readings:
+
+```go
+debounceInUse  int  // incremented when camera is in use
+debounceIdle   int  // incremented when camera is idle
+```
+
+Both are capped at `debounceCount` to prevent unbounded growth.
+
+## Call Lifecycle
+
+### Call Start
+
+When the debounce threshold is crossed from idle to in-use:
+
+1. `handleCallStart()` is called
+2. Depending on auto mode:
+   - **full**: face tracking + noise cancellation + PipeWire source switch
+   - **tracking-only**: face tracking only
+   - **privacy-only**: nothing
+   - **off**: nothing
+3. Desktop notification sent
+
+### Call End
+
+When the debounce threshold is crossed from in-use to idle:
+
+1. `handleCallEnd()` is called
+2. Depending on auto mode:
+   - **full**: privacy mode + audio source restored
+   - **tracking-only**: privacy mode
+   - **privacy-only**: privacy mode
+   - **off**: nothing
+3. Desktop notification sent
+
+## PipeWire Integration
+
+On call start (full mode), the daemon:
+
+1. Finds the PIXY audio source via `wpctl status`
+2. Switches the default source to PIXY via `wpctl set-default`
+3. On call end, restores the previous default source
+
+The `findSource` and `setSource` functions are dependency-injected for testability.
+
+## Why /proc Instead of inotify?
+
+`/proc/*/fd` scanning is chosen over alternatives because:
+
+- **Universal**: works with any app, no library integration needed
+- **Reliable**: the fd is held open the entire time the camera is in use
+- **No permissions issues**: `/proc` is readable by the owning user
+- **No kernel modules**: no custom driver or kernel patch required
+
+The tradeoff is polling overhead, but at 2s intervals with efficient `/proc` traversal, the impact is negligible.

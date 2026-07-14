@@ -1,0 +1,18 @@
+---
+import Icon from './Icon.astro';
+import SectionHeader from './SectionHeader.astro';
+---
+
+<SectionHeader eyebrow="Get Started" title="One option to enable." subtitle="Add the flake, enable the module, and your PIXY is smart." />
+<div class="text-center">
+  <div class="flex items-center justify-center gap-3 flex-wrap">
+    <a href="/getting-started/installation/" data-astro-prefetch class="px-7 py-3.5 bg-accent text-bg-primary font-semibold rounded-lg text-sm hover:bg-accent-hover transition-all duration-200 inline-flex items-center gap-2 border-none cursor-pointer shadow-lg shadow-accent/20 hover:shadow-accent/30 hover:-translate-y-0.5">
+      Read the Docs
+      <Icon name="arrow-right" size={16} />
+    </a>
+    <a href="/guides/cli-reference/" data-astro-prefetch class="px-6 py-3.5 border border-border text-text-secondary font-medium rounded-lg text-sm hover:border-border-hover hover:text-text-primary transition-all duration-200 inline-flex items-center gap-2 no-underline hover:-translate-y-0.5">
+      CLI Reference
+      <Icon name="arrow-external" size={16} />
+    </a>
+  </div>
+</div>

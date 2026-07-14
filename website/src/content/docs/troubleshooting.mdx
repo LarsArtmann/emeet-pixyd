@@ -1,0 +1,142 @@
+---
+title: Troubleshooting
+description: Common problems and solutions
+---
+
+## Device Not Detected
+
+### PIXY not connected
+
+```bash
+lsusb | grep 328f
+# Should show: Bus 001 Device 004: ID 328f:00c0 ...
+```
+
+If not listed, check your USB connection. Try a different cable or port.
+
+### Permission denied on hidraw
+
+Verify udev rules match vendor `328f` product `00c0`:
+
+```bash
+# Check if the rules are loaded
+udevadm info /dev/hidraw0 | grep ID_VENDOR_ID
+
+# Reload rules if needed
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+### Re-probe the device
+
+```bash
+emeet-pixy probe
+```
+
+This forces a fresh scan of `/sys/class/video4linux` and `/sys/class/hidraw`.
+
+## Camera Commands Fail
+
+### v4l2-ctl not found
+
+```bash
+# NixOS: provided by the module
+# Other distros:
+sudo apt install v4l-utils      # Debian/Ubuntu
+sudo dnf install v4l-utils      # Fedora
+```
+
+### PTZ values seem wrong
+
+Check the hardware limits:
+
+```bash
+v4l2-ctl -d /dev/video0 --list-ctrls | grep -E 'pan|tilt|zoom'
+```
+
+Expected ranges:
+
+- `pan_absolute`: -540000 to 540000 (at 3600 units/degree = -150 to 150 degrees)
+- `tilt_absolute`: -324000 to 324000 (at 3600 units/degree = -90 to 90 degrees)
+- `zoom_absolute`: 100 to 150
+
+## Audio Not Switching
+
+### wpctl not found
+
+```bash
+# Check if PipeWire is running
+wpctl status
+```
+
+If `wpctl` is not in PATH, install `wireplumber` (NixOS module handles this).
+
+### PIXY source not found
+
+```bash
+wpctl status | grep -i pixy
+```
+
+If the PIXY audio source doesn't appear, the device may not have enumerated its audio interface. Try replugging.
+
+## Web UI Issues
+
+### Camera in use
+
+If the web UI shows "Camera in use", another process (e.g., OBS, another browser tab, or a call app) is holding `/dev/video*` open. The MJPEG stream can't start until the device is released.
+
+### Preview not loading
+
+Ensure `ffmpeg` is in PATH. The MJPEG stream uses ffmpeg to read from the video device:
+
+```bash
+which ffmpeg
+```
+
+### State panel not updating
+
+The UI uses SSE for live updates. If your browser blocks SSE, the panel still refreshes every 3 seconds via HTMX polling as a fallback.
+
+## Daemon Won't Start
+
+### Configuration validation
+
+Check for invalid configuration values:
+
+```bash
+EMEET_PIXYD_DEBUG=true emeet-pixyd
+```
+
+Invalid `AutoMode` or `DefaultAudio` values will prevent startup. The daemon logs the specific validation error.
+
+### Socket file exists
+
+If the socket file at `/run/emeet-pixyd/socket` exists but the daemon isn't running:
+
+```bash
+rm /run/emeet-pixyd/socket
+```
+
+Or use the NixOS module which handles this via systemd.
+
+## Debounce Too Slow
+
+Reduce the debounce count or poll interval:
+
+```bash
+EMEET_PIXYD_DEBOUNCE_COUNT=1 EMEET_PIXYD_POLL_INTERVAL=1s emeet-pixyd
+```
+
+:::caution[Trade-off]
+Lower debounce = faster detection but more false positives from momentary camera probes.
+:::
+
+## Hotplug Not Working
+
+The daemon uses netlink uevents for hotplug detection. If unplugging/replugging the PIXY doesn't trigger re-detection:
+
+```bash
+emeet-pixy probe    # Manual re-probe
+```
+
+Check that the daemon has the necessary permissions to create netlink sockets (the NixOS module handles `RestrictAddressFamilies`).

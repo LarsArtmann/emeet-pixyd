@@ -1,0 +1,20 @@
+---
+import HowItWorksSection from './HowItWorksSection.astro';
+import ComparisonSection from './ComparisonSection.astro';
+import UseCasesSection from './UseCasesSection.astro';
+import CTASection from './CTASection.astro';
+import Section from './Section.astro';
+
+const sections = [
+  { component: HowItWorksSection, key: 'howitworks', width: 'wide' as const },
+  { component: ComparisonSection, key: 'comparison', width: 'wide' as const },
+  { component: UseCasesSection, key: 'usecases', width: 'wide' as const },
+  { component: CTASection, key: 'cta', width: 'narrow' as const },
+] as const;
+---
+
+{sections.map(({ component: SectionComponent, width }) => (
+  <Section width={width}>
+    <SectionComponent />
+  </Section>
+))}

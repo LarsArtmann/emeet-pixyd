@@ -1,0 +1,102 @@
+---
+title: Waybar Integration
+description: JSON output for custom Waybar modules
+---
+
+emeet-pixyd provides JSON output formatted for [Waybar](https://github.com/Alexays/Waybar) custom modules.
+
+## Basic Setup
+
+Add a custom module to your Waybar config:
+
+```json
+{
+  "custom/emeet-pixy": {
+    "exec": "emeet-pixy waybar",
+    "format": "{}",
+    "interval": 5,
+    "tooltip": true,
+    "on-click": "emeet-pixy toggle-privacy",
+    "on-click-right": "emeet-pixy toggle-auto"
+  }
+}
+```
+
+## JSON Output
+
+The `waybar` command outputs a JSON object:
+
+```json
+{
+  "text": "\uf030 CAM",
+  "tooltip": "EMEET PIXY: tracking\nAudio: nc\nAuto: full",
+  "class": "custom-camera tracking"
+}
+```
+
+The `text` field combines a Font Awesome icon with a short label. The `class` field is always prefixed with `custom-camera` and includes the camera state. When a call is detected, ` in-call` is appended to the class.
+
+### Text and Icons by State
+
+| Camera State | Icon     | Text   | CSS Class  |
+| ------------ | -------- | ------ | ---------- |
+| Tracking     | `\uf030` | `CAM`  | `tracking` |
+| Idle         | `\uf03d` | `IDLE` | `idle`     |
+| Privacy      | `\uf011` | `OFF`  | `privacy`  |
+| Offline      | `\uf00d` | `---`  | `offline`  |
+
+### CSS Styling
+
+```css
+#custom-emeet-pixy.custom-camera.tracking {
+  color: #10b981;
+}
+
+#custom-emeet-pixy.custom-camera.idle {
+  color: #fbbf24;
+}
+
+#custom-emeet-pixy.custom-camera.privacy {
+  color: #f87171;
+}
+
+#custom-emeet-pixy.custom-camera.offline {
+  color: #78716c;
+}
+
+#custom-emeet-pixy.custom-camera.in-call {
+  text-decoration: underline;
+}
+```
+
+## Tooltip
+
+The tooltip shows a multi-line summary:
+
+```
+EMEET PIXY: tracking
+Audio: nc
+Auto: full
+```
+
+When a call is detected, a fourth line is appended:
+
+```
+In call: yes
+```
+
+## Click Actions
+
+Common click mappings:
+
+| Action       | Command                     |
+| ------------ | --------------------------- |
+| Left click   | `emeet-pixy toggle-privacy` |
+| Right click  | `emeet-pixy toggle-auto`    |
+| Middle click | `emeet-pixy center`         |
+| Scroll up    | `emeet-pixy zoom rel+10`    |
+| Scroll down  | `emeet-pixy zoom rel-10`    |
+
+## Performance
+
+The `waybarJSON` struct is optimized for low allocation count — 7 allocations and ~334ns per call.

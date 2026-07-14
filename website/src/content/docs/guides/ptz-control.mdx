@@ -1,0 +1,85 @@
+---
+title: PTZ Control
+description: Pan, tilt, zoom, relative positioning, and hardware limits
+---
+
+The EMEET PIXY supports pan, tilt, and zoom via V4L2 controls. The daemon provides a user-friendly interface in degrees and zoom factors.
+
+## Hardware Limits
+
+These ranges were verified empirically against the PIXY hardware via `v4l2-ctl --list-ctrls`:
+
+| Axis | Min  | Max | Unit    |
+| ---- | ---- | --- | ------- |
+| Pan  | -150 | 150 | degrees |
+| Tilt | -90  | 90  | degrees |
+| Zoom | 100  | 150 | times   |
+
+All values are automatically clamped to these ranges.
+
+## Absolute Positioning
+
+Bare numbers are treated as absolute:
+
+```bash
+emeet-pixy pan 0        # Center
+emeet-pixy pan -90      # Full left
+emeet-pixy pan 90       # Full right
+emeet-pixy tilt 45      # Halfway up
+emeet-pixy tilt -30     # Slightly down
+emeet-pixy zoom 100     # No zoom
+emeet-pixy zoom 150     # Max zoom
+```
+
+## Relative Positioning
+
+Use the `rel` prefix for relative moves:
+
+```bash
+emeet-pixy pan rel+10   # Pan 10 degrees right
+emeet-pixy pan rel-10   # Pan 10 degrees left
+emeet-pixy tilt rel+5   # Tilt 5 degrees up
+emeet-pixy tilt rel-5   # Tilt 5 degrees down
+emeet-pixy zoom rel+5   # Zoom in 5
+emeet-pixy zoom rel-5   # Zoom out 5
+```
+
+Relative commands read the current position from the hardware, compute the new value, and clamp to valid range.
+
+## Web UI Sliders
+
+The web UI provides three sliders with live updates:
+
+- Drag a slider to send a PTZ command
+- The radar indicator updates in real time
+- The spatial position is visualized on a circular radar
+
+### Keyboard Shortcuts
+
+| Key         | Action        |
+| ----------- | ------------- |
+| Arrow Up    | Tilt up       |
+| Arrow Down  | Tilt down     |
+| Arrow Left  | Pan left      |
+| Arrow Right | Pan right     |
+| `+`         | Zoom in       |
+| `-`         | Zoom out      |
+| `C`         | Center camera |
+
+## V4L2 Details
+
+Internally, the daemon communicates with `v4l2-ctl`:
+
+- Pan/tilt use `pan_absolute` / `tilt_absolute` V4L2 controls in 1/3600-degree units
+- Zoom uses `zoom_absolute` directly (no unit conversion)
+- The daemon multiplies user-facing degrees by 3600 before sending
+
+After each PTZ set, a delayed (500ms) hardware readback corrects the cache with the actual motor position.
+
+## Center Camera
+
+```bash
+emeet-pixy center    # pan=0, tilt=0, zoom=100
+```
+
+This is also available as keyboard shortcut `C` in the web UI.

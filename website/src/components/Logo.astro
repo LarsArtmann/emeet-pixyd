@@ -1,0 +1,16 @@
+---
+export interface Props {
+  width?: number;
+  height?: number;
+  class?: string;
+}
+
+const { width = 28, height = 28, class: className } = Astro.props;
+---
+
+<svg class={className} width={width} height={height} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="emeet-pixyd logo">
+  <rect width="28" height="28" rx="6" class="fill-[var(--color-accent)]" />
+  <circle cx="14" cy="14" r="6.5" fill="none" stroke="#0a0908" stroke-width="2" />
+  <circle cx="14" cy="14" r="3" fill="#0a0908" />
+  <rect x="10" y="5" width="8" height="2.5" rx="0.5" fill="#0a0908" />
+</svg>

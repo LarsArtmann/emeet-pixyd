@@ -1,0 +1,22 @@
+---
+import { features } from '../data/features';
+import Icon from './Icon.astro';
+import Card from './Card.astro';
+import SectionHeader from './SectionHeader.astro';
+---
+
+<div>
+  <SectionHeader eyebrow="Features" title="Everything automated." subtitle="From call detection to privacy mode, the daemon handles it all. No browser extension, no per-app setup." />
+
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {features.map((feature) => (
+      <Card variant="feature" padding="lg" class="group hover:border-border-accent">
+        <div class="w-11 h-11 rounded-lg bg-accent-dim border border-border-accent flex items-center justify-center text-accent mb-4 transition-colors duration-200 group-hover:bg-accent group-hover:text-bg-primary">
+          <Icon name={feature.icon} size={20} />
+        </div>
+        <h3 class="font-semibold text-text-primary mb-2 text-base">{feature.title}</h3>
+        <p class="text-sm text-text-muted leading-relaxed">{feature.desc}</p>
+      </Card>
+    ))}
+  </div>
+</div>
