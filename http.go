@@ -74,6 +74,10 @@ func (r *statusRecorder) Flush() {
 	}
 }
 
+func (r *statusRecorder) Unwrap() http.ResponseWriter {
+	return r.ResponseWriter
+}
+
 // loggingMiddlewareFactory returns middleware that logs each request via slog.
 func loggingMiddlewareFactory(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
