@@ -194,3 +194,26 @@ The website code is complete and builds cleanly. The domains DNS change is in Te
 - **(b)** Wait until Firebase hosting is set up, deploy the website, verify it works, THEN commit everything together?
 
 Option (a) seems safer (the MIT license change should be public ASAP), but I want your call since I shouldn't push without explicit approval.
+
+---
+
+## Appendix: CSP Conflict Fix (post-report)
+
+**Date:** 2026-07-14 02:58
+
+### Problem
+
+The CSP header in `firebase.json` (`script-src 'self'`) would have blocked all inline scripts (theme-init, header, animations, copy-code) on actual deployment because it lacked the SHA-256 hashes that `fix-csp.mjs` injects into the HTML `<meta>` tag. When both a header CSP and a meta CSP exist, the browser applies the MORE RESTRICTIVE union — the static header would have won and broken all inline JS.
+
+### Fix
+
+- **Removed** the `Content-Security-Policy` header from `website/firebase.json`
+- CSP is now handled solely by Astro's meta CSP (`security.csp` config + `fix-csp.mjs` post-build)
+- This matches the gogenfilter reference website (0 CSP headers in `firebase.json`)
+
+### Verification
+
+- Landing page (`dist/index.html`): meta CSP present with 14 SHA-256 inline script hashes
+- Docs page (`dist/guides/metrics/index.html`): meta CSP present
+- `firebase.json`: 0 occurrences of `Content-Security-Policy`
+- Full build: 19 pages + 19 OG images, CSP patched 19/19 HTML files, 0 errors
