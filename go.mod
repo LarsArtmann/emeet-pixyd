@@ -1,6 +1,6 @@
 module github.com/LarsArtmann/emeet-pixyd
 
-go 1.26.5
+go 1.26.4
 
 require (
 	github.com/a-h/templ v0.3.1020
