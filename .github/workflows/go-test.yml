@@ -19,9 +19,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Vet
-        run: go vet ./...
-
       - name: Generate templ
         run: |
           # Pin templ version to match go.mod and nix pkgs.templ (prevents drift)
@@ -41,6 +38,9 @@ jobs:
               fi
             fi
           done
+
+      - name: Vet
+        run: go vet ./...
 
       - name: Lint
         uses: golangci/golangci-lint-action@v7
