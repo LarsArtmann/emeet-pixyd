@@ -1,9 +1,6 @@
 # emeet-pixyd
 
 Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
-
-**Updated:** 2026-07-14 (MIT license change, website added at `website/`)
-
 ---
 
 ## Commands
@@ -49,15 +46,15 @@ Linux-only daemon (`//go:build linux` on all source files). Single binary, no su
 
 Daemon reads environment variables via `pixy.ConfigFromEnv()`, falling back to defaults for unset/invalid values:
 
-| Environment Variable         | Config Field    | Default            |
+| Environment Variable | Config Field | Default |
 | ---------------------------- | --------------- | ------------------ | ---------------------------------------------------------------- |
-| `EMEET_PIXYD_STATE_DIR`      | `StateDir`      | `/run/emeet-pixyd` |
-| `EMEET_PIXYD_WEB_ADDR`       | `WebAddr`       | `127.0.0.1:8090`   |
-| `EMEET_PIXYD_POLL_INTERVAL`  | `PollInterval`  | `2s`               |
-| `EMEET_PIXYD_DEBOUNCE_COUNT` | `DebounceCount` | `3`                |
-| `EMEET_PIXYD_DEBUG`          | `Debug`         | `false`            |
-| `EMEET_PIXYD_AUTO`           | `AutoMode`      | `full`             | off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
-| `EMEET_PIXYD_DEFAULT_AUDIO`  | `DefaultAudio`  | `nc`               | nc, live, org (shorthand for original)                           |
+| `EMEET_PIXYD_STATE_DIR` | `StateDir` | `/run/emeet-pixyd` |
+| `EMEET_PIXYD_WEB_ADDR` | `WebAddr` | `127.0.0.1:8090` |
+| `EMEET_PIXYD_POLL_INTERVAL` | `PollInterval` | `2s` |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `DebounceCount` | `3` |
+| `EMEET_PIXYD_DEBUG` | `Debug` | `false` |
+| `EMEET_PIXYD_AUTO` | `AutoMode` | `full` | off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
+| `EMEET_PIXYD_DEFAULT_AUDIO` | `DefaultAudio` | `nc` | nc, live, org (shorthand for original) |
 
 NixOS module passes all options as `Environment=` vars — `auto` (enum: off/full/tracking-only/privacy-only) maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` maps directly, `debug` sets `EMEET_PIXYD_DEBUG`. `NewDaemon()` applies `Config.AutoMode` and `Config.DefaultAudio` to initial state before `loadState()` (persisted state wins). Why env vars, not CLI flags: `os.Args` is used for socket commands (`emeet-pixyd status`), so flag parsing would conflict.
 

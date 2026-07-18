@@ -1,9 +1,11 @@
 ---
 import Logo from './Logo.astro';
+import Newsletter from './Newsletter.astro';
 import { siteConfig } from '../data/config';
 ---
 
 <footer role="contentinfo" class="border-t border-border mt-24" data-animate>
+  <Newsletter maxWidth="max-w-7xl" />
   <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-2.5">
       <Logo width={20} height={20} />

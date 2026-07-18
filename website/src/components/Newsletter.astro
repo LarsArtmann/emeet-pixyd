@@ -1,0 +1,44 @@
+---
+interface Props {
+  maxWidth?: string;
+}
+
+const { maxWidth = "max-w-7xl" } = Astro.props;
+
+const NEWSLETTER_FORM_ACTION = "https://buttondown.email/api/emails/embed-subscribe/larsartmann";
+---
+
+<div class="border-b border-border">
+  <div class={`${maxWidth} mx-auto px-6 py-10`}>
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div class="max-w-md">
+        <h2 class="text-lg font-semibold text-text-primary">LarsArtmann Newsletter</h2>
+        <p class="text-sm text-text-muted mt-1">
+          Major releases and new open-source projects across all LarsArtmann work. No spam, unsubscribe anytime.
+        </p>
+      </div>
+      <form
+        action={NEWSLETTER_FORM_ACTION}
+        method="POST"
+        target="popupwindow"
+        onsubmit="window.open('about:blank','popupwindow','scrollbars=yes,width=560,height=540');return true"
+        class="flex items-center gap-3 w-full md:w-auto"
+      >
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="you@example.com"
+          aria-label="Email address"
+          class="flex-1 md:w-64 px-4 py-2.5 bg-bg-elevated border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors duration-150"
+        />
+        <button
+          type="submit"
+          class="px-5 py-2.5 bg-accent text-white font-semibold rounded-lg text-sm hover:bg-accent-hover transition-all duration-200 border-none cursor-pointer whitespace-nowrap shadow-lg shadow-accent/20 hover:shadow-accent/30 hover:-translate-y-0.5"
+        >
+          Subscribe
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
