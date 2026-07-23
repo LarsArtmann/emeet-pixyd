@@ -1,241 +1,243 @@
 version: "2"
 run:
-  timeout: 5m
-  go: 1.26.4
-  build-tags:
-    - goexperiment.arenas
-    - goexperiment.goroutineleakprofile
-    - goexperiment.jsonv2
-    - goexperiment.runtimesecret
-    - goexperiment.simd
-  allow-parallel-runners: true
-  allow-serial-runners: true
-  issues-exit-code: 1
-  tests: true
+    timeout: 5m
+    go: 1.26.4
+    build-tags:
+        - goexperiment.arenas
+        - goexperiment.goroutineleakprofile
+        - goexperiment.jsonv2
+        - goexperiment.runtimesecret
+        - goexperiment.simd
+    allow-parallel-runners: true
+    allow-serial-runners: true
+    issues-exit-code: 1
+    tests: true
 output:
-  formats: {}
+    formats: {}
 linters:
-  enable:
-    - asasalint
-    - asciicheck
-    - bidichk
-    - bodyclose
-    - canonicalheader
-    - containedctx
-    - contextcheck
-    - copyloopvar
-    - cyclop
-    - decorder
-    - dogsled
-    - dupl
-    - dupword
-    - durationcheck
-    - embeddedstructfieldcheck
-    - err113
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - exhaustruct
-    - exptostd
-    - fatcontext
-    - forbidigo
-    - forcetypeassert
-    - funlen
-    - ginkgolinter
-    - gocheckcompilerdirectives
-    - gochecknoglobals
-    - gochecknoinits
-    - gochecksumtype
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - godot
-    - godox
-    - goheader
-    - gomoddirectives
-    - gomodguard_v2
-    - goprintffuncname
-    - gosec
-    - gosmopolitan
-    - grouper
-    - iface
-    - importas
-    - inamedparam
-    - interfacebloat
-    - intrange
-    - iotamixing
-    - ireturn
-    - loggercheck
-    - maintidx
-    - makezero
-    - mirror
-    - misspell
-    - mnd
-    - modernize
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnesserr
-    - nilnil
-    - nlreturn
-    - noctx
-    - nolintlint
-    - nonamedreturns
-    - nosprintfhostport
-    - paralleltest
-    - perfsprint
-    - prealloc
-    - predeclared
-    - promlinter
-    - protogetter
-    - reassign
-    - recvcheck
-    - revive
-    - rowserrcheck
-    - sloglint
-    - spancheck
-    - sqlclosecheck
-    - tagalign
-    - tagliatelle
-    - testableexamples
-    - testifylint
-    - testpackage
-    - thelper
-    - tparallel
-    - unconvert
-    - unparam
-    - usestdlibvars
-    - usetesting
-    - varnamelen
-    - wastedassign
-    - whitespace
-    - wrapcheck
-    - wsl_v5
-    - zerologlint
-  disable:
-    - noinlineerr
-  settings:
-    cyclop:
-      max-complexity: 20
-    exhaustruct:
-      exclude:
-        - os/exec.Cmd
-        - main.CommandResult
-    funlen:
-      lines: 100
-      statements: 80
-    ginkgolinter:
-      forbid-focus-container: true
-      forbid-spec-pollution: true
-    gocritic:
-      disabled-checks:
-        - ifElseChain
-    gomoddirectives:
-      replace-local: true
-    gosec:
-      excludes:
-        - G104
-        - G107
-        - G115
-        - G204
-        - G301
-        - G304
-        - G306
-        - G702
-        - G703
-        - G706
-    ireturn:
-      allow:
-        - error
-        - empty
-        - anon
-        - stdlib
-        - generic
-        - github.com/LarsArtmann/emeet-pixyd.HIDDevice
-    makezero:
-      always: false
-    mnd:
-      ignored-numbers:
-        - "2"
-    revive:
-      rules:
-        - disabled: true
-          name: exported
-        - disabled: true
-          name: package-comments
-    testifylint:
-      disable:
-        - go-require
-      enable-all: true
-    varnamelen:
-      ignore-map-index-ok: true
-      ignore-names:
-        - err
-        - ok
-        - tt
-        - fn
-        - t
-        - i
-        - m
-        - g
-        - a
-        - b
-        - v
-        - d
-        - d2
-        - s
-        - r
-        - br
-        - ch
-        - f
-        - fd
-        - "n"
-        - tc
-        - rm
-        - w
-        - ep
-        - c
-        - id
-      ignore-type-assert-ok: true
-  exclusions:
-    generated: lax
-    rules:
-      - path: _test\.go
-        linters:
-          - exhaustruct
-          - testpackage
-          - gochecknoglobals
-          - funlen
-          - cyclop
-          - goconst
-          - err113
-          - noinlineerr
-      - path: _test\.go
-        text: unused
-        linters:
-          - unused
-    paths:
-      - \./
-      - \.gen\.go$
-      - _templ\.go$
-      - vendor/
+    enable:
+        - asasalint
+        - asciicheck
+        - bidichk
+        - bodyclose
+        - canonicalheader
+        - containedctx
+        - contextcheck
+        - copyloopvar
+        - cyclop
+        - decorder
+        - dogsled
+        - dupl
+        - dupword
+        - durationcheck
+        - embeddedstructfieldcheck
+        - err113
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustive
+        - exhaustruct
+        - exptostd
+        - fatcontext
+        - forbidigo
+        - forcetypeassert
+        - funlen
+        - ginkgolinter
+        - gocheckcompilerdirectives
+        - gochecknoglobals
+        - gochecknoinits
+        - gochecksumtype
+        - gocognit
+        - goconst
+        - gocritic
+        - gocyclo
+        - godoclint
+        - godot
+        - godox
+        - goheader
+        - gomoddirectives
+        - gomodguard_v2
+        - goprintffuncname
+        - gosec
+        - gosmopolitan
+        - grouper
+        - iface
+        - importas
+        - inamedparam
+        - interfacebloat
+        - intrange
+        - iotamixing
+        - ireturn
+        - loggercheck
+        - maintidx
+        - makezero
+        - mirror
+        - misspell
+        - mnd
+        - modernize
+        - musttag
+        - nakedret
+        - nestif
+        - nilerr
+        - nilnesserr
+        - nilnil
+        - nlreturn
+        - noctx
+        - nolintlint
+        - nonamedreturns
+        - nosprintfhostport
+        - paralleltest
+        - perfsprint
+        - prealloc
+        - predeclared
+        - promlinter
+        - protogetter
+        - reassign
+        - recvcheck
+        - revive
+        - rowserrcheck
+        - sloglint
+        - spancheck
+        - sqlclosecheck
+        - tagalign
+        - tagliatelle
+        - testableexamples
+        - testifylint
+        - testpackage
+        - thelper
+        - tparallel
+        - unconvert
+        - unparam
+        - unqueryvet
+        - usestdlibvars
+        - usetesting
+        - varnamelen
+        - wastedassign
+        - whitespace
+        - wrapcheck
+        - wsl_v5
+        - zerologlint
+    disable:
+        - noinlineerr
+    settings:
+        cyclop:
+            max-complexity: 20
+        exhaustruct:
+            exclude:
+                - os/exec.Cmd
+                - main.CommandResult
+        funlen:
+            lines: 100
+            statements: 80
+        ginkgolinter:
+            forbid-focus-container: true
+            forbid-spec-pollution: true
+        gocritic:
+            disabled-checks:
+                - ifElseChain
+        gomoddirectives:
+            replace-local: true
+        gosec:
+            excludes:
+                - G104
+                - G107
+                - G115
+                - G204
+                - G301
+                - G304
+                - G306
+                - G702
+                - G703
+                - G706
+        ireturn:
+            allow:
+                - error
+                - empty
+                - anon
+                - stdlib
+                - generic
+                - github.com/LarsArtmann/emeet-pixyd.HIDDevice
+        makezero:
+            always: false
+        mnd:
+            ignored-numbers:
+                - "2"
+        revive:
+            rules:
+                - disabled: true
+                  name: exported
+                - disabled: true
+                  name: package-comments
+        testifylint:
+            disable:
+                - go-require
+            enable-all: true
+        varnamelen:
+            ignore-map-index-ok: true
+            ignore-names:
+                - err
+                - ok
+                - tt
+                - fn
+                - t
+                - i
+                - m
+                - g
+                - a
+                - b
+                - v
+                - d
+                - d2
+                - s
+                - r
+                - br
+                - ch
+                - f
+                - fd
+                - "n"
+                - tc
+                - rm
+                - w
+                - ep
+                - c
+                - id
+            ignore-type-assert-ok: true
+    exclusions:
+        generated: lax
+        rules:
+            - path: _test\.go
+              linters:
+                - exhaustruct
+                - testpackage
+                - gochecknoglobals
+                - funlen
+                - cyclop
+                - goconst
+                - err113
+                - noinlineerr
+            - path: _test\.go
+              text: unused
+              linters:
+                - unused
+        paths:
+            - \./
+            - \.gen\.go$
+            - _templ\.go$
+            - vendor/
 formatters:
-  enable:
-    - gci
-    - goimports
-    - gofumpt
-    - golines
-  settings:
-    golines:
-      max-len: 120
-  exclusions:
-    generated: lax
-    paths:
-      - \./
-      - _templ\.go$
+    enable:
+        - gci
+        - goimports
+        - gofumpt
+        - golines
+    settings:
+        golines:
+            max-len: 120
+    exclusions:
+        generated: lax
+        paths:
+            - \./
+            - _templ\.go$
 issues:
-  max-issues-per-linter: 50
-  max-same-issues: 10
+    max-issues-per-linter: 50
+    max-same-issues: 10
