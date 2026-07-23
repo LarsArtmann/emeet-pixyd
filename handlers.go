@@ -14,6 +14,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -301,7 +302,7 @@ func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request
 
 	err := pixy.ValidatePresetName(name)
 	if err != nil {
-		http.Error(responseWriter, err.Error(), http.StatusBadRequest)
+		http.Error(responseWriter, err.Error(), errorfamily.HTTPStatus(err))
 
 		return
 	}

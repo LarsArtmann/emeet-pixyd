@@ -248,6 +248,8 @@ func newTestDaemon(
 ) *Daemon {
 	tb.Helper()
 
+	registerErrorFamilies() // ensure sentinels are classified in tests that bypass NewDaemon
+
 	d := &Daemon{
 		mu: sync.RWMutex{},
 		state: pixy.State{
