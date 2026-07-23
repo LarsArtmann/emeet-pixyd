@@ -124,6 +124,33 @@ func TestErrorFamilies_WrappedErrorsStillClassify(t *testing.T) {
 	}
 }
 
+func TestErrorFamilies_CLIExitCodes(t *testing.T) {
+	t.Parallel()
+	registerErrorFamilies()
+
+	cases := []struct {
+		name string
+		err  error
+		want int
+	}{
+		{"config validation (rejection)", pixy.ErrInvalidAutoMode, 1},
+		{"device not connected (infrastructure)", pixy.ErrPIXYNotConnected, 69},
+		{"HID timeout (transient)", errNoHIDResponse, 75},
+		{"unknown error (transient default)", errors.New("unexpected"), 75},
+		{"wrapped config error", fmt.Errorf("config bad: %w", pixy.ErrWebAddrEmpty), 1},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := errorfamily.ExitCode(tc.err); got != tc.want {
+				t.Errorf("ExitCode(%v) = %d, want %d", tc.err, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestErrorFamilies_StdlibDefaults(t *testing.T) {
 	t.Parallel()
 	registerErrorFamilies()
