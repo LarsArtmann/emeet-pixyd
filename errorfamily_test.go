@@ -99,10 +99,28 @@ func TestErrorFamilies_WrappedErrorsStillClassify(t *testing.T) {
 		t.Errorf("Classify(wrapped ErrPIXYNotConnected) = %v, want Infrastructure", got)
 	}
 
+	if got := errorfamily.ExitCode(wrapped); got != 69 {
+		t.Errorf("ExitCode(wrapped ErrPIXYNotConnected) = %d, want 69", got)
+	}
+
 	wrappedRejection := fmt.Errorf("bad input: %w", ErrInvalidValue)
 
 	if got := errorfamily.Classify(wrappedRejection); got != errorfamily.Rejection {
 		t.Errorf("Classify(wrapped ErrInvalidValue) = %v, want Rejection", got)
+	}
+
+	if got := errorfamily.ExitCode(wrappedRejection); got != 1 {
+		t.Errorf("ExitCode(wrapped ErrInvalidValue) = %d, want 1", got)
+	}
+
+	wrappedTransient := fmt.Errorf("hid timeout: %w", errNoHIDResponse)
+
+	if got := errorfamily.Classify(wrappedTransient); got != errorfamily.Transient {
+		t.Errorf("Classify(wrapped errNoHIDResponse) = %v, want Transient", got)
+	}
+
+	if got := errorfamily.ExitCode(wrappedTransient); got != 75 {
+		t.Errorf("ExitCode(wrapped errNoHIDResponse) = %d, want 75", got)
 	}
 }
 
@@ -135,6 +153,14 @@ func TestErrorFamilies_StreamErrorsAreInfrastructure(t *testing.T) {
 	for _, err := range streamErrs {
 		if got := errorfamily.HTTPStatus(err); got != http.StatusServiceUnavailable {
 			t.Errorf("HTTPStatus(%v) = %d, want 503", err.ErrorCode(), got)
+		}
+
+		if got := errorfamily.ExitCode(err); got != 69 {
+			t.Errorf("ExitCode(%v) = %d, want 69 (Infrastructure)", err.ErrorCode(), got)
+		}
+
+		if got := errorfamily.Classify(err); got != errorfamily.Infrastructure {
+			t.Errorf("Classify(%v) = %v, want Infrastructure", err.ErrorCode(), got)
 		}
 	}
 }
