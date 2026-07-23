@@ -14,6 +14,8 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -24,6 +26,18 @@ const (
 
 var errJPEGMaxIterations = errors.New("max iterations reached scanning for JPEG frame")
 
+// Typed stream errors with Infrastructure classification.
+// errorfamily.HTTPStatus() derives 503 for all of these.
+var (
+	streamErrNoFrame      = errorfamily.NewInfrastructure("stream.no_frame", "no frame available")
+	streamErrInUse        = errorfamily.NewInfrastructure("stream.in_use", "stream already in use")
+	streamErrNoDevice     = errorfamily.NewInfrastructure("stream.no_device", "no camera device")
+	streamErrFFmpeg       = errorfamily.NewInfrastructure("stream.ffmpeg_missing", "ffmpeg not available")
+	streamErrNotSupported = errorfamily.NewInfrastructure("stream.not_supported", "streaming not supported")
+	streamErrPipe         = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
+	streamErrStart        = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
+)
+
 const (
 	jpegMarker = 0xFF
 	jpegSOI    = 0xD8
@@ -33,7 +47,7 @@ const (
 func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.Request) {
 	frame := s.daemon.lastFrame.Get()
 	if len(frame) == 0 {
-		http.Error(responseWriter, "no frame available", http.StatusServiceUnavailable)
+		http.Error(responseWriter, streamErrNoFrame.Error(), errorfamily.HTTPStatus(streamErrNoFrame))
 
 		return
 	}
@@ -87,7 +101,7 @@ func (s *webServer) handleStream(
 	select {
 	case s.daemon.streamSema <- struct{}{}:
 	default:
-		http.Error(responseWriter, "stream already in use", http.StatusServiceUnavailable)
+		http.Error(responseWriter, streamErrInUse.Error(), errorfamily.HTTPStatus(streamErrInUse))
 
 		return
 	}
@@ -120,7 +134,7 @@ type streamResult struct {
 func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
 	status := s.getWebStatus()
 	if status.Device == "" {
-		http.Error(responseWriter, "no camera device", http.StatusServiceUnavailable)
+		http.Error(responseWriter, streamErrNoDevice.Error(), errorfamily.HTTPStatus(streamErrNoDevice))
 
 		return status, false
 	}
@@ -140,14 +154,14 @@ func (s *webServer) setupStream(
 
 	_, lookErr := exec.LookPath(ffmpegBin)
 	if lookErr != nil {
-		http.Error(responseWriter, "ffmpeg not available", http.StatusServiceUnavailable)
+		http.Error(responseWriter, streamErrFFmpeg.Error(), errorfamily.HTTPStatus(streamErrFFmpeg))
 
 		return streamResult{}
 	}
 
 	flusher, flushOk := responseWriter.(http.Flusher)
 	if !flushOk {
-		http.Error(responseWriter, "streaming not supported", http.StatusInternalServerError)
+		http.Error(responseWriter, streamErrNotSupported.Error(), errorfamily.HTTPStatus(streamErrNotSupported))
 
 		return streamResult{}
 	}
@@ -161,7 +175,7 @@ func (s *webServer) setupStream(
 
 	stdOut, pipeErr := cmd.StdoutPipe()
 	if pipeErr != nil {
-		http.Error(responseWriter, "stream pipe error", http.StatusInternalServerError)
+		http.Error(responseWriter, streamErrPipe.Error(), errorfamily.HTTPStatus(streamErrPipe))
 
 		return streamResult{}
 	}
@@ -184,7 +198,7 @@ func (s *webServer) setupStream(
 
 	startErr := cmd.Start()
 	if startErr != nil {
-		http.Error(responseWriter, "stream start error", http.StatusInternalServerError)
+		http.Error(responseWriter, streamErrStart.Error(), errorfamily.HTTPStatus(streamErrStart))
 
 		return streamResult{}
 	}

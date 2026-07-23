@@ -18,6 +18,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/coreos/go-systemd/v22/daemon"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Build info, overridden via -ldflags.
@@ -107,6 +108,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	}
 
 	registerMetrics()
+	registerErrorFamilies()
 	// NewDaemon runs before any goroutines exist, so we can call the
 	// _Locked variant directly without taking d.mu.
 	d.applyProbeResultLocked(probeDevices())
@@ -298,7 +300,7 @@ func exitWithDaemonError(err error) {
 		_, dieErr := fmt.Fprintf(os.Stderr, "Error: %v\nIs emeet-pixyd running?\n", err)
 		_ = dieErr
 
-		os.Exit(1)
+		os.Exit(errorfamily.ExitCode(err))
 	}
 }
 
@@ -388,7 +390,7 @@ func main() {
 	d, err := NewDaemon(cfg)
 	if err != nil {
 		slog.Error("daemon init failed", "error", err)
-		os.Exit(1)
+		os.Exit(errorfamily.ExitCode(err))
 	}
 
 	d.Run()
