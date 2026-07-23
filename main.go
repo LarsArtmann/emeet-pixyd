@@ -389,7 +389,7 @@ func main() {
 
 	d, err := NewDaemon(cfg)
 	if err != nil {
-		slog.Error("daemon init failed", "error", err)
+		errorfamily.LogError(err, slog.Default())
 		os.Exit(errorfamily.ExitCode(err))
 	}
 
