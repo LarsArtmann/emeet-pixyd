@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestErrorFamilies_InfrastructureSentinels(t *testing.T) {
@@ -123,13 +123,13 @@ func TestErrorFamilies_StreamErrorsAreInfrastructure(t *testing.T) {
 	t.Parallel()
 
 	streamErrs := []*errorfamily.Error{
-		streamErrNoFrame,
-		streamErrInUse,
-		streamErrNoDevice,
-		streamErrFFmpeg,
-		streamErrNotSupported,
-		streamErrPipe,
-		streamErrStart,
+		errStreamNoFrame,
+		errStreamInUse,
+		errStreamNoDevice,
+		errStreamFFmpeg,
+		errStreamNotSupported,
+		errStreamPipe,
+		errStreamStart,
 	}
 
 	for _, err := range streamErrs {

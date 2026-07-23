@@ -5,8 +5,8 @@ package main
 import (
 	"sync"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var errorFamiliesRegistered sync.Once //nolint:gochecknoglobals // lazy init, runs once per process
