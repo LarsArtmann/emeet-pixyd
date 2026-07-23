@@ -3,6 +3,7 @@
 // Integration tests require a real EMEET PIXY device connected.
 // Run with: go test -tags=integration -run TestIntegration ./...
 // These tests are skipped in normal CI — they exercise real HID/V4L2 hardware paths.
+
 package main
 
 import (
