@@ -11,7 +11,7 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-FQ26mvEazEcdZnSojYgN1uRuCZnOHG/6AfWD4zZDuAY=";
+  vendorHash = "sha256-SiHVB/evDvPt1DGVKOQwzcgaceww3xCcpNlovRQwE1M=";
   proxyVendor = true;
 
   GOEXPERIMENT = "jsonv2";
