@@ -219,6 +219,10 @@ linters:
         text: unused
         linters:
           - unused
+      - path: ^main\.go$
+        text: "package has more than one godoc"
+        linters:
+          - godoclint
     paths:
       - \./
       - \.gen\.go$
