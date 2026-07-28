@@ -4,8 +4,6 @@
   src,
   version,
   templ,
-  goBrandedSrc,
-  replaceBrandedId,
 }:
 buildGoModule {
   pname = "emeet-pixyd";
@@ -22,10 +20,7 @@ buildGoModule {
 
   nativeBuildInputs = [ templ ];
 
-  preBuild = ''
-    templ generate
-    ${replaceBrandedId}
-  '';
+  preBuild = "templ generate";
 
   ldflags = [
     "-s"
