@@ -80,11 +80,11 @@
 
 ---
 
-## Resolved in this audit (removed from the backlog)
+## Numbering notes
 
-These were open in the prior list and are now done or superseded — recorded here only so the numbering change is traceable. Full detail is in `CHANGELOG.md [Unreleased]`.
+This is **not** a list of work to do — it exists only so the numbering change is traceable. Full detail for shipped/superseded items is in `CHANGELOG.md [Unreleased]`.
 
-- ~~#108~~ Add gesture toggle to web UI — **DONE**: toggle is in `templates.templ:168` posting to `/api/gesture`; handler `handleGestureCommand` (`commands.go:253`).
-- ~~#113~~ Wire `errors.Is` checks for the 9 sentinels — **SUPERSEDED** by go-error-family adoption: `errorfamily.go` registers all sentinels via `RegisterClassification` (which walks `errors.Is` chains), so callers get classification without per-site `errors.Is` wiring.
-
-> The prior "Resolved History (archive)" (items #1–#105, Phases 1–10) was the project's completed backlog. It has been removed from this file — completed work lives in `CHANGELOG.md`, and the "decided won't-do" decisions (former #79, #85, #86, #96, #98) live in `ROADMAP.md` → "Decisions (won't-do)". That removal is the point: a TODO list is open work, not a trophy case.
+- Former **#108** (add gesture toggle to web UI) — shipped: toggle is in `templates.templ:168` posting to `/api/gesture`; handler `handleGestureCommand` (`commands.go:253`).
+- Former **#113** (wire `errors.Is` for the 9 sentinels) — superseded by go-error-family adoption: `errorfamily.go` registers all sentinels via `RegisterClassification` (which walks `errors.Is` chains), so callers get classification without per-site wiring.
+- Former **#116** (structured command types) and **#123** (multi-word preset names) — moved to `ROADMAP.md` → "Needs a design decision".
+- The prior completed backlog (items **#1–#105**, Phases 1–10) is retired from this file — completed work lives in `CHANGELOG.md`, and the "decided won't-do" decisions (#79, #85, #86, #96, #98) live in `ROADMAP.md` → "Decisions (won't-do)". That removal is the point: a TODO list is open work, not a trophy case.

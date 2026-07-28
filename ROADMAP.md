@@ -11,7 +11,7 @@
 
 emeet-pixyd aims to be the **zero-touch Linux companion** for the EMEET PIXY: plug it in and the camera does the right thing (tracking when you're in a call, privacy when you're not), with a polished local web UI, full CLI/socket control, first-class NixOS integration, and no cloud dependency. Everything below either extends that vision or hardens what already ships.
 
-The daemon is mature: 58/59 features `FULLY_FUNCTIONAL` (see `FEATURES.md`), build/test/lint/nix gates green. Roadmap work is therefore **enrichment and hardening**, not gap-filling.
+The daemon is mature: 59/60 features `FULLY_FUNCTIONAL` (see `FEATURES.md`), build/test/lint/nix gates green. Roadmap work is therefore **enrichment and hardening**, not gap-filling.
 
 ---
 
