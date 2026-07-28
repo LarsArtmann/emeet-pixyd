@@ -107,7 +107,12 @@
           checks.format = config.treefmt.build.check self;
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
-              inherit src version goBrandedSrc replaceBrandedId;
+              inherit
+                src
+                version
+                goBrandedSrc
+                replaceBrandedId
+                ;
               inherit (pkgs) templ;
             };
             default = config.packages.emeet-pixyd;
