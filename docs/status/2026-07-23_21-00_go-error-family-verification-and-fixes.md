@@ -59,7 +59,7 @@ The adoption is **intentionally partial** — only HTTP status derivation and CL
 
 ## c) NOT STARTED
 
-- **Push to origin** — 4 commits are local only, not pushed. Previous session claimed push but origin shows 4 commits behind HEAD.
+- ~~**Push to origin** — 4 commits are local only, not pushed. Previous session claimed push but origin shows 4 commits behind HEAD.~~ DONE: pushed shortly after this report (`a2dce73..53007db`); HEAD is now well past this on `master`.
 - **Error family adoption in `internal/pixy/`** — The `pixy` package has its own sentinel errors that could benefit from classification.
 - **Error wrapping consistency audit** — Not all `fmt.Errorf` sites use `%w` wrapping consistently; some use `%v` which breaks `errors.Is` chains and therefore breaks `errorfamily.Classify()`.
 
@@ -198,5 +198,17 @@ This is a significant structural change that would affect imports, the Nix build
 **Ended with:** All issues found and fixed. Full verification chain green (build, test, lint, nix). 4 commits ahead of origin, working tree clean, 0 lint issues, all nix checks pass.
 
 **Time invested:** ~20 minutes of systematic verification and root-cause analysis.
+
+---
+
+## Resolution (2026-07-28)
+
+The adoption this report verified is **shipped and stable**. The dependency has since advanced from v0.8.0 → **`go-error-family` v0.10.0** (`go.mod`, bumped in `ca41926`); `errorfamily.go`/`errorfamily_test.go` are present and the 5 verification gates (build, race test, lint, nix build, nix flake check) remain green.
+
+**What changed vs this report:**
+- The "push to origin" blocker (§c.1) is resolved — see inline correction above.
+- §c.2 (`internal/pixy` classification) and §c.3 (`%v` vs `%w` wrapping audit) are still open.
+
+**Forward-looking items:** the 50 ideas in §f are a brainstorm, not a commitment. The genuinely actionable, bounded subset (e.g. GitHub Actions SHA pinning, broader `LogError()` coverage) has been routed to `TODO_LIST.md`; the vaguer/longer-term ones to `ROADMAP.md`. This report's §f is the source of record for those ideas — do not re-list them here.
 
 **Key lesson:** Never trust session summaries. Verify everything from scratch using fresh caches and the full verification chain (`go build` → `go test -race` → `golangci-lint` → `nix flake check`).

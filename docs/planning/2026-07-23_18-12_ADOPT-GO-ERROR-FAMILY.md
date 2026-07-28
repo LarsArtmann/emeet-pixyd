@@ -1,7 +1,7 @@
 # Adopt go-error-family for HTTP classification + CLI exit codes
 
 **Date**: 2026-07-23 18:12
-**Status**: Planning → Implementation
+**Status**: ✅ DONE — fully implemented 2026-07-23 (`f91de17`); bumped to `go-error-family` v0.10.0 in `ca41926`. See [Resolution](#resolution-2026-07-28) below.
 **Author**: Crush + Lars
 
 ---
@@ -258,13 +258,27 @@ graph TD
 
 ## Verification Checklist
 
-- [ ] `go build .` passes
-- [ ] `go test -race -count=1 ./...` passes
-- [ ] `golangci-lint run --timeout 2m ./...` has 0 issues
-- [ ] `nix build` succeeds
-- [ ] `nix flake check` passes
-- [ ] 3 stream errors that were 500 now return 503
-- [ ] All 18 sentinels classify to correct families
-- [ ] CLI exit codes derived from classification
-- [ ] HTMX handlers still return 200 + HTML toast (unchanged)
-- [ ] AGENTS.md documents the adoption
+All items below shipped green in `f91de17` / `a2dce73` / `cd80e46` / `464de0f` (2026-07-23); the dependency has since been bumped to `go-error-family` v0.10.0 (`ca41926`).
+
+- [x] `go build .` passes
+- [x] `go test -race -count=1 ./...` passes
+- [x] `golangci-lint run --timeout 2m ./...` has 0 issues
+- [x] `nix build` succeeds
+- [x] `nix flake check` passes
+- [x] 3 stream errors that were 500 now return 503
+- [x] All 18 sentinels classify to correct families
+- [x] CLI exit codes derived from classification
+- [x] HTMX handlers still return 200 + HTML toast (unchanged)
+- [x] AGENTS.md documents the adoption
+
+---
+
+## Resolution (2026-07-28)
+
+This plan was **fully delivered**. Every task C1–C7 (and all 26 micro-tasks M1–M26) shipped across the two 2026-07-23 sessions; the comprehensive result is recorded in `docs/status/2026-07-23_21-27_go-error-family-comprehensive-status.md`.
+
+- `errorfamily.go` + `errorfamily_test.go` exist and register all 18 sentinels + stdlib defaults.
+- 3 genuine 500→503 stream bugs fixed; CLI exit codes derived via `errorfamily.ExitCode(err)`.
+- Dependency has since advanced to `go-error-family` **v0.10.0** (`go.mod`; was v0.8.0 at adoption).
+
+**Nothing in this plan remains open.** The forward-looking expansion ideas (broader `LogError()` coverage, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints) live in the report's `§f` lists and have been routed to `TODO_LIST.md` / `ROADMAP.md` — they are enhancements, not part of this plan's scope.

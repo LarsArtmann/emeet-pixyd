@@ -47,7 +47,7 @@
 
 | What                                 | Status                                                                  |
 | ------------------------------------ | ----------------------------------------------------------------------- |
-| `go-error-family` v0.8.0 in `go.mod` | Direct require (not indirect) — fixed from previous session             |
+| `go-error-family` v0.8.0 in `go.mod` | Direct require (not indirect) — fixed from previous session. **Now v0.10.0** (bumped `ca41926` after this report). |
 | `go.sum`                             | Checksums match v0.8.0                                                  |
 | `vendorHash` sync                    | `flake.nix:123` + `package.nix:14` both updated to `sha256-SiHVB/ev...` |
 
@@ -257,3 +257,13 @@ The HIGH severity `fast-uri` vulnerability is in a Go dependency (likely transit
 | Remaining `slog.Error` without `LogError`  | 12 (out of 13 total)                                                |
 | Lint issues                                | 0                                                                   |
 | Pushed to origin                           | Yes (`a2dce73..53007db`)                                            |
+
+---
+
+## Resolution (2026-07-28)
+
+This report is the authoritative record of the **completed** go-error-family adoption. Everything in §a is shipped and still green (build, race test, lint 0 issues, nix build, nix flake check). The dependency has since moved v0.8.0 → **v0.10.0** (`ca41926`).
+
+**§b (scoped adoption) is unchanged by design** — HTMX handlers returning 200+HTML toast, the 6 hardcoded 400 guards, and the circuit breaker remain intentionally outside classification. These are documented decisions, not gaps.
+
+**§c / §f forward-looking items:** the 50 enhancement ideas (broader `LogError()`, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints, `errorfamilytest` helpers, fuzz/benchmark additions, ADR, CodeQL, etc.) are a brainstorm. The actionable, bounded subset has been routed to `TODO_LIST.md`; the rest to `ROADMAP.md`. This report remains the source of record — they are not re-listed here.
