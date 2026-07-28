@@ -163,6 +163,25 @@ header h1 {
   color: var(--red);
 }
 
+.sse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yellow);
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.sse-indicator.connected {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+}
+
+.sse-indicator.disconnected {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red-glow);
+}
+
 /* ========================================================================== */
 /*  Preview (hero)                                                            */
 /* ========================================================================== */

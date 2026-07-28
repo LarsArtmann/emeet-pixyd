@@ -173,6 +173,31 @@
   });
 
   /* -------------------------------------------------------------------- */
+  /*  Focus preservation across panel swaps                               */
+  /* -------------------------------------------------------------------- */
+
+  var preSwapFocusId = null;
+
+  document.addEventListener("htmx:beforeRequest", function (e) {
+    var target = e.detail.target;
+    if (target && target.id === "status-panel") {
+      var active = document.activeElement;
+      if (active && active.id && target.contains(active)) {
+        preSwapFocusId = active.id;
+      }
+    }
+  });
+
+  document.addEventListener("htmx:afterSettle", function () {
+    if (!preSwapFocusId) return;
+    var el = document.getElementById(preSwapFocusId);
+    if (el) {
+      el.focus();
+    }
+    preSwapFocusId = null;
+  });
+
+  /* -------------------------------------------------------------------- */
   /*  Toast & offline banner                                              */
   /* -------------------------------------------------------------------- */
 
@@ -217,6 +242,7 @@
 
     evtSource.onopen = function () {
       evtRetryDelay = STREAM_RETRY_INITIAL_MS;
+      updateSSEIndicator("connected");
     };
 
     evtSource.addEventListener("refresh", function () {
@@ -229,9 +255,17 @@
         evtSource = null;
       }
 
+      updateSSEIndicator("disconnected");
       setTimeout(connectEvents, evtRetryDelay);
       evtRetryDelay = Math.min(evtRetryDelay * 2, STREAM_RETRY_MAX_MS);
     };
+  }
+
+  function updateSSEIndicator(state) {
+    var dot = document.getElementById("sse-indicator");
+    if (!dot) return;
+    dot.className = "sse-indicator " + state;
+    dot.setAttribute("aria-label", "Live updates " + state);
   }
 
   document.addEventListener("visibilitychange", function () {

@@ -86,6 +86,7 @@ templ page(s webStatus) {
 						<h1>EMEET PIXY</h1>
 					</div>
 					<div class="header-meta">
+						<span class="sse-indicator" id="sse-indicator" role="status" aria-label="Live updates connecting"></span>
 						if s.Online {
 							<span class="header-badge header-badge-online">Online</span>
 						} else {
@@ -327,10 +328,16 @@ templ presetSection(names []string) {
 				placeholder="Save current position\u2026"
 				maxlength="32"
 				autocomplete="off"
+				list="preset-names-list"
 			/>
 			<button class="btn btn-small" id="preset-save-btn" type="button" aria-label="Save preset">Save</button>
 		</div>
 		if len(names) > 0 {
+			<datalist id="preset-names-list">
+				for _, name := range names {
+					<option value={ name }></option>
+				}
+			</datalist>
 			<div class="preset-chips">
 				for _, name := range names {
 					@presetChip(name)
