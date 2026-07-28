@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-28 15:24 CEST
 **Session scope:** Resolve `nix build` failure: `fixed-output derivations must not reference store paths: ... references '/nix/store/.../go-1.26.5'`.
-**Outcome:** 🔴 → 🟢 Build green. Workaround landed. Root cause fixed upstream. **Self-grade: B-** (see §d, §e).
+**Outcome:** 🔴 → 🟢 Build green. Workaround landed. ~~Root cause fixed upstream.~~ **Upstream binary untracked (`c29a034`) but NO new version published — proxy still serves v0.5.0 with the binary, so the in-sandbox `replace` workaround is still active and TEMPORARY.** **Self-grade: B-** (see §d, §e).
 
 ---
 
@@ -110,3 +110,18 @@ I fixed it two ways: (1) stopped tracking the binary in the `go-branded-id` repo
 ---
 
 _Report scoped strictly to this session's work. No unrelated research performed._
+
+---
+
+## Resolution (2026-07-28)
+
+**Still TEMPORARY — the permanent fix never shipped.** Verified against current code:
+
+- `go.mod` still requires `go-branded-id v0.5.0` (no v0.5.1 was ever tagged/published).
+- `flake.nix` still defines `goBrandedSrc` + `replaceBrandedId` (lines ~77–94) and both derivations' `preBuild` still run the `go mod edit -replace`.
+- `package.nix` still takes the `goBrandedSrc`/`replaceBrandedId` args.
+- The `AGENTS.md` "go-branded-id committed-binary workaround (TEMPORARY)" gotcha is still present and accurate.
+
+So §b.1 (permanent upstream fix), §c.1–c.5, and §f.1 (tag v0.5.1, bump go.mod, remove the shims) are **all still open**. This is the single highest-impact debt from this report and is tracked as the top item in `TODO_LIST.md` — it is **blocked on push permission** to the `go-branded-id` remote (§g.1).
+
+The build/lint/test gates remain green with the workaround in place; the debt is the workaround's continued existence, not a correctness regression.

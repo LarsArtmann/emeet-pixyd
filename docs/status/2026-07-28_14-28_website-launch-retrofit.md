@@ -10,6 +10,8 @@
 
 The emeet-pixyd website already existed and was deployed. Per the skill's Phase 0.0, this was a **maintenance retrofit**, not a rebuild. I audited all 17 docs pages + README against the skill's "nice docs" checklist and applied every missing pattern. Build passes, typecheck passes, HTML validation passes. However, the auto-git daemon swept my changes into commits alongside a **tabs-vs-spaces reformatting** from another concurrent session that I did not author, did not verify, and which introduced cosmetic collateral damage to `.mdx` and `.mjs` files.
 
+> **Update 2026-07-28:** the retrofit content (Where-to-go-next on all 17 pages, callout conversion, expanded comparison table, `lastUpdated` + `editLink` in `astro.config.mjs`, `.htmlvalidate.json`) is committed and build-verified — but **two follow-ups from §d/§f are still open**: (1) the `.editorconfig` root cause is **unfixed** (it still has `[*] indent_style = tab` with no `.mdx`/`.mjs` space override, so `.mdx`/`.mjs` files still indent with tabs), and (2) the retrofit was **not deployed** to Firebase (changes are local/committed only). See [Resolution](#resolution-2026-07-28) below.
+
 ---
 
 ## a) FULLY DONE
@@ -246,3 +248,21 @@ I found these changes already committed alongside my work (commit `ca41926`). Th
 ### 3. Do you want the "Who is this for?" / "When NOT to use this" / Comparison content mirrored to the landing page or kept README-only?
 
 The skill recommends these as high-trust patterns. Currently they're only in the README (GitHub) and partially in `related-tools.mdx` (comparison). The Astro landing page (`HeroSection.astro`, `FeatureGrid.astro`, etc.) doesn't surface them. Mirroring would mean creating new section components. Is that worth the effort, or is the README sufficient as the trust-builder?
+
+---
+
+## Resolution (2026-07-28)
+
+**Shipped (committed, build-green):** all of §a — the 3 README sections, 2 Starlight config knobs, Where-to-go-next on all 17 pages, the callout conversion, the expanded comparison table, and `.htmlvalidate.json`. These landed across commits `b361f71`→`ca41926`.
+
+**Still open (routed to `TODO_LIST.md`):**
+
+| Report item                                                | Status   | Note                                                                                                                                  |
+| ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| §d `.editorconfig` tabs-vs-spaces (`.mdx`/`.mjs` use tabs) | **OPEN** | Root cause present: `.editorconfig` has no `[*.{md,mdx}]` / `[*.{js,mjs,cjs}]` space rule. Fix the config, then re-run the formatter. |
+| §c / §f.8 Deploy retrofit to Firebase                      | **OPEN** | Changes are local/committed only; not deployed.                                                                                       |
+| §b Visual QA (headless screenshot)                         | **OPEN** | Chromium-headless hung; no screenshot captured.                                                                                       |
+| §f.21 Per-page feedback links                              | OPEN     | `editLink` enabled; no feedback link yet.                                                                                             |
+| §f.22 Reading time                                         | OPEN     | Not enabled in Starlight.                                                                                                             |
+
+The remaining §f items (more callouts, landing-page mirroring of "Who is this for?"/comparison, OG verification) are polish ideas now tracked in `ROADMAP.md`. This report's §f is the source of record — they are not re-listed here.

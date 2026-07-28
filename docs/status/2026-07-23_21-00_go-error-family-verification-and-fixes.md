@@ -206,6 +206,7 @@ This is a significant structural change that would affect imports, the Nix build
 The adoption this report verified is **shipped and stable**. The dependency has since advanced from v0.8.0 → **`go-error-family` v0.10.0** (`go.mod`, bumped in `ca41926`); `errorfamily.go`/`errorfamily_test.go` are present and the 5 verification gates (build, race test, lint, nix build, nix flake check) remain green.
 
 **What changed vs this report:**
+
 - The "push to origin" blocker (§c.1) is resolved — see inline correction above.
 - §c.2 (`internal/pixy` classification) and §c.3 (`%v` vs `%w` wrapping audit) are still open.
 

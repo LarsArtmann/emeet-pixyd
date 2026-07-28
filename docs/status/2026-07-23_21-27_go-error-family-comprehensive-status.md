@@ -45,11 +45,11 @@
 
 ### Dependency Hygiene
 
-| What                                 | Status                                                                  |
-| ------------------------------------ | ----------------------------------------------------------------------- |
+| What                                 | Status                                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
 | `go-error-family` v0.8.0 in `go.mod` | Direct require (not indirect) — fixed from previous session. **Now v0.10.0** (bumped `ca41926` after this report). |
-| `go.sum`                             | Checksums match v0.8.0                                                  |
-| `vendorHash` sync                    | `flake.nix:123` + `package.nix:14` both updated to `sha256-SiHVB/ev...` |
+| `go.sum`                             | Checksums match v0.8.0                                                                                             |
+| `vendorHash` sync                    | `flake.nix:123` + `package.nix:14` both updated to `sha256-SiHVB/ev...`                                            |
 
 ### Documentation
 
