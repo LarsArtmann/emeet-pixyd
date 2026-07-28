@@ -101,3 +101,11 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | `/metrics`                  | GET    | Prometheus metrics                     |
 | `/static/*`                 | GET    | Embedded assets (JS, CSS, HTMX)        |
 | `/debug/pprof/*`            | GET    | pprof endpoints (only when debug=true) |
+
+## Where to go next
+
+- [HID Protocol](/architecture/hid-protocol/) — camera control over hidraw in depth
+- [Call Detection](/architecture/call-detection/) — how calls are detected via `/proc`
+- [Configuration](/guides/configuration/) — env vars and state persistence
+- [Prometheus Metrics](/guides/metrics/) — observability endpoints
+- [Contributing](/contributing/) — extend the daemon

@@ -84,3 +84,11 @@ This generic function abstracts the write-read-parse pattern for type-safe HID q
 HID access is serialized by `Daemon.hidMu` (`sync.Mutex`). This ensures only one HID operation runs at a time, preventing protocol corruption from concurrent writes.
 
 The lock is separate from the V4L2 lock (`v4l2Mu`) so that the 200ms HID sleep does not block PTZ commands.
+
+## Where to go next
+
+- [Call Detection](/architecture/call-detection/) — the other half of automation
+- [Architecture Overview](/architecture/overview/) — concurrency model and locks
+- [Auto Modes](/guides/auto-modes/) — which HID commands fire on call start/end
+- [Contributing](/contributing/) — dependency injection and testability
+- [CLI Reference](/guides/cli-reference/) — the user-facing commands

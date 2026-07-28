@@ -94,3 +94,11 @@ nix fmt    # Alejandra for .nix files
 ## CI
 
 GitHub Actions runs: `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets.
+
+## Where to go next
+
+- [Architecture Overview](/architecture/overview/) — understand the codebase before changing it
+- [HID Protocol](/architecture/hid-protocol/) — device communication internals
+- [Call Detection](/architecture/call-detection/) — core automation logic
+- [CLI Reference](/guides/cli-reference/) — the user-facing surface
+- [Troubleshooting](/troubleshooting/) — common issues to watch for
