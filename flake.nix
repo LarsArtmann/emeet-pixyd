@@ -145,7 +145,7 @@
               pname = "emeet-pixyd-lint";
               inherit version;
               src = checkSrc;
-              vendorHash = "sha256-4oantXCapKcEYQj+Le1qNf44hIIMZogxWioPlyqNBoM=";
+              vendorHash = "sha256-zawNYoJyvw9fGGBSLlIIltvij6gQ2si0MvJ1OgEEH70=";
               proxyVendor = true;
               doCheck = false;
 
@@ -195,10 +195,7 @@
 
       flake = {
         overlays.default = final: _prev: {
-          emeet-pixyd = final.callPackage ./package.nix {
-            inherit src version;
-            inherit (final) templ;
-          };
+          emeet-pixyd = self.packages.${final.system}.emeet-pixyd;
         };
 
         nixosModules.default = import ./modules/nixos.nix;
