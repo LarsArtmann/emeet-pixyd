@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Error classification via `go-error-family` (v0.10.0)**: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `errorfamily.HTTPStatus(err)` derives HTTP status codes, `errorfamily.ExitCode(err)` derives BSD sysexits CLI exit codes, and `errorfamily.LogError()` adds family/code/retryable structured log fields at the daemon-init failure path — replacing per-call-site hardcoded status/exit codes. Scoped by design: HTMX action handlers keep returning 200+HTML toast (correct `outerHTML` swap), and the HID circuit breaker stays untouched. See `FEATURES.md` → Error Handling.
+- **Website docs retrofit** (`emeet-pixyd.lars.software`): added curated "Where to go next" sections to all 17 docs pages, converted the installation blockquote to a Starlight callout, expanded the `related-tools` comparison matrix, enabled `lastUpdated` + `editLink` in Starlight, and added `.htmlvalidate.json` (0 HTML-validation errors). Not yet deployed (see `TODO_LIST.md` #127).
+- **Gesture toggle in the web UI**: a Gesture Control toggle (posts to `/api/gesture`) joins the mode cards — gesture control was previously CLI/socket-only.
 - **Web UI overhaul**: camera preview is now a full-width hero above the status panel (does not re-render on HTMX swaps). Camera mode cards (Track/Idle/Privacy) with inline SVG icons, descriptions, per-mode color glow, and keyboard-shortcut badges replace the old button group. Audio selector is a pill-style segmented control. PTZ radar indicator (120px circular position display with crosshair, zoom ring, and glowing position dot) added. Snapshot button overlays the preview. Keyboard shortcut legend (FAB + `?` key + `Escape`) lists all shortcuts. Preset UI (save input + chips with load/delete, delegated events that survive HTMX panel swaps). All UI icons are now inline SVG (Lucide-style) — no emoji anywhere. Responsive breakpoints at 860px/640px/400px + `prefers-reduced-motion` + `hover:none`.
 - Camera preset web UI: save/load/delete named PTZ positions via `/api/preset/{save,load,delete}/{name}` with preset count display (N/16).
 - State schema versioning: `pixy.CurrentSchemaVersion = 1` + `State.SchemaVersion` field (`"v"` in JSON). `loadState` logs a warning on version mismatch and loads old files as version 0 (best-effort backward compatibility).
@@ -23,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **3 genuine HTTP status bugs in `stream.go`**: `stream.not_supported`, `stream.pipe_error`, and `stream.start_error` returned 500 (Internal Server Error) for infrastructure failures; they now return 503 (Service Unavailable) via `errorfamily.HTTPStatus(err)`.
+- **`nix build` FOD failure** from `go-branded-id@v0.5.0` shipping a committed compiled `namer` binary that embeds nix store paths (`/nix/store/.../go-1.26.5`): added an in-sandbox-only `replace` (`goBrandedSrc` + `replaceBrandedId` in `flake.nix`/`package.nix`) so the poisoned module is never downloaded. Committed `go.mod`/`go.sum` stay canonical (GitHub Actions `go test` against the real proxy is unaffected). **TEMPORARY** — until `go-branded-id` publishes a binary-free version (tracked as `TODO_LIST.md` #124).
 - **`nix flake check` failure** (broken since project inception): the go-modules FOD inherited `preBuild` with an empty-file validation guard that killed the FOD when `templ generate` produced empty output (no modules available). Simplified `preBuild` to bare `templ generate`; reordered `HOME=$TMPDIR` before `runHook preBuild`.
 - Dead `SSEEvent.ID` and `SSEEvent.Retry` fields removed (never set in production — only in one test). Dead `writeSSEEvent` branches removed; `strconv` import dropped.
 - Dead CSS removed: `.htmx-indicator` class was never used (project uses `#status-panel.htmx-request`).
@@ -39,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Dependencies
 
+- Added `github.com/larsartmann/go-error-family` (now at v0.10.0; adopted at v0.8.0, bumped in `ca41926`). Direct require. `vendorHash` synced between `flake.nix` and `package.nix`.
+- `github.com/larsartmann/go-branded-id` at v0.5.0 (the version that ships the committed binary — see the TEMPORARY nix workaround above).
 - Updated `vendorHash` for Go 1.26.4 module cache. Required sync between `flake.nix` and `package.nix` (both share the hash under `proxyVendor = true`).
 
 ### Changed
