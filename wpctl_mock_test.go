@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -69,7 +70,7 @@ func (w *wpctlMock) LookPath(string) (string, error) {
 	return "", errLookPathFailed
 }
 
-var errLookPathFailed = strings.TrimSpace("wpctl not found")
+var errLookPathFailed = errors.New("wpctl not found")
 
 // withWpctlMock wires a wpctlMock into the daemon's DI and sets findSource/setSource
 // to use the REAL daemon methods (which call commander.Output/Run internally).
