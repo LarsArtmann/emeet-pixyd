@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/coreos/go-systemd/v22 v22.7.0
-	github.com/larsartmann/go-branded-id v0.5.0
+	github.com/larsartmann/go-branded-id v0.3.2
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/prometheus/client_golang v1.24.1
 	go.opentelemetry.io/otel v1.44.0
