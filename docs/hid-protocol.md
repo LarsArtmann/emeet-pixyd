@@ -20,13 +20,13 @@ PTZ (pan/tilt/zoom) is controlled separately via **V4L2** (`v4l2-ctl`), not HID.
 
 ## Device Identification
 
-| Property | Value |
-| -------- | ----- |
-| USB Vendor ID | `328f` |
-| USB Product ID | `00c0` |
-| Video device | `/dev/video*` (V4L2) |
-| HID device | `/dev/hidraw*` |
-| Name matching | Contains `"EMEET"`, `"Pixy"`, or `"PIXY"` |
+| Property       | Value                                     |
+| -------------- | ----------------------------------------- |
+| USB Vendor ID  | `328f`                                    |
+| USB Product ID | `00c0`                                    |
+| Video device   | `/dev/video*` (V4L2)                      |
+| HID device     | `/dev/hidraw*`                            |
+| Name matching  | Contains `"EMEET"`, `"Pixy"`, or `"PIXY"` |
 
 Device probing walks `/sys/class/video4linux` and `/sys/class/hidraw` to match vendor/product.
 
@@ -34,14 +34,14 @@ Device probing walks `/sys/class/video4linux` and `/sys/class/hidraw` to match v
 
 ## Buffer Sizes
 
-| Constant | Value | Purpose |
-| -------- | ----- | ------- |
-| `hidBufSize` | 32 bytes | Write buffer (padded to 32, only first 9 bytes carry data) |
-| `hidRespBufSize` | 64 bytes | Read buffer for responses |
-| `hidMinLen` | 9 bytes | Minimum meaningful response length |
-| `hidDebugLen` | 16 bytes | Bytes logged in debug mode |
-| `hidResponseMs` | 500 ms | Read timeout |
-| `hidCommandSleepMs` | 200 ms | Sleep between config and commit |
+| Constant            | Value    | Purpose                                                    |
+| ------------------- | -------- | ---------------------------------------------------------- |
+| `hidBufSize`        | 32 bytes | Write buffer (padded to 32, only first 9 bytes carry data) |
+| `hidRespBufSize`    | 64 bytes | Read buffer for responses                                  |
+| `hidMinLen`         | 9 bytes  | Minimum meaningful response length                         |
+| `hidDebugLen`       | 16 bytes | Bytes logged in debug mode                                 |
+| `hidResponseMs`     | 500 ms   | Read timeout                                               |
+| `hidCommandSleepMs` | 200 ms   | Sleep between config and commit                            |
 
 ---
 
@@ -63,34 +63,34 @@ Byte 8: Mode byte (varies by interface)
 
 ### Interface IDs
 
-| Interface | Value | Purpose |
-| --------- | ----- | ------- |
-| Tracking | `0x01` (`hidInterfaceTracking`) | Camera tracking mode |
-| Gesture | `0x04` (`hidInterfaceGesture`) | Hand gesture control on/off |
-| Audio | `0x05` (`hidInterfaceAudio`) | Audio processing mode |
+| Interface | Value                           | Purpose                     |
+| --------- | ------------------------------- | --------------------------- |
+| Tracking  | `0x01` (`hidInterfaceTracking`) | Camera tracking mode        |
+| Gesture   | `0x04` (`hidInterfaceGesture`)  | Hand gesture control on/off |
+| Audio     | `0x05` (`hidInterfaceAudio`)    | Audio processing mode       |
 
 ### Mode Bytes — Camera (Interface `0x01`)
 
-| Mode | Byte Value | Description |
-| ---- | ---------- | ----------- |
-| Idle | `0x00` (`hidByteIdle`) | Camera powered, no tracking |
-| Tracking | `0x01` (`hidByteTracking`) | Active face tracking |
-| Privacy | `0x02` (`hidBytePrivacy`) | Lens physically blocked |
+| Mode     | Byte Value                 | Description                 |
+| -------- | -------------------------- | --------------------------- |
+| Idle     | `0x00` (`hidByteIdle`)     | Camera powered, no tracking |
+| Tracking | `0x01` (`hidByteTracking`) | Active face tracking        |
+| Privacy  | `0x02` (`hidBytePrivacy`)  | Lens physically blocked     |
 
 ### Mode Bytes — Audio (Interface `0x05`)
 
-| Mode | Byte Value | Description |
-| ---- | ---------- | ----------- |
-| Noise Cancel | `0x01` (`hidByteNC`) | Active noise cancellation |
-| Live | `0x02` (`hidByteLive`) | Optimized for live/streaming |
-| Original | `0x03` (`hidByteOriginal`) | Raw passthrough, no processing |
+| Mode         | Byte Value                 | Description                    |
+| ------------ | -------------------------- | ------------------------------ |
+| Noise Cancel | `0x01` (`hidByteNC`)       | Active noise cancellation      |
+| Live         | `0x02` (`hidByteLive`)     | Optimized for live/streaming   |
+| Original     | `0x03` (`hidByteOriginal`) | Raw passthrough, no processing |
 
 ### Mode Bytes — Gesture (Interface `0x04`)
 
-| State | Byte Value | Description |
-| ----- | ---------- | ----------- |
-| Disabled | `0x00` (`hidByteIdle`) | Gesture control off |
-| Enabled | `0x01` (`gestureEnabledByte`) | Gesture control on |
+| State    | Byte Value                    | Description         |
+| -------- | ----------------------------- | ------------------- |
+| Disabled | `0x00` (`hidByteIdle`)        | Gesture control off |
+| Enabled  | `0x01` (`gestureEnabledByte`) | Gesture control on  |
 
 ---
 
@@ -139,16 +139,19 @@ State queries use `SendRecv(ctx, report)` which does a bidirectional operation:
 ### Query Payloads
 
 **Tracking query:**
+
 ```
 [0x09, 0x01, 0x01, 0x01]
 ```
 
 **Audio query:**
+
 ```
 [0x09, 0x05, 0x00, 0x04]
 ```
 
 **Gesture query:**
+
 ```
 [0x09, 0x04, 0x02, 0x01, 0x00, 0x01, 0x00, 0x01, 0x02]
 ```
@@ -187,11 +190,11 @@ device (hotplug recovery). The counter resets on the first success.
 
 PTZ is controlled via V4L2 `v4l2-ctl`, not HID:
 
-| Control | V4L2 Name | Range | Units |
-| ------- | --------- | ----- | ----- |
-| Pan | `pan_absolute` | -540000 to 540000 | 1/3600 degree |
-| Tilt | `tilt_absolute` | -324000 to 324000 | 1/3600 degree |
-| Zoom | `zoom_absolute` | 100 to 150 | Multiplier |
+| Control | V4L2 Name       | Range             | Units         |
+| ------- | --------------- | ----------------- | ------------- |
+| Pan     | `pan_absolute`  | -540000 to 540000 | 1/3600 degree |
+| Tilt    | `tilt_absolute` | -324000 to 324000 | 1/3600 degree |
+| Zoom    | `zoom_absolute` | 100 to 150        | Multiplier    |
 
 **Conversion:** User-facing degrees × 3600 = V4L2 units (for pan/tilt only; zoom is not multiplied).
 
