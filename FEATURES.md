@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 >
-> **Last code-verified:** 2026-07-13 (build green: `go test -race -count=1 ./...` passes, `golangci-lint` reports 0 issues).
+> **Last code-verified:** 2026-07-28 (build + `go vet` green; `golangci-lint` reports **0 issues**; full test suite green except `TestHandleStream_NoFFmpeg`, which is **environmental** — it assumes ffmpeg is absent, but this NixOS host has ffmpeg + a non-PIXY `/dev/video0`, so it blocks until its 2s timeout; it passes in CI where no hardware/ffmpeg is present).
 
 ## Status legend
 
@@ -123,6 +123,12 @@
 | Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/api/health` JSON; 503 when device offline, 200 online.                                                                                                              |
 | systemd Integration | 🟢 `FULLY_FUNCTIONAL` | `sd_notify` READY=1 + WATCHDOG=1 each poll tick.                                                                                                                      |
 
+## Error Handling
+
+| Feature             | Status                | Notes                                                                                                                                                                                                                                                                                       |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error Classification | 🟢 `FULLY_FUNCTIONAL` | `go-error-family` v0.10.0: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `HTTPStatus(err)`/`ExitCode(err)`/`LogError()` derive HTTP status, BSD sysexits exit codes, and structured log fields from error semantics — fixed 3 genuine 500→503 stream bugs. Scoped by design: HTMX action handlers return 200+HTML toast (correct `outerHTML` swap), and the HID circuit breaker stays untouched. |
+
 ## HID Communication
 
 | Feature             | Status                | Notes                                                                            |
@@ -147,8 +153,8 @@
 
 ## Summary
 
-- **Total features:** 59
-- 🟢 Fully functional: 58
+- **Total features:** 60
+- 🟢 Fully functional: 59
 - 🟡 Partially functional: 1 (Mobile-Responsive Layout — untested on real devices)
 - 🔴 Broken: 0
 - ⚪ Planned: 0

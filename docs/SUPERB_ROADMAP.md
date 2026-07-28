@@ -1,5 +1,7 @@
 # emeet-pixyd — Superb Roadmap
 
+> **Superseded 2026-07-28:** the live roadmap is now `ROADMAP.md` (project root). This file is retained as a historical snapshot — its metrics (line counts, coverage, file list) were accurate as of 2026-06-05 and are stale now (e.g. `v4l2.go` no longer exists, `main.go`/`handlers.go` line counts have changed).
+
 **Generated:** 2026-04-20
 **Archived:** 2026-06-05 — items migrated to paste_1.txt roadmap, most completed
 **Current State:** 63.4% coverage, vet clean, race clean, 0 TODOs, 1.3M+ fuzz executions
