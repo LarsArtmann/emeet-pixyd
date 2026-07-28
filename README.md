@@ -65,12 +65,12 @@ Skip this daemon if:
 
 ## Comparison
 
-| Approach | Auto call detection | Privacy on end | Audio switching | Hotplug | Linux-native |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| **emeet-pixyd** | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Manual `v4l2-ctl` per call | | | | | ✓ |
-| Vendor Windows/Mac app | ✓ | | ✓ | | |
-| webcamoid | | | | | ✓ |
+| Approach                   | Auto call detection | Privacy on end | Audio switching | Hotplug | Linux-native |
+| -------------------------- | :-----------------: | :------------: | :-------------: | :-----: | :----------: |
+| **emeet-pixyd**            |          ✓          |       ✓        |        ✓        |    ✓    |      ✓       |
+| Manual `v4l2-ctl` per call |                     |                |                 |         |      ✓       |
+| Vendor Windows/Mac app     |          ✓          |                |        ✓        |         |              |
+| webcamoid                  |                     |                |                 |         |      ✓       |
 
 The differentiator is the first column: emeet-pixyd is the only option that detects calls by watching `/proc`, so it works with **any** app that opens the camera — no per-app setup, no browser extension.
 
