@@ -4,6 +4,8 @@
   src,
   version,
   templ,
+  goBrandedSrc,
+  replaceBrandedId,
 }:
 buildGoModule {
   pname = "emeet-pixyd";
@@ -11,7 +13,7 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-4oantXCapKcEYQj+Le1qNf44hIIMZogxWioPlyqNBoM=";
+  vendorHash = "sha256-zawNYoJyvw9fGGBSLlIIltvij6gQ2si0MvJ1OgEEH70=";
   proxyVendor = true;
 
   GOEXPERIMENT = "jsonv2";
@@ -20,7 +22,10 @@ buildGoModule {
 
   nativeBuildInputs = [ templ ];
 
-  preBuild = "templ generate";
+  preBuild = ''
+    templ generate
+    ${replaceBrandedId}
+  '';
 
   ldflags = [
     "-s"
