@@ -52,6 +52,10 @@ export default defineConfig({
       title: "emeet-pixyd",
       favicon: "/favicon.svg",
       customCss: ["./src/styles/starlight.css"],
+      lastUpdated: true,
+      editLink: {
+        baseUrl: "https://github.com/LarsArtmann/emeet-pixyd/edit/master/website",
+      },
       expressiveCode: {
         themes: ["github-light", "github-dark"],
         frames: {

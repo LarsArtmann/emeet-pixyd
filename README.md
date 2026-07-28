@@ -45,6 +45,35 @@ It watches `/proc` to detect when a video call starts (Zoom, Teams, Google Meet,
 
 No setup per app. No browser extension. Works with anything that opens `/dev/video*`.
 
+## Who is this for?
+
+- **Linux users with an EMEET PIXY** who want face tracking and privacy to "just work" on every call.
+- **Remote workers** tired of manually enabling tracking before meetings and remembering privacy mode after.
+- **NixOS users** who want a declarative, reproducible setup via a single module option.
+- **Waybar / tiling-WM users** who want live camera status (mode, PTZ, in-call) in their bar.
+- **Privacy-conscious users** who want a guaranteed physical lens block whenever no call is active.
+
+## When NOT to use this
+
+Skip this daemon if:
+
+- You don't own an EMEET PIXY (`328f:00c0`) — this is hardware-specific, not a generic webcam tool. Reach for [webcamoid](https://webcamoid.github.io/) instead.
+- You're on **macOS or Windows** — this is Linux-only by design (HID hidraw, V4L2, `/proc`, netlink uevents).
+- The camera's own tracking toggle is enough for you — if you never forget to enable it, you don't need a daemon.
+- You want **cloud or AI features** — this is fully local, no network calls, no telemetry.
+- You need **multi-vendor webcam management** — this targets one device family. See [Related Tools](https://emeet-pixyd.lars.software/related-tools/) for general-purpose alternatives.
+
+## Comparison
+
+| Approach | Auto call detection | Privacy on end | Audio switching | Hotplug | Linux-native |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| **emeet-pixyd** | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Manual `v4l2-ctl` per call | | | | | ✓ |
+| Vendor Windows/Mac app | ✓ | | ✓ | | |
+| webcamoid | | | | | ✓ |
+
+The differentiator is the first column: emeet-pixyd is the only option that detects calls by watching `/proc`, so it works with **any** app that opens the camera — no per-app setup, no browser extension.
+
 ## Features
 
 | Feature                | Description                                                                                  |

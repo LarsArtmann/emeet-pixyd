@@ -53,7 +53,9 @@ cd emeet-pixyd
 nix build    # or: go build -o emeet-pixyd .
 ```
 
-> **Note:** If building with `go build` directly, run `templ generate` first if you've modified any `.templ` files.
+:::note[Building from source]
+If building with `go build` directly, run `templ generate` first if you've modified any `.templ` files. The Nix build does this automatically.
+:::
 
 ### Manual Dependencies
 
