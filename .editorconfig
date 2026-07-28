@@ -14,12 +14,14 @@ indent_style = tab
 indent_style = space
 indent_size = 2
 
-[*.{js,ts,tsx,jsx,css,html,scss}]
+[*.{js,mjs,cjs,ts,tsx,jsx,css,html,scss}]
 indent_style = space
 indent_size = 2
 
 [Makefile]
 indent_style = tab
 
-[*.md]
+[*.{md,mdx}]
+indent_style = space
+indent_size = 2
 trim_trailing_whitespace = false
