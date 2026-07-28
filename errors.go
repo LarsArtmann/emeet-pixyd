@@ -41,7 +41,10 @@ func errResult(op string, err error) CommandResult {
 
 // errResultMsg creates a leaf CommandError carrying a static message.
 func errResultMsg(msg string) CommandResult {
-	return CommandResult{Message: "", Err: &CommandError{Op: msg}}
+	return CommandResult{
+		Message: "",
+		Err:     &CommandError{Op: msg}, //nolint:exhaustruct // leaf error — Err intentionally nil
+	}
 }
 
 // String returns the text representation for socket/CLI output.

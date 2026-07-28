@@ -80,7 +80,7 @@ func TestProperty_ValidatePresetName_ValidNamesAccepted(t *testing.T) {
 
 	r := rand.New(rand.NewSource(42)) //nolint:gosec // test-only deterministic seed
 
-	for i := 0; i < 5000; i++ {
+	for range 5000 {
 		name := generateValidPresetName(r)
 		if err := ValidatePresetName(name); err != nil {
 			t.Errorf("expected valid name %q to pass: %v", name, err)
@@ -93,7 +93,7 @@ func TestProperty_ValidatePresetName_LongNamesRejected(t *testing.T) {
 
 	r := rand.New(rand.NewSource(99)) //nolint:gosec // test-only deterministic seed
 
-	for i := 0; i < 500; i++ {
+	for range 500 {
 		base := generateValidPresetName(r)
 		name := base + strings.Repeat("x", MaxPresetNameLength)
 		if ValidatePresetName(name) == nil {
@@ -107,7 +107,7 @@ func TestProperty_ValidatePresetName_PathSeparatorsRejected(t *testing.T) {
 
 	r := rand.New(rand.NewSource(7)) //nolint:gosec // test-only deterministic seed
 
-	for i := 0; i < 500; i++ {
+	for range 500 {
 		base := generateValidPresetName(r)
 		for _, sep := range []string{"/", "\\"} {
 			name := "a" + sep + base
@@ -124,7 +124,7 @@ func TestProperty_ValidatePresetName_ControlCharsRejected(t *testing.T) {
 	r := rand.New(rand.NewSource(13)) //nolint:gosec // test-only deterministic seed
 	controlChars := []rune{'\n', '\t', '\r', 0, 0x1F, 0x7F}
 
-	for i := 0; i < 500; i++ {
+	for range 500 {
 		base := generateValidPresetName(r)
 		for _, c := range controlChars {
 			name := base + "x" + string(c) + "y"

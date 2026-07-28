@@ -170,7 +170,8 @@ func TestStateFileRejectsUnknownFields(t *testing.T) {
 
 	cfg := defaultTestConfig(t.TempDir())
 
-	data := []byte(`{"v":1,"camera":"tracking","audio":"nc","gesture":false,"inCall":false,"autoMode":"full","bogusField":"evil"}`)
+	data := []byte(`{"v":1,"camera":"tracking","audio":"nc","gesture":false,` +
+		`"inCall":false,"autoMode":"full","bogusField":"evil"}`)
 	err := os.WriteFile(cfg.StateFile(), data, pixy.PermissionStateFile)
 	if err != nil {
 		t.Fatalf("write state file: %v", err)
