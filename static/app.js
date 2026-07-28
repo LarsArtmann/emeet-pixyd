@@ -221,6 +221,7 @@
     if (!panel || panel.querySelector(".offline-banner")) return;
     var banner = document.createElement("div");
     banner.className = "error-banner offline-banner";
+    banner.setAttribute("role", "status");
     var dot = document.createElement("span");
     dot.className = "offline-dot";
     banner.appendChild(dot);

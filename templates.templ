@@ -250,6 +250,9 @@ templ cameraModeCard(mode string, endpoint string, name string, desc string, sho
 		hx-post={ endpoint }
 		hx-target="#status-panel"
 		aria-label={ name }
+		if active {
+			aria-current="true"
+		}
 		if !online {
 			disabled=""
 		}
@@ -325,6 +328,7 @@ templ presetSection(names []string) {
 				type="text"
 				class="preset-input"
 				id="preset-name-input"
+				aria-label="Preset name"
 				placeholder="Save current position\u2026"
 				maxlength="32"
 				autocomplete="off"
@@ -399,7 +403,7 @@ templ ptzSliderWithToast(label, axis string, min, max, value int, unit string, t
 // Toast (out-of-band swap target)
 // ---------------------------------------------------------------------------
 templ toastOOB(msg, toastType string) {
-	<div id="toast-container" hx-swap-oob="innerHTML">
+	<div id="toast-container" hx-swap-oob="innerHTML" role="status" aria-live="polite">
 		if msg != "" {
 			<div class={ "toast toast-" + toastType + " show" }>{ msg }</div>
 		}
