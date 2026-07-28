@@ -73,6 +73,26 @@
           pkgs,
           ...
         }:
+        let
+          # go-branded-id v0.5.0 ships a committed compiled binary (`namer`) that
+          # embeds nix store paths, which makes the go-modules fixed-output
+          # derivation reference the Go toolchain and fail verification. Fetch the
+          # same version's source with the binary stripped and wire it in via an
+          # in-sandbox `replace` (preBuild) so the poisoned module is never
+          # downloaded. Remove goBrandedSrc + replaceBrandedId (and bump go.mod)
+          # once go-branded-id publishes a version without the committed binary.
+          goBrandedSrc = pkgs.fetchFromGitHub {
+            owner = "LarsArtmann";
+            repo = "go-branded-id";
+            rev = "v0.5.0";
+            hash = "sha256-Y7JOypze37axdiU9RiGHwq5dgnIU6PWd/IHPzvjiV48=";
+            postFetch = ''
+              rm -f "$out/namer"
+            '';
+          };
+
+          replaceBrandedId = "go mod edit -replace=github.com/larsartmann/go-branded-id@v0.5.0=${goBrandedSrc}";
+        in
         {
           treefmt = {
             projectRootFile = "go.mod";
@@ -87,7 +107,7 @@
           checks.format = config.treefmt.build.check self;
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
-              inherit src version;
+              inherit src version goBrandedSrc replaceBrandedId;
               inherit (pkgs) templ;
             };
             default = config.packages.emeet-pixyd;
@@ -132,7 +152,10 @@
               GOWORK = "off";
               GOEXPERIMENT = "jsonv2";
 
-              preBuild = "templ generate";
+              preBuild = ''
+                templ generate
+                ${replaceBrandedId}
+              '';
 
               buildPhase = ''
                 export HOME=$TMPDIR
