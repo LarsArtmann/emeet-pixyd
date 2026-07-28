@@ -51,6 +51,21 @@ emeet-pixyd is distributed as a Nix flake. Add it as an input and consume the Ni
 
 ## Similar Projects
 
+### How emeet-pixyd compares
+
+| Feature | emeet-pixyd | webcamoid | v4l2loopback | OBS Studio |
+| --- | :---: | :---: | :---: | :---: |
+| Auto call detection | ✓ | | | |
+| PIXY-specific (HID, AI tracking) | ✓ | | | |
+| Hardware privacy shutter control | ✓ | | | |
+| Audio source switching | ✓ | | | |
+| Virtual cameras | | ✓ | ✓ | ✓ |
+| Effects / filters | | ✓ | | ✓ |
+| Hotplug (netlink uevents) | ✓ | | | |
+| Runs as a background daemon | ✓ | | | |
+
+The key differentiator is the first row: emeet-pixyd detects calls by watching `/proc`, so it works with **any** app. The others are general-purpose camera tools you operate manually.
+
 ### webcamoid
 
 Cross-platform webcam suite with effects and virtual cameras. More general-purpose; emeet-pixyd is specifically optimized for the EMEET PIXY's hardware features (AI tracking, hardware privacy shutter, HID protocol).
