@@ -9,12 +9,19 @@ import (
 const errorPrefix = "error: "
 
 // CommandError wraps a command operation error with a descriptive label.
+// If Err is nil, Op carries the full error message (leaf error).
 type CommandError struct {
-	Op  string // label for the operation that failed
+	Op  string // label for the operation that failed (or full message when Err is nil)
 	Err error
 }
 
-func (e *CommandError) Error() string { return errorPrefix + e.Op + ": " + e.Err.Error() }
+func (e *CommandError) Error() string {
+	if e.Err != nil {
+		return errorPrefix + e.Op + ": " + e.Err.Error()
+	}
+
+	return errorPrefix + e.Op
+}
 
 func (e *CommandError) Unwrap() error { return e.Err }
 
@@ -32,13 +39,9 @@ func errResult(op string, err error) CommandResult {
 	return CommandResult{Message: "", Err: &CommandError{Op: op, Err: err}}
 }
 
-// commandMsgError is a static-error-compatible wrapper for simple error messages.
-type commandMsgError struct{ msg string }
-
-func (e *commandMsgError) Error() string { return errorPrefix + e.msg }
-
+// errResultMsg creates a leaf CommandError carrying a static message.
 func errResultMsg(msg string) CommandResult {
-	return CommandResult{Message: "", Err: &commandMsgError{msg: msg}}
+	return CommandResult{Message: "", Err: &CommandError{Op: msg}}
 }
 
 // String returns the text representation for socket/CLI output.

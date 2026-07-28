@@ -164,3 +164,26 @@ func TestStateFileValid(t *testing.T) {
 		t.Errorf("expected persisted AutoMode to win, got %s", d2.state.AutoMode)
 	}
 }
+
+func TestStateFileRejectsUnknownFields(t *testing.T) {
+	t.Parallel()
+
+	cfg := defaultTestConfig(t.TempDir())
+
+	data := []byte(`{"v":1,"camera":"tracking","audio":"nc","gesture":false,"inCall":false,"autoMode":"full","bogusField":"evil"}`)
+	err := os.WriteFile(cfg.StateFile(), data, pixy.PermissionStateFile)
+	if err != nil {
+		t.Fatalf("write state file: %v", err)
+	}
+
+	d := testDaemonNoDevice(t)
+	d.config = cfg
+
+	if loaded := d.loadState(); loaded {
+		t.Error("expected loadState to reject unknown fields, but it loaded successfully")
+	}
+
+	if d.state.Camera != pixy.StatePrivacy {
+		t.Errorf("expected state to remain at default, got %s", d.state.Camera)
+	}
+}

@@ -11,14 +11,14 @@ Add a custom module to your Waybar config:
 
 ```json
 {
-	"custom/emeet-pixy": {
-		"exec": "emeet-pixy waybar",
-		"format": "{}",
-		"interval": 5,
-		"tooltip": true,
-		"on-click": "emeet-pixy toggle-privacy",
-		"on-click-right": "emeet-pixy toggle-auto"
-	}
+  "custom/emeet-pixy": {
+    "exec": "emeet-pixy waybar",
+    "format": "{}",
+    "interval": 5,
+    "tooltip": true,
+    "on-click": "emeet-pixy toggle-privacy",
+    "on-click-right": "emeet-pixy toggle-auto"
+  }
 }
 ```
 
@@ -28,9 +28,9 @@ The `waybar` command outputs a JSON object:
 
 ```json
 {
-	"text": "\uf030 CAM",
-	"tooltip": "EMEET PIXY: tracking\nAudio: nc\nAuto: full",
-	"class": "custom-camera tracking"
+  "text": "\uf030 CAM",
+  "tooltip": "EMEET PIXY: tracking\nAudio: nc\nAuto: full",
+  "class": "custom-camera tracking"
 }
 ```
 
@@ -49,23 +49,23 @@ The `text` field combines a Font Awesome icon with a short label. The `class` fi
 
 ```css
 #custom-emeet-pixy.custom-camera.tracking {
-	color: #10b981;
+  color: #10b981;
 }
 
 #custom-emeet-pixy.custom-camera.idle {
-	color: #fbbf24;
+  color: #fbbf24;
 }
 
 #custom-emeet-pixy.custom-camera.privacy {
-	color: #f87171;
+  color: #f87171;
 }
 
 #custom-emeet-pixy.custom-camera.offline {
-	color: #78716c;
+  color: #78716c;
 }
 
 #custom-emeet-pixy.custom-camera.in-call {
-	text-decoration: underline;
+  text-decoration: underline;
 }
 ```
 

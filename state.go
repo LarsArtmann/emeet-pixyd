@@ -39,7 +39,7 @@ func (d *Daemon) loadState() bool {
 
 	var loaded pixy.State
 
-	jsonErr := json.Unmarshal(data, &loaded)
+	jsonErr := json.Unmarshal(data, &loaded, json.RejectUnknownMembers(true))
 	if jsonErr != nil {
 		slog.Warn(
 			"failed to parse state file, using defaults",

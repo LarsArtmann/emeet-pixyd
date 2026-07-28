@@ -13,25 +13,25 @@
 
 Per the skill, I confirmed each was a **point-in-time snapshot** (not a living doc) → annotation was the correct tool, not rewrite. All 5 classified **ANNOTATE**; 0 skipped. Each got a load-bearing inline correction **visible on first screen** + a dated `## Resolution (2026-07-28)` appendix with commit hashes.
 
-| File | Inline correction |
-| --- | --- |
-| `planning/2026-07-23_18-12_ADOPT-GO-ERROR-FAMILY.md` | Status `Planning→Implementation` → **DONE** (`f91de17`); checklist `[ ]`→`[x]`; version v0.8.0 → v0.10.0 |
-| `status/2026-07-23_21-00_go-error-family-verification-and-fixes.md` | §c.1 "push to origin" struck through **DONE** (pushed `a2dce73..53007db`) |
-| `status/2026-07-23_21-27_go-error-family-comprehensive-status.md` | Dep table v0.8.0 → **v0.10.0** (`ca41926`) |
-| `status/2026-07-28_14-28_website-launch-retrofit.md` | Exec-summary update: `.editorconfig` root cause + deploy **still open** (not resolved) |
-| `status/2026-07-28_15-24_nix-fod-go-branded-id-binary-fix.md` | TL;DR "Root cause fixed upstream" **corrected** — workaround still TEMPORARY (v0.5.1 never published; verified in `flake.nix`/`go.mod`) |
+| File                                                                | Inline correction                                                                                                                       |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `planning/2026-07-23_18-12_ADOPT-GO-ERROR-FAMILY.md`                | Status `Planning→Implementation` → **DONE** (`f91de17`); checklist `[ ]`→`[x]`; version v0.8.0 → v0.10.0                                |
+| `status/2026-07-23_21-00_go-error-family-verification-and-fixes.md` | §c.1 "push to origin" struck through **DONE** (pushed `a2dce73..53007db`)                                                               |
+| `status/2026-07-23_21-27_go-error-family-comprehensive-status.md`   | Dep table v0.8.0 → **v0.10.0** (`ca41926`)                                                                                              |
+| `status/2026-07-28_14-28_website-launch-retrofit.md`                | Exec-summary update: `.editorconfig` root cause + deploy **still open** (not resolved)                                                  |
+| `status/2026-07-28_15-24_nix-fod-go-branded-id-binary-fix.md`       | TL;DR "Root cause fixed upstream" **corrected** — workaround still TEMPORARY (v0.5.1 never published; verified in `flake.nix`/`go.mod`) |
 
 Every annotation passed the "so what?" test (commit hashes + open-vs-shipped status). No generic banners. No top-of-file banner injection. No annotation between title and opening paragraph.
 
 ### docs-health — 4 living docs + AGENTS.md
 
-| Doc | Action | Detail |
-| --- | --- | --- |
-| `TODO_LIST.md` | **Rebuilt** | Removed the ~105-item trophy-case archive (Phases 1–10, items #1–#105) — completed work belongs in CHANGELOG. Harvested verified open items from the 5 reports. Dropped stale #108 (gesture toggle shipped) & superseded #113 (go-error-family). Added #124–#128. |
-| `ROADMAP.md` | **Created** (none existed at root) | Holds vision, raw ideas, design-heavy items (#116/#123), open questions, decisions log (#79/#85/#86/#96/#98 + go-error-family scope decisions). `docs/SUPERB_ROADMAP.md` pointed here as superseded. |
-| `FEATURES.md` | **Updated** | Added Error Handling section (go-error-family v0.10.0). Count 59→60. "Last code-verified" → 2026-07-28. |
-| `CHANGELOG.md` | **Appended** `[Unreleased]` | 4 Added entries (go-error-family, website retrofit, gesture toggle, web UI overhaul already there), 2 Fixed entries (3× 500→503 bugs, nix FOD workaround), Dependencies updated. Released `[0.2.0]`/`[0.1.0]` untouched. |
-| `AGENTS.md` | **Fixed drift** | go-error-family v0.8.0 → v0.10.0 (matched `go.mod`). |
+| Doc            | Action                             | Detail                                                                                                                                                                                                                                                            |
+| -------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TODO_LIST.md` | **Rebuilt**                        | Removed the ~105-item trophy-case archive (Phases 1–10, items #1–#105) — completed work belongs in CHANGELOG. Harvested verified open items from the 5 reports. Dropped stale #108 (gesture toggle shipped) & superseded #113 (go-error-family). Added #124–#128. |
+| `ROADMAP.md`   | **Created** (none existed at root) | Holds vision, raw ideas, design-heavy items (#116/#123), open questions, decisions log (#79/#85/#86/#96/#98 + go-error-family scope decisions). `docs/SUPERB_ROADMAP.md` pointed here as superseded.                                                              |
+| `FEATURES.md`  | **Updated**                        | Added Error Handling section (go-error-family v0.10.0). Count 59→60. "Last code-verified" → 2026-07-28.                                                                                                                                                           |
+| `CHANGELOG.md` | **Appended** `[Unreleased]`        | 4 Added entries (go-error-family, website retrofit, gesture toggle, web UI overhaul already there), 2 Fixed entries (3× 500→503 bugs, nix FOD workaround), Dependencies updated. Released `[0.2.0]`/`[0.1.0]` untouched.                                          |
+| `AGENTS.md`    | **Fixed drift**                    | go-error-family v0.8.0 → v0.10.0 (matched `go.mod`).                                                                                                                                                                                                              |
 
 ### Code verification done before writing doc claims
 
@@ -92,7 +92,7 @@ I scored Fitness 10/10, but I never opened README, DOMAIN_LANGUAGE, CONTRIBUTING
 
 ### Process improvements
 
-1. **Run `go mod graph` (not just `grep go.sum`) before encoding a dependency-vuln claim.** `go.sum` contains historical checksums; `go mod graph` shows the *current* dependency tree. I used the weaker tool.
+1. **Run `go mod graph` (not just `grep go.sum`) before encoding a dependency-vuln claim.** `go.sum` contains historical checksums; `go mod graph` shows the _current_ dependency tree. I used the weaker tool.
 2. **Consolidate CHANGELOG sections when appending.** Never prepend a new `### Added` if one already exists in the same version block — merge into it.
 3. **Count, don't trust.** Feature counts, test counts, file counts — compute from the repo (`grep -c`, `wc -l`), don't inherit from a prior doc.
 4. **Verify links as a batch.** After writing cross-references, grep every `](...)` and every `§` reference and confirm the target exists. It's a 2-minute check that catches the failure mode I introduced.
