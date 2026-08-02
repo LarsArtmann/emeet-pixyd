@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HTMX to DataStar Migration Plan</title>
+<style>
+:root {
+  --color-graphite: #0e0e10;
+  --color-graphite-2: #18181d;
+  --color-graphite-3: #16161a;
+  --color-bone: #f4f4f0;
+  --color-red: #ff6b6b;
+  --color-blue: #6eb5ff;
+  --color-yellow: #f4d35e;
+  --color-amber: #ffb347;
+  --color-hairline: rgba(244, 244, 240, 0.12);
+  --color-hairline-strong: rgba(244, 244, 240, 0.25);
+  --surface: var(--color-graphite);
+  --surface-raised: var(--color-graphite-2);
+  --surface-sunken: var(--color-graphite-3);
+  --text: var(--color-bone);
+  --text-muted: rgba(244, 244, 240, 0.72);
+  --text-faint: rgba(244, 244, 240, 0.45);
+  --border: var(--color-hairline);
+  --border-strong: var(--color-hairline-strong);
+  --accent: var(--color-amber);
+  --problem: var(--color-red);
+  --solution: var(--color-blue);
+  --warning: var(--color-yellow);
+  --radius: 0px;
+  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+section[id], [id] { scroll-margin-top: 60px; }
+body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+.layout { display: flex; gap: 2.5rem; padding: 2rem; }
+.sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+.sidebar nav { display: flex; flex-direction: column; gap: 0; }
+.sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+.sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+.sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.main { flex: 1; min-width: 0; }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+p { margin: 0 0 1rem; }
+.hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+.hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+.hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+.hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
+.hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
+.hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
+.hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+.card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+.card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+.card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+.card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+.stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+.stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+.stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+.stat-bad::before, .score-bad::before { background: var(--problem); }
+.stat-good::before, .score-good::before { background: var(--solution); }
+.stat-warn::before, .score-warn::before { background: var(--warning); }
+.stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+.stat-bad .stat-value, .score-bad .score { color: var(--problem); }
+.stat-good .stat-value, .score-good .score { color: var(--solution); }
+.stat-warn .stat-value, .score-warn .score { color: var(--warning); }
+.stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+.badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+.badge-critical { color: var(--problem); border-color: var(--problem); }
+.badge-high { color: var(--warning); border-color: var(--warning); }
+.badge-medium { color: var(--accent); border-color: var(--accent); }
+.badge-low { color: var(--text-muted); }
+.badge-fixed { color: var(--solution); border-color: var(--solution); }
+.badge-1pct { color: var(--problem); border-color: var(--problem); background: color-mix(in srgb, var(--problem) 15%, transparent); }
+.badge-4pct { color: var(--warning); border-color: var(--warning); background: color-mix(in srgb, var(--warning) 15%, transparent); }
+.badge-20pct { color: var(--solution); border-color: var(--solution); background: color-mix(in srgb, var(--solution) 15%, transparent); }
+.badge-final { color: var(--accent); border-color: var(--accent); }
+pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
+code { font-family: var(--font-mono); }
+p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
+.tok-keyword { color: var(--accent); } .tok-type { color: var(--warning); } .tok-string { color: var(--solution); } .tok-comment { color: var(--text-faint); font-style: italic; } .tok-func { color: #74a9ff; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--surface-raised); }
+.migration-step { display: grid; grid-template-columns: 48px 1fr; gap: 1rem; margin: 1rem 0; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); }
+.migration-num { font-family: var(--font-mono); font-weight: 800; font-size: 1.5rem; color: var(--accent); line-height: 1; }
+.migration-content h4 { margin-bottom: 0.2rem; }
+.migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; }
+.callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+.callout strong { display: inline-block; margin-right: 0.4rem; }
+.callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+.callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+.callout-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 10%, transparent); }
+.strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+.strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+.strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+.strength .text strong { display: block; margin-bottom: 0.15rem; }
+.strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+.svg-container { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem; margin: 1rem 0 1.5rem; overflow-x: auto; }
+.svg-container svg { max-width: 100%; height: auto; }
+.compare-header { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1rem 0 0.5rem; }
+.compare-before, .compare-after { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.4rem 0.7rem; color: var(--surface); }
+.compare-before { background: var(--problem); }
+.compare-after { background: var(--solution); }
+.compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+.compare-row pre { margin: 0; }
+@media (min-width: 1024px) { .sidebar { display: block; } }
+@media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .compare-header, .compare-row { grid-template-columns: 1fr; } .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); } .migration-step { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span>PARETO PLAN</span>
+  <span>2026-08-02</span>
+  <span>emeet-pixyd</span>
+</div>
+<div class="layout">
+  <aside class="sidebar" data-nav>
+    <nav>
+      <div class="label">Contents</div>
+      <a href="#summary">Summary</a>
+      <a href="#pareto">Pareto Breakdown</a>
+      <a href="#phase1">Phase 1 (1% &rarr; 51%)</a>
+      <a href="#phase2">Phase 2 (4% &rarr; 64%)</a>
+      <a href="#phase3">Phase 3 (20% &rarr; 80%)</a>
+      <a href="#phase4">Phase 4 ( &rarr; 100%)</a>
+      <a href="#detailed">Detailed 12-min Tasks</a>
+      <a href="#graph">Execution Graph</a>
+      <a href="#safety">Safety Constraints</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="hero">
+      <div class="hero-shapes">
+        <div class="circle"></div>
+        <div class="square"></div>
+        <div class="tri"></div>
+      </div>
+      <div class="hero-badge">Pareto Plan</div>
+      <h1>HTMX &rarr; DataStar Migration</h1>
+      <p class="hero-subtitle">Migrate emeet-pixyd's web UI from HTMX v2.0.9 (3,417-line JS + 510-line custom bridge + 179-line hand-rolled SSE) to DataStar v1.0.2 (11.76 KiB JS + datastar-go SDK). Eliminate ~979 lines of compensating code while gaining fine-grained DOM morphing, native SSE, client-side reactivity, and automatic focus preservation.</p>
+    </div>
+
+    <h2 id="summary"><span class="num">00</span>Summary</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">979</div>
+        <div class="stat-label">Lines to Delete</div>
+      </div>
+      <div class="stat-card stat-good">
+        <div class="stat-value">4x</div>
+        <div class="stat-label">Smaller JS Payload</div>
+      </div>
+      <div class="stat-card stat-warn">
+        <div class="stat-value">32</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+      <div class="stat-card stat-bad">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Backend Logic Changes</div>
+      </div>
+    </div>
+
+    <p><strong>What stays untouched:</strong> The daemon, HID protocol, PTZ logic, device probing, V4L2 commands, NixOS module, CLI, socket, and all backend Go logic. Only the presentation layer (templates, handlers, static JS, SSE wire-format) changes. The MJPEG preview stream and snapshot download are orthogonal and remain as-is.</p>
+
+    <h2 id="pareto"><span class="num">01</span>Pareto Breakdown</h2>
+
+    <h3>The 1% that delivers 51% of the result</h3>
+    <div class="card card-problem">
+      <h4>Foundation: Dependency + SSE + Page Shell</h4>
+      <p>Add the <code>datastar-go</code> SDK, download <code>datastar.js</code>, replace the SSE wire-format layer with the SDK, and swap the script tags in the page template. After this phase, the app still renders with HTMX attributes, but DataStar is loaded and the SSE infrastructure is ready. This is the critical path &mdash; nothing else can happen without it.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Add <code>datastar-go</code> to go.mod</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+        <tr><td>2</td><td>Download datastar.js to static/</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+        <tr><td>3</td><td>Update sse.go: keep Broadcaster, delete wire-format (sseStream, writeSSEEvent, splitSSELines)</td><td><span class="badge badge-critical">Critical</span></td><td>30 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+        <tr><td>4</td><td>Create renderTempl helper (render templ to string)</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+        <tr><td>5</td><td>Convert handleEvents to use datastar.NewSSE + PatchElements</td><td><span class="badge badge-critical">Critical</span></td><td>20 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+        <tr><td>6</td><td>Update page() template: swap htmx.js &rarr; datastar.js</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td><span class="badge badge-1pct">1%</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>The 4% that delivers 64% of the result</h3>
+    <div class="card card-warning">
+      <h4>Core UI Migration: Templates + Handlers</h4>
+      <p>Convert all <code>hx-*</code> attributes to <code>data-*</code> attributes and change action handlers from <code>templ.Handler(statusPanel())</code> to <code>datastar.NewSSE(w,r).PatchElements()</code>. After this phase, the entire UI is DataStar-driven. Buttons, sliders, mode cards, audio segments, presets, and toasts all use DataStar's morphing and signal system.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>7</td><td>Convert statusPanel(): remove hx-get/hx-trigger/hx-swap/hx-indicator</td><td><span class="badge badge-critical">Critical</span></td><td>20 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>8</td><td>Convert action() handlers: SSE patches instead of full panel render</td><td><span class="badge badge-critical">Critical</span></td><td>30 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>9</td><td>Convert cameraModeCard(): <code>data-on:click="@post('/api/mode/track')"</code></td><td><span class="badge badge-high">High</span></td><td>15 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>10</td><td>Convert audioSegment(): <code>data-on:click="@post('/api/audio', {signals: {mode: 'nc'}})"</code></td><td><span class="badge badge-high">High</span></td><td>15 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>11</td><td>Convert control buttons (center, sync, probe, gesture, auto): @post</td><td><span class="badge badge-medium">Medium</span></td><td>15 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>12</td><td>Convert PTZ sliders: data-bind + @post with debounce</td><td><span class="badge badge-critical">Critical</span></td><td>30 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>13</td><td>Convert PTZ radar: reactive signals (data-style with @fit)</td><td><span class="badge badge-high">High</span></td><td>20 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>14</td><td>Convert toasts: backend PatchElements for toast container</td><td><span class="badge badge-high">High</span></td><td>15 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+        <tr><td>15</td><td>Convert preset section: load/delete via @post</td><td><span class="badge badge-medium">Medium</span></td><td>20 min</td><td><span class="badge badge-4pct">4%</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>The 20% that delivers 80% of the result</h3>
+    <div class="card card-solution">
+      <h4>Polish &amp; Cleanup: Delete the JS Bridge</h4>
+      <p>Convert keyboard shortcuts to <code>data-on:keydown</code>, replace the custom SSE reconnect with DataStar's built-in retry, convert the offline/error banners to <code>data-show</code> signals, slim <code>app.js</code> to just snapshot + preview recovery (~80 lines), delete <code>static/htmx.js</code>, and update the broadcastStateChanged path in main.go.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>16</td><td>Convert keyboard shortcuts: data-on:keydown with action expressions</td><td><span class="badge badge-high">High</span></td><td>25 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>17</td><td>Convert SSE indicator: DataStar built-in retry (delete custom EventSource code)</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>18</td><td>Convert preset save input: data-bind + @post on Enter</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>19</td><td>Convert offline/error banners: data-show="" reactive signal</td><td><span class="badge badge-medium">Medium</span></td><td>15 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>20</td><td>Slim app.js: delete HTMX/SSE/toast/focus code, keep snapshot + preview only</td><td><span class="badge badge-critical">Critical</span></td><td>20 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>21</td><td>Delete static/htmx.js</td><td><span class="badge badge-low">Low</span></td><td>1 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+        <tr><td>22</td><td>Update main.go broadcastStateChanged() for new Broadcaster payload type</td><td><span class="badge badge-high">High</span></td><td>15 min</td><td><span class="badge badge-20pct">20%</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>The remaining 20% to reach 100%</h3>
+    <div class="card">
+      <h4>Tests, Verification &amp; Documentation</h4>
+      <p>Fix all tests (golden, handler, behavior, SSE), run the full suite with <code>-race</code>, verify lint and nix build, and update all documentation (AGENTS.md, CHANGELOG, README).</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Tier</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>23</td><td>Fix web_golden_test.go (assert data-* instead of hx-*)</td><td><span class="badge badge-critical">Critical</span></td><td>15 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>24</td><td>Fix handler tests (response format changed from HTML to SSE)</td><td><span class="badge badge-critical">Critical</span></td><td>30 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>25</td><td>Fix behavior tests (applyResponseToStatus may change)</td><td><span class="badge badge-high">High</span></td><td>20 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>26</td><td>Delete/fix sse_test.go (Broadcaster stays, wire-format tests go)</td><td><span class="badge badge-medium">Medium</span></td><td>15 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>27</td><td>Run full test suite: <code>GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...</code></td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>28</td><td>Run golangci-lint: <code>GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run --timeout 2m ./...</code></td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>29</td><td>Verify nix build: <code>nix build</code></td><td><span class="badge badge-high">High</span></td><td>15 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>30</td><td>Update AGENTS.md (all HTMX references &rarr; DataStar)</td><td><span class="badge badge-high">High</span></td><td>20 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>31</td><td>Update CHANGELOG.md (breaking change entry)</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td><span class="badge badge-final">Final</span></td></tr>
+        <tr><td>32</td><td>Update README.md (feature description)</td><td><span class="badge badge-low">Low</span></td><td>5 min</td><td><span class="badge badge-final">Final</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="phase1"><span class="num">02</span>Phase 1: Foundation (1% &rarr; 51%)</h2>
+    <div class="migration-step">
+      <div class="migration-num">1</div>
+      <div class="migration-content">
+        <h4>Add datastar-go dependency</h4>
+        <p><code>go get github.com/starfederation/datastar-go</code> &mdash; MIT licensed, maintained by DataStar creator. Only transitive dep: <code>valyala/bytebufferpool</code>. Reexported via go.branded-id pattern (public proxy, no GOPRIVATE needed).</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">2</div>
+      <div class="migration-content">
+        <h4>Download datastar.js</h4>
+        <p>Download DataStar v1.0.2 (11.76 KiB) from CDN to <code>static/datastar.js</code>. Self-hosted, embedded via <code>//go:embed</code>. Replaces the 49 KB htmx.js.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">3</div>
+      <div class="migration-content">
+        <h4>Refactor sse.go</h4>
+        <p>Keep <code>Broadcaster</code> struct, <code>Subscribe()</code>, <code>Unsubscribe()</code>, <code>Broadcast()</code> (application-level pub/sub). Delete <code>sseStream</code>, <code>newSSEStream</code>, <code>writeSSEEvent</code>, <code>splitSSELines</code> (replaced by SDK). Change <code>SSEEvent</code> payload from <code>{Event, Data string}</code> to carry a rendered HTML fragment or a patch function.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">4</div>
+      <div class="migration-content">
+        <h4>Create renderTempl helper</h4>
+        <p>Helper function that renders a templ component to a string (using <code>templ.RenderToBuffer</code> or similar). Needed because <code>sse.PatchElements()</code> takes a string, not a templ component.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">5</div>
+      <div class="migration-content">
+        <h4>Convert handleEvents handler</h4>
+        <p>Replace <code>newSSEStream(w, r)</code> with <code>datastar.NewSSE(w, r)</code>. Send connected event via <code>sse.PatchElements()</code> or <code>sse.PatchSignals()</code>. Forward broadcaster events as <code>PatchElements</code> calls with rendered HTML fragments.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">6</div>
+      <div class="migration-content">
+        <h4>Update page() template</h4>
+        <p>Replace <code>&lt;script src="/static/htmx.js"&gt;</code> with <code>&lt;script type="module" src="/static/datastar.js"&gt;</code>. Keep app.js for now (snapshot + preview only &mdash; will be slimmed in Phase 3).</p>
+      </div>
+    </div>
+
+    <h2 id="phase2"><span class="num">03</span>Phase 2: Core UI Migration (4% &rarr; 64%)</h2>
+    <div class="migration-step">
+      <div class="migration-num">7</div>
+      <div class="migration-content">
+        <h4>Convert statusPanel() root</h4>
+        <p>Remove <code>hx-get="/panel"</code>, <code>hx-trigger="refresh from:body"</code>, <code>hx-swap="outerHTML"</code>, <code>hx-indicator="#status-panel"</code>. DataStar morphs elements by ID automatically &mdash; no swap directive needed. The panel refresh is driven by SSE <code>PatchElements</code> from the backend.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">8</div>
+      <div class="migration-content">
+        <h4>Convert action() handlers</h4>
+        <p>Change <code>templ.Handler(statusPanel(status)).ServeHTTP(w, r)</code> to <code>sse := datastar.NewSSE(w, r); sse.PatchElements(renderTempl(statusPanel(status)))</code>. This sends the panel as an SSE patch &mdash; DataStar morphs it by ID instead of swapping the entire div.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">9</div>
+      <div class="migration-content">
+        <h4>Convert cameraModeCard()</h4>
+        <p>Replace <code>hx-post="/api/mode/track"</code> + <code>hx-target="#status-panel"</code> with <code>data-on:click="@post('/api/mode/track')"</code>. DataStar patches the response elements by ID automatically.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">10</div>
+      <div class="migration-content">
+        <h4>Convert audioSegment()</h4>
+        <p>Replace <code>hx-post="/api/audio"</code> + <code>hx-vals='{"mode":"nc"}'</code> with <code>data-on:click="@post('/api/audio', {signals: {mode: 'nc'}})"</code>. DataStar sends signals as JSON body; server reads via <code>datastar.ReadSignals()</code>.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">11</div>
+      <div class="migration-content">
+        <h4>Convert control buttons</h4>
+        <p>Center, sync, probe, gesture, auto: each gets <code>data-on:click="@post('/api/center')"</code> etc. Remove all <code>hx-target="#status-panel"</code>.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">12</div>
+      <div class="migration-content">
+        <h4>Convert PTZ sliders</h4>
+        <p>Replace <code>hx-post="/api/ptz/pan"</code> + <code>hx-trigger="input changed delay:300ms"</code> + <code>hx-target="#ptz-pan"</code> + <code>hx-swap="outerHTML"</code> with <code>data-bind:pan</code> + <code>data-on:input__debounce.300ms="@post('/api/ptz/pan', {signals: {value: }})"</code>. The slider value is a reactive signal &mdash; no manual parameter injection needed.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">13</div>
+      <div class="migration-content">
+        <h4>Convert PTZ radar</h4>
+        <p>Replace the 27-line <code>updateRadar()</code> function in app.js with reactive CSS: <code>data-style:--pan-x="@fit(, -150, 150, 0, 100) + '%'"</code>, <code>data-style:--pan-y="@fit(, 90, -90, 0, 100) + '%'"</code>, <code>data-style:--zoom-pct="@fit(, 100, 150, 30, 80) + '%'"</code>. The radar updates live as signals change &mdash; zero server round-trips.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">14</div>
+      <div class="migration-content">
+        <h4>Convert toasts</h4>
+        <p>Server patches <code>&lt;div id="toast-container"&gt;</code> via <code>sse.PatchElements()</code>. Delete the 14-line <code>showToast()</code> function from app.js. The toast container is morphed (not swapped), preserving other toasts in flight.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">15</div>
+      <div class="migration-content">
+        <h4>Convert preset section</h4>
+        <p>Preset load: <code>data-on:click="@post('/api/preset/load/home')"</code>. Preset delete: <code>data-on:click="@post('/api/preset/delete/home')"</code>. No <code>hx-target</code> needed &mdash; DataStar morphs by ID.</p>
+      </div>
+    </div>
+
+    <h2 id="phase3"><span class="num">04</span>Phase 3: Polish &amp; Cleanup (20% &rarr; 80%)</h2>
+    <div class="migration-step">
+      <div class="migration-num">16</div>
+      <div class="migration-content">
+        <h4>Convert keyboard shortcuts</h4>
+        <p>Replace the 68-line keydown handler in app.js with a single <code>data-on:keydown__window</code> attribute on the body. Expressions: <code> === 't' &amp;&amp; @post('/api/track')</code>, <code> === 'ArrowLeft' &amp;&amp; ( =  - 5)</code>, etc. PTZ keyboard moves update signals directly (no server round-trip for display).</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">17</div>
+      <div class="migration-content">
+        <h4>Convert SSE indicator</h4>
+        <p>DataStar's <code>@get()</code> has built-in retry with exponential backoff. Delete the 30-line <code>connectEvents()</code> + <code>updateSSEIndicator()</code> from app.js. Use <code>data-on:datastar-fetch="evt.detail.type === 'error' &amp;&amp;  = true"</code>.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">18</div>
+      <div class="migration-content">
+        <h4>Convert preset save input</h4>
+        <p>Replace the 20-line delegated event handler with <code>data-bind:presetName</code> on the input + <code>data-on:keydown__prevent=".key === 'Enter' &amp;&amp; @post('/api/preset/save/' + )"</code>.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">19</div>
+      <div class="migration-content">
+        <h4>Convert offline/error banners</h4>
+        <p>Replace the 12-line <code>showOfflineBanner()</code> with <code>&lt;div data-show="" class="error-banner"&gt;...&lt;/div&gt;</code> in the template. The <code></code> signal is toggled by the DataStar fetch error handler.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">20</div>
+      <div class="migration-content">
+        <h4>Slim app.js</h4>
+        <p>Delete: HTMX config (5 lines), action dispatch (10 lines), PTZ helpers (45 lines), HTMX lifecycle listeners (120 lines), focus preservation (20 lines), toast function (14 lines), SSE bridge (45 lines), keyboard shortcuts (68 lines), offline banner (12 lines), preset save (30 lines). <strong>Keep:</strong> snapshot download (33 lines), preview stream recovery (48 lines). Result: ~80 lines (down from 510).</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">21</div>
+      <div class="migration-content">
+        <h4>Delete static/htmx.js</h4>
+        <p>Remove the 3,417-line HTMX v2.0.9 minified library. Update <code>//go:embed static</code> (automatically picks up datastar.js instead).</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">22</div>
+      <div class="migration-content">
+        <h4>Update main.go broadcastStateChanged</h4>
+        <p>Change <code>d.broadcaster.Broadcast(SSEEvent{Event: sseEventRefresh, Data: "{}"})</code> to broadcast a rendered HTML fragment or a patch function that the <code>handleEvents</code> handler applies via <code>sse.PatchElements()</code>.</p>
+      </div>
+    </div>
+
+    <h2 id="phase4"><span class="num">05</span>Phase 4: Tests &amp; Verification (&rarr; 100%)</h2>
+    <div class="migration-step">
+      <div class="migration-num">23</div>
+      <div class="migration-content">
+        <h4>Fix web_golden_test.go</h4>
+        <p>Update assertions: <code>hx-target="#status-panel"</code> &rarr; <code>data-on:click</code> or equivalent. The golden test checks rendered HTML attributes.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">24</div>
+      <div class="migration-content">
+        <h4>Fix handler tests</h4>
+        <p>Action handlers now return SSE (<code>text/event-stream</code>) instead of HTML. Tests that assert response body content need to parse SSE events. The <code>applyResultToStatus</code> / <code>actionToast</code> logic may need adjustment.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">25</div>
+      <div class="migration-content">
+        <h4>Fix behavior tests</h4>
+        <p><code>behavior_test.go</code> tests the full lifecycle (auto, debounce, PTZ, waybar, privacy, audio). Some tests assert on response strings that may change format. Verify each test still passes or update assertions.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">26</div>
+      <div class="migration-content">
+        <h4>Fix sse_test.go</h4>
+        <p>Delete tests for removed wire-format functions (<code>writeSSEEvent</code>, <code>splitSSELines</code>, <code>sseStream</code>). Keep <code>Broadcaster</code> tests (Subscribe/Unsubscribe/Broadcast). Delete benchmarks for removed code; keep Broadcaster benchmark.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">27</div>
+      <div class="migration-content">
+        <h4>Run full test suite</h4>
+        <p><code>GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...</code> &mdash; must pass with 0 failures.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">28</div>
+      <div class="migration-content">
+        <h4>Run golangci-lint</h4>
+        <p><code>GOEXPERIMENT=jsonv2 GOWORK=off golangci-lint run --timeout 2m ./...</code> &mdash; must be 0 issues. May need <code>//nolint</code> for new datastar-go SDK imports.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">29</div>
+      <div class="migration-content">
+        <h4>Verify nix build</h4>
+        <p><code>nix build</code> &mdash; update <code>vendorHash</code> in both <code>flake.nix</code> and <code>package.nix</code>. The <code>datastar-go</code> dependency must be on the public Go module proxy.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">30</div>
+      <div class="migration-content">
+        <h4>Update AGENTS.md</h4>
+        <p>Replace all HTMX references with DataStar. Update: file responsibilities table, code patterns section, gotchas section, external libraries section. Add DataStar conventions: morphing by ID, signals, <code>@post()</code> actions, <code>data-on:click</code> attributes.</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">31</div>
+      <div class="migration-content">
+        <h4>Update CHANGELOG.md</h4>
+        <p>Add breaking change entry: "Replaced HTMX v2.0.9 with DataStar v1.0.2. Eliminated ~979 lines of custom JS/SSE code. Actions now return SSE patches instead of HTML fragments."</p>
+      </div>
+    </div>
+    <div class="migration-step">
+      <div class="migration-num">32</div>
+      <div class="migration-content">
+        <h4>Update README.md</h4>
+        <p>Update feature description: "Dark-themed DataStar control panel" instead of "HTMX control panel". Update static/ file listing.</p>
+      </div>
+    </div>
+
+    <h2 id="detailed"><span class="num">06</span>Detailed 12-min Task Breakdown</h2>
+    <p>Each task is independently executable and verifiable. Sort order: importance &rarr; impact &rarr; effort &rarr; customer-value.</p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Task</th><th>Phase</th><th>Impact</th><th>Effort</th><th>Files</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.1</td><td>Add datastar-go to go.mod via <code>go get</code></td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td>go.mod, go.sum</td></tr>
+        <tr><td>1.2</td><td>Download datastar.js v1.0.2 to static/</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td>static/datastar.js</td></tr>
+        <tr><td>1.3</td><td>Delete sseStream, newSSEStream, writeSSEEvent, splitSSELines from sse.go</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>sse.go</td></tr>
+        <tr><td>1.4</td><td>Change SSEEvent payload type (carry rendered HTML or patch fn)</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>sse.go</td></tr>
+        <tr><td>1.5</td><td>Create renderTempl helper in handlers.go</td><td>P1</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td>handlers.go</td></tr>
+        <tr><td>1.6</td><td>Convert handleEvents to datastar.NewSSE + PatchElements</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>handlers.go</td></tr>
+        <tr><td>1.7</td><td>Update page() template: htmx.js &rarr; datastar.js script tag</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td>templates.templ</td></tr>
+        <tr><td>1.8</td><td>Run <code>templ generate</code> and verify build compiles</td><td>P1</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td>templates_templ.go</td></tr>
+        <tr><td>2.1</td><td>Remove hx-get/hx-trigger/hx-swap/hx-indicator from statusPanel root</td><td>P2</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>2.2</td><td>Convert action() handler: templ.Handler &rarr; sse.PatchElements</td><td>P2</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>handlers.go</td></tr>
+        <tr><td>2.3</td><td>Convert cameraModeCard: hx-post &rarr; data-on:click @post</td><td>P2</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>2.4</td><td>Convert audioSegment: hx-post + hx-vals &rarr; data-on:click @post with signals</td><td>P2</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>2.5</td><td>Convert control buttons (center, sync, probe, gesture, auto)</td><td>P2</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>2.6</td><td>Convert PTZ sliders: data-bind + debounce @post</td><td>P2</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>templates.templ</td></tr>
+        <tr><td>2.7</td><td>Convert PTZ slider handler: read signals instead of FormValue</td><td>P2</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>handlers.go</td></tr>
+        <tr><td>2.8</td><td>Convert PTZ radar: replace updateRadar() with data-style signals</td><td>P2</td><td><span class="badge badge-high">High</span></td><td>12 min</td><td>templates.templ</td></tr>
+        <tr><td>2.9</td><td>Convert toast container: hx-swap-oob &rarr; PatchElements</td><td>P2</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td>templates.templ, handlers.go</td></tr>
+        <tr><td>2.10</td><td>Convert preset load/delete: hx-post &rarr; data-on:click @post</td><td>P2</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>2.11</td><td>Convert preset save handler: datastar.ReadSignals instead of path value</td><td>P2</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>handlers.go</td></tr>
+        <tr><td>2.12</td><td>Run <code>templ generate</code> and verify build compiles</td><td>P2</td><td><span class="badge badge-critical">Critical</span></td><td>5 min</td><td>templates_templ.go</td></tr>
+        <tr><td>3.1</td><td>Convert keyboard shortcuts: data-on:keydown on body</td><td>P3</td><td><span class="badge badge-high">High</span></td><td>12 min</td><td>templates.templ</td></tr>
+        <tr><td>3.2</td><td>Convert SSE indicator: delete EventSource code, use datastar retry</td><td>P3</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>templates.templ, app.js</td></tr>
+        <tr><td>3.3</td><td>Convert preset save input: data-bind + Enter handler</td><td>P3</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>3.4</td><td>Convert offline/error banners: data-show=""</td><td>P3</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>templates.templ</td></tr>
+        <tr><td>3.5</td><td>Slim app.js: delete HTMX bridge, keep snapshot + preview</td><td>P3</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>static/app.js</td></tr>
+        <tr><td>3.6</td><td>Delete static/htmx.js</td><td>P3</td><td><span class="badge badge-low">Low</span></td><td>1 min</td><td>static/htmx.js</td></tr>
+        <tr><td>3.7</td><td>Update main.go broadcastStateChanged() for new payload type</td><td>P3</td><td><span class="badge badge-high">High</span></td><td>10 min</td><td>main.go</td></tr>
+        <tr><td>4.1</td><td>Fix web_golden_test.go assertions</td><td>P4</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>web_golden_test.go</td></tr>
+        <tr><td>4.2</td><td>Fix handler tests (SSE response format)</td><td>P4</td><td><span class="badge badge-critical">Critical</span></td><td>12 min</td><td>handlers_test.go</td></tr>
+        <tr><td>4.3</td><td>Fix behavior tests (response format changes)</td><td>P4</td><td><span class="badge badge-high">High</span></td><td>12 min</td><td>behavior_test.go</td></tr>
+        <tr><td>4.4</td><td>Fix sse_test.go: delete wire-format tests, keep Broadcaster tests</td><td>P4</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>sse_test.go</td></tr>
+        <tr><td>4.5</td><td>Run full test suite with -race</td><td>P4</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>&mdash;</td></tr>
+        <tr><td>4.6</td><td>Run golangci-lint</td><td>P4</td><td><span class="badge badge-critical">Critical</span></td><td>10 min</td><td>&mdash;</td></tr>
+        <tr><td>4.7</td><td>Update vendorHash in flake.nix + package.nix, verify nix build</td><td>P4</td><td><span class="badge badge-high">High</span></td><td>12 min</td><td>flake.nix, package.nix</td></tr>
+        <tr><td>4.8</td><td>Update AGENTS.md (all HTMX &rarr; DataStar references)</td><td>P4</td><td><span class="badge badge-high">High</span></td><td>12 min</td><td>AGENTS.md</td></tr>
+        <tr><td>4.9</td><td>Update CHANGELOG.md + README.md</td><td>P4</td><td><span class="badge badge-medium">Medium</span></td><td>10 min</td><td>CHANGELOG.md, README.md</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="graph"><span class="num">07</span>Execution Graph</h2>
+    <div class="svg-container">
+      <?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.7.1" preserveAspectRatio="xMinYMin meet" viewBox="0 0 13332 712"><svg class="d2-674880356 d2-svg" width="13332" height="712" viewBox="-101 -101 13332 712"><rect x="-101.000000" y="-101.000000" width="13332.000000" height="712.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-674880356 .text {
+	font-family: "d2-674880356-font-regular";
+}
+@font-face {
+	font-family: d2-674880356-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-674880356 .text-bold {
+	font-family: "d2-674880356-font-bold";
+}
+@font-face {
+	font-family: d2-674880356-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-674880356 .text-italic {
+	font-family: "d2-674880356-font-italic";
+}
+@font-face {
+	font-family: d2-674880356-font-italic;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-674880356 .fill-N1{fill:#0A0F25;}
+		.d2-674880356 .fill-N2{fill:#676C7E;}
+		.d2-674880356 .fill-N3{fill:#9499AB;}
+		.d2-674880356 .fill-N4{fill:#CFD2DD;}
+		.d2-674880356 .fill-N5{fill:#DEE1EB;}
+		.d2-674880356 .fill-N6{fill:#EEF1F8;}
+		.d2-674880356 .fill-N7{fill:#FFFFFF;}
+		.d2-674880356 .fill-B1{fill:#0D32B2;}
+		.d2-674880356 .fill-B2{fill:#0D32B2;}
+		.d2-674880356 .fill-B3{fill:#E3E9FD;}
+		.d2-674880356 .fill-B4{fill:#E3E9FD;}
+		.d2-674880356 .fill-B5{fill:#EDF0FD;}
+		.d2-674880356 .fill-B6{fill:#F7F8FE;}
+		.d2-674880356 .fill-AA2{fill:#4A6FF3;}
+		.d2-674880356 .fill-AA4{fill:#EDF0FD;}
+		.d2-674880356 .fill-AA5{fill:#F7F8FE;}
+		.d2-674880356 .fill-AB4{fill:#EDF0FD;}
+		.d2-674880356 .fill-AB5{fill:#F7F8FE;}
+		.d2-674880356 .stroke-N1{stroke:#0A0F25;}
+		.d2-674880356 .stroke-N2{stroke:#676C7E;}
+		.d2-674880356 .stroke-N3{stroke:#9499AB;}
+		.d2-674880356 .stroke-N4{stroke:#CFD2DD;}
+		.d2-674880356 .stroke-N5{stroke:#DEE1EB;}
+		.d2-674880356 .stroke-N6{stroke:#EEF1F8;}
+		.d2-674880356 .stroke-N7{stroke:#FFFFFF;}
+		.d2-674880356 .stroke-B1{stroke:#0D32B2;}
+		.d2-674880356 .stroke-B2{stroke:#0D32B2;}
+		.d2-674880356 .stroke-B3{stroke:#E3E9FD;}
+		.d2-674880356 .stroke-B4{stroke:#E3E9FD;}
+		.d2-674880356 .stroke-B5{stroke:#EDF0FD;}
+		.d2-674880356 .stroke-B6{stroke:#F7F8FE;}
+		.d2-674880356 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-674880356 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-674880356 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-674880356 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-674880356 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-674880356 .background-color-N1{background-color:#0A0F25;}
+		.d2-674880356 .background-color-N2{background-color:#676C7E;}
+		.d2-674880356 .background-color-N3{background-color:#9499AB;}
+		.d2-674880356 .background-color-N4{background-color:#CFD2DD;}
+		.d2-674880356 .background-color-N5{background-color:#DEE1EB;}
+		.d2-674880356 .background-color-N6{background-color:#EEF1F8;}
+		.d2-674880356 .background-color-N7{background-color:#FFFFFF;}
+		.d2-674880356 .background-color-B1{background-color:#0D32B2;}
+		.d2-674880356 .background-color-B2{background-color:#0D32B2;}
+		.d2-674880356 .background-color-B3{background-color:#E3E9FD;}
+		.d2-674880356 .background-color-B4{background-color:#E3E9FD;}
+		.d2-674880356 .background-color-B5{background-color:#EDF0FD;}
+		.d2-674880356 .background-color-B6{background-color:#F7F8FE;}
+		.d2-674880356 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-674880356 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-674880356 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-674880356 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-674880356 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-674880356 .color-N1{color:#0A0F25;}
+		.d2-674880356 .color-N2{color:#676C7E;}
+		.d2-674880356 .color-N3{color:#9499AB;}
+		.d2-674880356 .color-N4{color:#CFD2DD;}
+		.d2-674880356 .color-N5{color:#DEE1EB;}
+		.d2-674880356 .color-N6{color:#EEF1F8;}
+		.d2-674880356 .color-N7{color:#FFFFFF;}
+		.d2-674880356 .color-B1{color:#0D32B2;}
+		.d2-674880356 .color-B2{color:#0D32B2;}
+		.d2-674880356 .color-B3{color:#E3E9FD;}
+		.d2-674880356 .color-B4{color:#E3E9FD;}
+		.d2-674880356 .color-B5{color:#EDF0FD;}
+		.d2-674880356 .color-B6{color:#F7F8FE;}
+		.d2-674880356 .color-AA2{color:#4A6FF3;}
+		.d2-674880356 .color-AA4{color:#EDF0FD;}
+		.d2-674880356 .color-AA5{color:#F7F8FE;}
+		.d2-674880356 .color-AB4{color:#EDF0FD;}
+		.d2-674880356 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-674880356);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-674880356);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-674880356);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-674880356);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-674880356);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-674880356);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-674880356);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-674880356);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="UGFyZXRvIE1pZ3JhdGlvbiBQbGFu"><g class="shape" ><rect x="70.000000" y="0.000000" width="169.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="154.500000" y="38.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">HTMX -&gt; DataStar</text></g><g class="UDE="><g class="shape" ><path d="M 497 132 L 647 132 L 647 161 L 3002 161 L 3002 278 L 497 278 Z" stroke="#0D32B2" fill="#1a3a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1749.500000" y="119.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Foundation (1% -&gt; 51%)</text></g><g class="UDI="><g class="shape" ><path d="M 3116 132 L 3266 132 L 3266 161 L 6983 161 L 6983 278 L 3116 278 Z" stroke="#0D32B2" fill="#1a2a3a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="5049.500000" y="119.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Core UI Migration (4% -&gt; 64%)</text></g><g class="UDM="><g class="shape" ><path d="M 7097 132 L 7247 132 L 7247 161 L 10024 161 L 10024 278 L 7097 278 Z" stroke="#0D32B2" fill="#3a2a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="8560.500000" y="119.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Polish &amp; Cleanup (20% -&gt; 80%)</text></g><g class="UDQ="><g class="shape" ><path d="M 10138 132 L 10288 132 L 10288 161 L 13130 161 L 13130 278 L 10138 278 Z" stroke="#0D32B2" fill="#3a1a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="11634.000000" y="119.000000" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Tests &amp; Verification (-&gt; 100%)</text></g><g class="TUpQRUc="><g class="shape" ><rect x="17.000000" y="318.000000" width="276.000000" height="66.000000" stroke="#0D32B2" fill="#2a1a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="155.000000" y="356.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">MJPEG Preview (DO NOT TOUCH)</text></g><g class="U25hcHNob3Q="><g class="shape" ><rect x="8.000000" y="444.000000" width="294.000000" height="66.000000" stroke="#0D32B2" fill="#2a1a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="155.000000" y="482.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Snapshot Download (keep as fetch)</text></g><g class="RGFlbW9u"><g class="shape" ><rect x="0.000000" y="172.000000" width="309.000000" height="66.000000" stroke="#0D32B2" fill="#2a1a1a" class=" stroke-B1" style="stroke-width:2;" /></g><text x="154.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Daemon/HID/PTZ/Device (untouched)</text></g><g class="UDJm"><g class="shape" ><rect x="645.000000" y="318.000000" width="68.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="679.000000" y="356.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">P2f</text></g><g class="UDNl"><g class="shape" ><rect x="644.000000" y="444.000000" width="70.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="679.000000" y="482.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">P3e</text></g><g class="UDEuUDFh"><g class="shape" ><rect x="554.000000" y="172.000000" width="250.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="679.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Add datastar-go dependency</text></g><g class="UDEuUDFi"><g class="shape" ><rect x="918.000000" y="172.000000" width="262.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1049.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Download datastar.js to static/</text></g><g class="UDEuUDFj"><g class="shape" ><rect x="1294.000000" y="172.000000" width="418.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1503.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update sse.go: keep Broadcaster, delete wire-format</text></g><g class="UDEuUDFk"><g class="shape" ><rect x="1826.000000" y="172.000000" width="237.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1944.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Create renderTempl helper</text></g><g class="UDEuUDFl"><g class="shape" ><rect x="2177.000000" y="172.000000" width="345.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2349.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert handleEvents to datastar.NewSSE</text></g><g class="UDEuUDFm"><g class="shape" ><rect x="2636.000000" y="172.000000" width="309.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2790.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update page() template: swap scripts</text></g><g class="UDIuUDJh"><g class="shape" ><rect x="3173.000000" y="172.000000" width="295.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3320.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert statusPanel(): remove hx-*</text></g><g class="UDIuUDJi"><g class="shape" ><rect x="3582.000000" y="172.000000" width="319.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3741.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert action() handlers: SSE patches</text></g><g class="UDIuUDJj"><g class="shape" ><rect x="4015.000000" y="172.000000" width="391.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="4210.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert cameraModeCard(): data-on:click @post</text></g><g class="UDIuUDJk"><g class="shape" ><rect x="4520.000000" y="172.000000" width="369.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="4704.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert audioSegment(): data-on:click @post</text></g><g class="UDIuUDJl"><g class="shape" ><rect x="5003.000000" y="172.000000" width="269.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="5137.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert control buttons: @post</text></g><g class="UDIuUDJm"><g class="shape" ><rect x="5386.000000" y="172.000000" width="320.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="5546.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert PTZ sliders: data-bind + @post</text></g><g class="UDIuUDJn"><g class="shape" ><rect x="5820.000000" y="172.000000" width="292.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="5966.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert PTZ radar: reactive signals</text></g><g class="UDIuUDJo"><g class="shape" ><rect x="6226.000000" y="172.000000" width="327.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="6389.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert toasts: backend PatchElements</text></g><g class="UDIuUDJp"><g class="shape" ><rect x="6667.000000" y="172.000000" width="259.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="6796.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert preset section: @post</text></g><g class="UDMuUDNh"><g class="shape" ><rect x="7154.000000" y="172.000000" width="376.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="7342.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert keyboard shortcuts: data-on:keydown</text></g><g class="UDMuUDNi"><g class="shape" ><rect x="7644.000000" y="172.000000" width="310.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="7799.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert SSE indicator: DataStar retry</text></g><g class="UDMuUDNj"><g class="shape" ><rect x="8068.000000" y="172.000000" width="240.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="8188.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert preset save: @post</text></g><g class="UDMuUDNk"><g class="shape" ><rect x="8422.000000" y="172.000000" width="338.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="8591.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Convert offline/error banners: data-show</text></g><g class="UDMuUDNl"><g class="shape" ><rect x="8874.000000" y="172.000000" width="341.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="9044.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Slim app.js: keep snapshot + preview only</text></g><g class="UDMuUDNm"><g class="shape" ><rect x="9329.000000" y="172.000000" width="192.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="9425.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Delete static/htmx.js</text></g><g class="UDMuUDNn"><g class="shape" ><rect x="9635.000000" y="172.000000" width="332.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="9801.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update main.go broadcastStateChanged</text></g><g class="UDQuUDRh"><g class="shape" ><rect x="10195.000000" y="172.000000" width="213.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="10301.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Fix web_golden_test.go</text></g><g class="UDQuUDRi"><g class="shape" ><rect x="10522.000000" y="172.000000" width="162.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="10603.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Fix handler tests</text></g><g class="UDQuUDRj"><g class="shape" ><rect x="10798.000000" y="172.000000" width="170.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="10883.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Fix behavior tests</text></g><g class="UDQuUDRk"><g class="shape" ><rect x="11082.000000" y="172.000000" width="197.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="11180.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Delete/fix sse_test.go</text></g><g class="UDQuUDRl"><g class="shape" ><rect x="11393.000000" y="172.000000" width="207.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="11496.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Run full test suite -race</text></g><g class="UDQuUDRm"><g class="shape" ><rect x="11714.000000" y="172.000000" width="165.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="11796.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Run golangci-lint</text></g><g class="UDQuUDRn"><g class="shape" ><rect x="11993.000000" y="172.000000" width="153.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="12069.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Verify nix build</text></g><g class="UDQuUDRo"><g class="shape" ><rect x="12260.000000" y="172.000000" width="184.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="12352.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update AGENTS.md</text></g><g class="UDQuUDRp"><g class="shape" ><rect x="12558.000000" y="172.000000" width="215.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="12665.500000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update CHANGELOG.md</text></g><g class="UDQuUDRq"><g class="shape" ><rect x="12887.000000" y="172.000000" width="186.000000" height="66.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="12980.000000" y="210.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Update README.md</text></g><g class="UDEuKFAxYSAtJmd0OyBQMWIpWzBd"><marker id="mk-d2-674880356-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 806.000000 205.000000 C 849.599976 205.000000 872.400024 205.000000 914.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDEuKFAxYiAtJmd0OyBQMWMpWzBd"><path d="M 1182.000000 205.000000 C 1225.599976 205.000000 1248.400024 205.000000 1290.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDEuKFAxYyAtJmd0OyBQMWQpWzBd"><path d="M 1714.000000 205.000000 C 1757.599976 205.000000 1780.400024 205.000000 1822.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDEuKFAxZCAtJmd0OyBQMWUpWzBd"><path d="M 2065.000000 205.000000 C 2108.600098 205.000000 2131.399902 205.000000 2173.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDEuKFAxZSAtJmd0OyBQMWYpWzBd"><path d="M 2524.000000 205.000000 C 2567.600098 205.000000 2590.399902 205.000000 2632.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyYSAtJmd0OyBQMmIpWzBd"><path d="M 3470.000000 205.000000 C 3513.600098 205.000000 3536.399902 205.000000 3578.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyYiAtJmd0OyBQMmMpWzBd"><path d="M 3903.000000 205.000000 C 3946.600098 205.000000 3969.399902 205.000000 4011.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyYyAtJmd0OyBQMmQpWzBd"><path d="M 4408.000000 205.000000 C 4451.600098 205.000000 4474.399902 205.000000 4516.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyZCAtJmd0OyBQMmUpWzBd"><path d="M 4891.000000 205.000000 C 4934.600098 205.000000 4957.399902 205.000000 4999.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyZSAtJmd0OyBQMmYpWzBd"><path d="M 5274.000000 205.000000 C 5317.600098 205.000000 5340.399902 205.000000 5382.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyZiAtJmd0OyBQMmcpWzBd"><path d="M 5708.000000 205.000000 C 5751.600098 205.000000 5774.399902 205.000000 5816.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyZyAtJmd0OyBQMmgpWzBd"><path d="M 6114.000000 205.000000 C 6157.600098 205.000000 6180.399902 205.000000 6222.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDIuKFAyaCAtJmd0OyBQMmkpWzBd"><path d="M 6555.000000 205.000000 C 6598.600098 205.000000 6621.399902 205.000000 6663.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzYSAtJmd0OyBQM2IpWzBd"><path d="M 7532.000000 205.000000 C 7575.600098 205.000000 7598.399902 205.000000 7640.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzYiAtJmd0OyBQM2MpWzBd"><path d="M 7956.000000 205.000000 C 7999.600098 205.000000 8022.399902 205.000000 8064.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzYyAtJmd0OyBQM2QpWzBd"><path d="M 8310.000000 205.000000 C 8353.599609 205.000000 8376.400391 205.000000 8418.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzZCAtJmd0OyBQM2UpWzBd"><path d="M 8762.000000 205.000000 C 8805.599609 205.000000 8828.400391 205.000000 8870.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzZSAtJmd0OyBQM2YpWzBd"><path d="M 9217.000000 205.000000 C 9260.599609 205.000000 9283.400391 205.000000 9325.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDMuKFAzZiAtJmd0OyBQM2cpWzBd"><path d="M 9523.000000 205.000000 C 9566.599609 205.000000 9589.400391 205.000000 9631.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0YSAtJmd0OyBQNGIpWzBd"><path d="M 10410.000000 205.000000 C 10453.599609 205.000000 10476.400391 205.000000 10518.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0YiAtJmd0OyBQNGMpWzBd"><path d="M 10686.000000 205.000000 C 10729.599609 205.000000 10752.400391 205.000000 10794.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0YyAtJmd0OyBQNGQpWzBd"><path d="M 10970.000000 205.000000 C 11013.599609 205.000000 11036.400391 205.000000 11078.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0ZCAtJmd0OyBQNGUpWzBd"><path d="M 11281.000000 205.000000 C 11324.599609 205.000000 11347.400391 205.000000 11389.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0ZSAtJmd0OyBQNGYpWzBd"><path d="M 11602.000000 205.000000 C 11645.599609 205.000000 11668.400391 205.000000 11710.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0ZiAtJmd0OyBQNGcpWzBd"><path d="M 11881.000000 205.000000 C 11924.599609 205.000000 11947.400391 205.000000 11989.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0ZyAtJmd0OyBQNGgpWzBd"><path d="M 12148.000000 205.000000 C 12191.599609 205.000000 12214.400391 205.000000 12256.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0aCAtJmd0OyBQNGkpWzBd"><path d="M 12446.000000 205.000000 C 12489.599609 205.000000 12512.400391 205.000000 12554.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="UDQuKFA0aSAtJmd0OyBQNGopWzBd"><path d="M 12775.000000 205.000000 C 12818.599609 205.000000 12841.400391 205.000000 12883.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="KFAxIC0mZ3Q7IFAyKVswXQ=="><path d="M 3004.000000 205.000000 C 3047.600098 205.000000 3070.399902 205.000000 3112.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="KFAyIC0mZ3Q7IFAzKVswXQ=="><path d="M 6985.000000 205.000000 C 7028.600098 205.000000 7051.399902 205.000000 7093.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="KFAzIC0mZ3Q7IFA0KVswXQ=="><path d="M 10026.000000 205.000000 C 10069.599609 205.000000 10092.400391 205.000000 10134.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /></g><g class="KE1KUEVHIC0mZ3Q7IFAyZilbMF0="><path d="M 295.500000 351.000000 C 381.100006 351.000000 526.599976 351.000000 641.000000 351.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /><text x="469.000000" y="357.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">orthogonal</text></g><g class="KFNuYXBzaG90IC0mZ3Q7IFAzZSlbMF0="><path d="M 304.500000 477.000000 C 382.899994 477.000000 526.400024 477.000000 640.000000 477.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /><text x="473.000000" y="483.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">orthogonal</text></g><g class="KERhZW1vbiAtJmd0OyBQMSlbMF0="><path d="M 311.000000 205.000000 C 384.200012 205.000000 421.799988 205.000000 493.000000 205.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-674880356-3488378134)" mask="url(#d2-674880356)" /><text x="403.000000" y="211.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">orthogonal</text></g><mask id="d2-674880356" maskUnits="userSpaceOnUse" x="-101" y="-101" width="13332" height="712">
+<rect x="-101" y="-101" width="13332" height="712" fill="white"></rect>
+<rect x="430.000000" y="341.000000" width="78" height="21" fill="black"></rect>
+<rect x="434.000000" y="467.000000" width="78" height="21" fill="black"></rect>
+<rect x="364.000000" y="195.000000" width="78" height="21" fill="black"></rect>
+</mask></svg></svg>
+    </div>
+
+    <h2 id="safety"><span class="num">08</span>Safety Constraints</h2>
+    <div class="card card-problem">
+      <h4>DO NOT TOUCH: MJPEG Preview Stream</h4>
+      <p>The <code>/api/stream</code> endpoint and the preview <code>&lt;img&gt;</code> error recovery in app.js are orthogonal to the frontend framework. DataStar does not manage MJPEG streams. The 48-line preview recovery block in app.js stays as-is.</p>
+    </div>
+    <div class="card card-problem">
+      <h4>DO NOT TOUCH: Snapshot Download</h4>
+      <p>The <code>/api/snapshot</code> fetch + blob download + toast on success/failure is a plain fetch API call. It does not use HTMX or DataStar. The 33-line snapshot block in app.js stays as-is.</p>
+    </div>
+    <div class="card card-problem">
+      <h4>DO NOT TOUCH: Daemon / HID / PTZ / Device Logic</h4>
+      <p>All backend Go logic (daemon lifecycle, HID protocol, V4L2 PTZ commands, device probing, uevent handling, call detection, NixOS module, CLI, socket) is entirely untouched. Only the presentation layer changes.</p>
+    </div>
+    <div class="callout callout-warning">
+      <strong>Verschlimmbesserver warning:</strong> Do NOT attempt to "improve" the daemon, HID protocol, or backend logic during this migration. The scope is strictly the presentation layer. Mixing concerns will introduce bugs.
+    </div>
+
+    <h2>Key Benefits</h2>
+    <div class="strengths">
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Delete 979 lines of compensating code</strong>
+          <span>510-line app.js &rarr; ~80 lines. 179-line sse.go wire-format &rarr; 0 (SDK). 370-line sse_test.go &rarr; ~60 (Broadcaster only).</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Automatic focus preservation</strong>
+          <span>DataStar morphs only changed DOM nodes. No more preSwapFocusId save/restore. Sliders, inputs, and focus state are preserved by default.</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Fine-grained updates</strong>
+          <span>Instead of re-rendering the entire statusPanel on every action, handlers patch only what changed. Less network, less CPU, less flicker.</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Client-side reactivity</strong>
+          <span>PTZ radar, slider values, and mode highlighting become reactive signals. No server round-trip for display updates.</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>4x smaller JS payload</strong>
+          <span>HTMX v2.0.9 is ~49 KB. DataStar v1.0.2 is 11.76 KiB. Faster page load, especially on the local network.</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Native SSE with built-in retry</strong>
+          <span>DataStar handles SSE reconnection, backoff, and tab visibility automatically. No more 30-line custom connectEvents() in app.js.</span>
+        </div>
+      </div>
+      <div class="strength">
+        <div class="check">+</div>
+        <div class="text">
+          <strong>Proven stack</strong>
+          <span>DataStar creator's own reference project (1a5s-datastar) uses templ + DataStar + Go. 321 LOC for a full CRUD app. The pattern is exactly what emeet-pixyd needs.</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      Generated 2026-08-02 &middot; Pareto plan for HTMX &rarr; DataStar migration &middot; emeet-pixyd
+    </footer>
+  </main>
+</div>
+<script>
+(function () {
+  if (!("IntersectionObserver" in window)) return;
+  var nav = document.querySelector("[data-nav]");
+  if (!nav) return;
+  var links = nav.querySelectorAll('a[href^="#"]');
+  var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
+  var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  if (!sections.length) return;
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function (link) {
+          link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
+  sections.forEach(function (s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>
