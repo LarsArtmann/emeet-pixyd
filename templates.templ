@@ -402,6 +402,7 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 			min={ fmt.Sprintf("%d", min) }
 			max={ fmt.Sprintf("%d", max) }
 			value={ fmt.Sprintf("%d", value) }
+			data-bind={ fmt.Sprintf("$%s", axis) }
 			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", axis) }
 			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/ptz/%s')", axis) }
 		/>
