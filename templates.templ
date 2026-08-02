@@ -78,7 +78,7 @@ templ page(s webStatus) {
 			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b8def' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='4.5'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%235b8def' stroke='none'/%3E%3C/svg%3E"/>
 			<link rel="stylesheet" href={ fmt.Sprintf("/static/style.css?v=%s", s.Version) }/>
 		</head>
-		<body>
+		<body data-init="@get('/api/events', {openWhenHidden: true})">
 			<main class="container">
 				<header>
 					<div class="brand">
@@ -120,24 +120,17 @@ templ page(s webStatus) {
 			@shortcutLegend()
 			<button class="shortcut-fab" id="shortcut-fab" type="button" aria-label="Show keyboard shortcuts">?</button>
 			<div id="toast-container"></div>
-			<script src="/static/htmx.js"></script>
+			<script type="module" src="/static/datastar.js"></script>
 			<script src={ fmt.Sprintf("/static/app.js?v=%s", s.Version) }></script>
 		</body>
 	</html>
 }
 
 // ---------------------------------------------------------------------------
-// Status Panel (swapped via HTMX)
+// Status Panel (morphed via DataStar SSE patches by ID)
 // ---------------------------------------------------------------------------
 templ statusPanel(s webStatus) {
-	<div
-		id="status-panel"
-		hx-get="/panel"
-		hx-trigger="refresh from:body"
-		hx-swap="outerHTML"
-		hx-indicator="#status-panel"
-		style="position:relative"
-	>
+	<div id="status-panel" style="position:relative">
 		if s.Error != "" {
 			<div class="error-banner" role="alert">{ s.Error }</div>
 		}
@@ -171,8 +164,7 @@ templ statusPanel(s webStatus) {
 						</div>
 						<button
 							class={ "toggle", templ.KV("on", s.Gesture) }
-							hx-post="/api/gesture"
-							hx-target="#status-panel"
+							data-on:click="@post('/api/gesture')"
 							aria-labelledby="gesture-label"
 							role="switch"
 							aria-checked={ fmt.Sprintf("%t", s.Gesture) }
@@ -193,21 +185,28 @@ templ statusPanel(s webStatus) {
 						</div>
 						<button
 							class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
-							hx-post="/api/auto"
-							hx-target="#status-panel"
+							data-on:click="@post('/api/auto')"
 							aria-labelledby="auto-label"
 							role="switch"
 							aria-checked={ fmt.Sprintf("%t", !s.Auto.IsOff()) }
+							if !s.Online {
+								disabled=""
+							}
 						></button>
 					</div>
 				</div>
 			</div>
 			<div class="controls-col">
 				if s.Online {
-					<div class="card">
+					<div
+						class="card"
+						data-signals:pan={ fmt.Sprintf("%d", s.Pan) }
+						data-signals:tilt={ fmt.Sprintf("%d", s.Tilt) }
+						data-signals:zoom={ fmt.Sprintf("%d", s.Zoom) }
+					>
 						<div class="card-title">Position</div>
 						<div class="ptz-layout">
-							@ptzRadar(s.Pan, s.Tilt, s.Zoom)
+							@ptzRadar()
 							<div class="ptz-controls">
 								@ptzSlider("Pan", "pan", pixy.PanRange.Min, pixy.PanRange.Max, s.Pan, "°")
 								@ptzSlider("Tilt", "tilt", pixy.TiltRange.Min, pixy.TiltRange.Max, s.Tilt, "°")
@@ -215,7 +214,7 @@ templ statusPanel(s webStatus) {
 							</div>
 						</div>
 						<div class="spacer"></div>
-						<button class="btn" hx-post="/api/center" hx-target="#status-panel" aria-label="Center camera">Center<span class="kbd">C</span></button>
+						<button class="btn" data-on:click="@post('/api/center')" aria-label="Center camera">Center<span class="kbd">C</span></button>
 						@presetSection(s.PresetNames)
 					</div>
 				} else {
@@ -228,8 +227,8 @@ templ statusPanel(s webStatus) {
 		</div>
 		<div class="footer-bar">
 			<div class="footer-actions">
-				<button class="btn btn-ghost" hx-post="/api/sync" hx-target="#status-panel" aria-label="Sync state">Sync</button>
-				<button class="btn btn-ghost" hx-post="/api/probe" hx-target="#status-panel" aria-label="Probe devices">Probe</button>
+				<button class="btn btn-ghost" data-on:click="@post('/api/sync')" aria-label="Sync state">Sync</button>
+				<button class="btn btn-ghost" data-on:click="@post('/api/probe')" aria-label="Probe devices">Probe</button>
 			</div>
 			if s.LastSynced != "" {
 				<span class="last-synced">Last synced { s.LastSynced } · v{ s.Version }</span>
@@ -238,7 +237,6 @@ templ statusPanel(s webStatus) {
 			}
 		</div>
 	</div>
-	@toastOOB(s.Toast, string(s.ToastType))
 }
 
 // ---------------------------------------------------------------------------
@@ -247,8 +245,7 @@ templ statusPanel(s webStatus) {
 templ cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, online bool) {
 	<button
 		class={ "mode-card", "mode-" + mode, templ.KV("active", active) }
-		hx-post={ endpoint }
-		hx-target="#status-panel"
+		data-on:click={ fmt.Sprintf("@post('%s')", endpoint) }
 		aria-label={ name }
 		if active {
 			aria-current="true"
@@ -278,9 +275,7 @@ templ cameraModeCard(mode string, endpoint string, name string, desc string, sho
 templ audioSegment(mode string, label string, active bool, online bool) {
 	<button
 		class={ "segment", templ.KV("active", active) }
-		hx-post="/api/audio"
-		hx-vals={ fmt.Sprintf(`{"mode":"%s"}`, mode) }
-		hx-target="#status-panel"
+		data-on:click={ fmt.Sprintf("@post('/api/audio/%s')", mode) }
 		aria-label={ label }
 		if !online {
 			disabled=""
@@ -291,17 +286,16 @@ templ audioSegment(mode string, label string, active bool, online bool) {
 }
 
 // ---------------------------------------------------------------------------
-// PTZ Radar (spatial position indicator)
+// PTZ Radar — reactive to $pan/$tilt/$zoom signals via data-style.
+// Server-rendered inline style provides correct initial render before
+// DataStar evaluates the expressions.
 // ---------------------------------------------------------------------------
-templ ptzRadar(pan, tilt, zoom int) {
+templ ptzRadar() {
 	<div
 		class="ptz-radar"
-		style={ fmt.Sprintf(
-			"--pan-x: %.1f%%; --pan-y: %.1f%%; --zoom-pct: %.1f%%",
-			float64(pan-pixy.PanRange.Min)/float64(pixy.PanRange.Max-pixy.PanRange.Min)*100,
-			float64(pixy.TiltRange.Max-tilt)/float64(pixy.TiltRange.Max-pixy.TiltRange.Min)*100,
-			float64(zoom-pixy.ZoomRange.Min)/float64(pixy.ZoomRange.Max-pixy.ZoomRange.Min)*100,
-		) }
+		data-style:--pan-x="(($pan + 150) / 300 * 100) + '%'"
+		data-style:--pan-y="((90 - $tilt) / 180 * 100) + '%'"
+		data-style:--zoom-pct="(($zoom - 100) / 50 * 100) + '%'"
 	>
 		<div class="ptz-radar-ring"></div>
 		<div class="ptz-radar-zoom-ring"></div>
@@ -355,16 +349,14 @@ templ presetChip(name string) {
 	<div class="preset-chip">
 		<button
 			class="preset-chip-load"
-			hx-post={ fmt.Sprintf("/api/preset/load/%s", name) }
-			hx-target="#status-panel"
+			data-on:click={ fmt.Sprintf("@post('/api/preset/load/%s')", name) }
 			aria-label={ fmt.Sprintf("Load preset %s", name) }
 		>
 			{ name }
 		</button>
 		<button
 			class="preset-chip-delete"
-			hx-post={ fmt.Sprintf("/api/preset/delete/%s", name) }
-			hx-target="#status-panel"
+			data-on:click={ fmt.Sprintf("@post('/api/preset/delete/%s')", name) }
 			aria-label={ fmt.Sprintf("Delete preset %s", name) }
 		>
 			&times;
@@ -373,7 +365,8 @@ templ presetChip(name string) {
 }
 
 // ---------------------------------------------------------------------------
-// PTZ Slider (also used as standalone HTMX response — keep self-contained)
+// PTZ Slider — data-on:input sets signal as number, debounced @post to server.
+// Value display is reactive via data-text referencing the signal.
 // ---------------------------------------------------------------------------
 templ ptzSlider(label, axis string, min, max, value int, unit string) {
 	<div class="slider-row" id={ "ptz-" + axis }>
@@ -385,28 +378,10 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 			min={ fmt.Sprintf("%d", min) }
 			max={ fmt.Sprintf("%d", max) }
 			value={ fmt.Sprintf("%d", value) }
-			hx-post={ "/api/ptz/" + axis }
-			hx-target={ "#ptz-" + axis }
-			hx-swap="outerHTML"
-			hx-trigger="input changed delay:300ms"
+			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", axis) }
+			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/ptz/%s')", axis) }
 		/>
-		<span class="slider-value" id={ "val-" + axis }>{ fmt.Sprintf("%d%s", value, unit) }</span>
-	</div>
-}
-
-templ ptzSliderWithToast(label, axis string, min, max, value int, unit string, toastMsg string, toastType string) {
-	@ptzSlider(label, axis, min, max, value, unit)
-	@toastOOB(toastMsg, toastType)
-}
-
-// ---------------------------------------------------------------------------
-// Toast (out-of-band swap target)
-// ---------------------------------------------------------------------------
-templ toastOOB(msg, toastType string) {
-	<div id="toast-container" hx-swap-oob="innerHTML" role="status" aria-live="polite">
-		if msg != "" {
-			<div class={ "toast toast-" + toastType + " show" }>{ msg }</div>
-		}
+		<span class="slider-value" id={ "val-" + axis } data-text={ fmt.Sprintf("$%s + '%s'", axis, unit) }>{ fmt.Sprintf("%d%s", value, unit) }</span>
 	</div>
 }
 
