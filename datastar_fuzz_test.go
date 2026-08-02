@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"testing"
@@ -13,8 +14,7 @@ import (
 
 // FuzzReadSignals verifies that datastar.ReadSignals never panics on
 // arbitrary input bodies. It exercises both the POST (body JSON) and GET
-// (query param) code paths. For valid JSON with integer pan/tilt/zoom
-// values, it also checks that the parsed values match.
+// (query param) code paths.
 func FuzzReadSignals(f *testing.F) {
 	f.Add([]byte(`{"pan":0,"tilt":0,"zoom":100}`), "POST")
 	f.Add([]byte(`{"pan":-90,"tilt":45,"zoom":150}`), "POST")
@@ -29,15 +29,17 @@ func FuzzReadSignals(f *testing.F) {
 			method = "POST"
 		}
 
+		ctx := context.Background()
+
 		var req *http.Request
 
 		var err error
 
 		switch method {
 		case "GET", "DELETE":
-			req, err = http.NewRequest(method, "/?datastar="+string(body), nil)
+			req, err = http.NewRequestWithContext(ctx, method, "/?datastar="+string(body), nil)
 		default:
-			req, err = http.NewRequest(method, "/", strings.NewReader(string(body)))
+			req, err = http.NewRequestWithContext(ctx, method, "/", strings.NewReader(string(body)))
 		}
 
 		if err != nil {
