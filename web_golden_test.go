@@ -241,3 +241,25 @@ func audioLabel(modeID string) string {
 		return modeID
 	}
 }
+
+// TestWebPanel_PTZRadarHasServerRenderedStyle verifies that the PTZ radar
+// template includes a server-rendered style attribute with CSS custom properties
+// (--pan-x, --pan-y, --zoom-pct). This prevents the FOUC bug where the radar
+// dot renders at (0,0) before DataStar evaluates the data-style expressions.
+func TestWebPanel_PTZRadarHasServerRenderedStyle(t *testing.T) {
+	t.Parallel()
+
+	daemon := testDaemonWithDevice(t, pixy.StateTracking)
+	server := newTestWebServer(t, daemon)
+
+	body := getPanelBody(t, server)
+
+	assertContainsAll(t, body, []string{
+		"--pan-x:",
+		"--pan-y:",
+		"--zoom-pct:",
+		"data-style:--pan-x",
+		"data-style:--pan-y",
+		"data-style:--zoom-pct",
+	})
+}
