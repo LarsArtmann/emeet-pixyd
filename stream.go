@@ -205,6 +205,8 @@ func (s *webServer) setupStream(
 
 	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	responseWriter.Header().Set("Cache-Control", "no-store")
+	responseWriter.WriteHeader(http.StatusOK)
+	flusher.Flush()
 
 	return streamResult{
 		reader:  bufio.NewReaderSize(stdOut, streamBufSize),
