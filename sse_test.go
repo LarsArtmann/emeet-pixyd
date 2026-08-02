@@ -4,6 +4,7 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	"github.com/starfederation/datastar-go/datastar"
 )
 
 func readSSELine(t *testing.T, reader *bufio.Reader) string {
@@ -266,4 +268,90 @@ func BenchmarkBroadcasterBroadcast(b *testing.B) {
 	b.StopTimer()
 	broadcaster.Unsubscribe(ch)
 	<-done
+}
+
+func TestSendToastScript(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		status     webStatus
+		wantInBody string
+	}{
+		{
+			name:       "success toast emits script event",
+			status:     webStatus{Toast: "Tracking enabled", ToastType: toastTypeSuccess},
+			wantInBody: `"Tracking enabled"`,
+		},
+		{
+			name:       "error field overrides toast message and type",
+			status:     webStatus{Toast: "Ignored", ToastType: toastTypeSuccess, Error: "Device offline"},
+			wantInBody: `"Device offline"`,
+		},
+		{
+			name:   "empty message produces no script event",
+			status: webStatus{},
+		},
+		{
+			name:       "special characters are safely quoted",
+			status:     webStatus{Toast: `He said "hi" \n end`, ToastType: toastTypeInfo},
+			wantInBody: `window.__showToast`,
+		},
+		{
+			name:       "error type forces toastTypeError regardless of ToastType",
+			status:     webStatus{Toast: "", Error: "HID timeout", ToastType: toastTypeSuccess},
+			wantInBody: `"error"`,
+		},
+	}
+
+	for _, tc := range tests { //nolint:paralleltest // subtests handle parallelism
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mux := http.NewServeMux()
+			mux.HandleFunc("GET /toast", func(w http.ResponseWriter, r *http.Request) {
+				sse := datastar.NewSSE(w, r)
+				sendToastScript(sse, &tc.status)
+			})
+
+			//nolint:noctx // test server lifecycle is managed by t.Cleanup
+			ts := httptest.NewServer(mux)
+			t.Cleanup(ts.Close)
+
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, ts.URL+"/toast", nil)
+			if err != nil {
+				t.Fatalf("create request: %v", err)
+			}
+
+			resp, err := ts.Client().Do(req)
+			if err != nil {
+				t.Fatalf("GET /toast: %v", err)
+			}
+
+			defer func() { _ = resp.Body.Close() }()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("read body: %v", err)
+			}
+
+			output := string(body)
+
+			if tc.wantInBody == "" {
+				if strings.Contains(output, "window.__showToast") {
+					t.Error("expected no toast script for empty message")
+				}
+
+				return
+			}
+
+			if !strings.Contains(output, tc.wantInBody) {
+				t.Errorf("SSE output missing %q\noutput: %s", tc.wantInBody, output)
+			}
+
+			if !strings.Contains(output, "window.__showToast") {
+				t.Error("expected window.__showToast call in SSE output")
+			}
+		})
+	}
 }
