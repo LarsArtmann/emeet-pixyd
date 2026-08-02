@@ -14,6 +14,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
+	"github.com/starfederation/datastar-go/datastar"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -24,8 +25,7 @@ const (
 
 	staticCacheMaxAge = 7 * 24 * time.Hour
 
-	sseEventConnected = "connected"
-	sseEventRefresh   = "refresh"
+	sseEventRefresh = "refresh"
 
 	toastTrackingEnabled = "Tracking enabled"
 	toastCameraIdle      = "Camera idle"
@@ -160,38 +160,67 @@ type healthResponse struct {
 	Version string           `json:"version"`
 }
 
+// handleStatusPanel renders the panel as plain HTML for testing and direct access.
+// The DataStar UI receives panel updates via SSE patches from handleEvents and
+// action handlers.
 func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
 	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
 }
 
+// handleEvents is the persistent SSE connection. DataStar establishes this via
+// data-init="@get('/api/events', {openWhenHidden: true})". It sends the current
+// panel on connect, then patches on every state-change broadcast.
 func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
-	stream := newSSEStream(responseWriter, request)
-	defer stream.Close()
+	sse := datastar.NewSSE(responseWriter, request)
 
-	_ = stream.Send(SSEEvent{
-		Event: sseEventConnected,
-		Data:  "{}",
-	})
+	status := s.getWebStatusWithPTZ(sse.Context())
+	if err := sse.PatchElementTempl(statusPanel(status)); err != nil { //nolint:contextcheck
+		return
+	}
 
 	ch := s.daemon.broadcaster.Subscribe()
 	defer s.daemon.broadcaster.Unsubscribe(ch)
 
 	for {
 		select {
-		case <-stream.Context().Done():
+		case <-sse.Context().Done():
 			return
-		case event, ok := <-ch:
+		case _, ok := <-ch:
 			if !ok {
 				return
 			}
 
-			sendErr := stream.Send(event)
-			if sendErr != nil {
+			refreshed := s.getWebStatusWithPTZ(sse.Context())
+			if err := sse.PatchElementTempl(statusPanel(refreshed)); err != nil { //nolint:contextcheck
 				return
 			}
 		}
 	}
+}
+
+// patchPanel renders the status panel as a DataStar SSE element patch.
+func (s *webServer) patchPanel(sse *datastar.ServerSentEventGenerator, request *http.Request, status webStatus) {
+	_ = sse.PatchElementTempl(statusPanel(status)) //nolint:contextcheck
+	sendToastScript(sse, &status)
+}
+
+// sendToastScript dispatches a toast via ExecuteScript so the client-side
+// auto-dismiss logic handles fading. strconv.Quote produces a safe JS string literal.
+func sendToastScript(sse *datastar.ServerSentEventGenerator, status *webStatus) {
+	msg := status.Toast
+	tt := status.ToastType
+	if status.Error != "" {
+		msg = status.Error
+		tt = toastTypeError
+	}
+
+	if msg == "" {
+		return
+	}
+
+	script := fmt.Sprintf("window.__showToast(%s, %s)", strconv.Quote(msg), strconv.Quote(string(tt)))
+	_ = sse.ExecuteScript(script)
 }
 
 func (s *webServer) action(command string) http.HandlerFunc {
@@ -206,7 +235,8 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		toast, toastType := actionToast(command)
 		applyResultToStatus(result, &status, toast, toastType)
 
-		templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+		sse := datastar.NewSSE(responseWriter, request)
+		s.patchPanel(sse, request, status)
 	}
 }
 
@@ -230,7 +260,7 @@ func applyResultToStatus(result CommandResult, status *webStatus, toast string, 
 
 func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *http.Request) {
 	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
-	mode := request.FormValue("mode")
+	mode := request.PathValue("mode")
 
 	cmd := cmdAudio
 	if mode != "" {
@@ -248,53 +278,39 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	}
 
 	applyResultToStatus(result, &status, toast, toastTypeSuccess)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, request, status)
 }
 
 func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
-	request.Body = http.MaxBytesReader(responseWriter, request.Body, maxBodyBytes)
 	axis := pixy.Axis(request.PathValue("axis"))
 
-	val := request.FormValue("value")
-	if string(axis) == "" || val == "" {
-		http.Error(responseWriter, "missing axis or value", http.StatusBadRequest)
-
-		return
-	}
-
-	if !ptzAxisValid(axis) {
+	if string(axis) == "" || !ptzAxisValid(axis) {
 		http.Error(responseWriter, "invalid axis", http.StatusBadRequest)
 
 		return
 	}
 
-	intVal, err := strconv.Atoi(val)
-	if err != nil {
-		http.Error(responseWriter, "invalid value", http.StatusBadRequest)
+	var signals pixy.PTZValues
+	if err := datastar.ReadSignals(request, &signals); err != nil {
+		http.Error(responseWriter, "invalid signals", http.StatusBadRequest)
 
 		return
 	}
 
+	val, _ := signals.Get(axis)
+
 	info := ptzAxes[axis]
-	intVal = info.Range.Clamp(intVal)
+	intVal := info.Range.Clamp(val)
 	result := s.daemon.handleCommand(request.Context(), string(axis)+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", result.String())
 
-	if result.IsError() {
-		status := s.getWebStatusWithPTZ(request.Context())
-		sliderVal, _ := status.Get(axis)
-		templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-			info.Label, string(axis), info.Range.Min, info.Range.Max, sliderVal, info.Unit,
-			result.String(), string(toastTypeError),
-		)).ServeHTTP(responseWriter, request)
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, "", "")
 
-		return
-	}
-
-	templ.Handler(ptzSliderWithToast( //nolint:contextcheck
-		info.Label, string(axis), info.Range.Min, info.Range.Max, intVal, info.Unit,
-		"", "",
-	)).ServeHTTP(responseWriter, request)
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, request, status)
 }
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
@@ -311,7 +327,9 @@ func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request
 
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, request, status)
 }
 
 func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request *http.Request) {
@@ -326,7 +344,9 @@ func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request
 
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, request, status)
 }
 
 func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, request *http.Request) {
@@ -341,7 +361,9 @@ func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, reque
 
 	status := s.getWebStatusWithPTZ(request.Context())
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, request, status)
 }
 
 func newWebMux(server *webServer) *http.ServeMux {
@@ -355,7 +377,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))
 	mux.HandleFunc("POST /api/toggle-privacy", server.action(cmdTogglePrivacy))
-	mux.HandleFunc("POST /api/audio", server.handleAudio)
+	mux.HandleFunc("POST /api/audio/{mode}", server.handleAudio)
 	mux.HandleFunc("POST /api/gesture", server.action(cmdToggleGesture))
 	mux.HandleFunc("POST /api/auto", server.action(cmdToggleAuto))
 	mux.HandleFunc("POST /api/center", server.action(cmdCenter))

@@ -3,24 +3,21 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"io"
-	"net/http"
-	"strings"
 	"sync"
 )
 
 const sseSubscriberBuffer = 8
 
-// SSEEvent represents a single Server-Sent Events message.
+// SSEEvent represents a broadcast notification that triggers a client refresh.
+// The payload is not consumed directly; the /api/events handler re-renders the
+// full panel from current daemon state on every received event.
 type SSEEvent struct {
 	Event string
 	Data  string
 }
 
-// Broadcaster distributes SSE events to all subscribed clients via
-// thread-safe, non-blocking fan-out. Slow clients drop events without
+// Broadcaster distributes refresh notifications to all subscribed SSE clients
+// via thread-safe, non-blocking fan-out. Slow clients drop events without
 // stalling the broadcaster.
 type Broadcaster struct {
 	mu          sync.RWMutex
@@ -80,100 +77,4 @@ func (b *Broadcaster) Broadcast(event SSEEvent) {
 		default:
 		}
 	}
-}
-
-// sseStream manages a single Server-Sent Events connection.
-//
-//nolint:containedctx // SSE streams inherently need to track request context for disconnect detection
-type sseStream struct {
-	w   io.Writer
-	fw  http.Flusher
-	ctx context.Context
-}
-
-// newSSEStream sets SSE headers and returns a stream for one client.
-func newSSEStream(w http.ResponseWriter, r *http.Request) *sseStream {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.WriteHeader(http.StatusOK)
-
-	fw, _ := w.(http.Flusher)
-
-	return &sseStream{w: w, fw: fw, ctx: r.Context()}
-}
-
-// Send writes an SSE event to the stream and flushes.
-func (s *sseStream) Send(event SSEEvent) error {
-	err := writeSSEEvent(s.w, event)
-	if err != nil {
-		return fmt.Errorf("send sse event: %w", err)
-	}
-
-	if s.fw != nil {
-		s.fw.Flush()
-	}
-
-	return nil
-}
-
-// Context returns the stream's context, cancelled on client disconnect.
-func (s *sseStream) Context() context.Context {
-	return s.ctx
-}
-
-// Close flushes any buffered data.
-func (s *sseStream) Close() {
-	if s.fw != nil {
-		s.fw.Flush()
-	}
-}
-
-func writeSSEEvent(w io.Writer, event SSEEvent) error {
-	var buf []byte
-
-	if event.Event != "" {
-		buf = append(buf, "event: "...)
-		buf = append(buf, event.Event...)
-		buf = append(buf, '\n')
-	}
-
-	for _, line := range splitSSELines(event.Data) {
-		buf = append(buf, "data: "...)
-		buf = append(buf, line...)
-		buf = append(buf, '\n')
-	}
-
-	buf = append(buf, '\n')
-
-	_, err := w.Write(buf)
-
-	return err //nolint:wrapcheck // io.Writer.Write is an interface method
-}
-
-func splitSSELines(s string) []string {
-	if s == "" || strings.IndexByte(s, '\n') < 0 {
-		return []string{s}
-	}
-
-	var lines []string
-
-	start := 0
-
-	for i := range len(s) {
-		if s[i] == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
-		}
-	}
-
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-
-	if len(lines) == 0 {
-		return []string{""}
-	}
-
-	return lines
 }
