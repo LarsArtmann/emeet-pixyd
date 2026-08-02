@@ -349,3 +349,47 @@ func TestWeb_PresetSaveRejectsInvalidName(t *testing.T) {
 
 	assertStatusCode(t, resp, http.StatusBadRequest)
 }
+
+func TestWeb_PresetSaveLoadDelete(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(
+		t,
+		pixy.StateTracking,
+		testVideoDev,
+		testHIDDev,
+		withConfig(t.TempDir()),
+		withNoopV4L2(),
+		withSeededPTZCache(),
+	)
+	srv := newTestWebServer(t, d)
+
+	// Save
+	resp := post(t, srv.URL+"/api/preset/save/testpreset", "application/json", strings.NewReader("{}"))
+	resp.Body.Close() //nolint:errcheck
+	assertStatusCode(t, resp, http.StatusOK)
+
+	d.mu.RLock()
+	_, exists := d.state.Presets["testpreset"]
+	d.mu.RUnlock()
+	if !exists {
+		t.Fatal("preset not saved in daemon state after POST /api/preset/save")
+	}
+
+	// Load
+	resp = post(t, srv.URL+"/api/preset/load/testpreset", "application/json", strings.NewReader("{}"))
+	resp.Body.Close() //nolint:errcheck
+	assertStatusCode(t, resp, http.StatusOK)
+
+	// Delete
+	resp = post(t, srv.URL+"/api/preset/delete/testpreset", "application/json", strings.NewReader("{}"))
+	resp.Body.Close() //nolint:errcheck
+	assertStatusCode(t, resp, http.StatusOK)
+
+	d.mu.RLock()
+	_, exists = d.state.Presets["testpreset"]
+	d.mu.RUnlock()
+	if exists {
+		t.Error("preset should be deleted from daemon state after POST /api/preset/delete")
+	}
+}

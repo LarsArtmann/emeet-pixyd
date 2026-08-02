@@ -205,6 +205,28 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - Fuzz tests: `handlers_fuzz_test.go`, `hid_fuzz_test.go`, `datastar_fuzz_test.go`
 - Integration tests: `integration_test.go` (web server + socket command tests)
 
+### DataStar UI Patterns
+
+The web UI uses [DataStar](https://data-star.dev) (Go SDK: `datastar-go` v1.2.2, JS runtime: v1.0.2). Key patterns:
+
+| Pattern | Attribute | Usage |
+| --------------- | --------------- | --------------- |
+| Action button | `data-on:click="@post('/api/track')"` | POST to endpoint, response morphs panel |
+| Loading state | `data-indicator="loading"` + `data-class:btn-loading="$loading"` | Shared `$loading` signal (intentional — serializes hardware ops) |
+| Signal declaration | `data-signals:pan="0"` | Initial signal values on the PTZ card |
+| Two-way input binding | `data-bind="$pan"` | Signal→element AND element→signal sync for sliders |
+| Reactive text | `data-text="$pan + '°'"` | Value display updates from signals without re-render |
+| Reactive CSS vars | `data-style:--pan-x="(($pan + 150) / 300 * 100) + '%'"` | Radar dot position from signals |
+| Debounced input | `data-on:input__debounce.300ms="@post('/api/ptz/pan')"` | Slider drag → server PTZ command (debounced) |
+| Persistent SSE | `data-init="@get('/api/events', {openWhenHidden: true})"` on `<body>` | Panel updates on state change |
+| Preset input binding | `data-bind:presetName=""` | Two-way text binding for preset name |
+
+**Server-side SSE patterns** (`handlers.go`):
+- `sse.PatchElementTempl(statusPanel(status))` — full panel morph (4KB HTML, morphs by element ID)
+- `sse.MarshalAndPatchSignals(status.PTZValues)` — signal-only patch (~20 bytes JSON, for PTZ slider updates)
+- `sse.ExecuteScript("window.__showToast(...)")` — toast notification via script injection
+- `datastar.ReadSignals(request, &signals)` — reads client signals from POST body or GET query param
+
 ---
 
 ## Gotchas
