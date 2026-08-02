@@ -7,7 +7,7 @@
 <p align="center">
   <strong>Linux-native daemon that makes your PIXY webcam smart:</strong>
   <br>
-  face tracking on call start · privacy mode on call end · audio switching · HTMX web UI
+  face tracking on call start · privacy mode on call end · audio switching · DataStar web UI
 </p>
 
 <p align="center">
@@ -76,17 +76,17 @@ The differentiator is the first column: emeet-pixyd is the only option that dete
 
 ## Features
 
-| Feature                | Description                                                                                  |
-| ---------------------- | -------------------------------------------------------------------------------------------- |
-| **Call detection**     | Scans `/proc/*/fd` for processes holding the video device — works with any app               |
-| **Auto-activate**      | Enables face tracking + noise cancellation when a call starts                                |
-| **Auto-privacy**       | Physically blocks the lens when the call ends                                                |
-| **Audio switching**    | Auto-switches PipeWire default source to PIXY on call start                                  |
-| **Web UI**             | Dark-themed HTMX control panel with live MJPEG preview, PTZ sliders, and toast notifications |
-| **Waybar integration** | JSON output for a custom Waybar module                                                       |
-| **Hotplug**            | Netlink uevent listener detects USB plug/unplug, auto-re-probes                              |
-| **Prometheus metrics** | OTel-based metrics at `/metrics` for monitoring                                              |
-| **NixOS module**       | Systemd user service, udev rules, tmpfiles.d — one option to enable                          |
+| Feature                | Description                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| **Call detection**     | Scans `/proc/*/fd` for processes holding the video device — works with any app                   |
+| **Auto-activate**      | Enables face tracking + noise cancellation when a call starts                                    |
+| **Auto-privacy**       | Physically blocks the lens when the call ends                                                    |
+| **Audio switching**    | Auto-switches PipeWire default source to PIXY on call start                                      |
+| **Web UI**             | Dark-themed DataStar control panel with live MJPEG preview, PTZ sliders, and toast notifications |
+| **Waybar integration** | JSON output for a custom Waybar module                                                           |
+| **Hotplug**            | Netlink uevent listener detects USB plug/unplug, auto-re-probes                                  |
+| **Prometheus metrics** | OTel-based metrics at `/metrics` for monitoring                                                  |
+| **NixOS module**       | Systemd user service, udev rules, tmpfiles.d — one option to enable                              |
 
 ## Quick Start
 
@@ -252,7 +252,7 @@ errors.go           CommandError type, CommandResult, exported sentinel errors
 cache.go            Named cache types: lastFrameCache, ptzCache (encapsulated mutex access)
 templates.templ     HTML templates (compiled via templ generate)
 internal/pixy/      Shared types: Config, State, CameraState, AudioMode, PID, SourceID, PTZ constants
-static/             Frontend assets (HTMX, app.js, style.css) — go:embed
+static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 ```
 
 ### Key Design Decisions

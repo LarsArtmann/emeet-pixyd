@@ -49,7 +49,7 @@ Nothing.
 
 ### Things I Could Have Done Better
 
-1. **No regression test for the actual bug** — The existing `TestHandleStream_NoFFmpeg` already covers this case but only because it happened to use a 2s timeout. I should have added a test that explicitly asserts the response status code arrives *before* any frame data — a test that would have caught the missing `WriteHeader` even without the timeout symptom. The current test still passes by coincidence (it accepts 503 *or* 200); if the bug regressed, the test would still pass (503 path), and the timeout would return.
+1. **No regression test for the actual bug** — The existing `TestHandleStream_NoFFmpeg` already covers this case but only because it happened to use a 2s timeout. I should have added a test that explicitly asserts the response status code arrives _before_ any frame data — a test that would have caught the missing `WriteHeader` even without the timeout symptom. The current test still passes by coincidence (it accepts 503 _or_ 200); if the bug regressed, the test would still pass (503 path), and the timeout would return.
 
 2. **Didn't check the `setupStream` flusher nil-safety** — I added `flusher.Flush()` but `setupStream` already validated `flusher` is non-nil earlier (line 162-167). So this is safe, but I didn't explicitly verify this in my reasoning chain — I just added the call. A more rigorous approach would have traced the `flusher` variable's provenance before adding the call.
 
@@ -73,7 +73,7 @@ Nothing.
 
 ### Stream/HTTP Robustness
 
-1. Add a regression test that asserts `setupStream` sends HTTP 200 *before* any frame data (not just "503 or 200 within 2s").
+1. Add a regression test that asserts `setupStream` sends HTTP 200 _before_ any frame data (not just "503 or 200 within 2s").
 2. Audit `sse.go` `sseStream` for the same "headers set but not flushed" pattern — SSE streams may have the same bug.
 3. Add a test for `setupStream` that verifies `WriteHeader` is called exactly once (detect double-write regressions).
 4. Audit all HTTP handlers that stream (stream, snapshot, SSE) for consistent header-then-flush pattern.
@@ -81,7 +81,7 @@ Nothing.
 
 ### Test Quality
 
-6. `TestHandleStream_NoFFmpeg` should assert a *specific* status code, not "503 or 200" — the current assertion masks bugs.
+6. `TestHandleStream_NoFFmpeg` should assert a _specific_ status code, not "503 or 200" — the current assertion masks bugs.
 7. Add a test for the case where ffmpeg starts but the device produces no frames for N seconds (the actual bug scenario).
 8. Add a test that the stream response includes `Content-Type: multipart/x-mixed-replace; boundary=frame` header.
 9. Run `go test -tags=integration ./...` in CI (or at least compile-check) to catch integration test build failures.
@@ -125,6 +125,6 @@ Nothing.
 
 1. **Should `cmd.Start()` happen before `WriteHeader(200)`?** Currently the order is: LookPath → flusher check → SetWriteDeadline → cmd.Start() → WriteHeader. If `cmd.Start()` fails, we return `errStreamStart` (503) — but `WriteHeader` hasn't been called yet, so this is fine. However, if `cmd.Start()` succeeds but ffmpeg immediately exits, `writeFrames` will get an EOF from the pipe and return silently — the client gets a 200 with no frames. Is that acceptable behavior, or should we wait for the first frame before committing to 200?
 
-2. **Should the test environment have ffmpeg in PATH?** The test name says "NoFFmpeg" but the comment says "ffmpeg likely not in PATH during test." On the CI runner, ffmpeg *is* available (Nix devShell includes it). Should we make the test deterministic by explicitly setting `PATH` to exclude ffmpeg, or by mocking `exec.LookPath`?
+2. **Should the test environment have ffmpeg in PATH?** The test name says "NoFFmpeg" but the comment says "ffmpeg likely not in PATH during test." On the CI runner, ffmpeg _is_ available (Nix devShell includes it). Should we make the test deterministic by explicitly setting `PATH` to exclude ffmpeg, or by mocking `exec.LookPath`?
 
 3. **Is the `multipart/x-mixed-replace` content type correct for all clients?** Some browsers/proxies handle this poorly. Should we consider Server-Sent Events or WebSocket as an alternative for the live preview, or is MJPEG the right choice for camera preview?

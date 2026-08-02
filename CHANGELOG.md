@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: Replaced HTMX v2.0.9 with DataStar v1.0.2 (`datastar-go` SDK v1.2.2). All `hx-*` attributes converted to `data-*` attributes. Action handlers now return SSE patches (`PatchElementTempl`) instead of HTML fragments — DataStar morphs elements by ID automatically. Eliminated ~275 lines of custom JS (SSE bridge, HTMX lifecycle, focus preservation, PTZ helpers, toast rendering) from `app.js` (510→235 lines). Deleted 82 KB `htmx.js`, added 34 KB `datastar.js`. PTZ radar is now reactive via DataStar signals (`data-style` CSS custom properties). CSP updated to include `'unsafe-eval'` for DataStar expression evaluation. Audio endpoint changed from `POST /api/audio` (form value) to `POST /api/audio/{mode}` (path value).
+
 ### Added
 
 - **Error classification via `go-error-family` (v0.10.0)**: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `errorfamily.HTTPStatus(err)` derives HTTP status codes, `errorfamily.ExitCode(err)` derives BSD sysexits CLI exit codes, and `errorfamily.LogError()` adds family/code/retryable structured log fields at the daemon-init failure path — replacing per-call-site hardcoded status/exit codes. Scoped by design: HTMX action handlers keep returning 200+HTML toast (correct `outerHTML` swap), and the HID circuit breaker stays untouched. See `FEATURES.md` → Error Handling.
