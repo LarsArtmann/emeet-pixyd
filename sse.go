@@ -8,34 +8,26 @@ import (
 
 const sseSubscriberBuffer = 8
 
-// SSEEvent represents a broadcast notification that triggers a client refresh.
-// The payload is not consumed directly; the /api/events handler re-renders the
-// full panel from current daemon state on every received event.
-type SSEEvent struct {
-	Event string
-	Data  string
-}
-
 // Broadcaster distributes refresh notifications to all subscribed SSE clients
 // via thread-safe, non-blocking fan-out. Slow clients drop events without
 // stalling the broadcaster.
 type Broadcaster struct {
 	mu          sync.RWMutex
-	subscribers map[chan SSEEvent]struct{}
+	subscribers map[chan struct{}]struct{}
 }
 
 // NewBroadcaster creates a broadcaster with no subscribers.
 //
 //nolint:exhaustruct
 func NewBroadcaster() *Broadcaster {
-	return &Broadcaster{subscribers: make(map[chan SSEEvent]struct{})}
+	return &Broadcaster{subscribers: make(map[chan struct{}]struct{})}
 }
 
-// Subscribe returns a channel that receives all broadcast events.
+// Subscribe returns a channel that receives all broadcast notifications.
 // The channel has a buffer of sseSubscriberBuffer; slow consumers may miss messages.
 // Call Unsubscribe when the client disconnects to prevent leaks.
-func (b *Broadcaster) Subscribe() <-chan SSEEvent {
-	ch := make(chan SSEEvent, sseSubscriberBuffer)
+func (b *Broadcaster) Subscribe() <-chan struct{} {
+	ch := make(chan struct{}, sseSubscriberBuffer)
 
 	b.mu.Lock()
 	b.subscribers[ch] = struct{}{}
@@ -45,7 +37,7 @@ func (b *Broadcaster) Subscribe() <-chan SSEEvent {
 }
 
 // Unsubscribe removes and closes a subscriber channel.
-func (b *Broadcaster) Unsubscribe(ch <-chan SSEEvent) {
+func (b *Broadcaster) Unsubscribe(ch <-chan struct{}) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -59,12 +51,12 @@ func (b *Broadcaster) Unsubscribe(ch <-chan SSEEvent) {
 	}
 }
 
-// Broadcast sends an event to all subscribers. Slow subscribers with
+// Broadcast sends a notification to all subscribers. Slow subscribers with
 // full buffers have the event dropped — the broadcaster never blocks.
-func (b *Broadcaster) Broadcast(event SSEEvent) {
+func (b *Broadcaster) Broadcast() {
 	b.mu.RLock()
 
-	snapshot := make([]chan SSEEvent, 0, len(b.subscribers))
+	snapshot := make([]chan struct{}, 0, len(b.subscribers))
 	for ch := range b.subscribers {
 		snapshot = append(snapshot, ch)
 	}
@@ -73,7 +65,7 @@ func (b *Broadcaster) Broadcast(event SSEEvent) {
 
 	for _, ch := range snapshot {
 		select {
-		case ch <- event:
+		case ch <- struct{}{}:
 		default:
 		}
 	}

@@ -122,15 +122,15 @@ func TestBroadcaster_SubscribeBroadcastReceive(t *testing.T) {
 
 	t.Cleanup(func() { b.Unsubscribe(ch) })
 
-	b.Broadcast(SSEEvent{Event: "test", Data: "hello"})
+	b.Broadcast()
 
 	select {
-	case evt := <-ch:
-		if evt.Event != "test" || evt.Data != "hello" {
-			t.Errorf("received = %+v, want Event=test Data=hello", evt)
+	case _, ok := <-ch:
+		if !ok {
+			t.Error("channel should not be closed")
 		}
 	case <-time.After(time.Second):
-		t.Fatal("timeout waiting for broadcast event")
+		t.Fatal("timeout waiting for broadcast notification")
 	}
 }
 
@@ -144,7 +144,7 @@ func TestBroadcaster_UnsubscribeClosesChannel(t *testing.T) {
 
 	b.Unsubscribe(ch)
 
-	b.Broadcast(SSEEvent{Event: "noop"})
+	b.Broadcast()
 
 	select {
 	case _, ok := <-ch:
@@ -166,7 +166,7 @@ func TestBroadcaster_NonBlockingDropOnFullBuffer(t *testing.T) {
 
 	// Flood past the buffer capacity — must not block.
 	for range sseSubscriberBuffer + 10 {
-		b.Broadcast(SSEEvent{Data: "flood"})
+		b.Broadcast()
 	}
 
 	// Drain at least one event — proves the broadcaster survived.
@@ -192,12 +192,8 @@ func BenchmarkBroadcasterBroadcast(b *testing.B) {
 		close(done)
 	}()
 
-	event := SSEEvent{Event: "refresh", Data: "{}"}
-
-	b.ResetTimer()
-
 	for range b.N {
-		broadcaster.Broadcast(event)
+		broadcaster.Broadcast()
 	}
 
 	b.StopTimer()

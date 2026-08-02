@@ -25,8 +25,6 @@ const (
 
 	staticCacheMaxAge = 7 * 24 * time.Hour
 
-	sseEventRefresh = "refresh"
-
 	toastTrackingEnabled = "Tracking enabled"
 	toastCameraIdle      = "Camera idle"
 	toastPrivacyOn       = "Privacy mode on"

@@ -200,10 +200,7 @@ func (d *Daemon) Run() {
 // refresh the UI. Uses a thread-safe fan-out hub for race-safe, non-blocking
 // fan-out — slow clients drop events without stalling the daemon.
 func (d *Daemon) broadcastStateChanged() {
-	d.broadcaster.Broadcast(SSEEvent{
-		Event: sseEventRefresh,
-		Data:  "{}",
-	})
+	d.broadcaster.Broadcast()
 }
 
 func (d *Daemon) startHTTPServer() *http.Server {
