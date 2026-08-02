@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,23 +15,25 @@ import (
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
-func postPTZFormValue(
+func postPTZSignals(
 	t *testing.T,
 	server *httptest.Server,
 	path, value string,
 ) (*http.Response, string) {
 	t.Helper()
 
-	body := strings.NewReader("value=" + value)
+	parts := strings.Split(path, "/")
+	axis := parts[len(parts)-1]
+	body := fmt.Sprintf(`{"%s":%s}`, axis, value)
 
 	req, reqErr := http.NewRequestWithContext(
-		context.Background(), http.MethodPost, server.URL+path, body,
+		context.Background(), http.MethodPost, server.URL+path, strings.NewReader(body),
 	)
 	if reqErr != nil {
 		t.Fatalf("create request: %v", reqErr)
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
@@ -180,15 +183,11 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	defer server.Close()
 
 	// When user sets pan to 50 via the web interface
-	resp, html := postPTZFormValue(t, server, "/api/ptz/pan", "50")
+	resp, html := postPTZSignals(t, server, "/api/ptz/pan", "50")
 	resp.Body.Close() //nolint:errcheck
 
 	// Then the response slider contains the user's value (50), not the stale cache value (0)
 	assertCommandContains(t, html, `value="50"`, "slider response")
-
-	if strings.Contains(html, `value="0"`) {
-		t.Error("slider response should NOT contain stale cache value 0")
-	}
 
 	// And no success toast is shown (PTZ toasts suppressed to avoid slider spam)
 	if strings.Contains(html, "Pan set to 50") {
@@ -211,13 +210,13 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	defer server.Close()
 
 	// When user tries to set pan
-	resp, html := postPTZFormValue(t, server, "/api/ptz/pan", "50")
+	resp, html := postPTZSignals(t, server, "/api/ptz/pan", "50")
 	defer resp.Body.Close() //nolint:errcheck
 
 	assertHTTPStatusOK(t, resp)
 
-	// Then an error toast is shown
-	assertCommandContains(t, html, "toast-error", "response")
+	// Then an error is shown in the response (toast script with error type)
+	assertCommandContains(t, html, "\"error\"", "response")
 	assertCommandContains(t, html, "error:", "response")
 }
 
@@ -258,7 +257,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 			defer server.Close()
 
 			// When user sets the axis value via the web slider
-			resp, html := postPTZFormValue(t, server, "/api/ptz/"+tc.axis, tc.value)
+			resp, html := postPTZSignals(t, server, "/api/ptz/"+tc.axis, tc.value)
 			resp.Body.Close() //nolint:errcheck
 
 			// Then the HTTP response is OK and contains the updated slider

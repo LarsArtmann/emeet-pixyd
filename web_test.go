@@ -234,20 +234,28 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	body := getBody(t, resp)
 	html := body
 
-	for _, want := range []string{
-		`@post('/api/track')`,
-		`@post('/api/idle')`,
-		`@post('/api/privacy')`,
-		`@post('/api/audio/nc')`,
-		`@post('/api/gesture')`,
-		`@post('/api/auto')`,
-		`@post('/api/center')`,
-		`@post('/api/sync')`,
-		`@post('/api/probe')`,
+	for _, endpoint := range []string{
+		`/api/track`,
+		`/api/idle`,
+		`/api/privacy`,
+		`/api/audio/nc`,
+		`/api/gesture`,
+		`/api/auto`,
+		`/api/center`,
+		`/api/sync`,
+		`/api/probe`,
 	} {
-		if !strings.Contains(html, want) {
-			t.Errorf("index HTML missing %q", want)
+		if !strings.Contains(html, endpoint) {
+			t.Errorf("index HTML missing endpoint %q", endpoint)
 		}
+	}
+
+	if !strings.Contains(html, "data-on:click") {
+		t.Error("index HTML missing data-on:click attributes")
+	}
+
+	if strings.Contains(html, "hx-post") {
+		t.Error("index HTML still contains hx-post (HTMX not fully removed)")
 	}
 
 	bad := []string{`hx-post`, `aria-label="ariaLabel"`}
@@ -278,6 +286,10 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 
 	if strings.Contains(html, `hx-trigger=`) {
 		t.Error("panel should not have any hx-trigger attributes")
+	}
+
+	if strings.Contains(html, `hx-get=`) {
+		t.Error("panel should not have any hx-get attributes")
 	}
 }
 

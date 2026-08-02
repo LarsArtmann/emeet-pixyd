@@ -20,16 +20,7 @@ func TestWeb_AudioWithValidModes(t *testing.T) {
 
 			server := newTestWebServer(t, daemon)
 
-			resp := post(
-
-				t,
-
-				server.URL+"/api/audio",
-
-				"application/x-www-form-urlencoded",
-
-				strings.NewReader("mode="+mode),
-			)
+			resp := post(t, server.URL+"/api/audio/"+mode, "application/json", strings.NewReader("{}"))
 
 			defer resp.Body.Close() //nolint:errcheck
 
@@ -43,31 +34,11 @@ func TestWeb_AudioInvalidMode(t *testing.T) {
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 
-	resp := post(
-
-		t,
-
-		server.URL+"/api/audio",
-
-		"application/x-www-form-urlencoded",
-
-		strings.NewReader("mode=blorp"),
-	)
+	resp := post(t, server.URL+"/api/audio/blorp", "application/json", strings.NewReader("{}"))
 	defer resp.Body.Close() //nolint:errcheck
 
 	assertStatusCode(t, resp, http.StatusOK)
 	assertResponseContains(t, resp, "status-panel", "still returns panel even on invalid mode")
-}
-
-func TestWeb_AudioNoModeParam(t *testing.T) {
-	t.Parallel()
-	daemon := newIntegrationDaemon(t)
-	server := newTestWebServer(t, daemon)
-
-	resp := post(t, server.URL+"/api/audio", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
-
-	assertStatusCode(t, resp, http.StatusOK)
 }
 
 func TestWeb_PTZEndpoint(t *testing.T) {
@@ -80,7 +51,7 @@ func TestWeb_PTZEndpoint(t *testing.T) {
 	}{
 		{"/api/ptz/", "", http.StatusBadRequest},
 		{"/api/ptz/pan", "", http.StatusBadRequest},
-		{"/api/ptz/pan", "value=10", http.StatusOK},
+		{"/api/ptz/pan", `{"pan":10}`, http.StatusOK},
 	}
 	for _, tc := range tests {
 		t.Run(tc.path, func(t *testing.T) {
@@ -120,7 +91,7 @@ func TestWeb_POSTEndpointsRejectGET(t *testing.T) {
 
 		"/api/toggle-privacy",
 
-		"/api/audio",
+		"/api/audio/nc",
 
 		"/api/gesture",
 

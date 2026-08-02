@@ -287,7 +287,7 @@ func testPTZEndpoint(t *testing.T, path, body string, expectedStatus int) {
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
 
-	resp := post(t, server.URL+path, "application/x-www-form-urlencoded", strings.NewReader(body))
+	resp := post(t, server.URL+path, "application/json", strings.NewReader(body))
 	defer resp.Body.Close() //nolint:errcheck
 
 	assertStatusCode(t, resp, expectedStatus)
