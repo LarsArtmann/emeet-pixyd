@@ -255,7 +255,7 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	}
 
 	if strings.Contains(html, "hx-post") {
-		t.Error("index HTML still contains hx-post (HTMX not fully removed)")
+		t.Error("index HTML still contains hx-post (DataStar migration incomplete)")
 	}
 
 	bad := []string{`hx-post`, `aria-label="ariaLabel"`}

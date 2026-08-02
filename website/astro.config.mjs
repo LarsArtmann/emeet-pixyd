@@ -114,7 +114,7 @@ export default defineConfig({
           attrs: {
             name: "description",
             content:
-              "Auto-activation daemon for the EMEET PIXY dual-camera AI webcam on Linux. Call detection, face tracking, privacy mode, audio switching, and an HTMX web UI.",
+              "Auto-activation daemon for the EMEET PIXY dual-camera AI webcam on Linux. Call detection, face tracking, privacy mode, audio switching, and a DataStar web UI.",
           },
         },
       ],

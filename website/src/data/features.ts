@@ -23,7 +23,7 @@ export const features: Feature[] = [
   },
   {
     icon: "globe",
-    title: "HTMX Web UI",
+    title: "DataStar Web UI",
     desc: "Dark-themed control panel at 127.0.0.1:8090 with live MJPEG preview, PTZ sliders, presets, and toast notifications.",
   },
   {
