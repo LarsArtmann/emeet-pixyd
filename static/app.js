@@ -31,8 +31,12 @@
   /* -------------------------------------------------------------------- */
   /*  SSE connection state indicator + offline banner                     */
   /*  DataStar dispatches 'datastar-fetch' custom events on document.     */
-  /*  We filter for the body element (which hosts data-init SSE) and      */
-  /*  toggle indicator classes + banner visibility.                       */
+  /*  We listen to all events (no element filter) because:                */
+  /*  - datastar-patch-elements = data flowing (green)                    */
+  /*  - started = a fetch is in flight (yellow)                           */
+  /*  - retries-failed = server unreachable (red + banner)               */
+  /*  Button clicks also trigger these events, which is fine — they       */
+  /*  prove the server is reachable.                                      */
   /* -------------------------------------------------------------------- */
 
   (function () {
@@ -58,14 +62,15 @@
     window.setSSEState = setSSEState;
 
     document.addEventListener("datastar-fetch", function (e) {
-      var d = e.detail;
-      if (!d || d.el !== document.body) return;
-      if (d.type === "datastar-patch-elements") {
+      var type = e.detail && e.detail.type;
+      if (!type) return;
+
+      if (type === "datastar-patch-elements" || type === "datastar-patch-signals") {
         setSSEState("connected");
-      } else if (d.type === "started") {
-        setSSEState("");
-      } else if (d.type === "retrying" || d.type === "retries-failed") {
+      } else if (type === "retrying" || type === "retries-failed") {
         setSSEState("disconnected");
+      } else if (type === "started") {
+        setSSEState("");
       }
     });
   })();
