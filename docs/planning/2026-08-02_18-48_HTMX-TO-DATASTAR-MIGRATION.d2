@@ -1,0 +1,93 @@
+Pareto Migration Plan: HTMX -> DataStar
+
+direction: right
+
+# Phase 1: Foundation (1% -> 51%)
+P1: Foundation (1% -> 51%) {
+  shape: package
+  style.fill: "#1a3a1a"
+
+  P1a: Add datastar-go dependency
+  P1b: Download datastar.js to static/
+  P1c: Update sse.go: keep Broadcaster, delete wire-format
+  P1d: Create renderTempl helper
+  P1e: Convert handleEvents to datastar.NewSSE
+  P1f: Update page() template: swap scripts
+
+  P1a -> P1b -> P1c -> P1d -> P1e -> P1f
+}
+
+# Phase 2: Core Migration (4% -> 64%)
+P2: Core UI Migration (4% -> 64%) {
+  shape: package
+  style.fill: "#1a2a3a"
+
+  P2a: Convert statusPanel(): remove hx-*
+  P2b: Convert action() handlers: SSE patches
+  P2c: Convert cameraModeCard(): data-on:click @post
+  P2d: Convert audioSegment(): data-on:click @post
+  P2e: Convert control buttons: @post
+  P2f: Convert PTZ sliders: data-bind + @post
+  P2g: Convert PTZ radar: reactive signals
+  P2h: Convert toasts: backend PatchElements
+  P2i: Convert preset section: @post
+
+  P2a -> P2b -> P2c -> P2d -> P2e -> P2f -> P2g -> P2h -> P2i
+}
+
+# Phase 3: Polish (20% -> 80%)
+P3: Polish & Cleanup (20% -> 80%) {
+  shape: package
+  style.fill: "#3a2a1a"
+
+  P3a: Convert keyboard shortcuts: data-on:keydown
+  P3b: Convert SSE indicator: DataStar retry
+  P3c: Convert preset save: @post
+  P3d: Convert offline/error banners: data-show
+  P3e: Slim app.js: keep snapshot + preview only
+  P3f: Delete static/htmx.js
+  P3g: Update main.go broadcastStateChanged
+
+  P3a -> P3b -> P3c -> P3d -> P3e -> P3f -> P3g
+}
+
+# Phase 4: Tests & Verification (remaining 20%)
+P4: Tests & Verification (-> 100%) {
+  shape: package
+  style.fill: "#3a1a1a"
+
+  P4a: Fix web_golden_test.go
+  P4b: Fix handler tests
+  P4c: Fix behavior tests
+  P4d: Delete/fix sse_test.go
+  P4e: Run full test suite -race
+  P4f: Run golangci-lint
+  P4g: Verify nix build
+  P4h: Update AGENTS.md
+  P4i: Update CHANGELOG.md
+  P4j: Update README.md
+
+  P4a -> P4b -> P4c -> P4d -> P4e -> P4f -> P4g -> P4h -> P4i -> P4j
+}
+
+P1 -> P2 -> P3 -> P4
+
+# Critical safety constraints
+MJPEG: "MJPEG Preview (DO NOT TOUCH)" {
+  shape: rectangle
+  style.fill: "#2a1a1a"
+}
+
+Snapshot: "Snapshot Download (keep as fetch)" {
+  shape: rectangle
+  style.fill: "#2a1a1a"
+}
+
+Daemon: "Daemon/HID/PTZ/Device (untouched)" {
+  shape: rectangle
+  style.fill: "#2a1a1a"
+}
+
+MJPEG -> P2f: orthogonal
+Snapshot -> P3e: orthogonal
+Daemon -> P1: orthogonal
