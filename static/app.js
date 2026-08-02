@@ -29,6 +29,48 @@
   }
 
   /* -------------------------------------------------------------------- */
+  /*  SSE connection state indicator + offline banner                     */
+  /*  DataStar dispatches 'datastar-fetch' custom events on document.     */
+  /*  We filter for the body element (which hosts data-init SSE) and      */
+  /*  toggle indicator classes + banner visibility.                       */
+  /* -------------------------------------------------------------------- */
+
+  (function () {
+    var indicator = document.getElementById("sse-indicator");
+    var banner = document.getElementById("offline-banner");
+    if (!indicator && !banner) return;
+
+    function setSSEState(state) {
+      if (indicator) {
+        indicator.className = "sse-indicator " + state;
+        indicator.setAttribute(
+          "aria-label",
+          state === "connected"
+            ? "Live updates connected"
+            : state === "disconnected"
+              ? "Live updates disconnected"
+              : "Live updates connecting",
+        );
+      }
+      if (banner) banner.style.display = state === "disconnected" ? "flex" : "none";
+    }
+
+    window.setSSEState = setSSEState;
+
+    document.addEventListener("datastar-fetch", function (e) {
+      var d = e.detail;
+      if (!d || d.el !== document.body) return;
+      if (d.type === "datastar-patch-elements") {
+        setSSEState("connected");
+      } else if (d.type === "started") {
+        setSSEState("");
+      } else if (d.type === "retrying" || d.type === "retries-failed") {
+        setSSEState("disconnected");
+      }
+    });
+  })();
+
+  /* -------------------------------------------------------------------- */
   /*  Keyboard shortcuts                                                  */
   /* -------------------------------------------------------------------- */
 

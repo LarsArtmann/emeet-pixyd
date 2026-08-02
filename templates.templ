@@ -94,6 +94,10 @@ templ page(s webStatus) {
 						}
 					</div>
 				</header>
+				<div id="offline-banner" class="offline-banner" style="display:none" role="alert">
+					<span class="offline-dot"></span>
+					<span>Connection lost — reconnecting…</span>
+				</div>
 				<section class="preview-wrap">
 					<div class="preview-container" id="preview">
 						if s.Online && s.Device != "" {
@@ -206,7 +210,7 @@ templ statusPanel(s webStatus) {
 					>
 						<div class="card-title">Position</div>
 						<div class="ptz-layout">
-							@ptzRadar()
+							@ptzRadar(s.Pan, s.Tilt, s.Zoom)
 							<div class="ptz-controls">
 								@ptzSlider("Pan", "pan", pixy.PanRange.Min, pixy.PanRange.Max, s.Pan, "°")
 								@ptzSlider("Tilt", "tilt", pixy.TiltRange.Min, pixy.TiltRange.Max, s.Tilt, "°")
@@ -288,11 +292,15 @@ templ audioSegment(mode string, label string, active bool, online bool) {
 // ---------------------------------------------------------------------------
 // PTZ Radar — reactive to $pan/$tilt/$zoom signals via data-style.
 // Server-rendered inline style provides correct initial render before
-// DataStar evaluates the expressions.
+// DataStar evaluates the expressions (eliminates FOUC at position 0,0).
 // ---------------------------------------------------------------------------
-templ ptzRadar() {
+templ ptzRadar(pan int, tilt int, zoom int) {
 	<div
 		class="ptz-radar"
+		style={ fmt.Sprintf("--pan-x: %.1f%%; --pan-y: %.1f%%; --zoom-pct: %.1f%%",
+			float64(pan+150)/300*100,
+			float64(90-tilt)/180*100,
+			float64(zoom-100)/50*100) }
 		data-style:--pan-x="(($pan + 150) / 300 * 100) + '%'"
 		data-style:--pan-y="((90 - $tilt) / 180 * 100) + '%'"
 		data-style:--zoom-pct="(($zoom - 100) / 50 * 100) + '%'"
