@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 func readSSELine(t *testing.T, reader *bufio.Reader) string {
@@ -65,6 +67,64 @@ func TestSSEEndpoint_SendsPatchElementsOnConnect(t *testing.T) {
 	eventLine := readSSELine(t, reader)
 	if !strings.Contains(eventLine, "datastar-patch-elements") {
 		t.Errorf("event line = %q, want datastar-patch-elements", eventLine)
+	}
+
+	// Verify the data lines follow the expected DataStar wire format:
+	// Each data line starts with "data: elements " followed by HTML.
+	dataLine := readSSELine(t, reader)
+	if !strings.HasPrefix(dataLine, "data: elements ") {
+		t.Errorf("data line prefix = %q, want 'data: elements '", dataLine[:min(len(dataLine), 20)])
+	}
+
+	// The data should contain actual panel HTML.
+	if !strings.Contains(dataLine, "status-panel") {
+		t.Error("data line should contain status-panel HTML")
+	}
+}
+
+func TestSSEEndpoint_PTZReturnsPatchSignals(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(
+		t,
+		pixy.StateTracking,
+		"/dev/video0",
+		"/dev/hidraw7",
+		withNoopV4L2(),
+		withSeededPTZCache(),
+	)
+	server := newTestWebServer(t, d)
+
+	// POST to PTZ endpoint with valid signals — should get patch-signals, not patch-elements.
+	body := strings.NewReader(`{"pan":50}`)
+
+	resp, err := server.Client().Post(server.URL+"/api/ptz/pan", "application/json", body)
+	if err != nil {
+		t.Fatalf("POST /api/ptz/pan: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	reader := bufio.NewReader(resp.Body)
+
+	eventLine := readSSELine(t, reader)
+	if !strings.Contains(eventLine, "datastar-patch-signals") {
+		t.Errorf("event line = %q, want datastar-patch-signals", eventLine)
+	}
+
+	// The data line should contain JSON signals, not HTML.
+	dataLine := readSSELine(t, reader)
+	if !strings.Contains(dataLine, `"pan":50`) {
+		t.Errorf("data line = %q, want pan signal", dataLine)
+	}
+
+	// Should NOT contain panel HTML (that's the old behavior).
+	if strings.Contains(dataLine, "status-panel") {
+		t.Error("PTZ success response should use signals, not panel HTML")
 	}
 }
 
