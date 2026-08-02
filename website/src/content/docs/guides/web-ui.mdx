@@ -1,6 +1,6 @@
 ---
 title: Web UI
-description: Dark-themed HTMX control panel with live preview and PTZ control
+description: Dark-themed DataStar control panel with live preview and PTZ control
 ---
 
 The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` (configurable via `EMEET_PIXYD_WEB_ADDR`).
@@ -10,7 +10,7 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` (config
 The UI is composed of two sections:
 
 1. **Camera preview** — full-width hero at the top, rendered once on page load
-2. **Status panel** — below the preview, re-renders via HTMX swaps
+2. **Status panel** — below the preview, re-renders via DataStar SSE patches
 
 ## Camera Mode Cards
 
@@ -38,7 +38,7 @@ Three buttons inside a segmented container:
 | `live` | Live         | Raw audio, no processing          |
 | `org`  | Original     | Original mode (shorthand: `org`)  |
 
-Clicking a segment POSTs to `/api/audio` with the mode value.
+Clicking a segment POSTs to `/api/audio/{mode}`.
 
 ## PTZ Control
 

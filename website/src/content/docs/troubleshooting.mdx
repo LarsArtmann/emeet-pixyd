@@ -95,7 +95,7 @@ which ffmpeg
 
 ### State panel not updating
 
-The UI uses SSE for live updates. If your browser blocks SSE, the panel still refreshes every 3 seconds via HTMX polling as a fallback.
+The UI uses SSE for live updates. If the panel isn't updating, check that your browser allows SSE connections to `localhost`. DataStar automatically retries dropped connections — watch the connection indicator dot in the header (green = connected, yellow = connecting, red = disconnected).
 
 ## Daemon Won't Start
 
