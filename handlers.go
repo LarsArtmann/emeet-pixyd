@@ -306,11 +306,18 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	result := s.daemon.handleCommand(request.Context(), string(axis)+" "+strconv.Itoa(intVal))
 	slog.Debug("web ptz", "axis", axis, "val", intVal, "response", result.String())
 
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, "", "")
-
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+
+	if result.IsError() {
+		status := s.getWebStatusWithPTZ(request.Context())
+		applyResultToStatus(result, &status, "", "")
+		s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+
+		return
+	}
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	_ = sse.MarshalAndPatchSignals(status.PTZValues)
 }
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {

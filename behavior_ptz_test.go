@@ -183,14 +183,15 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	defer server.Close()
 
 	// When user sets pan to 50 via the web interface
-	resp, html := postPTZSignals(t, server, "/api/ptz/pan", "50")
+	resp, body := postPTZSignals(t, server, "/api/ptz/pan", "50")
 	resp.Body.Close() //nolint:errcheck
 
-	// Then the response slider contains the user's value (50), not the stale cache value (0)
-	assertCommandContains(t, html, `value="50"`, "slider response")
+	// Then the response contains a signal patch (not full panel HTML)
+	assertCommandContains(t, body, "datastar-patch-signals", "signal patch response")
+	assertCommandContains(t, body, `"pan":50`, "signal value")
 
 	// And no success toast is shown (PTZ toasts suppressed to avoid slider spam)
-	if strings.Contains(html, "Pan set to 50") {
+	if strings.Contains(body, "Pan set to 50") {
 		t.Error("PTZ success toast should be suppressed")
 	}
 
@@ -228,11 +229,11 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 		value      string
 		wantCtrl   string
 		wantVal    string
-		wantSlider string
+		wantSignal string
 	}{
-		{"pan", "45", "pan_absolute", strconv.Itoa(45 * v4l2UnitsPerDegree), `value="45"`},
-		{"tilt", "-30", "tilt_absolute", strconv.Itoa(-30 * v4l2UnitsPerDegree), `value="-30"`},
-		{"zoom", "125", "zoom_absolute", "125", `value="125"`},
+		{"pan", "45", "pan_absolute", strconv.Itoa(45 * v4l2UnitsPerDegree), `"pan":45`},
+		{"tilt", "-30", "tilt_absolute", strconv.Itoa(-30 * v4l2UnitsPerDegree), `"tilt":-30`},
+		{"zoom", "125", "zoom_absolute", "125", `"zoom":125`},
 	}
 
 	for _, tc := range tests {
@@ -260,9 +261,10 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 			resp, html := postPTZSignals(t, server, "/api/ptz/"+tc.axis, tc.value)
 			resp.Body.Close() //nolint:errcheck
 
-			// Then the HTTP response is OK and contains the updated slider
+			// Then the HTTP response is OK and contains the signal patch
 			assertHTTPStatusOK(t, resp)
-			assertCommandContains(t, html, tc.wantSlider, "slider response")
+			assertCommandContains(t, html, "datastar-patch-signals", "signal patch response")
+			assertCommandContains(t, html, tc.wantSignal, "signal value")
 
 			// And v4l2-ctl was called with the correct control and scaled value
 			assertV4L2CallFull(t, v4l2Calls, "/dev/video0", tc.wantCtrl, tc.wantVal)
