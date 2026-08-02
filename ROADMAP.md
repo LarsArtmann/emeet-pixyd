@@ -26,7 +26,7 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Adopt `errorfamily.HTTPHandler()` for the JSON-shaped endpoints (`/api/health`, `/api/snapshot`) — they currently use plain `http.Error`.
 - Adopt `errorfamilytest.Assert*` helpers to cut classification-test boilerplate.
 - Surface error-family counts in Prometheus (errors by family) and consider per-family error budgets.
-- Write an ADR capturing the scoped-adoption decision (why HTMX handlers and the circuit breaker stay outside classification).
+- Write an ADR capturing the scoped-adoption decision (why DataStar handlers and the circuit breaker stay outside classification).
 
 ### Build & release hardening
 
@@ -81,6 +81,6 @@ Rejected ideas with rationale. Kept here so they are not re-proposed. (Former TO
 | Move `main.go` → `cmd/emeet-pixyd/main.go` (#85)     | Won't-do         | This is a single-binary daemon with no subcommands by design. Root `main.go` is a defensible layout; the move would churn `flake.nix`/`package.nix`/CI for no behavior change. BuildFlow flags it, but it is a convention, not a bug. |
 | Decompose the `Daemon` struct (#86)                  | Won't-do         | ~17 fields is manageable for a single-binary hardware daemon; splitting adds indirection without clarity.                                                                                                                             |
 | Move `SSEEvent` to `internal/pixy` (#98)             | Won't-do         | `SSEEvent` is a transport-layer DTO; it belongs in `sse.go`, not the domain package.                                                                                                                                                  |
-| Classify HTMX action handlers via go-error-family    | Won't-do         | HTMX `outerHTML` swaps need HTTP 200 + an HTML toast to render errors in-panel. Returning 4xx/5xx + JSON would break the UI.                                                                                                          |
+| Classify DataStar action handlers via go-error-family | Won't-do         | DataStar SSE patches need HTTP 200 + a patch-elements/toast payload to render errors in-panel. Returning 4xx/5xx + JSON would break the UI.                                                                                                          |
 | Replace the HID circuit breaker with `IsRetryable()` | Won't-do         | The existing `hidCircuitBreakerThreshold = 3` + re-probe logic is more nuanced than a binary retry flag.                                                                                                                              |
 | Move `toastType` to `internal/pixy`                  | Done-differently | `toastType` already lives in `web_types.go`; `SSEEvent` stays in `sse.go` (transport DTO).                                                                                                                                            |
