@@ -96,14 +96,21 @@ func TestSSEEndpoint_PTZReturnsPatchSignals(t *testing.T) {
 	server := newTestWebServer(t, d)
 
 	// POST to PTZ endpoint with valid signals — should get patch-signals, not patch-elements.
-	body := strings.NewReader(`{"pan":50}`)
+	req, reqErr := http.NewRequestWithContext(
+		t.Context(), http.MethodPost, server.URL+"/api/ptz/pan", strings.NewReader(`{"pan":50}`),
+	)
+	if reqErr != nil {
+		t.Fatalf("create request: %v", reqErr)
+	}
 
-	resp, err := server.Client().Post(server.URL+"/api/ptz/pan", "application/json", body)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := server.Client().Do(req)
 	if err != nil {
 		t.Fatalf("POST /api/ptz/pan: %v", err)
 	}
 
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck // test cleanup
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
