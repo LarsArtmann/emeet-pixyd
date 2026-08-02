@@ -14,9 +14,9 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
-	"github.com/starfederation/datastar-go/datastar"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/starfederation/datastar-go/datastar"
 )
 
 const (
@@ -174,7 +174,8 @@ func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, reques
 func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
 	sse := datastar.NewSSE(responseWriter, request)
 
-	status := s.getWebStatusWithPTZ(sse.Context())
+	// Send initial panel state
+	status := s.getWebStatusWithPTZ(request.Context())
 	if err := sse.PatchElementTempl(statusPanel(status)); err != nil { //nolint:contextcheck
 		return
 	}
@@ -191,7 +192,7 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 				return
 			}
 
-			refreshed := s.getWebStatusWithPTZ(sse.Context())
+			refreshed := s.getWebStatusWithPTZ(request.Context())
 			if err := sse.PatchElementTempl(statusPanel(refreshed)); err != nil { //nolint:contextcheck
 				return
 			}
@@ -200,8 +201,8 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 }
 
 // patchPanel renders the status panel as a DataStar SSE element patch.
-func (s *webServer) patchPanel(sse *datastar.ServerSentEventGenerator, request *http.Request, status webStatus) {
-	_ = sse.PatchElementTempl(statusPanel(status)) //nolint:contextcheck
+func (s *webServer) patchPanel(sse *datastar.ServerSentEventGenerator, status webStatus) {
+	_ = sse.PatchElementTempl(statusPanel(status))
 	sendToastScript(sse, &status)
 }
 
@@ -209,6 +210,7 @@ func (s *webServer) patchPanel(sse *datastar.ServerSentEventGenerator, request *
 // auto-dismiss logic handles fading. strconv.Quote produces a safe JS string literal.
 func sendToastScript(sse *datastar.ServerSentEventGenerator, status *webStatus) {
 	msg := status.Toast
+
 	tt := status.ToastType
 	if status.Error != "" {
 		msg = status.Error
@@ -236,7 +238,7 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		applyResultToStatus(result, &status, toast, toastType)
 
 		sse := datastar.NewSSE(responseWriter, request)
-		s.patchPanel(sse, request, status)
+		s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 	}
 }
 
@@ -280,7 +282,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	applyResultToStatus(result, &status, toast, toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, request, status)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
 func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
@@ -310,7 +312,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	applyResultToStatus(result, &status, "", "")
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, request, status)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
@@ -329,7 +331,7 @@ func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, request, status)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
 func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request *http.Request) {
@@ -346,7 +348,7 @@ func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, request, status)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
 func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, request *http.Request) {
@@ -363,7 +365,7 @@ func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, reque
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, request, status)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
 func newWebMux(server *webServer) *http.ServeMux {

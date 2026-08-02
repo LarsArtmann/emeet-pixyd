@@ -83,6 +83,10 @@ func TestSSEEndpoint_BroadcastsPatchOnStateChange(t *testing.T) {
 		t.Fatalf("first event = %q, want datastar-patch-elements", firstEvent)
 	}
 
+	// Allow the handler goroutine to subscribe to the broadcaster
+	// after sending the initial patch.
+	time.Sleep(100 * time.Millisecond)
+
 	d.broadcastStateChanged()
 
 	done := make(chan struct{})
