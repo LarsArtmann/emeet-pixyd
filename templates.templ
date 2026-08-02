@@ -169,6 +169,8 @@ templ statusPanel(s webStatus) {
 						<button
 							class={ "toggle", templ.KV("on", s.Gesture) }
 							data-on:click="@post('/api/gesture')"
+							data-indicator="loading"
+							data-class:btn-loading="$loading"
 							aria-labelledby="gesture-label"
 							role="switch"
 							aria-checked={ fmt.Sprintf("%t", s.Gesture) }
@@ -190,6 +192,8 @@ templ statusPanel(s webStatus) {
 						<button
 							class={ "toggle", templ.KV("on", !s.Auto.IsOff()) }
 							data-on:click="@post('/api/auto')"
+							data-indicator="loading"
+							data-class:btn-loading="$loading"
 							aria-labelledby="auto-label"
 							role="switch"
 							aria-checked={ fmt.Sprintf("%t", !s.Auto.IsOff()) }
@@ -218,7 +222,7 @@ templ statusPanel(s webStatus) {
 							</div>
 						</div>
 						<div class="spacer"></div>
-						<button class="btn" data-on:click="@post('/api/center')" aria-label="Center camera">Center<span class="kbd">C</span></button>
+						<button class="btn" data-on:click="@post('/api/center')" data-indicator="loading" data-class:btn-loading="$loading" aria-label="Center camera">Center<span class="kbd">C</span></button>
 						@presetSection(s.PresetNames)
 					</div>
 				} else {
@@ -231,8 +235,8 @@ templ statusPanel(s webStatus) {
 		</div>
 		<div class="footer-bar">
 			<div class="footer-actions">
-				<button class="btn btn-ghost" data-on:click="@post('/api/sync')" aria-label="Sync state">Sync</button>
-				<button class="btn btn-ghost" data-on:click="@post('/api/probe')" aria-label="Probe devices">Probe</button>
+				<button class="btn btn-ghost" data-on:click="@post('/api/sync')" data-indicator="loading" data-class:btn-loading="$loading" aria-label="Sync state">Sync</button>
+				<button class="btn btn-ghost" data-on:click="@post('/api/probe')" data-indicator="loading" data-class:btn-loading="$loading" aria-label="Probe devices">Probe</button>
 			</div>
 			if s.LastSynced != "" {
 				<span class="last-synced">Last synced { s.LastSynced } · v{ s.Version }</span>
@@ -250,6 +254,8 @@ templ cameraModeCard(mode string, endpoint string, name string, desc string, sho
 	<button
 		class={ "mode-card", "mode-" + mode, templ.KV("active", active) }
 		data-on:click={ fmt.Sprintf("@post('%s')", endpoint) }
+		data-indicator="loading"
+		data-class:btn-loading="$loading"
 		aria-label={ name }
 		if active {
 			aria-current="true"
@@ -280,6 +286,8 @@ templ audioSegment(mode string, label string, active bool, online bool) {
 	<button
 		class={ "segment", templ.KV("active", active) }
 		data-on:click={ fmt.Sprintf("@post('/api/audio/%s')", mode) }
+		data-indicator="loading"
+		data-class:btn-loading="$loading"
 		aria-label={ label }
 		if !online {
 			disabled=""
