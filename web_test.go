@@ -235,22 +235,22 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	html := body
 
 	for _, want := range []string{
-		`hx-post="/api/track"`,
-		`hx-post="/api/idle"`,
-		`hx-post="/api/privacy"`,
-		`hx-post="/api/audio"`,
-		`hx-post="/api/gesture"`,
-		`hx-post="/api/auto"`,
-		`hx-post="/api/center"`,
-		`hx-post="/api/sync"`,
-		`hx-post="/api/probe"`,
+		`@post('/api/track')`,
+		`@post('/api/idle')`,
+		`@post('/api/privacy')`,
+		`@post('/api/audio/nc')`,
+		`@post('/api/gesture')`,
+		`@post('/api/auto')`,
+		`@post('/api/center')`,
+		`@post('/api/sync')`,
+		`@post('/api/probe')`,
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("index HTML missing %q", want)
 		}
 	}
 
-	bad := []string{`hx-post="endpoint"`, `aria-label="ariaLabel"`}
+	bad := []string{`hx-post`, `aria-label="ariaLabel"`}
 	for _, b := range bad {
 		if strings.Contains(html, b) {
 			t.Errorf("index HTML contains literal template variable: %q", b)
@@ -276,8 +276,8 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 		t.Error("panel response missing #status-panel div")
 	}
 
-	if strings.Contains(html, `hx-trigger="every 3s, refresh from:body, load"`) {
-		t.Error("panel still has 'load' trigger (infinite loop bug)")
+	if strings.Contains(html, `hx-trigger=`) {
+		t.Error("panel should not have any hx-trigger attributes")
 	}
 }
 

@@ -34,7 +34,7 @@ func TestSecurityMiddleware(t *testing.T) {
 		{"X-Frame-Options", "DENY"},
 		{
 			"Content-Security-Policy",
-			"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+			"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
 		},
 	}
 	for _, h := range headers {

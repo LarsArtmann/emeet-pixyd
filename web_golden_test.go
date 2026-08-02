@@ -42,7 +42,7 @@ func TestWebPanelGolden_Tracking(t *testing.T) {
 		`/api/sync`,
 		`/api/probe`,
 		`role="switch"`,
-		`hx-target="#status-panel"`,
+		`data-on:click`,
 	})
 }
 

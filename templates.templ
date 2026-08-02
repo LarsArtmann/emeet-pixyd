@@ -327,8 +327,16 @@ templ presetSection(names []string) {
 				maxlength="32"
 				autocomplete="off"
 				list="preset-names-list"
+				data-bind:presetName=""
+				data-on:keydown="evt.key === 'Enter' && document.getElementById('preset-save-btn').click()"
 			/>
-			<button class="btn btn-small" id="preset-save-btn" type="button" aria-label="Save preset">Save</button>
+			<button
+				class="btn btn-small"
+				id="preset-save-btn"
+				type="button"
+				aria-label="Save preset"
+				data-on:click="$presetName.trim() && (@post('/api/preset/save/' + encodeURIComponent($presetName.trim())), $presetName = '')"
+			>Save</button>
 		</div>
 		if len(names) > 0 {
 			<datalist id="preset-names-list">

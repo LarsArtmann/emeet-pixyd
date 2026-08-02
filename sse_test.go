@@ -4,8 +4,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -22,15 +20,6 @@ func readSSELine(t *testing.T, reader *bufio.Reader) string {
 	}
 
 	return line
-}
-
-// assertSSELine reads the next line from the SSE reader and asserts it equals want.
-func assertSSELine(t *testing.T, reader *bufio.Reader, want string) {
-	t.Helper()
-
-	if got := readSSELine(t, reader); got != want {
-		t.Errorf("sse line = %q, want %q", got, want)
-	}
 }
 
 // openSSEStream opens a GET connection to /api/events on the given server
@@ -53,7 +42,7 @@ func openSSEStream(t *testing.T, server *httptest.Server) *http.Response {
 	return resp
 }
 
-func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
+func TestSSEEndpoint_SendsPatchElementsOnConnect(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonNoDevice(t)
@@ -72,11 +61,14 @@ func TestSSEEndpoint_SendsConnectedEvent(t *testing.T) {
 
 	reader := bufio.NewReader(resp.Body)
 
-	assertSSELine(t, reader, "event: connected\n")
-	assertSSELine(t, reader, "data: {}\n")
+	// DataStar sends: event: datastar-patch-elements\ndata: elements <html>\n\n
+	eventLine := readSSELine(t, reader)
+	if !strings.Contains(eventLine, "datastar-patch-elements") {
+		t.Errorf("event line = %q, want datastar-patch-elements", eventLine)
+	}
 }
 
-func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
+func TestSSEEndpoint_BroadcastsPatchOnStateChange(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonNoDevice(t)
@@ -85,132 +77,36 @@ func TestSSEEndpoint_BroadcastsRefresh(t *testing.T) {
 	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 	reader := bufio.NewReader(resp.Body)
 
-	// Consume connected event.
-	_ = readSSELine(t, reader)
-	_ = readSSELine(t, reader)
-	_ = readSSELine(t, reader) // blank line
+	// Consume the first patch event line (ignore data lines).
+	firstEvent := readSSELine(t, reader)
+	if !strings.Contains(firstEvent, "datastar-patch-elements") {
+		t.Fatalf("first event = %q, want datastar-patch-elements", firstEvent)
+	}
 
 	d.broadcastStateChanged()
 
 	done := make(chan struct{})
 
-	var refreshLine string
-
 	go func() {
 		defer close(done)
 
-		refreshLine = readSSELine(t, reader)
+		// Scan lines until the second datastar-patch-elements event arrives.
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				return
+			}
+
+			if strings.Contains(line, "datastar-patch-elements") {
+				return
+			}
+		}
 	}()
 
 	select {
 	case <-done:
-		if refreshLine != "event: refresh\n" {
-			t.Errorf("refresh event = %q, want event: refresh", refreshLine)
-		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for refresh event")
-	}
-}
-
-func TestWriteSSEEvent_DataOnly(t *testing.T) {
-	t.Parallel()
-
-	var buf bytes.Buffer
-
-	err := writeSSEEvent(&buf, SSEEvent{Data: `{"key":"value"}`})
-	if err != nil {
-		t.Fatalf("writeSSEEvent: %v", err)
-	}
-
-	got := buf.String()
-
-	want := `data: {"key":"value"}` + "\n\n"
-	if got != want {
-		t.Errorf("output = %q, want %q", got, want)
-	}
-}
-
-func TestWriteSSEEvent_FullEvent(t *testing.T) {
-	t.Parallel()
-
-	var buf bytes.Buffer
-
-	err := writeSSEEvent(&buf, SSEEvent{
-		Event: "refresh",
-		Data:  "ok",
-	})
-	if err != nil {
-		t.Fatalf("writeSSEEvent: %v", err)
-	}
-
-	got := buf.String()
-	if !strings.HasPrefix(got, "event: refresh\n") {
-		t.Errorf("missing event line in %q", got)
-	}
-
-	if !strings.Contains(got, "data: ok\n") {
-		t.Errorf("missing data line in %q", got)
-	}
-
-	if strings.Contains(got, "id:") {
-		t.Errorf("unexpected id line in %q", got)
-	}
-
-	if strings.Contains(got, "retry:") {
-		t.Errorf("unexpected retry line in %q", got)
-	}
-}
-
-func TestWriteSSEEvent_MultilineData(t *testing.T) {
-	t.Parallel()
-
-	var buf bytes.Buffer
-
-	err := writeSSEEvent(&buf, SSEEvent{Data: "line1\nline2\nline3"})
-	if err != nil {
-		t.Fatalf("writeSSEEvent: %v", err)
-	}
-
-	got := buf.String()
-
-	want := "data: line1\ndata: line2\ndata: line3\n\n"
-	if got != want {
-		t.Errorf("output = %q, want %q", got, want)
-	}
-}
-
-func TestWriteSSEEvent_EmptyData(t *testing.T) {
-	t.Parallel()
-
-	var buf bytes.Buffer
-
-	err := writeSSEEvent(&buf, SSEEvent{Event: "ping"})
-	if err != nil {
-		t.Fatalf("writeSSEEvent: %v", err)
-	}
-
-	got := buf.String()
-
-	want := "event: ping\ndata: \n\n"
-	if got != want {
-		t.Errorf("output = %q, want %q", got, want)
-	}
-}
-
-func TestWriteSSEEvent_NoCRLFInjection(t *testing.T) {
-	t.Parallel()
-
-	var buf bytes.Buffer
-
-	// Attempt CRLF injection — data with \r\n must not create a new SSE event field.
-	// Every line is prefixed with "data: " so "event:" can never appear as a field.
-	_ = writeSSEEvent(&buf, SSEEvent{Data: "evil\r\nevent: hacked"})
-
-	got := buf.String()
-	for line := range strings.SplitSeq(got, "\n") {
-		if strings.HasPrefix(line, "event:") {
-			t.Errorf("CRLF injection: line starts with 'event:' — %q in output %q", line, got)
-		}
+		t.Fatal("timeout waiting for broadcast patch event")
 	}
 }
 
@@ -274,70 +170,6 @@ func TestBroadcaster_NonBlockingDropOnFullBuffer(t *testing.T) {
 	case <-ch:
 	case <-time.After(time.Second):
 		t.Fatal("timeout: no event received after flood")
-	}
-}
-
-func TestSplitSSELines(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		s    string
-		want []string
-	}{
-		{name: "empty", s: "", want: []string{""}},
-		{name: "single line", s: "hello", want: []string{"hello"}},
-		{name: "two lines", s: "a\nb", want: []string{"a", "b"}},
-		{name: "trailing newline", s: "a\n", want: []string{"a"}},
-		{name: "CRLF preserved", s: "a\r\nb", want: []string{"a\r", "b"}},
-		{name: "only newlines", s: "\n\n", want: []string{"", ""}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := splitSSELines(tt.s)
-			if len(got) != len(tt.want) {
-				t.Fatalf("len = %d, want %d (%q → %v vs %v)", len(got), len(tt.want), tt.s, got, tt.want)
-			}
-
-			for i := range got {
-				if got[i] != tt.want[i] {
-					t.Errorf("[%d] = %q, want %q", i, got[i], tt.want[i])
-				}
-			}
-		})
-	}
-}
-
-func FuzzWriteSSEEvent(f *testing.F) {
-	f.Add("refresh", `{"camera":"tracking"}`)
-	f.Add("", "")
-	f.Add("event", "multi\nline\ndata")
-	f.Add("a", "evil\r\nevent: hacked")
-
-	f.Fuzz(func(t *testing.T, event, data string) {
-		var buf bytes.Buffer
-
-		err := writeSSEEvent(&buf, SSEEvent{Event: event, Data: data})
-		if err != nil {
-			t.Fatalf("writeSSEEvent: %v", err)
-		}
-
-		output := buf.String()
-
-		if !strings.HasSuffix(output, "\n\n") {
-			t.Errorf("output must end with \\n\\n")
-		}
-	})
-}
-
-func BenchmarkWriteSSEEvent(b *testing.B) {
-	event := SSEEvent{Event: "refresh", Data: `{"camera":"tracking","audio":"nc"}`}
-
-	for range b.N {
-		_ = writeSSEEvent(io.Discard, event)
 	}
 }
 
