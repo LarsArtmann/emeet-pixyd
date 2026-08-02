@@ -4,6 +4,8 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -353,5 +355,86 @@ func TestSendToastScript(t *testing.T) {
 				t.Error("expected window.__showToast call in SSE output")
 			}
 		})
+	}
+}
+
+func TestHandlePTZ_ErrorReturnsFullPanelPatch(t *testing.T) {
+	t.Parallel()
+
+	withFailingV4L2 := func(d *Daemon) {
+		d.deps.v4l2Set = func(_ context.Context, _, _, _ string) error {
+			return fmt.Errorf("v4l2-ctl: device or resource busy")
+		}
+	}
+
+	d := newTestDaemon(
+		t,
+		pixy.StateTracking,
+		"/dev/video0",
+		"/dev/hidraw7",
+		withNoopParsePTZ(),
+		withSeededPTZCache(),
+		withFailingV4L2,
+	)
+	server := newTestWebServer(t, d)
+
+	req, err := http.NewRequestWithContext(
+		t.Context(), http.MethodPost, server.URL+"/api/ptz/pan", strings.NewReader(`{"pan":50}`),
+	)
+	if err != nil {
+		t.Fatalf("create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatalf("POST /api/ptz/pan: %v", err)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+
+	output := string(body)
+
+	if !strings.Contains(output, "datastar-patch-elements") {
+		t.Error("error response should contain patch-elements (full panel)")
+	}
+
+	if strings.Contains(output, "datastar-patch-signals") {
+		t.Error("error response should NOT contain patch-signals")
+	}
+
+	if !strings.Contains(output, "device or resource busy") {
+		t.Errorf("error response should contain the error message\noutput: %s", output)
+	}
+}
+
+func TestHandlePTZ_InvalidAxisReturns400(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice(t)
+	server := newTestWebServer(t, d)
+
+	req, err := http.NewRequestWithContext(
+		t.Context(), http.MethodPost, server.URL+"/api/ptz/invalid", strings.NewReader(`{}`),
+	)
+	if err != nil {
+		t.Fatalf("create request: %v", err)
+	}
+
+	resp, err := server.Client().Do(req)
+	if err != nil {
+		t.Fatalf("POST /api/ptz/invalid: %v", err)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusBadRequest)
 	}
 }

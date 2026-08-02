@@ -263,3 +263,39 @@ func TestWebPanel_PTZRadarHasServerRenderedStyle(t *testing.T) {
 		"data-style:--zoom-pct",
 	})
 }
+
+// TestWebPanel_DataStarAttributes verifies that all DataStar-specific
+// attributes are present in the rendered panel HTML:
+// - data-indicator on all action buttons (loading state)
+// - data-class:btn-loading for CSS class toggling
+// - data-bind on PTZ sliders for two-way signal sync
+func TestWebPanel_DataStarAttributes(t *testing.T) {
+	t.Parallel()
+
+	daemon := testDaemonWithDevice(t, pixy.StateTracking)
+	server := newTestWebServer(t, daemon)
+
+	body := getPanelBody(t, server)
+
+	assertContainsAll(t, body, []string{
+		`data-indicator="loading"`,
+		`data-class:btn-loading="$loading"`,
+	})
+
+	indicatorCount := strings.Count(body, `data-indicator="loading"`)
+	if indicatorCount < 8 {
+		t.Errorf("expected at least 8 data-indicator attributes (3 mode + 3 audio + gesture + auto + center + sync + probe), got %d",
+			indicatorCount)
+	}
+
+	loadingClassCount := strings.Count(body, `data-class:btn-loading="$loading"`)
+	if loadingClassCount < 8 {
+		t.Errorf("expected at least 8 data-class:btn-loading attributes, got %d", loadingClassCount)
+	}
+
+	assertContainsAll(t, body, []string{
+		`data-bind="$pan"`,
+		`data-bind="$tilt"`,
+		`data-bind="$zoom"`,
+	})
+}
