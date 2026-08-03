@@ -1468,3 +1468,109 @@ func TestSimulator_SyncState_WriteThenReadRoundTrip(t *testing.T) {
 		t.Error("gesture after sync: false, want true")
 	}
 }
+
+// --- Multi-Interface Pending ---
+
+// TestSimulator_MultiInterfacePending verifies that the pending map tracks
+// configs for all three interfaces independently. Configs for tracking, audio,
+// and gesture can all be queued before any commit; each commit applies only
+// its own interface without interfering with the others.
+func TestSimulator_MultiInterfacePending(t *testing.T) {
+	t.Parallel()
+
+	s := newPixyProtocolState()
+
+	// Queue configs for all three interfaces without committing.
+	if err := s.handleConfig(pixyConfig(hidInterfaceTracking, hidByteTracking)); err != nil {
+		t.Fatalf("config tracking: %v", err)
+	}
+
+	if err := s.handleConfig(pixyConfig(hidInterfaceAudio, hidByteLive)); err != nil {
+		t.Fatalf("config audio: %v", err)
+	}
+
+	if err := s.handleConfig(pixyConfig(hidInterfaceGesture, gestureEnabledByte)); err != nil {
+		t.Fatalf("config gesture: %v", err)
+	}
+
+	// State must not change until commits arrive.
+	if s.tracking != pixy.StateIdle {
+		t.Errorf("tracking before commit: %s, want idle", s.tracking)
+	}
+
+	if s.audio != pixy.AudioNC {
+		t.Errorf("audio before commit: %s, want nc", s.audio)
+	}
+
+	if s.gesture {
+		t.Error("gesture before commit: true, want false")
+	}
+
+	// Commit only tracking — audio and gesture pending must survive.
+	if err := s.handleCommit(pixyCommit(hidInterfaceTracking)); err != nil {
+		t.Fatalf("commit tracking: %v", err)
+	}
+
+	if s.tracking != pixy.StateTracking {
+		t.Errorf("tracking after commit: %s, want tracking", s.tracking)
+	}
+
+	if s.audio != pixy.AudioNC {
+		t.Errorf("audio leaked after tracking commit: %s, want nc", s.audio)
+	}
+
+	if s.gesture {
+		t.Error("gesture leaked after tracking commit: true, want false")
+	}
+
+	// Commit audio.
+	if err := s.handleCommit(pixyCommit(hidInterfaceAudio)); err != nil {
+		t.Fatalf("commit audio: %v", err)
+	}
+
+	if s.audio != pixy.AudioLive {
+		t.Errorf("audio after commit: %s, want live", s.audio)
+	}
+
+	// Commit gesture.
+	if err := s.handleCommit(pixyCommit(hidInterfaceGesture)); err != nil {
+		t.Fatalf("commit gesture: %v", err)
+	}
+
+	if !s.gesture {
+		t.Error("gesture after commit: false, want true")
+	}
+
+	// All pending entries must be cleared.
+	if len(s.pending) != 0 {
+		t.Errorf("pending map not empty after all commits: %d entries", len(s.pending))
+	}
+}
+
+// TestSimulator_OverwritePendingConfig verifies that sending a second config
+// for the same interface (without an intervening commit) overwrites the first
+// pending config. The commit then applies the latest value.
+func TestSimulator_OverwritePendingConfig(t *testing.T) {
+	t.Parallel()
+
+	s := newPixyProtocolState()
+
+	// First config: tracking mode.
+	if err := s.handleConfig(pixyConfig(hidInterfaceTracking, hidByteTracking)); err != nil {
+		t.Fatalf("first config: %v", err)
+	}
+
+	// Second config for the same interface: privacy mode (overwrites pending).
+	if err := s.handleConfig(pixyConfig(hidInterfaceTracking, hidBytePrivacy)); err != nil {
+		t.Fatalf("second config: %v", err)
+	}
+
+	// Commit should apply privacy (the latest pending), not tracking.
+	if err := s.handleCommit(pixyCommit(hidInterfaceTracking)); err != nil {
+		t.Fatalf("commit: %v", err)
+	}
+
+	if s.tracking != pixy.StatePrivacy {
+		t.Errorf("after overwrite+commit: tracking=%s, want privacy", s.tracking)
+	}
+}
