@@ -1134,10 +1134,10 @@ func TestSimulator_ConcurrentAccess(t *testing.T) {
 		iterations = 20
 	)
 
-	var wg sync.WaitGroup
+	var waitGroup sync.WaitGroup
 
 	for range goroutines {
-		wg.Go(func() {
+		waitGroup.Go(func() {
 			for range iterations {
 				_ = sim.Send(pixyConfig(hidInterfaceTracking, hidByteTracking))
 				_ = sim.Send(pixyCommit(hidInterfaceTracking))
@@ -1147,7 +1147,7 @@ func TestSimulator_ConcurrentAccess(t *testing.T) {
 		})
 	}
 
-	wg.Wait()
+	waitGroup.Wait()
 
 	// All reports should be recorded without panic or deadlock.
 	reports := sim.SentReports()
