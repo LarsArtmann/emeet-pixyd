@@ -263,11 +263,10 @@ func BenchmarkBroadcasterBroadcast(b *testing.B) {
 		close(done)
 	}()
 
-	for range b.N {
+	for b.Loop() {
 		broadcaster.Broadcast()
 	}
 
-	b.StopTimer()
 	broadcaster.Unsubscribe(ch)
 	<-done
 }
