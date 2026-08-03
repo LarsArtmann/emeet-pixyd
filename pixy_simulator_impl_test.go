@@ -701,3 +701,324 @@ func TestSimulator_SendRecvResponse_ProducesCorrectBytes(t *testing.T) {
 		t.Errorf("response bytes mismatch:\n got: %x\nwant: %x", resp[:9], expected[:9])
 	}
 }
+
+// --- Circuit Breaker Integration Tests ---
+
+func TestSimulator_CircuitBreaker_Accumulation(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	// Pre-load threshold-1 failures so the next failure opens the circuit
+	// without triggering a real sysfs re-probe (which would clear hidDev).
+	d.mu.Lock()
+	d.hidFailCount = hidCircuitBreakerThreshold - 1
+	d.mu.Unlock()
+
+	sim.sendErr = errors.New("device disconnected")
+
+	// This call: config Send fails → count increments to threshold → circuit opens.
+	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+	if err == nil {
+		t.Fatal("expected error from setTracking with sendErr")
+	}
+
+	d.mu.RLock()
+	count := d.hidFailCount
+	d.mu.RUnlock()
+
+	if count != hidCircuitBreakerThreshold {
+		t.Fatalf("hidFailCount: got %d, want %d", count, hidCircuitBreakerThreshold)
+	}
+
+	// Next call should be blocked by open circuit — no Send at all.
+	err = d.deps.setTracking(context.Background(), pixy.StateTracking)
+
+	if !errors.Is(err, pixy.ErrPIXYNotConnected) {
+		t.Errorf("circuit-open call: got %v, want ErrPIXYNotConnected", err)
+	}
+
+	// Only 1 report from the first failed call (config only, commit never reached).
+	reports := sim.SentReports()
+
+	if len(reports) != 1 {
+		t.Errorf("expected 1 report (config only), got %d", len(reports))
+	}
+}
+
+func TestSimulator_CircuitBreaker_ResetOnSuccess(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	// Pre-load a partial failure count.
+	d.mu.Lock()
+	d.hidFailCount = 1
+	d.mu.Unlock()
+
+	// Successful call should reset count to 0.
+	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+	if err != nil {
+		t.Fatalf("setTracking: %v", err)
+	}
+
+	d.mu.RLock()
+	count := d.hidFailCount
+	d.mu.RUnlock()
+
+	if count != 0 {
+		t.Errorf("hidFailCount after success: got %d, want 0", count)
+	}
+
+	if sim.Tracking() != pixy.StateTracking {
+		t.Errorf("simulator state: tracking=%s, want %s", sim.Tracking(), pixy.StateTracking)
+	}
+}
+
+func TestSimulator_CircuitBreaker_CommitFailure(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	commitErr := errors.New("commit write failed")
+	sim.commitErr = commitErr
+
+	// Config Send succeeds, 200ms sleep, commit Send fails.
+	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+	if err == nil {
+		t.Fatal("expected error from commit failure")
+	}
+
+	if !errors.Is(err, commitErr) {
+		t.Errorf("error: got %v, want wrapping %v", err, commitErr)
+	}
+
+	d.mu.RLock()
+	count := d.hidFailCount
+	d.mu.RUnlock()
+
+	if count != 1 {
+		t.Errorf("hidFailCount after commit failure: got %d, want 1", count)
+	}
+
+	// Both config and commit were attempted (2 reports recorded).
+	reports := sim.SentReports()
+
+	if len(reports) != 2 {
+		t.Errorf("expected 2 reports (config+commit), got %d", len(reports))
+	}
+
+	// State should NOT have changed because the commit failed.
+	if d.state.Camera != pixy.StateIdle {
+		t.Errorf("daemon state changed after commit failure: %s", d.state.Camera)
+	}
+}
+
+// --- 200ms Sleep Timing Verification ---
+
+func TestSimulator_200msSleepBetweenConfigAndCommit(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+	if err != nil {
+		t.Fatalf("setTracking: %v", err)
+	}
+
+	timestamps := sim.SentTimestamps()
+
+	if len(timestamps) != 2 {
+		t.Fatalf("expected 2 timestamps, got %d", len(timestamps))
+	}
+
+	gap := timestamps[1].Sub(timestamps[0])
+
+	// hidCommandSleepMs = 200ms; allow 10ms scheduling slack.
+	if gap < 190*time.Millisecond {
+		t.Errorf("gap between config and commit: %v, want >= 190ms", gap)
+	}
+}
+
+// --- Direct pixyConfig() Byte Layout ---
+
+func TestPixyConfig_ByteLayout(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		iface    byte
+		modeByte byte
+	}{
+		{"tracking/idle", hidInterfaceTracking, hidByteIdle},
+		{"tracking/tracking", hidInterfaceTracking, hidByteTracking},
+		{"tracking/privacy", hidInterfaceTracking, hidBytePrivacy},
+		{"audio/nc", hidInterfaceAudio, hidByteNC},
+		{"audio/live", hidInterfaceAudio, hidByteLive},
+		{"audio/original", hidInterfaceAudio, hidByteOriginal},
+		{"gesture/disabled", hidInterfaceGesture, hidByteIdle},
+		{"gesture/enabled", hidInterfaceGesture, gestureEnabledByte},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := pixyConfig(tc.iface, tc.modeByte)
+
+			if len(buf) != hidMinLen {
+				t.Fatalf("length: got %d, want %d", len(buf), hidMinLen)
+			}
+
+			if buf[0] != cameraConfigPrefix {
+				t.Errorf("[0]: got 0x%02x, want 0x%02x", buf[0], cameraConfigPrefix)
+			}
+
+			if buf[1] != tc.iface {
+				t.Errorf("[1]: got 0x%02x, want 0x%02x", buf[1], tc.iface)
+			}
+
+			if buf[2] != cameraConfigMarker {
+				t.Errorf("[2]: got 0x%02x, want 0x%02x", buf[2], cameraConfigMarker)
+			}
+
+			// Position 3 is always 0x00 in config reports (distinguishes from commits).
+			if buf[3] != 0x00 {
+				t.Errorf("[3]: got 0x%02x, want 0x00", buf[3])
+			}
+
+			if buf[5] != cameraConfigMarker {
+				t.Errorf("[5]: got 0x%02x, want 0x%02x", buf[5], cameraConfigMarker)
+			}
+
+			if buf[7] != cameraConfigMarker {
+				t.Errorf("[7]: got 0x%02x, want 0x%02x", buf[7], cameraConfigMarker)
+			}
+
+			if buf[8] != tc.modeByte {
+				t.Errorf("[8]: got 0x%02x, want 0x%02x", buf[8], tc.modeByte)
+			}
+		})
+	}
+}
+
+// --- Direct pixyCommit() Byte Layout ---
+
+func TestPixyCommit_ByteLayout(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		iface byte
+	}{
+		{"tracking", hidInterfaceTracking},
+		{"audio", hidInterfaceAudio},
+		{"gesture", hidInterfaceGesture},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := pixyCommit(tc.iface)
+
+			if len(buf) != 4 {
+				t.Fatalf("length: got %d, want 4", len(buf))
+			}
+
+			if buf[0] != cameraConfigPrefix {
+				t.Errorf("[0]: got 0x%02x, want 0x%02x", buf[0], cameraConfigPrefix)
+			}
+
+			if buf[1] != tc.iface {
+				t.Errorf("[1]: got 0x%02x, want 0x%02x", buf[1], tc.iface)
+			}
+
+			if buf[2] != cameraConfigMarker {
+				t.Errorf("[2]: got 0x%02x, want 0x%02x", buf[2], cameraConfigMarker)
+			}
+
+			// Interface byte is repeated at position 3 in commit reports.
+			if buf[3] != tc.iface {
+				t.Errorf("[3]: got 0x%02x, want 0x%02x (interface repeated)", buf[3], tc.iface)
+			}
+		})
+	}
+}
+
+// --- Audio / Gesture Protocol Byte Layout (daemon integration) ---
+
+func TestSimulator_DaemonSetAudio_ProtocolBytesValid(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	_ = d.deps.setAudio(context.Background(), pixy.AudioLive)
+
+	reports := sim.SentReports()
+
+	if len(reports) < 2 {
+		t.Fatalf("expected 2 reports, got %d", len(reports))
+	}
+
+	configReport := reports[0]
+
+	if configReport[1] != hidInterfaceAudio {
+		t.Errorf("config[1]: got 0x%02x, want 0x%02x", configReport[1], hidInterfaceAudio)
+	}
+
+	if configReport[8] != hidByteLive {
+		t.Errorf("config[8]: got 0x%02x, want 0x%02x", configReport[8], hidByteLive)
+	}
+
+	commitReport := reports[1]
+
+	if commitReport[1] != hidInterfaceAudio {
+		t.Errorf("commit[1]: got 0x%02x, want 0x%02x", commitReport[1], hidInterfaceAudio)
+	}
+
+	if commitReport[3] != hidInterfaceAudio {
+		t.Errorf("commit[3]: got 0x%02x, want 0x%02x", commitReport[3], hidInterfaceAudio)
+	}
+}
+
+func TestSimulator_DaemonSetGesture_ProtocolBytesValid(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	_ = d.deps.setGesture(context.Background(), true)
+
+	reports := sim.SentReports()
+
+	if len(reports) < 2 {
+		t.Fatalf("expected 2 reports, got %d", len(reports))
+	}
+
+	configReport := reports[0]
+
+	if configReport[1] != hidInterfaceGesture {
+		t.Errorf("config[1]: got 0x%02x, want 0x%02x", configReport[1], hidInterfaceGesture)
+	}
+
+	if configReport[8] != gestureEnabledByte {
+		t.Errorf("config[8]: got 0x%02x, want 0x%02x (gestureEnabledByte)",
+			configReport[8], gestureEnabledByte)
+	}
+
+	commitReport := reports[1]
+
+	if commitReport[1] != hidInterfaceGesture {
+		t.Errorf("commit[1]: got 0x%02x, want 0x%02x", commitReport[1], hidInterfaceGesture)
+	}
+
+	if commitReport[3] != hidInterfaceGesture {
+		t.Errorf("commit[3]: got 0x%02x, want 0x%02x", commitReport[3], hidInterfaceGesture)
+	}
+}
