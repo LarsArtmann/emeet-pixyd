@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -1020,5 +1021,450 @@ func TestSimulator_DaemonSetGesture_ProtocolBytesValid(t *testing.T) {
 
 	if commitReport[3] != hidInterfaceGesture {
 		t.Errorf("commit[3]: got 0x%02x, want 0x%02x", commitReport[3], hidInterfaceGesture)
+	}
+}
+
+// --- Circuit Breaker: Real Accumulation via Commit Failures ---
+//
+// The commit failure path (device.go:55-65) is the ONLY path that can naturally
+// accumulate hidFailCount to the threshold: it increments without calling
+// probeDevices(), so hidDev stays intact across failures. Config Send failures
+// trigger a re-probe that either resets the counter (device found) or nils
+// hidDev (device not found) — neither can reach threshold naturally.
+
+func TestSimulator_CircuitBreaker_RealAccumulationViaCommitFailures(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	commitErr := errors.New("commit write I/O error")
+	sim.commitErr = commitErr
+
+	// Drive exactly threshold failures. Config succeeds, 200ms sleep, commit fails.
+	// hidDev stays intact because commit failures don't trigger re-probe.
+	for i := 1; i <= hidCircuitBreakerThreshold; i++ {
+		err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+		if err == nil {
+			t.Fatalf("call %d: expected commit error, got nil", i)
+		}
+
+		if !errors.Is(err, commitErr) {
+			t.Fatalf("call %d: error %v, want wrapping %v", i, err, commitErr)
+		}
+
+		d.mu.RLock()
+		count := d.hidFailCount
+		d.mu.RUnlock()
+
+		if count != i {
+			t.Fatalf("call %d: hidFailCount=%d, want %d", i, count, i)
+		}
+	}
+
+	// Circuit is now open — next call returns ErrPIXYNotConnected without Send.
+	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
+
+	if !errors.Is(err, pixy.ErrPIXYNotConnected) {
+		t.Errorf("circuit-open call: got %v, want ErrPIXYNotConnected", err)
+	}
+
+	// Each failed call sent config + commit (2 reports). The circuit-blocked
+	// call sent nothing.
+	reports := sim.SentReports()
+
+	expected := hidCircuitBreakerThreshold * 2
+
+	if len(reports) != expected {
+		t.Errorf("reports: got %d, want %d (2 per failed call, 0 for circuit-blocked)", len(reports), expected)
+	}
+}
+
+// --- Context Cancellation During 200ms Sleep ---
+
+func TestSimulator_ContextCancellationDuringSleep(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Cancel after 50ms — config Send will have succeeded, but the 200ms
+	// sleep is still in progress. The select in setDeviceState should
+	// catch ctx.Done() and return ctx.Err().
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		cancel()
+	}()
+
+	err := d.deps.setTracking(ctx, pixy.StateTracking)
+
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("error: got %v, want wrapping %v", err, context.Canceled)
+	}
+
+	// Only config was sent; commit never reached because ctx was cancelled.
+	reports := sim.SentReports()
+
+	if len(reports) != 1 {
+		t.Errorf("expected 1 report (config only), got %d", len(reports))
+	}
+
+	// Cancellation is NOT a HID failure — counter should stay at 0.
+	d.mu.RLock()
+	count := d.hidFailCount
+	d.mu.RUnlock()
+
+	if count != 0 {
+		t.Errorf("hidFailCount: got %d, want 0 (cancellation is not a failure)", count)
+	}
+}
+
+// --- Concurrent Stress Test ---
+
+func TestSimulator_ConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
+	sim := newPixySimulator()
+	ctx := context.Background()
+
+	const (
+		goroutines = 10
+		iterations = 20
+	)
+
+	var wg sync.WaitGroup
+
+	for range goroutines {
+		wg.Go(func() {
+			for range iterations {
+				_ = sim.Send(pixyConfig(hidInterfaceTracking, hidByteTracking))
+				_ = sim.Send(pixyCommit(hidInterfaceTracking))
+				_, _ = sim.SendRecv(ctx,
+					[]byte{cameraConfigPrefix, hidInterfaceTracking, 0x01, 0x01})
+			}
+		})
+	}
+
+	wg.Wait()
+
+	// All reports should be recorded without panic or deadlock.
+	reports := sim.SentReports()
+	queries := sim.Queries()
+
+	expectedReports := goroutines * iterations * 2 // config + commit per iteration
+	expectedQueries := goroutines * iterations
+
+	if len(reports) != expectedReports {
+		t.Errorf("reports: got %d, want %d", len(reports), expectedReports)
+	}
+
+	if len(queries) != expectedQueries {
+		t.Errorf("queries: got %d, want %d", len(queries), expectedQueries)
+	}
+
+	// Final state should be consistent — last commit wins.
+	if sim.Tracking() != pixy.StateTracking {
+		t.Errorf("tracking after concurrent access: %s, want %s", sim.Tracking(), pixy.StateTracking)
+	}
+}
+
+// --- buildResponse Byte Layout Table Test ---
+
+func TestBuildResponse_ByteLayout(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		setup     func(s *pixyProtocolState)
+		query     []byte
+		wantIface byte
+		wantMode  byte // resp[8] for tracking/audio; 0 for gesture (checked separately)
+	}{
+		{
+			"tracking/idle",
+			func(s *pixyProtocolState) { s.tracking = pixy.StateIdle },
+			[]byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01},
+			hidInterfaceTracking,
+			hidByteIdle,
+		},
+		{
+			"tracking/tracking",
+			func(s *pixyProtocolState) { s.tracking = pixy.StateTracking },
+			[]byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01},
+			hidInterfaceTracking,
+			hidByteTracking,
+		},
+		{
+			"tracking/privacy",
+			func(s *pixyProtocolState) { s.tracking = pixy.StatePrivacy },
+			[]byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01},
+			hidInterfaceTracking,
+			hidBytePrivacy,
+		},
+		{
+			"audio/nc",
+			func(s *pixyProtocolState) { s.audio = pixy.AudioNC },
+			[]byte{cameraConfigPrefix, hidInterfaceAudio, audioConfigMarker, 0x04},
+			hidInterfaceAudio,
+			hidByteNC,
+		},
+		{
+			"audio/live",
+			func(s *pixyProtocolState) { s.audio = pixy.AudioLive },
+			[]byte{cameraConfigPrefix, hidInterfaceAudio, audioConfigMarker, 0x04},
+			hidInterfaceAudio,
+			hidByteLive,
+		},
+		{
+			"audio/original",
+			func(s *pixyProtocolState) { s.audio = pixy.AudioOriginal },
+			[]byte{cameraConfigPrefix, hidInterfaceAudio, audioConfigMarker, 0x04},
+			hidInterfaceAudio,
+			hidByteOriginal,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := newPixyProtocolState()
+			s.mu.Lock()
+			tc.setup(s)
+			s.mu.Unlock()
+
+			resp, err := s.buildResponse(tc.query)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(resp) != hidRespBufSize {
+				t.Fatalf("response length: got %d, want %d", len(resp), hidRespBufSize)
+			}
+
+			if resp[0] != cameraConfigPrefix {
+				t.Errorf("[0]: got 0x%02x, want 0x%02x", resp[0], cameraConfigPrefix)
+			}
+
+			if resp[1] != tc.wantIface {
+				t.Errorf("[1]: got 0x%02x, want 0x%02x", resp[1], tc.wantIface)
+			}
+
+			if resp[2] != cameraConfigMarker {
+				t.Errorf("[2]: got 0x%02x, want 0x%02x", resp[2], cameraConfigMarker)
+			}
+
+			if resp[5] != cameraConfigMarker {
+				t.Errorf("[5]: got 0x%02x, want 0x%02x", resp[5], cameraConfigMarker)
+			}
+
+			if resp[7] != cameraConfigMarker {
+				t.Errorf("[7]: got 0x%02x, want 0x%02x", resp[7], cameraConfigMarker)
+			}
+
+			if resp[8] != tc.wantMode {
+				t.Errorf("[8]: got 0x%02x, want 0x%02x", resp[8], tc.wantMode)
+			}
+		})
+	}
+}
+
+func TestBuildResponse_GestureLastByte(t *testing.T) {
+	t.Parallel()
+
+	query := []byte{cameraConfigPrefix, hidInterfaceGesture, gestureConfigMark1, gestureConfigMark2}
+
+	t.Run("enabled", func(t *testing.T) {
+		t.Parallel()
+
+		s := newPixyProtocolState()
+		s.mu.Lock()
+		s.gesture = true
+		s.mu.Unlock()
+
+		resp, err := s.buildResponse(query)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if resp[hidRespBufSize-1] != gestureEnabledByte {
+			t.Errorf("resp[last]: got 0x%02x, want 0x%02x", resp[hidRespBufSize-1], gestureEnabledByte)
+		}
+
+		// Verify markers are present in the response
+		if resp[0] != cameraConfigPrefix {
+			t.Errorf("[0]: got 0x%02x", resp[0])
+		}
+
+		if resp[1] != hidInterfaceGesture {
+			t.Errorf("[1]: got 0x%02x, want 0x%02x", resp[1], hidInterfaceGesture)
+		}
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		t.Parallel()
+
+		s := newPixyProtocolState()
+		s.mu.Lock()
+		s.gesture = false
+		s.mu.Unlock()
+
+		resp, err := s.buildResponse(query)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if resp[hidRespBufSize-1] != 0x00 {
+			t.Errorf("resp[last]: got 0x%02x, want 0x00 (disabled)", resp[hidRespBufSize-1])
+		}
+	})
+}
+
+// --- queryHIDState[T] Generic Wrapper End-to-End ---
+
+func TestSimulator_QueryHIDState_GenericWrapper(t *testing.T) {
+	t.Parallel()
+
+	sim := newPixySimulator()
+
+	// Set tracking to Privacy via protocol round-trip.
+	_ = sim.Send(pixyConfig(hidInterfaceTracking, hidBytePrivacy))
+	_ = sim.Send(pixyCommit(hidInterfaceTracking))
+
+	ctx := context.Background()
+	query := []byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01}
+
+	// Type inference: queryHIDState[pixy.CameraState]
+	result, err := queryHIDState(
+		ctx, sim, query,
+		func(r hidResponse) pixy.CameraState { return r.Tracking },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result != pixy.StatePrivacy {
+		t.Errorf("queryHIDState tracking: got %s, want %s", result, pixy.StatePrivacy)
+	}
+
+	// Also verify the audio query path through the generic wrapper.
+	_ = sim.Send(pixyConfig(hidInterfaceAudio, hidByteOriginal))
+	_ = sim.Send(pixyCommit(hidInterfaceAudio))
+
+	audioResult, err := queryHIDState(
+		ctx, sim,
+		[]byte{cameraConfigPrefix, hidInterfaceAudio, audioConfigMarker, 0x04},
+		func(r hidResponse) pixy.AudioMode { return r.Audio },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if audioResult != pixy.AudioOriginal {
+		t.Errorf("queryHIDState audio: got %s, want %s", audioResult, pixy.AudioOriginal)
+	}
+
+	// Gesture query through the wrapper.
+	_ = sim.Send(pixyConfig(hidInterfaceGesture, gestureEnabledByte))
+	_ = sim.Send(pixyCommit(hidInterfaceGesture))
+
+	gestureResult, err := queryHIDState(
+		ctx, sim,
+		[]byte{
+			cameraConfigPrefix, hidInterfaceGesture,
+			gestureConfigMark1, gestureConfigMark2,
+			0x00, cameraConfigMarker,
+			0x00, cameraConfigMarker,
+			gestureConfigMark3,
+		},
+		func(r hidResponse) bool { return r.Gesture },
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !gestureResult {
+		t.Error("queryHIDState gesture: got false, want true")
+	}
+}
+
+func TestSimulator_QueryHIDState_NilResponse(t *testing.T) {
+	t.Parallel()
+
+	sim := newPixySimulator()
+	sim.nilResponse = true
+
+	_, err := queryHIDState(
+		context.Background(), sim,
+		[]byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01},
+		func(r hidResponse) pixy.CameraState { return r.Tracking },
+	)
+
+	if !errors.Is(err, errNoHIDResponse) {
+		t.Errorf("error: got %v, want wrapping %v", err, errNoHIDResponse)
+	}
+}
+
+func TestSimulator_QueryHIDState_CorruptResponse(t *testing.T) {
+	t.Parallel()
+
+	sim := newPixySimulator()
+	sim.corruptResp = true
+
+	_, err := queryHIDState(
+		context.Background(), sim,
+		[]byte{cameraConfigPrefix, hidInterfaceTracking, cameraConfigMarker, 0x01},
+		func(r hidResponse) pixy.CameraState { return r.Tracking },
+	)
+
+	if !errors.Is(err, errUnrecognizedHID) {
+		t.Errorf("error: got %v, want wrapping %v", err, errUnrecognizedHID)
+	}
+}
+
+// --- Write-Then-Read syncState Round-Trip ---
+
+func TestSimulator_SyncState_WriteThenReadRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+
+	// Step 1: Set tracking to Privacy via daemon (write path through protocol).
+	err := d.deps.setTracking(context.Background(), pixy.StatePrivacy)
+	if err != nil {
+		t.Fatalf("setTracking: %v", err)
+	}
+
+	if sim.Tracking() != pixy.StatePrivacy {
+		t.Fatalf("simulator after write: %s, want %s", sim.Tracking(), pixy.StatePrivacy)
+	}
+
+	// Step 2: Simulate physical state change on the device (button press).
+	sim.state.mu.Lock()
+	sim.state.tracking = pixy.StateTracking
+	sim.state.audio = pixy.AudioOriginal
+	sim.state.gesture = true
+	sim.state.mu.Unlock()
+
+	// Step 3: Sync — daemon reads from simulator and detects the drift.
+	result := d.syncState(context.Background())
+	if result.Err != nil {
+		t.Fatalf("syncState: %v", result.Err)
+	}
+
+	// Step 4: Daemon state should reflect the simulator's new state.
+	if d.state.Camera != pixy.StateTracking {
+		t.Errorf("camera after sync: %s, want %s", d.state.Camera, pixy.StateTracking)
+	}
+
+	if d.state.Audio != pixy.AudioOriginal {
+		t.Errorf("audio after sync: %s, want %s", d.state.Audio, pixy.AudioOriginal)
+	}
+
+	if !d.state.Gesture {
+		t.Error("gesture after sync: false, want true")
 	}
 }

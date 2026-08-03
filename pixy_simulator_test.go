@@ -261,11 +261,9 @@ func isCommitReport(report []byte) bool {
 }
 
 func (s *pixySimulator) Send(report []byte) error {
-	now := time.Now()
-
 	s.mu.Lock()
 	s.sentReports = append(s.sentReports, append([]byte(nil), report...))
-	s.sentTimestamps = append(s.sentTimestamps, now)
+	s.sentTimestamps = append(s.sentTimestamps, time.Now())
 	s.mu.Unlock()
 
 	if s.commitErr != nil && isCommitReport(report) {
