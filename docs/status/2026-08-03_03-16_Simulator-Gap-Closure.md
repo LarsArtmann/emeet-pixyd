@@ -1,3 +1,6 @@
+> **SUPERSEDED** — This report is superseded by `2026-08-03_03-48_Simulator-Gap-Closure-Round2-SelfReview.md`.
+> All items listed as NOT STARTED here were closed in the subsequent gap-closure rounds.
+
 # Status Report: PIXY HID Simulator — Gap Closure Session
 
 **Date:** 2026-08-03 03:16

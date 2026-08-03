@@ -1,3 +1,6 @@
+> **SUPERSEDED** — This report is superseded by `2026-08-03_03-48_Simulator-Gap-Closure-Round2-SelfReview.md`.
+> The simulator now has 48+ test functions with fuzz coverage, multi-interface pending tests, and a benchmark.
+
 # Status Report: PIXY HID Protocol Simulator
 
 **Date:** 2026-08-03 02:52 (updated 03:30)

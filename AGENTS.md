@@ -34,7 +34,7 @@ emeet-pixyd --help                  # show CLI usage
 
 ### CI
 
-GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`) on ubuntu-latest. All Go steps use `GOWORK: off` and `GOEXPERIMENT: jsonv2`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
+GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`, `FuzzHandleConfigAndCommit`) on ubuntu-latest. All Go steps use `GOWORK: off` and `GOEXPERIMENT: jsonv2`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
 
 ---
 
@@ -111,7 +111,7 @@ main() → NewDaemon() → Run()
 | `auto_test.go`                | Tests for `handleCallStart`, `handleCallEnd`, `autoManage` state transitions, debounce, metrics                                                                                                                                                                                                                                                                                                                                                                           |
 | `process_test.go`             | Tests for `ppidOf`, `isDescendantOf`, `isCameraInUse` using real `/proc`                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `pixy_simulator_test.go`      | Protocol-faithful PIXY HID simulator: `pixyProtocolState` (validates config/commit/query byte layout, enforces config→commit sequencing), `pixySimulator` (implements `HIDDevice` with failure injection + recording), `withPixySimulator()` test option. Replaces `fakeHIDDevice` for high-fidelity integration testing — validates every outgoing byte against the wire protocol.                                                                                       |
-| `pixy_simulator_impl_test.go` | 48 tests (65 with subtests): config/commit validation, query round-trips, failure injection, circuit breaker (pre-loaded accumulation, reset, commit-failure, **real accumulation via 3 commit failures**), 200ms sleep timing + **context cancellation during sleep**, `pixyConfig`/`pixyCommit`/`buildResponse` byte-layout tables, daemon integration, **`queryHIDState[T]` generic wrapper** (success, nil, corrupt), **concurrent stress test** (10 goroutines), syncState write-then-read round-trip, protocol bytes for all interfaces |                                                                                                                                                                  |
+| `pixy_simulator_impl_test.go` | 50 tests: config/commit validation, query round-trips, failure injection, circuit breaker (pre-loaded accumulation, reset, commit-failure, **real accumulation via 3 commit failures**), 200ms sleep timing + **context cancellation during sleep**, `pixyConfig`/`pixyCommit`/`buildResponse` byte-layout tables, daemon integration, **`queryHIDState[T]` generic wrapper** (success, nil, corrupt), **concurrent stress test** (10 goroutines), syncState write-then-read round-trip, protocol bytes for all interfaces, **multi-interface pending** (3 interfaces queued + committed independently), **overwrite pending config** (second config overwrites first before commit) |                                                                                                                                                                  |
 
 ### Key Interactions
 
@@ -204,7 +204,7 @@ All lock acquisitions follow a consistent pattern: acquire, copy values, release
 - Fake sysfs trees for device probing tests (`createFakeVideo4linux`, `createFakeHidraw`)
 - `newTestWebServer` returns `*httptest.Server` only (unparam fix)
 - `t.Parallel()` used consistently
-- Fuzz tests: `handlers_fuzz_test.go`, `hid_fuzz_test.go`, `datastar_fuzz_test.go`
+- Fuzz tests: `handlers_fuzz_test.go`, `hid_fuzz_test.go`, `datastar_fuzz_test.go`, `pixy_simulator_fuzz_test.go`
 - Integration tests: `integration_test.go` (web server + socket command tests)
 
 ### DataStar UI Patterns
@@ -294,7 +294,7 @@ The web UI uses [DataStar](https://data-star.dev) (Go SDK: `datastar-go` v1.2.2,
 - **Debounce counters capped**: `autoManage` caps `debounceInUse` and `debounceIdle` at `debounceCount` to prevent unbounded growth.
 - **`centerCamera` uses DI**: `centerCamera()` calls `d.v4l2SetFn()` per-axis instead of `v4l2SetMultiple` directly — fully testable via `withNoopV4L2()`.
 - **`cleanupFFmpeg` nil guard**: Checks `cmd.Process == nil` before signaling to prevent panic when ffmpeg failed to start.
-- **Benchmarks**: 8 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`, `BenchmarkHandleCommand_Query`, `BenchmarkHandleCommand_Mutating`, `BenchmarkGetWebStatus`, `BenchmarkBroadcasterBroadcast`.
+- **Benchmarks**: 9 established — `BenchmarkExtractJPEGFrame`, `BenchmarkFormatLastSynced`, `BenchmarkParseHIDResponse`, `BenchmarkWaybarOutput`, `BenchmarkHandleCommand_Query`, `BenchmarkHandleCommand_Mutating`, `BenchmarkGetWebStatus`, `BenchmarkBroadcasterBroadcast`, `BenchmarkSimulatorRoundTrip`.
 - **Bare `auto` command shows current mode**: `auto` without arguments reports the current auto mode instead of silently setting it to full. Use `auto-on`, `auto-off`, or `auto <mode>` to change.
 - **`--version` and `--help` flags**: `emeet-pixyd --version` prints version, `emeet-pixyd --help` prints usage. Both handled by `handleFlag()` before CLI command dispatch.
 - **`handleCommand` refactored**: Query commands (waybar, version, sync, probe, device) extracted into `handleQueryCommand()`. Toggle-privacy extracted into `handleTogglePrivacy()`. Reduces cyclomatic complexity.
