@@ -12,27 +12,27 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `go.mod` / `go.sum` | Added `github.com/starfederation/datastar-go v1.2.2` + transitive `valyala/bytebufferpool`, `andybalholm/brotli` |
-| `sse.go` | Deleted 95 lines of wire-format code (`sseStream`, `newSSEStream`, `writeSSEEvent`, `splitSSELines`). Kept `Broadcaster`. 179 → 85 lines. |
-| `handlers.go` | All action handlers converted from `templ.Handler()` to `datastar.NewSSE()` + `PatchElementTempl()`. PTZ reads signals via `datastar.ReadSignals()`. Audio routing changed from form value to path value. Toasts sent via `ExecuteScript()`. |
-| `templates.templ` | All `hx-*` → `data-*` attributes. PTZ radar now reactive via `data-style`. PTZ sliders use `data-signals` + `data-on:input__debounce.300ms`. Preset save via `data-bind:presetName`. Removed `ptzSliderWithToast` and `toastOOB` templates. `data-init` on `<body>` establishes persistent SSE. |
-| `static/app.js` | 510 → 235 lines. Deleted: HTMX config, action dispatch, SSE bridge, focus preservation, PTZ helpers, offline banner, preset save JS, updateRadar(). Kept: snapshot, preview recovery, keyboard shortcuts (adapted to click DataStar buttons), toast display, shortcut legend toggle. |
-| `static/htmx.js` | **Deleted** (82 KB) |
-| `static/datastar.js` | **Added** (34 KB, DataStar v1.0.2) |
-| `http.go` | CSP updated: added `'unsafe-eval'` to `script-src` (DataStar uses `Function()` constructor for expression evaluation) |
-| `flake.nix` / `package.nix` | `vendorHash` updated for new dependency |
-| `middleware_test.go` | CSP assertion updated for `'unsafe-eval'` |
-| `web_test.go` | Button assertions changed from `hx-post="/api/track"` to endpoint URL + `data-on:click` presence check. `hx-trigger` check → `hx-trigger`/`hx-get` absence check. |
-| `web_golden_test.go` | `hx-target="#status-panel"` → `data-on:click` |
-| `web_audio_test.go` | Audio tests updated for path-based routing (`/api/audio/nc` instead of form value). PTZ test body changed to JSON signals. |
-| `sse_test.go` | Deleted 7 wire-format tests + fuzz + benchmark. Rewrote 2 SSE endpoint tests for DataStar patch-elements format. Kept 3 Broadcaster tests + benchmark. |
-| `behavior_ptz_test.go` | `postPTZFormValue` → `postPTZSignals` (JSON body). Error assertion updated. |
-| `integration_test.go` | `testPTZEndpoint` content-type → `application/json` |
-| `AGENTS.md` | Updated file responsibilities, gotchas, patterns, external libraries |
-| `CHANGELOG.md` | Added breaking change entry |
-| `README.md` | HTMX → DataStar in 3 places |
+| File                        | Change                                                                                                                                                                                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `go.mod` / `go.sum`         | Added `github.com/starfederation/datastar-go v1.2.2` + transitive `valyala/bytebufferpool`, `andybalholm/brotli`                                                                                                                                                                                |
+| `sse.go`                    | Deleted 95 lines of wire-format code (`sseStream`, `newSSEStream`, `writeSSEEvent`, `splitSSELines`). Kept `Broadcaster`. 179 → 85 lines.                                                                                                                                                       |
+| `handlers.go`               | All action handlers converted from `templ.Handler()` to `datastar.NewSSE()` + `PatchElementTempl()`. PTZ reads signals via `datastar.ReadSignals()`. Audio routing changed from form value to path value. Toasts sent via `ExecuteScript()`.                                                    |
+| `templates.templ`           | All `hx-*` → `data-*` attributes. PTZ radar now reactive via `data-style`. PTZ sliders use `data-signals` + `data-on:input__debounce.300ms`. Preset save via `data-bind:presetName`. Removed `ptzSliderWithToast` and `toastOOB` templates. `data-init` on `<body>` establishes persistent SSE. |
+| `static/app.js`             | 510 → 235 lines. Deleted: HTMX config, action dispatch, SSE bridge, focus preservation, PTZ helpers, offline banner, preset save JS, updateRadar(). Kept: snapshot, preview recovery, keyboard shortcuts (adapted to click DataStar buttons), toast display, shortcut legend toggle.            |
+| `static/htmx.js`            | **Deleted** (82 KB)                                                                                                                                                                                                                                                                             |
+| `static/datastar.js`        | **Added** (34 KB, DataStar v1.0.2)                                                                                                                                                                                                                                                              |
+| `http.go`                   | CSP updated: added `'unsafe-eval'` to `script-src` (DataStar uses `Function()` constructor for expression evaluation)                                                                                                                                                                           |
+| `flake.nix` / `package.nix` | `vendorHash` updated for new dependency                                                                                                                                                                                                                                                         |
+| `middleware_test.go`        | CSP assertion updated for `'unsafe-eval'`                                                                                                                                                                                                                                                       |
+| `web_test.go`               | Button assertions changed from `hx-post="/api/track"` to endpoint URL + `data-on:click` presence check. `hx-trigger` check → `hx-trigger`/`hx-get` absence check.                                                                                                                               |
+| `web_golden_test.go`        | `hx-target="#status-panel"` → `data-on:click`                                                                                                                                                                                                                                                   |
+| `web_audio_test.go`         | Audio tests updated for path-based routing (`/api/audio/nc` instead of form value). PTZ test body changed to JSON signals.                                                                                                                                                                      |
+| `sse_test.go`               | Deleted 7 wire-format tests + fuzz + benchmark. Rewrote 2 SSE endpoint tests for DataStar patch-elements format. Kept 3 Broadcaster tests + benchmark.                                                                                                                                          |
+| `behavior_ptz_test.go`      | `postPTZFormValue` → `postPTZSignals` (JSON body). Error assertion updated.                                                                                                                                                                                                                     |
+| `integration_test.go`       | `testPTZEndpoint` content-type → `application/json`                                                                                                                                                                                                                                             |
+| `AGENTS.md`                 | Updated file responsibilities, gotchas, patterns, external libraries                                                                                                                                                                                                                            |
+| `CHANGELOG.md`              | Added breaking change entry                                                                                                                                                                                                                                                                     |
+| `README.md`                 | HTMX → DataStar in 3 places                                                                                                                                                                                                                                                                     |
 
 ---
 
@@ -130,11 +130,13 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 ## f) NEXT TASKS (Up to 50)
 
 ### Critical (UX bugs)
+
 1. Add server-rendered `style` attribute to `ptzRadar()` alongside `data-style` expressions
 2. Wire up `#sse-indicator` to DataStar connection events (fixes perpetual "connecting" state)
 3. Add client-side offline banner via DataStar `data-show` signal
 
 ### Should Do (Plan items not fully realized)
+
 4. Convert keyboard shortcuts to `data-on:keydown__window` attribute on `<body>`
 5. Clean 4 dead `.htmx-request` CSS rules from `static/style.css`
 6. Update `website/src/content/docs/guides/web-ui.mdx` (HTMX → DataStar)
@@ -146,6 +148,7 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 12. Update AGENTS.md benchmark count (9 → 8)
 
 ### Quality
+
 13. Add `FuzzReadSignals` test to replace deleted `FuzzWriteSSEEvent`
 14. Add integration test verifying DataStar SSE payload format (event type + data lines)
 15. Consider fine-grained `PatchSignals` for PTZ slider updates (instead of full panel re-render)
@@ -157,6 +160,7 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 21. Check if `data-on:input__debounce.300ms` correctly coalesces rapid slider movements
 
 ### Documentation
+
 22. Update AGENTS.md "Concurrency Model" section — remove HTMX-specific notes, add DataStar morphing notes
 23. Update AGENTS.md "Code Patterns" → "Error Handling" — DataStar action handlers return SSE patches, not 200+HTML
 24. Add DataStar conventions section to AGENTS.md (morphing by ID, signals, `@post()` actions, `data-on:click`)
@@ -166,6 +170,7 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 28. Update `website/src/content/docs/architecture/overview.mdx` API table — audio endpoint changed
 
 ### Cleanup
+
 29. Remove `sseEventRefresh` constant if it's now semantically meaningless (handler ignores event type)
 30. Check if `broadcastStateChanged()` in `main.go` could send a more specific event type
 31. Remove residual `cqrs-htmx` references in AGENTS.md lines 258, 304 (historical context, low priority)
@@ -175,6 +180,7 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 35. Add CSP nonce support instead of blanket `'unsafe-eval'` (future security hardening)
 
 ### Testing
+
 36. Add test for `handleAudio` with path-based mode routing
 37. Add test for `handlePTZ` with invalid signals (malformed JSON)
 38. Add test for `sendToastScript` with error vs success vs empty
@@ -184,12 +190,14 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 42. Test SSE reconnection behavior (DataStar built-in retry)
 
 ### Nix
+
 43. Verify `nix flake check` passes
 44. Verify the devShell still works (`nix develop`)
 45. Check if `datastar.js` needs to be in the Nix store hash or if it's embedded correctly
 46. Verify `nix run` works and serves the UI correctly
 
 ### Performance
+
 47. Benchmark `PatchElementTempl` vs old `templ.Handler` — measure SSE response size
 48. Consider compressing SSE responses (DataStar SDK supports brotli/gzip)
 49. Measure page load time: HTMX 82 KB → DataStar 34 KB should be faster
@@ -209,13 +217,13 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 
 ## Verification Summary
 
-| Check | Status |
-|-------|--------|
-| `go test -race -count=1 ./...` | ✅ PASS |
-| `golangci-lint run --timeout 2m ./...` | ✅ 0 issues |
-| `nix build` | ✅ Succeeds |
-| `go mod tidy` | ✅ Clean |
-| `templ generate` | ✅ No errors |
-| Manual browser testing | ❌ NOT DONE |
-| `nix flake check` | ❌ NOT RUN |
-| Website deploy | ❌ NOT DONE |
+| Check                                  | Status       |
+| -------------------------------------- | ------------ |
+| `go test -race -count=1 ./...`         | ✅ PASS      |
+| `golangci-lint run --timeout 2m ./...` | ✅ 0 issues  |
+| `nix build`                            | ✅ Succeeds  |
+| `go mod tidy`                          | ✅ Clean     |
+| `templ generate`                       | ✅ No errors |
+| Manual browser testing                 | ❌ NOT DONE  |
+| `nix flake check`                      | ❌ NOT RUN   |
+| Website deploy                         | ❌ NOT DONE  |

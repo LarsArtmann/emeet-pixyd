@@ -93,7 +93,7 @@ Actions the system can perform (via Unix socket, CLI, or web UI).
 | Camera Control   | HID-driven lens/AI behavior (tracking, privacy, audio, gesture).            | hid.go, device.go                     |
 | PTZ / Position   | V4L2-driven motor control (pan, tilt, zoom, presets, readback).             | ptz.go, v4l2 via `v4l2-ctl`           |
 | Auto-Management  | Call detection + state transitions driven by `/proc` scanning and debounce. | auto.go, process.go                   |
-| Web UI           | HTTP/DataStar/SSE presentation layer and user interactions.                | handlers.go, templates.templ, static/ |
+| Web UI           | HTTP/DataStar/SSE presentation layer and user interactions.                 | handlers.go, templates.templ, static/ |
 | Persistence      | Schema-versioned JSON state, atomic write, socket IPC.                      | state.go, socket.go                   |
 | Device Discovery | sysfs probing and netlink hotplug.                                          | probe.go, uevent.go                   |
 

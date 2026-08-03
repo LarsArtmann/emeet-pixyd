@@ -79,7 +79,7 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | Endpoint                    | Method | Description                            |
 | --------------------------- | ------ | -------------------------------------- |
 | `/`                         | GET    | Web UI (HTML)                          |
-| `/panel`                    | GET    | Status panel (DataStar SSE partial)   |
+| `/panel`                    | GET    | Status panel (DataStar SSE partial)    |
 | `/api/events`               | GET    | SSE stream for live updates            |
 | `/api/health`               | GET    | JSON health check                      |
 | `/api/snapshot`             | GET    | Capture still frame                    |
@@ -88,7 +88,7 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | `/api/idle`                 | POST   | Set idle                               |
 | `/api/privacy`              | POST   | Enable privacy                         |
 | `/api/toggle-privacy`       | POST   | Toggle privacy                         |
-| `/api/audio/{mode}`         | POST   | Set audio mode (nc, live, original)   |
+| `/api/audio/{mode}`         | POST   | Set audio mode (nc, live, original)    |
 | `/api/auto`                 | POST   | Toggle auto mode                       |
 | `/api/gesture`              | POST   | Toggle gesture                         |
 | `/api/center`               | POST   | Center camera                          |
@@ -99,7 +99,7 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | `/api/preset/load/{name}`   | POST   | Load preset                            |
 | `/api/preset/delete/{name}` | POST   | Delete preset                          |
 | `/metrics`                  | GET    | Prometheus metrics                     |
-| `/static/*`                 | GET    | Embedded assets (JS, CSS, DataStar)   |
+| `/static/*`                 | GET    | Embedded assets (JS, CSS, DataStar)    |
 | `/debug/pprof/*`            | GET    | pprof endpoints (only when debug=true) |
 
 ## Where to go next

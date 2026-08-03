@@ -12,27 +12,27 @@ Executed 12 tasks from the Round 2 status report's "next steps" list. Each was a
 
 ### Commits This Session (7 commits by this session, 2 by auto-commit daemon)
 
-| Commit    | Change                                                                                             |
-| --------- | -------------------------------------------------------------------------------------------------- |
-| `d5a54d9` | `fix(templates): add data-bind attribute to ptz slider input` — two-way signal sync for sliders    |
-| `30c03c0` | `test(sse): add comprehensive tests for sendToastScript function` — 5 table-driven test cases      |
-| `f28fe65` | `test(sse): add coverage for PTZ error paths and DataStar panel attributes` — error path + attrs   |
-| `0b68089` | `test(web): add preset save/load/delete integration test and document DataStar UI patterns`        |
-| `790fda5` | `test: enrich fuzz corpus and modernize benchmark loop` — +8 fuzz seeds, b.N → b.Loop()           |
-| `aa2abfc` | `chore(test): clean up test files and add HID protocol simulator planning` (auto-commit daemon)   |
-| `69da92d` | `test(hid): add protocol-faithful PIXY HID simulator and test suite` (auto-commit daemon)         |
+| Commit    | Change                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------ |
+| `d5a54d9` | `fix(templates): add data-bind attribute to ptz slider input` — two-way signal sync for sliders  |
+| `30c03c0` | `test(sse): add comprehensive tests for sendToastScript function` — 5 table-driven test cases    |
+| `f28fe65` | `test(sse): add coverage for PTZ error paths and DataStar panel attributes` — error path + attrs |
+| `0b68089` | `test(web): add preset save/load/delete integration test and document DataStar UI patterns`      |
+| `790fda5` | `test: enrich fuzz corpus and modernize benchmark loop` — +8 fuzz seeds, b.N → b.Loop()          |
+| `aa2abfc` | `chore(test): clean up test files and add HID protocol simulator planning` (auto-commit daemon)  |
+| `69da92d` | `test(hid): add protocol-faithful PIXY HID simulator and test suite` (auto-commit daemon)        |
 
 ### Files Changed (this session)
 
-| File                          | Change                                                                                                                                                   |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `templates.templ`             | `ptzSlider()`: Added `data-bind="$axis"` attribute to `<input type="range">`. Provides signal→element sync so external PTZ changes reflect in slider thumb. |
+| File                          | Change                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `templates.templ`             | `ptzSlider()`: Added `data-bind="$axis"` attribute to `<input type="range">`. Provides signal→element sync so external PTZ changes reflect in slider thumb.                                                                                                                                                                                                                                                                         |
 | `sse_test.go`                 | +`TestSendToastScript` (5 cases: success, error override, empty no-op, special chars, error-type forcing). +`TestHandlePTZ_ErrorReturnsFullPanelPatch` (V4L2 failure → patch-elements with error). +`TestHandlePTZ_InvalidAxisReturns400`. `BenchmarkBroadcasterBroadcast` modernized from `b.N` to `b.Loop()`. Removed 2 stale `//nolint` directives. `fmt.Errorf` → `errors.New` (perfsprint). `ts` → `toastServer` (varnamelen). |
-| `web_golden_test.go`          | +`TestWebPanel_DataStarAttributes` — asserts `data-indicator="loading"` count >=8, `data-class:btn-loading` count >=8, `data-bind` on all 3 PTZ sliders. |
-| `web_test.go`                 | +`TestWeb_PresetSaveLoadDelete` — full HTTP lifecycle: POST save → verify state → POST load → POST delete → verify deletion.                               |
-| `datastar_fuzz_test.go`       | +8 fuzz seed corpus entries: nested objects, unicode keys (`"\u00f6\u00e4\u00fc"`), arrays (`[1,2,3]`), floats, nulls, booleans, deep nesting (4 levels). |
-| `AGENTS.md`                   | Updated PTZ slider description (data-bind for two-way sync). Documented shared `$loading` as intentional design choice (serialized hardware ops). Added "DataStar UI Patterns" section with attribute reference table + server-side SSE patterns. |
-| `docs/accessibility-audit.md` | Fixed 2 actively-confusing HTMX references (lines 21, 73): "HTMX panel swaps" → "DataStar panel morphs", "HTMX swap" → "DataStar panel morph".         |
+| `web_golden_test.go`          | +`TestWebPanel_DataStarAttributes` — asserts `data-indicator="loading"` count >=8, `data-class:btn-loading` count >=8, `data-bind` on all 3 PTZ sliders.                                                                                                                                                                                                                                                                            |
+| `web_test.go`                 | +`TestWeb_PresetSaveLoadDelete` — full HTTP lifecycle: POST save → verify state → POST load → POST delete → verify deletion.                                                                                                                                                                                                                                                                                                        |
+| `datastar_fuzz_test.go`       | +8 fuzz seed corpus entries: nested objects, unicode keys (`"\u00f6\u00e4\u00fc"`), arrays (`[1,2,3]`), floats, nulls, booleans, deep nesting (4 levels).                                                                                                                                                                                                                                                                           |
+| `AGENTS.md`                   | Updated PTZ slider description (data-bind for two-way sync). Documented shared `$loading` as intentional design choice (serialized hardware ops). Added "DataStar UI Patterns" section with attribute reference table + server-side SSE patterns.                                                                                                                                                                                   |
+| `docs/accessibility-audit.md` | Fixed 2 actively-confusing HTMX references (lines 21, 73): "HTMX panel swaps" → "DataStar panel morphs", "HTMX swap" → "DataStar panel morph".                                                                                                                                                                                                                                                                                      |
 
 ---
 

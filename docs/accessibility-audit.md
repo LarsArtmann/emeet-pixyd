@@ -9,17 +9,17 @@
 
 ### Summary
 
-| Criterion                    | Status | Notes                                                                                                                                                             |
-| ---------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.3.1 Info and Relationships | PASS   | Semantic HTML (`<main>`, `<header>`, `<aside>`, `<button>`, `<input>`); ARIA roles on custom widgets (`role="switch"`, `role="alert"`, `role="status"`)           |
-| 1.4.3 Contrast (Minimum)     | PASS   | All text/background combinations exceed 4.5:1. `--text-dim` (#8a93a8) on `--surface` (#13161d) = 5.4:1. Placeholder opacity raised to 0.75 for 1.4.11 compliance. |
-| 1.4.11 Non-text Contrast     | PASS   | All interactive elements have visible borders, focus indicators (2px accent outline), and state indicators (active/pressed classes).                              |
-| 2.4.7 Focus Visible          | PASS   | All interactive elements have `:focus-visible` with 2px solid accent outline + offset. Preset input `:focus-visible` added in this audit.                         |
-| 3.3.2 Labels or Instructions | PASS   | Preset input has `aria-label="Preset name"`. All icon-only buttons have `aria-label`. Toggle buttons use `aria-labelledby` referencing visible labels.            |
-| 4.1.2 Name, Role, Value      | PASS   | Toggle buttons: `role="switch"` + `aria-checked`. Mode cards: `aria-current="true"` when active. SSE indicator: `role="status"`.                                  |
-| 4.1.3 Status Messages        | PASS   | Toast container: `role="status"` + `aria-live="polite"`. Error banners: `role="alert"`. Offline banner: `role="status"`.                                          |
-| 2.1.1 Keyboard               | PASS   | All functionality accessible via keyboard. Focus management preserves focus across DataStar panel morphs. Shortcuts: T/I/P/C for modes, arrows for PTZ, ? for help.    |
-| 2.1.2 No Keyboard Trap       | PASS   | Shortcut legend closes via Escape. Modal-like patterns are dismissible.                                                                                           |
+| Criterion                    | Status | Notes                                                                                                                                                               |
+| ---------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.3.1 Info and Relationships | PASS   | Semantic HTML (`<main>`, `<header>`, `<aside>`, `<button>`, `<input>`); ARIA roles on custom widgets (`role="switch"`, `role="alert"`, `role="status"`)             |
+| 1.4.3 Contrast (Minimum)     | PASS   | All text/background combinations exceed 4.5:1. `--text-dim` (#8a93a8) on `--surface` (#13161d) = 5.4:1. Placeholder opacity raised to 0.75 for 1.4.11 compliance.   |
+| 1.4.11 Non-text Contrast     | PASS   | All interactive elements have visible borders, focus indicators (2px accent outline), and state indicators (active/pressed classes).                                |
+| 2.4.7 Focus Visible          | PASS   | All interactive elements have `:focus-visible` with 2px solid accent outline + offset. Preset input `:focus-visible` added in this audit.                           |
+| 3.3.2 Labels or Instructions | PASS   | Preset input has `aria-label="Preset name"`. All icon-only buttons have `aria-label`. Toggle buttons use `aria-labelledby` referencing visible labels.              |
+| 4.1.2 Name, Role, Value      | PASS   | Toggle buttons: `role="switch"` + `aria-checked`. Mode cards: `aria-current="true"` when active. SSE indicator: `role="status"`.                                    |
+| 4.1.3 Status Messages        | PASS   | Toast container: `role="status"` + `aria-live="polite"`. Error banners: `role="alert"`. Offline banner: `role="status"`.                                            |
+| 2.1.1 Keyboard               | PASS   | All functionality accessible via keyboard. Focus management preserves focus across DataStar panel morphs. Shortcuts: T/I/P/C for modes, arrows for PTZ, ? for help. |
+| 2.1.2 No Keyboard Trap       | PASS   | Shortcut legend closes via Escape. Modal-like patterns are dismissible.                                                                                             |
 
 ### Fixes Applied in This Audit
 
@@ -56,20 +56,20 @@ behavior must be verified manually.
 
 ### Test Matrix
 
-| Test                | Steps                         | Expected Result                                                       |
-| ------------------- | ----------------------------- | --------------------------------------------------------------------- |
-| Page load           | Open `http://127.0.0.1:8090/` | Screen reader announces "EMEET PIXY" heading and page purpose         |
-| Camera mode         | Tab to mode cards             | Each card announces name (Track/Idle/Privacy) and description         |
-| Active mode         | Navigate to active card       | Card announces as "current" via `aria-current`                        |
-| Audio segments      | Tab to audio buttons          | Each announces "Noise Cancel"/"Live"/"Original"; active announced     |
-| Toggle buttons      | Tab to Gesture/Auto toggle    | Announces as switch with on/off state                                 |
-| PTZ sliders         | Tab to pan/tilt/zoom sliders  | Announces label, current value, and range                             |
-| Preset save         | Tab to preset input           | Announces "Preset name, edit text"                                    |
-| Preset chips        | Navigate to chip buttons      | Load button announces preset name; delete announces "Delete preset X" |
-| Toast notifications | Trigger any action            | Toast announced via `aria-live="polite"`                              |
-| Error banner        | Trigger an error              | Banner announced via `role="alert"`                                   |
-| Offline state       | Disconnect device             | Status banner announced; mode cards announced as disabled             |
-| Keyboard shortcuts  | Press `?`                     | Legend announced; Escape to close                                     |
+| Test                 | Steps                         | Expected Result                                                       |
+| -------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| Page load            | Open `http://127.0.0.1:8090/` | Screen reader announces "EMEET PIXY" heading and page purpose         |
+| Camera mode          | Tab to mode cards             | Each card announces name (Track/Idle/Privacy) and description         |
+| Active mode          | Navigate to active card       | Card announces as "current" via `aria-current`                        |
+| Audio segments       | Tab to audio buttons          | Each announces "Noise Cancel"/"Live"/"Original"; active announced     |
+| Toggle buttons       | Tab to Gesture/Auto toggle    | Announces as switch with on/off state                                 |
+| PTZ sliders          | Tab to pan/tilt/zoom sliders  | Announces label, current value, and range                             |
+| Preset save          | Tab to preset input           | Announces "Preset name, edit text"                                    |
+| Preset chips         | Navigate to chip buttons      | Load button announces preset name; delete announces "Delete preset X" |
+| Toast notifications  | Trigger any action            | Toast announced via `aria-live="polite"`                              |
+| Error banner         | Trigger an error              | Banner announced via `role="alert"`                                   |
+| Offline state        | Disconnect device             | Status banner announced; mode cards announced as disabled             |
+| Keyboard shortcuts   | Press `?`                     | Legend announced; Escape to close                                     |
 | DataStar panel morph | Use any control               | Focus preserved; new state announced if changed                       |
 
 ### Known Limitations

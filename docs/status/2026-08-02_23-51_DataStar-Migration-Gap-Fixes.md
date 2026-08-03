@@ -12,21 +12,21 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 
 ### Files Changed (this session)
 
-| File | Change |
-|------|--------|
-| `templates.templ` | `ptzRadar()` now takes `pan, tilt, zoom int` params and server-renders an initial `style` attribute with the correct `--pan-x`/`--pan-y`/`--zoom-pct` CSS custom properties (same formula as the `data-style` expressions). Call site updated to `@ptzRadar(s.Pan, s.Tilt, s.Zoom)`. Added `#offline-banner` div to `page()` template (outside `#status-panel` so DataStar morphs don't reset it). |
-| `static/app.js` | Added SSE connection state handler (~35 lines): listens to DataStar's document-level `datastar-fetch` custom events, filters for `detail.el === document.body` (the SSE host), and toggles `#sse-indicator` classes (`.connected`/`.disconnected`/default yellow) + `#offline-banner` visibility. |
-| `static/style.css` | Removed 4 dead `.htmx-request` CSS rules: `.preset-chip-load.htmx-request`, `button.htmx-request` (kept `.btn-loading`), `#status-panel.htmx-request`, `#status-panel.htmx-request::before`, and the `@keyframes loading-bar` animation. |
-| `FEATURES.md` | 2 HTMX → DataStar references (preset UI "panel swaps" → "panel morphs", error classification scope note). |
-| `ROADMAP.md` | 2 HTMX → DataStar references (ADR note, won't-do row for action handler classification). |
-| `website/src/content/docs/guides/web-ui.mdx` | Frontmatter description, layout section ("re-renders via HTMX swaps" → "re-renders via DataStar SSE patches"), audio POST endpoint updated to `/api/audio/{mode}`. |
-| `website/src/content/docs/architecture/overview.mdx` | `/panel` description, `/static/*` description, `/api/audio` → `/api/audio/{mode}` endpoint table row. |
-| `website/src/content/docs/troubleshooting.mdx` | Replaced the false "HTMX polling fallback every 3 seconds" claim with accurate DataStar SSE retry + indicator description. |
-| `website/src/data/features.ts` | Feature card title "HTMX Web UI" → "DataStar Web UI". |
-| `website/astro.config.mjs` | JSON-LD description "an HTMX web UI" → "a DataStar web UI". |
-| `docs/DOMAIN_LANGUAGE.md` | Web UI bounded context: "HTTP/HTMX/SSE" → "HTTP/DataStar/SSE". |
-| `web_test.go` | Error message string updated ("HTMX not fully removed" → "DataStar migration incomplete"). |
-| `AGENTS.md` | Benchmark count 9→8 (deleted `BenchmarkWriteSSEEvent`), removed duplicate `datastar-go` entry, updated PTZ radar note (removed `updateRadar()` reference, added FOUC elimination explanation), added SSE indicator + offline banner gotcha, updated `vendorHash` note and `cqrs-htmx` historical note. |
+| File                                                 | Change                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `templates.templ`                                    | `ptzRadar()` now takes `pan, tilt, zoom int` params and server-renders an initial `style` attribute with the correct `--pan-x`/`--pan-y`/`--zoom-pct` CSS custom properties (same formula as the `data-style` expressions). Call site updated to `@ptzRadar(s.Pan, s.Tilt, s.Zoom)`. Added `#offline-banner` div to `page()` template (outside `#status-panel` so DataStar morphs don't reset it). |
+| `static/app.js`                                      | Added SSE connection state handler (~35 lines): listens to DataStar's document-level `datastar-fetch` custom events, filters for `detail.el === document.body` (the SSE host), and toggles `#sse-indicator` classes (`.connected`/`.disconnected`/default yellow) + `#offline-banner` visibility.                                                                                                  |
+| `static/style.css`                                   | Removed 4 dead `.htmx-request` CSS rules: `.preset-chip-load.htmx-request`, `button.htmx-request` (kept `.btn-loading`), `#status-panel.htmx-request`, `#status-panel.htmx-request::before`, and the `@keyframes loading-bar` animation.                                                                                                                                                           |
+| `FEATURES.md`                                        | 2 HTMX → DataStar references (preset UI "panel swaps" → "panel morphs", error classification scope note).                                                                                                                                                                                                                                                                                          |
+| `ROADMAP.md`                                         | 2 HTMX → DataStar references (ADR note, won't-do row for action handler classification).                                                                                                                                                                                                                                                                                                           |
+| `website/src/content/docs/guides/web-ui.mdx`         | Frontmatter description, layout section ("re-renders via HTMX swaps" → "re-renders via DataStar SSE patches"), audio POST endpoint updated to `/api/audio/{mode}`.                                                                                                                                                                                                                                 |
+| `website/src/content/docs/architecture/overview.mdx` | `/panel` description, `/static/*` description, `/api/audio` → `/api/audio/{mode}` endpoint table row.                                                                                                                                                                                                                                                                                              |
+| `website/src/content/docs/troubleshooting.mdx`       | Replaced the false "HTMX polling fallback every 3 seconds" claim with accurate DataStar SSE retry + indicator description.                                                                                                                                                                                                                                                                         |
+| `website/src/data/features.ts`                       | Feature card title "HTMX Web UI" → "DataStar Web UI".                                                                                                                                                                                                                                                                                                                                              |
+| `website/astro.config.mjs`                           | JSON-LD description "an HTMX web UI" → "a DataStar web UI".                                                                                                                                                                                                                                                                                                                                        |
+| `docs/DOMAIN_LANGUAGE.md`                            | Web UI bounded context: "HTTP/HTMX/SSE" → "HTTP/DataStar/SSE".                                                                                                                                                                                                                                                                                                                                     |
+| `web_test.go`                                        | Error message string updated ("HTMX not fully removed" → "DataStar migration incomplete").                                                                                                                                                                                                                                                                                                         |
+| `AGENTS.md`                                          | Benchmark count 9→8 (deleted `BenchmarkWriteSSEEvent`), removed duplicate `datastar-go` entry, updated PTZ radar note (removed `updateRadar()` reference, added FOUC elimination explanation), added SSE indicator + offline banner gotcha, updated `vendorHash` note and `cqrs-htmx` historical note.                                                                                             |
 
 ---
 
@@ -102,6 +102,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 ## f) NEXT TASKS (50)
 
 ### Critical — Verify Before Shipping
+
 1. **Open the web UI in a browser and verify all functionality works** (PTZ radar position, SSE indicator color transitions, offline banner visibility, all buttons, sliders, presets, keyboard shortcuts, snapshot)
 2. Kill the daemon process and verify the offline banner appears + SSE indicator turns red
 3. Restart the daemon and verify the banner disappears + indicator turns green
@@ -109,6 +110,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 5. Verify the offline banner visual position doesn't overlap the preview or look broken
 
 ### High Priority — Correctness
+
 6. Verify `detail.el === document.body` is actually what DataStar sets for `data-init`-triggered fetches (or find the correct filter)
 7. Add a test that asserts the PTZ radar `style` attribute contains `--pan-x` on server-rendered HTML
 8. Add a test for the SSE indicator initial state (yellow on first load)
@@ -116,6 +118,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 10. Handle the edge case where the first `datastar-patch-elements` fires before the listener attaches
 
 ### DataStar Idiomatic Improvements
+
 11. Add `data-indicator` to all action buttons for loading/disabled state during SSE round-trip
 12. Convert keyboard shortcuts to `data-on:keydown__window` on `<body>` (the plan's original approach)
 13. Evaluate `PatchSignals` for PTZ slider updates instead of full panel re-render
@@ -124,6 +127,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 16. Add `data-computed` for derived values if any exist
 
 ### Testing
+
 17. Add `FuzzReadSignals` test to replace deleted `FuzzWriteSSEEvent`
 18. Add integration test verifying `datastar-patch-elements` SSE data line format
 19. Add test for `handlePTZ` with malformed JSON signals
@@ -135,6 +139,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 25. Verify all golden tests test meaningful HTML structure
 
 ### Documentation
+
 26. Audit website docs for conceptual staleness (not just "HTMX" keyword)
 27. Update `docs/accessibility-audit.md` (still references HTMX panel swaps)
 28. Update `docs/SUPERB_ROADMAP.md` (still references HTMX polling)
@@ -145,12 +150,14 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 33. Consider adding `datastar-go` version note to AGENTS.md
 
 ### Nix / Build
+
 34. Verify `nix develop` shell works
 35. Verify `nix run` serves the UI correctly
 36. Check if `datastar.js` is correctly embedded (not in Nix store hash)
 37. Verify devShell has all tools (`templ`, `golangci-lint`)
 
 ### Cleanup
+
 38. Remove `cqrs-htmx` references in DESIGN.md (if it's a living doc)
 39. Run `gofmt -l .` in CI (already clean, but verify it's checked)
 40. Check if any `//nolint` directives are now stale
@@ -158,6 +165,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 42. Audit for any remaining `fmt.Sprintf` in templates that could use templ's native string interpolation
 
 ### Performance
+
 43. Benchmark `PatchElementTempl` response size vs old HTMX approach
 44. Consider SSE compression (DataStar SDK supports brotli/gzip via `WithBrotli()`)
 45. Measure page load time improvement (82 KB HTMX → 34 KB DataStar)
@@ -165,6 +173,7 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 47. Profile the morph algorithm on large panel updates
 
 ### Security
+
 48. Evaluate CSP nonce support instead of blanket `'unsafe-eval'`
 49. Audit DataStar's expression evaluation for injection risks
 50. Verify the `executeScript` toast path is not exploitable (user-controlled data in `strconv.Quote`)
