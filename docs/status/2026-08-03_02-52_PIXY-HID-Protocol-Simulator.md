@@ -18,61 +18,61 @@ Built and shipped a PIXY HID protocol simulator (`pixySimulator`) that validates
 
 ## a) FULLY DONE
 
-| Item | Details |
-|------|---------|
-| Planning doc | `docs/planning/2026-08-03_02-39_PIXY-HID-PROTOCOL-SIMULATOR.md` with Pareto breakdown + mermaid graph |
-| `pixyProtocolState` | Device-side state machine: config validation (prefix, interface, markers, mode byte), commit sequencing, state application, response building |
-| `pixySimulator` | `HIDDevice` implementation: `Send` dispatches config/commit, `SendRecv` builds query responses, failure injection (`sendErr`, `sendRecvErr`, `nilResponse`, `corruptResp`), recording (`SentReports()`, `Queries()`) |
-| `withPixySimulator()` | Test option: wires simulator as `hidDev`, keeps real `setTracking`/`setAudio`/`setGesture`, stubs V4L2/proc deps |
-| Unit tests | 39 tests: config validation (7), commit sequencing (4), query round-trips (4), HIDDevice impl (3), failure injection (4), reverse byte mappings (2), `isCommitReport` table (1), daemon integration (5), **circuit breaker** (3: accumulation, reset-on-success, commit-failure), **200ms timing** (1), **`pixyConfig`/`pixyCommit` byte-layout tables** (2), **audio/gesture protocol bytes** (2) |
-| Lint | 0 issues (golangci-lint v2, all linters) |
-| Race detector | All 31 tests pass with `-race` |
-| Full suite | All existing tests still pass |
-| AGENTS.md | Updated with simulator documentation in file table, key interactions, and test options list |
-| Git | Committed (`69da92d`) and pushed to `origin/master` |
+| Item                  | Details                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Planning doc          | `docs/planning/2026-08-03_02-39_PIXY-HID-PROTOCOL-SIMULATOR.md` with Pareto breakdown + mermaid graph                                                                                                                                                                                                                                                                                              |
+| `pixyProtocolState`   | Device-side state machine: config validation (prefix, interface, markers, mode byte), commit sequencing, state application, response building                                                                                                                                                                                                                                                      |
+| `pixySimulator`       | `HIDDevice` implementation: `Send` dispatches config/commit, `SendRecv` builds query responses, failure injection (`sendErr`, `sendRecvErr`, `nilResponse`, `corruptResp`), recording (`SentReports()`, `Queries()`)                                                                                                                                                                               |
+| `withPixySimulator()` | Test option: wires simulator as `hidDev`, keeps real `setTracking`/`setAudio`/`setGesture`, stubs V4L2/proc deps                                                                                                                                                                                                                                                                                   |
+| Unit tests            | 39 tests: config validation (7), commit sequencing (4), query round-trips (4), HIDDevice impl (3), failure injection (4), reverse byte mappings (2), `isCommitReport` table (1), daemon integration (5), **circuit breaker** (3: accumulation, reset-on-success, commit-failure), **200ms timing** (1), **`pixyConfig`/`pixyCommit` byte-layout tables** (2), **audio/gesture protocol bytes** (2) |
+| Lint                  | 0 issues (golangci-lint v2, all linters)                                                                                                                                                                                                                                                                                                                                                           |
+| Race detector         | All 31 tests pass with `-race`                                                                                                                                                                                                                                                                                                                                                                     |
+| Full suite            | All existing tests still pass                                                                                                                                                                                                                                                                                                                                                                      |
+| AGENTS.md             | Updated with simulator documentation in file table, key interactions, and test options list                                                                                                                                                                                                                                                                                                        |
+| Git                   | Committed (`69da92d`) and pushed to `origin/master`                                                                                                                                                                                                                                                                                                                                                |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | What Exists | What's Missing |
-|------|-------------|----------------|
-| Daemon integration tests | `setTracking`/`setAudio`/`setGesture` → simulator → verify state. Circuit breaker (3 tests), 200ms timing (1 test), full `setDeviceState` path tested | — |
-| `syncState` test | Reads pre-set simulator state, verifies daemon updates | No write-then-read round-trip (set via daemon → change on sim → sync detects change) |
-| Failure injection | `sendErr`, `commitErr` (commit-only), `sendRecvErr`, `nilResponse`, `corruptResp`. All tested. | — |
-| Protocol byte verification | All three interfaces (tracking/audio/gesture) have daemon-integration byte-layout tests. Direct `pixyConfig()`/`pixyCommit()` table tests cover all combinations. | — |
+| Item                       | What Exists                                                                                                                                                       | What's Missing                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Daemon integration tests   | `setTracking`/`setAudio`/`setGesture` → simulator → verify state. Circuit breaker (3 tests), 200ms timing (1 test), full `setDeviceState` path tested             | —                                                                                    |
+| `syncState` test           | Reads pre-set simulator state, verifies daemon updates                                                                                                            | No write-then-read round-trip (set via daemon → change on sim → sync detects change) |
+| Failure injection          | `sendErr`, `commitErr` (commit-only), `sendRecvErr`, `nilResponse`, `corruptResp`. All tested.                                                                    | —                                                                                    |
+| Protocol byte verification | All three interfaces (tracking/audio/gesture) have daemon-integration byte-layout tests. Direct `pixyConfig()`/`pixyCommit()` table tests cover all combinations. | —                                                                                    |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | Why It Matters |
-|------|----------------|
-| ~~Circuit breaker tests with simulator~~ | **DONE** — 3 tests: accumulation (2→3→open), reset-on-success (1→0), commit-failure (config ok, commit fails) |
-| ~~200ms sleep timing verification~~ | **DONE** — `sentTimestamps` recording + gap assertion (≥190ms) |
-| ~~Direct `pixyConfig()`/`pixyCommit()` byte-layout tests~~ | **DONE** — Table tests for all 3 interfaces × all mode bytes |
-| ~~Audio/gesture protocol byte-layout~~ | **DONE** — Daemon integration tests verify exact bytes for all interfaces |
-| ~~`pixyProtocolState` pointer fix~~ | **DONE** — Changed from value to `*pixyProtocolState` |
-| ~~AGENTS.md trim~~ | **DONE** — Trimmed from 398 to 377 lines |
-| `queryHIDState[T]` generic wrapper test | Queries go through `queryHIDState[T]` → `SendRecv` → `parseHIDResponse`. I tested `SendRecv` and `parseHIDResponse` separately but never the full generic wrapper path. |
-| Auto-manage lifecycle with simulator | The existing `integration_auto_test.go` uses `withFakeDevices()`. Using `withPixySimulator()` would exercise real HID during call start/end. |
-| Concurrent access tests | `-race` passes, but no explicit concurrent test (multiple goroutines calling `Send`/`SendRecv` simultaneously) |
-| Benchmark for simulator | Project has 8 benchmarks; `BenchmarkSimulatorRoundTrip` would be natural |
-| Fuzz test for `handleConfig`/`handleCommit` | Project has fuzz tests for `parseHIDResponse`; fuzzing the simulator's input handler would catch panics on random bytes |
-| NixOS VM test (Layer 3) | Discussed in planning but explicitly future work — tests systemd service lifecycle, module config |
-| `/dev/uhid` virtual device (Layer 2) | Discussed as Layer 2; creates real `/dev/hidraw*` devices from userspace |
-| `vivid` V4L2 test driver | Would enable real `v4l2-ctl` PTZ round-trip testing |
+| Item                                                       | Why It Matters                                                                                                                                                          |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~Circuit breaker tests with simulator~~                   | **DONE** — 3 tests: accumulation (2→3→open), reset-on-success (1→0), commit-failure (config ok, commit fails)                                                           |
+| ~~200ms sleep timing verification~~                        | **DONE** — `sentTimestamps` recording + gap assertion (≥190ms)                                                                                                          |
+| ~~Direct `pixyConfig()`/`pixyCommit()` byte-layout tests~~ | **DONE** — Table tests for all 3 interfaces × all mode bytes                                                                                                            |
+| ~~Audio/gesture protocol byte-layout~~                     | **DONE** — Daemon integration tests verify exact bytes for all interfaces                                                                                               |
+| ~~`pixyProtocolState` pointer fix~~                        | **DONE** — Changed from value to `*pixyProtocolState`                                                                                                                   |
+| ~~AGENTS.md trim~~                                         | **DONE** — Trimmed from 398 to 377 lines                                                                                                                                |
+| `queryHIDState[T]` generic wrapper test                    | Queries go through `queryHIDState[T]` → `SendRecv` → `parseHIDResponse`. I tested `SendRecv` and `parseHIDResponse` separately but never the full generic wrapper path. |
+| Auto-manage lifecycle with simulator                       | The existing `integration_auto_test.go` uses `withFakeDevices()`. Using `withPixySimulator()` would exercise real HID during call start/end.                            |
+| Concurrent access tests                                    | `-race` passes, but no explicit concurrent test (multiple goroutines calling `Send`/`SendRecv` simultaneously)                                                          |
+| Benchmark for simulator                                    | Project has 8 benchmarks; `BenchmarkSimulatorRoundTrip` would be natural                                                                                                |
+| Fuzz test for `handleConfig`/`handleCommit`                | Project has fuzz tests for `parseHIDResponse`; fuzzing the simulator's input handler would catch panics on random bytes                                                 |
+| NixOS VM test (Layer 3)                                    | Discussed in planning but explicitly future work — tests systemd service lifecycle, module config                                                                       |
+| `/dev/uhid` virtual device (Layer 2)                       | Discussed as Layer 2; creates real `/dev/hidraw*` devices from userspace                                                                                                |
+| `vivid` V4L2 test driver                                   | Would enable real `v4l2-ctl` PTZ round-trip testing                                                                                                                     |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| Item | What Happened | Severity |
-|------|---------------|----------|
-| **`result.ok` / `result.message` field name error** | Used `result.ok` and `result.message` but `CommandResult` has `Err` and `Message`. Caught by compiler, fixed immediately. Should have read the struct before writing the test. | Low (self-caught) |
-| **wsl_v5 lint failures (11+ instances)** | Wrote code without blank lines before `if` statements, violating the project's wsl_v5 linter. Had to run `golangci-lint --fix`. Should have followed the existing code pattern from the start — every `if` in this project has a blank line above it unless it's a guard clause. | Low (auto-fixed) |
-| **AGENTS.md exceeds 398 lines** | BuildFlow warned: "AGENTS.md has 398 lines (max: 377, excess: 21)". **FIXED** — Trimmed to 377 lines by removing obsolete/changelog entries. | Medium → Resolved |
-| **`pixyProtocolState` embedded by value** | `pixySimulator` had `state pixyProtocolState` (value, not pointer). **FIXED** — Changed to `state *pixyProtocolState`. | Low → Resolved |
+| Item                                                | What Happened                                                                                                                                                                                                                                                                    | Severity          |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **`result.ok` / `result.message` field name error** | Used `result.ok` and `result.message` but `CommandResult` has `Err` and `Message`. Caught by compiler, fixed immediately. Should have read the struct before writing the test.                                                                                                   | Low (self-caught) |
+| **wsl_v5 lint failures (11+ instances)**            | Wrote code without blank lines before `if` statements, violating the project's wsl_v5 linter. Had to run `golangci-lint --fix`. Should have followed the existing code pattern from the start — every `if` in this project has a blank line above it unless it's a guard clause. | Low (auto-fixed)  |
+| **AGENTS.md exceeds 398 lines**                     | BuildFlow warned: "AGENTS.md has 398 lines (max: 377, excess: 21)". **FIXED** — Trimmed to 377 lines by removing obsolete/changelog entries.                                                                                                                                     | Medium → Resolved |
+| **`pixyProtocolState` embedded by value**           | `pixySimulator` had `state pixyProtocolState` (value, not pointer). **FIXED** — Changed to `state *pixyProtocolState`.                                                                                                                                                           | Low → Resolved    |
 
 ---
 
