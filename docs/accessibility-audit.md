@@ -18,7 +18,7 @@
 | 3.3.2 Labels or Instructions | PASS   | Preset input has `aria-label="Preset name"`. All icon-only buttons have `aria-label`. Toggle buttons use `aria-labelledby` referencing visible labels.            |
 | 4.1.2 Name, Role, Value      | PASS   | Toggle buttons: `role="switch"` + `aria-checked`. Mode cards: `aria-current="true"` when active. SSE indicator: `role="status"`.                                  |
 | 4.1.3 Status Messages        | PASS   | Toast container: `role="status"` + `aria-live="polite"`. Error banners: `role="alert"`. Offline banner: `role="status"`.                                          |
-| 2.1.1 Keyboard               | PASS   | All functionality accessible via keyboard. Focus management preserves focus across HTMX panel swaps. Shortcuts: T/I/P/C for modes, arrows for PTZ, ? for help.    |
+| 2.1.1 Keyboard               | PASS   | All functionality accessible via keyboard. Focus management preserves focus across DataStar panel morphs. Shortcuts: T/I/P/C for modes, arrows for PTZ, ? for help.    |
 | 2.1.2 No Keyboard Trap       | PASS   | Shortcut legend closes via Escape. Modal-like patterns are dismissible.                                                                                           |
 
 ### Fixes Applied in This Audit
@@ -70,7 +70,7 @@ behavior must be verified manually.
 | Error banner        | Trigger an error              | Banner announced via `role="alert"`                                   |
 | Offline state       | Disconnect device             | Status banner announced; mode cards announced as disabled             |
 | Keyboard shortcuts  | Press `?`                     | Legend announced; Escape to close                                     |
-| HTMX swap           | Use any control               | Focus preserved; new state announced if changed                       |
+| DataStar panel morph | Use any control               | Focus preserved; new state announced if changed                       |
 
 ### Known Limitations
 
