@@ -227,23 +227,25 @@ func (s *pixyProtocolState) buildResponse(query []byte) ([]byte, error) {
 // PIXY HID wire protocol, maintains real device state, and supports failure
 // injection.
 type pixySimulator struct {
-	state pixyProtocolState
+	state *pixyProtocolState
 
 	// Failure injection (set before calling Send/SendRecv)
 	sendErr     error
+	commitErr   error // fails only commit reports (config still succeeds)
 	sendRecvErr error
 	nilResponse bool
 	corruptResp bool
 
 	// Recording
-	mu          sync.Mutex
-	sentReports [][]byte
-	queries     [][]byte
+	mu             sync.Mutex
+	sentReports    [][]byte
+	sentTimestamps []time.Time
+	queries        [][]byte
 }
 
 func newPixySimulator() *pixySimulator {
 	return &pixySimulator{
-		state: *newPixyProtocolState(),
+		state: newPixyProtocolState(),
 	}
 }
 
@@ -259,9 +261,16 @@ func isCommitReport(report []byte) bool {
 }
 
 func (s *pixySimulator) Send(report []byte) error {
+	now := time.Now()
+
 	s.mu.Lock()
 	s.sentReports = append(s.sentReports, append([]byte(nil), report...))
+	s.sentTimestamps = append(s.sentTimestamps, now)
 	s.mu.Unlock()
+
+	if s.commitErr != nil && isCommitReport(report) {
+		return s.commitErr
+	}
 
 	if s.sendErr != nil {
 		return s.sendErr
@@ -340,6 +349,14 @@ func (s *pixySimulator) SentReports() [][]byte {
 	defer s.mu.Unlock()
 
 	return s.sentReports
+}
+
+// SentTimestamps returns timestamps for each Send call, paired with SentReports.
+func (s *pixySimulator) SentTimestamps() []time.Time {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.sentTimestamps
 }
 
 // Queries returns all query payloads sent via SendRecv.
