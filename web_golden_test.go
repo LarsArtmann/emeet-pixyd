@@ -268,7 +268,7 @@ func TestWebPanel_PTZRadarHasServerRenderedStyle(t *testing.T) {
 // attributes are present in the rendered panel HTML:
 // - data-indicator on all action buttons (loading state)
 // - data-class:btn-loading for CSS class toggling
-// - data-bind on PTZ sliders for two-way signal sync
+// - data-bind on PTZ sliders for two-way signal sync.
 func TestWebPanel_DataStarAttributes(t *testing.T) {
 	t.Parallel()
 
@@ -284,7 +284,7 @@ func TestWebPanel_DataStarAttributes(t *testing.T) {
 
 	indicatorCount := strings.Count(body, `data-indicator="loading"`)
 	if indicatorCount < 8 {
-		t.Errorf("expected at least 8 data-indicator attributes (3 mode + 3 audio + gesture + auto + center + sync + probe), got %d",
+		t.Errorf("expected >=8 data-indicator attrs, got %d",
 			indicatorCount)
 	}
 

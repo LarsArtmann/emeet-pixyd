@@ -372,6 +372,7 @@ func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 	d.mu.RLock()
 	_, exists := d.state.Presets["testpreset"]
 	d.mu.RUnlock()
+
 	if !exists {
 		t.Fatal("preset not saved in daemon state after POST /api/preset/save")
 	}
@@ -389,6 +390,7 @@ func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 	d.mu.RLock()
 	_, exists = d.state.Presets["testpreset"]
 	d.mu.RUnlock()
+
 	if exists {
 		t.Error("preset should be deleted from daemon state after POST /api/preset/delete")
 	}

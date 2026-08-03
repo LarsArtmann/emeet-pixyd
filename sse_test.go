@@ -5,7 +5,7 @@ package main
 import (
 	"bufio"
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -305,7 +305,7 @@ func TestSendToastScript(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests { //nolint:paralleltest // subtests handle parallelism
+	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -315,16 +315,15 @@ func TestSendToastScript(t *testing.T) {
 				sendToastScript(sse, &tc.status)
 			})
 
-			//nolint:noctx // test server lifecycle is managed by t.Cleanup
-			ts := httptest.NewServer(mux)
-			t.Cleanup(ts.Close)
+			toastServer := httptest.NewServer(mux)
+			t.Cleanup(toastServer.Close)
 
-			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, ts.URL+"/toast", nil)
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, toastServer.URL+"/toast", nil)
 			if err != nil {
 				t.Fatalf("create request: %v", err)
 			}
 
-			resp, err := ts.Client().Do(req)
+			resp, err := toastServer.Client().Do(req)
 			if err != nil {
 				t.Fatalf("GET /toast: %v", err)
 			}
@@ -362,7 +361,7 @@ func TestHandlePTZ_ErrorReturnsFullPanelPatch(t *testing.T) {
 
 	withFailingV4L2 := func(d *Daemon) {
 		d.deps.v4l2Set = func(_ context.Context, _, _, _ string) error {
-			return fmt.Errorf("v4l2-ctl: device or resource busy")
+			return errors.New("v4l2-ctl: device or resource busy")
 		}
 	}
 
