@@ -5,6 +5,8 @@
   version,
   templ,
   replaceBrandedId,
+  goBrandedSrc,
+  ...
 }:
 buildGoModule {
   pname = "emeet-pixyd";
