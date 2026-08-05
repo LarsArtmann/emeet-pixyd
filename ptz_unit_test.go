@@ -3,6 +3,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -150,19 +151,19 @@ func TestFormatLastSynced(t *testing.T) {
 		t.Errorf("zero time should return empty, got %q", result)
 	}
 
-	if result := formatLastSynced(time.Now()); result != "just now" {
-		t.Errorf("recent time should return 'just now', got %q", result)
+	if result := formatLastSynced(time.Now()); result != "now" {
+		t.Errorf("recent time should return 'now', got %q", result)
 	}
 
-	if result := formatLastSynced(time.Now().Add(-2 * time.Minute)); result != "2m ago" {
-		t.Errorf("2 min ago should return '2m ago', got %q", result)
+	if result := formatLastSynced(time.Now().Add(-2 * time.Minute)); result != "2 minutes ago" {
+		t.Errorf("2 min ago should return '2 minutes ago', got %q", result)
 	}
 
 	old := time.Date(2025, 6, 15, 14, 30, 0, 0, time.UTC)
 
 	result := formatLastSynced(old)
-	if len(result) != 5 {
-		t.Errorf("old time should return HH:MM format, got %q", result)
+	if !strings.HasSuffix(result, "ago") {
+		t.Errorf("old time should return a relative-time string ending in 'ago', got %q", result)
 	}
 }
 

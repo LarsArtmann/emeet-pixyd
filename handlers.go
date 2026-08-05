@@ -14,6 +14,7 @@ import (
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"github.com/a-h/templ"
+	"github.com/dustin/go-humanize"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/starfederation/datastar-go/datastar"
@@ -62,16 +63,7 @@ func formatLastSynced(t time.Time) string {
 		return ""
 	}
 
-	elapsed := time.Since(t)
-	if elapsed < time.Minute {
-		return "just now"
-	}
-
-	if elapsed < time.Hour {
-		return fmt.Sprintf("%dm ago", int(elapsed.Minutes()))
-	}
-
-	return t.Format("15:04")
+	return humanize.Time(t)
 }
 
 type webServer struct {
