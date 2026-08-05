@@ -13,19 +13,19 @@ Eliminated the H003 `manual-reltime-format` finding by replacing the bespoke tim
 
 ## a) FULLY DONE
 
-| # | Item                                                                                                                                                                       | Verified by                                                 |
-| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 1 | Replaced `formatLastSynced` body (`handlers.go:60-75`) with `humanize.Time(t)` after the zero-time guard                                                                | `go test -run TestFormatLastSynced` PASS                    |
-| 2 | Added `github.com/dustin/go-humanize v1.0.1` as direct dependency (`go.mod:8`) via `go get`; ran `go mod tidy` to promote from indirect                                  | `go.mod` shows direct require                               |
-| 3 | Updated `TestFormatLastSynced` expectations: `"just now"` → `"now"`, `"2m ago"` → `"2 minutes ago"`, `HH:MM` length-5 → suffix-`"ago"` relative-time string              | `go test -v -run TestFormatLastSynced` PASS                 |
-| 4 | Added `"strings"` import to `ptz_unit_test.go` (used by `strings.HasSuffix`)                                                                                              | gopls diagnostics clean                                     |
-| 5 | Recomputed `vendorHash` → `sha256-cF5eONL8n4W4dfa8qMnECXdy85JWpeCR2orNlFuuTaE=` and applied to both `flake.nix:148` and `package.nix:16`                                | `nix build .#emeet-pixyd` and `.#checks.x86_64-linux.lint` |
-| 6 | Re-ran `/tmp/go-humanize-linter` on the project — **0 findings**                                                                                                          | Linter output                                               |
-| 7 | `go vet ./...` — clean                                                                                                                                                     | Console output                                              |
-| 8 | `golangci-lint run --timeout 2m ./...` — **0 issues**                                                                                                                      | Console output                                              |
-| 9 | `go test -race -count=1 ./...` — full suite PASS                                                                                                                           | Console output                                              |
-| 10 | `nix build .#emeet-pixyd` — succeeds, produces binary                                                                                                                       | Console output                                              |
-| 11 | `nix build .#checks.x86_64-linux.lint` — succeeds                                                                                                                           | Console output                                              |
+| #   | Item                                                                                                                                                        | Verified by                                                |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | Replaced `formatLastSynced` body (`handlers.go:60-75`) with `humanize.Time(t)` after the zero-time guard                                                    | `go test -run TestFormatLastSynced` PASS                   |
+| 2   | Added `github.com/dustin/go-humanize v1.0.1` as direct dependency (`go.mod:8`) via `go get`; ran `go mod tidy` to promote from indirect                     | `go.mod` shows direct require                              |
+| 3   | Updated `TestFormatLastSynced` expectations: `"just now"` → `"now"`, `"2m ago"` → `"2 minutes ago"`, `HH:MM` length-5 → suffix-`"ago"` relative-time string | `go test -v -run TestFormatLastSynced` PASS                |
+| 4   | Added `"strings"` import to `ptz_unit_test.go` (used by `strings.HasSuffix`)                                                                                | gopls diagnostics clean                                    |
+| 5   | Recomputed `vendorHash` → `sha256-cF5eONL8n4W4dfa8qMnECXdy85JWpeCR2orNlFuuTaE=` and applied to both `flake.nix:148` and `package.nix:16`                    | `nix build .#emeet-pixyd` and `.#checks.x86_64-linux.lint` |
+| 6   | Re-ran `/tmp/go-humanize-linter` on the project — **0 findings**                                                                                            | Linter output                                              |
+| 7   | `go vet ./...` — clean                                                                                                                                      | Console output                                             |
+| 8   | `golangci-lint run --timeout 2m ./...` — **0 issues**                                                                                                       | Console output                                             |
+| 9   | `go test -race -count=1 ./...` — full suite PASS                                                                                                            | Console output                                             |
+| 10  | `nix build .#emeet-pixyd` — succeeds, produces binary                                                                                                       | Console output                                             |
+| 11  | `nix build .#checks.x86_64-linux.lint` — succeeds                                                                                                           | Console output                                             |
 
 ### Source diff (captured by auto-commit daemon in commit `800f19b`)
 
@@ -38,12 +38,12 @@ ptz_unit_test.go | 13 +++++++------
 
 ### Behavioral semantics (before → after)
 
-| Input                            | Old output         | New output             |
-| -------------------------------- | ------------------ | ---------------------- |
-| `time.Time{}` (zero)             | `""`               | `""`                   |
-| `time.Now()`                     | `"just now"`       | `"now"`                |
-| `time.Now() - 2 * time.Minute`   | `"2m ago"`         | `"2 minutes ago"`      |
-| `time.Date(2025, 6, 15, ...)`   | `"14:30"` (HH:MM)  | `"1 year ago"`         |
+| Input                          | Old output        | New output        |
+| ------------------------------ | ----------------- | ----------------- |
+| `time.Time{}` (zero)           | `""`              | `""`              |
+| `time.Now()`                   | `"just now"`      | `"now"`           |
+| `time.Now() - 2 * time.Minute` | `"2m ago"`        | `"2 minutes ago"` |
+| `time.Date(2025, 6, 15, ...)`  | `"14:30"` (HH:MM) | `"1 year ago"`    |
 
 The HH:MM fallback was effectively useless: a "last synced" timestamp from yesterday rendered as `14:30` told the user nothing about freshness. Relative-time strings now answer the actual question ("how recent is this?").
 
@@ -51,9 +51,9 @@ The HH:MM fallback was effectively useless: a "last synced" timestamp from yeste
 
 ## b) PARTIALLY DONE
 
-| # | Item                                                                                                                                                                                                                                                                                                                            | Status                                                                                                                                                                                              |
-| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | **vendorHash finalisation commits.** The auto-commit daemon captured the Go source change (commit `800f19b`) and the placeholder-only flake update (commit `26c904f`), but the **final** correct hash `sha256-cF5eONL8n4W4dfa8qMnECXdy85JWpeCR2orNlFuuTaE=` is still uncommitted in the working tree. Working tree: `flake.nix:148` and `package.nix:16` both have the final hash; HEAD has `AAAA…` in flake and `vZn2V…` in package. | Verified locally via `nix build` for both derivations. Needs a follow-up commit (likely auto-commit daemon will pick up, or explicit `git add flake.nix package.nix && git commit`). |
+| #   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                  | Status                                                                                                                                                                               |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **vendorHash finalisation commits.** The auto-commit daemon captured the Go source change (commit `800f19b`) and the placeholder-only flake update (commit `26c904f`), but the **final** correct hash `sha256-cF5eONL8n4W4dfa8qMnECXdy85JWpeCR2orNlFuuTaE=` is still uncommitted in the working tree. Working tree: `flake.nix:148` and `package.nix:16` both have the final hash; HEAD has `AAAA…` in flake and `vZn2V…` in package. | Verified locally via `nix build` for both derivations. Needs a follow-up commit (likely auto-commit daemon will pick up, or explicit `git add flake.nix package.nix && git commit`). |
 
 ---
 
