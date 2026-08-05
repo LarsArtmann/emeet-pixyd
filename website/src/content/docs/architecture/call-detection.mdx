@@ -43,6 +43,7 @@ This means:
 Two independent counters track consecutive "in use" and "idle" readings:
 
 ```go
+// skip-validate
 debounceInUse  int  // incremented when camera is in use
 debounceIdle   int  // incremented when camera is idle
 ```
