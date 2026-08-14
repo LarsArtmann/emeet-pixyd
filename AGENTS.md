@@ -369,8 +369,8 @@ The `website/` directory contains an Astro + Starlight documentation site deploy
 - **Accent color**: Violet (`#8b5cf6`) — distinct from go-atomic-write (emerald) and gogenfilter (cyan)
 - **CSP enabled** via Astro's `security.csp` config + post-build `fix-csp.mjs` script
 - **OG images** generated per-page via astro-og-canvas with violet border
-- **Build**: `npm run build` runs `astro build && node scripts/fix-csp.mjs`
-- **Deploy**: `nix run .#deploy` runs `npm run build && firebase deploy --only hosting`
+- **Build**: `pnpm run build` runs `astro build && node scripts/fix-csp.mjs`
+- **Deploy**: `nix run .#deploy` runs `pnpm run build && firebase deploy --only hosting`
 - **Node 24** (`.node-version`)
 - **TypeScript strict** mode — clean typecheck expected
 

@@ -115,7 +115,7 @@
 5. Create Firebase hosting site: `firebase hosting:sites:create emeet-pixyd`
 6. Add custom domain in Firebase console
 7. Run `terraform apply` in domains repo
-8. Deploy website: `nix run .#deploy` (or `npm run build && firebase deploy --only hosting`)
+8. Deploy website: `nix run .#deploy` (or `pnpm run build && firebase deploy --only hosting`)
 9. Add `_acme-challenge.emeet-pixyd` TXT record once Firebase provides it
 10. Verify `emeet-pixyd.lars.software` resolves and serves correctly
 

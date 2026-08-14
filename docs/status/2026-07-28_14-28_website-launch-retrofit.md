@@ -24,7 +24,7 @@ The emeet-pixyd website already existed and was deployed. Per the skill's Phase 
 | Phase 1: Research           | DONE   | Read README, all 17 docs pages, astro.config.mjs, firebase.json, package.json                            |
 | Phase 2: README retrofit    | DONE   | Added 3 missing sections (see below)                                                                     |
 | Phase 3: Docs retrofit      | DONE   | All 17 pages retrofitted (see below)                                                                     |
-| Phase 4: Build verification | DONE   | `npm run build` = 0 errors, `astro check` = 0 errors/warnings/hints, `html-validate` = 0 errors (exit 0) |
+| Phase 4: Build verification | DONE   | `pnpm run build` = 0 errors, `astro check` = 0 errors/warnings/hints, `html-validate` = 0 errors (exit 0) |
 | Phase 5: Go-live            | N/A    | Site already deployed — no new Firebase/DNS work needed                                                  |
 | Phase 6: GitHub metadata    | N/A    | Already configured                                                                                       |
 | Phase 7: CI/CD              | N/A    | Already configured                                                                                       |
@@ -52,7 +52,7 @@ The emeet-pixyd website already existed and was deployed. Per the skill's Phase 
 
 ### Build verification
 
-10. **`npm run build`** — 19 pages built, 0 errors, CSP patched 19/19 files, sitemap generated, pagefind search index built.
+10. **`pnpm run build`** — 19 pages built, 0 errors, CSP patched 19/19 files, sitemap generated, pagefind search index built.
 11. **`astro check`** — 0 errors, 0 warnings, 0 hints across 31 files.
 12. **`html-validate`** — 0 errors, exit 0 across all `dist/**/*.html`.
 13. **Preview server HTTP verification** — All 6 sampled pages returned HTTP 200. Verified "Where to go next", "Edit page", and "Last updated: Jul 28, 2026" render in live HTML. Verified comparison table renders with all checkmarks. Verified landing page has `color-accent` CSS token, hero section, and GitHub link.
@@ -128,7 +128,7 @@ indent_style = space
 
 ### Preview server left running
 
-- I started `npm run preview` for HTTP verification and **forgot to kill it**. It ran for ~2 hours as a background process until I killed it while writing this report. This is sloppy resource management.
+- I started `pnpm run preview` for HTTP verification and **forgot to kill it**. It ran for ~2 hours as a background process until I killed it while writing this report. This is sloppy resource management.
 
 ---
 

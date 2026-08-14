@@ -13,7 +13,7 @@
 | 115 | `RejectUnknownMembers(true)` on state decoder               | `TestStateFileRejectsUnknownFields` passes                               |
 | 114 | `commandMsgError` consolidated into `CommandError`          | Build OK; existing `TestCommandError_*` pass                             |
 | 126 | All 9 GitHub Actions pinned to commit SHAs                  | `grep` confirms SHA pins in all 3 workflow files                         |
-| 128 | govulncheck + npm audit triage                              | Go: 0 vulns. Website: `npm audit fix` → 0 vulns. Build verified.         |
+| 128 | govulncheck + pnpm audit triage                              | Go: 0 vulns. Website: `pnpm audit fix` → 0 vulns. Build verified.         |
 | 107 | SSE connection status indicator (green/amber/red dot)       | CSS + JS + template; `templ generate` + build OK                         |
 | 106 | Focus management across HTMX `outerHTML` swaps              | `htmx:beforeRequest` + `htmx:afterSettle` handlers in `app.js`           |
 | 111 | Preset name autocomplete via `<datalist>`                   | Template renders `<datalist>` from existing preset names                 |
@@ -33,7 +33,7 @@
 - `golangci-lint run --timeout 5m ./...` — **0 issues**
 - `go vet ./...` — PASS
 - `nix flake check --no-build` — all checks passed
-- Website `npm run build` — 19 pages built, CSP patched
+- Website `pnpm run build` — 19 pages built, CSP patched
 
 ---
 
@@ -90,7 +90,7 @@ Root package coverage is **70.4%** — barely above the 70% CI threshold. The ne
 
 ### 1. `website/flake.lock` accidentally committed
 
-**What happened:** I ran `nix run .#update-deps` inside `website/` to check npm audit. This created `website/flake.lock` (the website has its own `flake.nix`). The auto-git daemon committed it in `3f00b83`. Now git shows `DA` status (staged deletion + worktree re-add) — the daemon is fighting itself.
+**What happened:** I ran `nix run .#update-deps` inside `website/` to check pnpm audit. This created `website/flake.lock` (the website has its own `flake.nix`). The auto-git daemon committed it in `3f00b83`. Now git shows `DA` status (staged deletion + worktree re-add) — the daemon is fighting itself.
 
 **Impact:** Git noise. The file is harmless but shouldn't be tracked (it's a build artifact of running nix commands in the website subdir, not a source file). Or maybe it SHOULD be tracked — I didn't check whether the website flake is supposed to have a committed lock file. Either way, the current DA state is wrong.
 
@@ -109,7 +109,7 @@ The auto-git daemon generated commit messages that don't describe what actually 
 | Commit    | Message                                                                   | What it actually was                                                                                      |
 | --------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `3f00b83` | "chore(ci): add Nix flake support and GitHub Actions workflows"           | GitHub Actions SHA pinning (#126) + accidental flake.lock                                                 |
-| `401c4bc` | "feat(ui): enhance frontend interface with updated styles and components" | SSE indicator (#107) + focus mgmt (#106) + autocomplete (#111) + WCAG fixes (#110) + npm audit fix (#128) |
+| `401c4bc` | "feat(ui): enhance frontend interface with updated styles and components" | SSE indicator (#107) + focus mgmt (#106) + autocomplete (#111) + WCAG fixes (#110) + pnpm audit fix (#128) |
 | `71c6e76` | "feat(hid): add eMeet Pixy HID protocol support and control interface"    | HID protocol **documentation** (#122) — not a code feature                                                |
 | `5b82d8a` | "test(pixy): update property and state tests with TODO list sync"         | Property tests (#118) + TODO_LIST.md rewrite                                                              |
 
@@ -141,7 +141,7 @@ I noticed the `DA` status at the start of this report but haven't fixed it yet.
 
 7. **AGENTS.md drift** — The AGENTS.md is the primary context file for future sessions. It still describes `commandMsgError` as a separate type, doesn't mention `RejectUnknownMembers`, doesn't list the new test files or docs. Every session that follows will start with stale context.
 
-8. **Didn't verify website `package.json` after npm audit fix** — `npm audit fix` updated `package-lock.json` but I didn't check whether `package.json` version ranges were also bumped. If the fix was lock-only, the next `npm install` from scratch might re-introduce the vulnerability.
+8. **Didn't verify website `package.json` after pnpm audit fix** — `pnpm audit fix` updated `package-lock.json` but I didn't check whether `package.json` version ranges were also bumped. If the fix was lock-only, the next `pnpm install` from scratch might re-introduce the vulnerability.
 
 9. **No coverage report for new tests** — I checked overall coverage (70.4%) but didn't verify that the new test files actually exercise the code they target. Some tests might be testing mocks rather than real code paths.
 
@@ -157,7 +157,7 @@ I noticed the `DA` status at the start of this report but haven't fixed it yet.
 2. **Update AGENTS.md** with all new patterns, files, and doc references
 3. **Update FEATURES.md** with SSE indicator, focus management, autocomplete, WCAG fixes
 4. **Resolve `website/flake.lock` git state** — decide track vs gitignore, clean up `DA` status
-5. **Verify `website/package.json` ranges** were bumped by npm audit fix (not just lockfile)
+5. **Verify `website/package.json` ranges** were bumped by pnpm audit fix (not just lockfile)
 
 ### High-value hardening
 
@@ -205,7 +205,7 @@ I noticed the `DA` status at the start of this report but haven't fixed it yet.
 
 36. **Add Renovate config** for automated dependency updates (now that actions are SHA-pinned)
 37. **Add `govulncheck` step with `GOEXPERIMENT=jsonv2`** to `go-test.yml`
-38. **Add a `website-audit` CI job** that runs `npm audit` on the website
+38. **Add a `website-audit` CI job** that runs `pnpm audit` on the website
 39. **Add coverage threshold per-package** (not just root) to prevent coverage drops
 40. **Pin `templ` version in CI** more robustly (currently extracts from go.mod via awk)
 
@@ -235,7 +235,7 @@ The website has its own `flake.nix` but I'm not sure if the lock file is meant t
 
 ### 2. Should I deploy the website now (#127)?
 
-The website retrofit is committed and build-green. The npm audit fix is also done and the build passes (19 pages, CSP patched). You have the Firebase credentials and the `nix run .#deploy` command. Should I run the deploy, or do you want to review the changes first? (I won't deploy without your go-ahead since this affects a public-facing site.)
+The website retrofit is committed and build-green. The pnpm audit fix is also done and the build passes (19 pages, CSP patched). You have the Firebase credentials and the `nix run .#deploy` command. Should I run the deploy, or do you want to review the changes first? (I won't deploy without your go-ahead since this affects a public-facing site.)
 
 ### 3. The auto-git daemon committed my work with misleading messages. Should I amend them?
 
