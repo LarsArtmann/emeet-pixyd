@@ -195,7 +195,7 @@
 
       flake = {
         overlays.default = final: _prev: {
-          emeet-pixyd = self.packages.${final.system}.emeet-pixyd;
+          emeet-pixyd = self.packages.${final.stdenv.hostPlatform.system}.emeet-pixyd;
         };
 
         nixosModules.default = import ./modules/nixos.nix;
