@@ -346,31 +346,32 @@ The web UI uses [DataStar](https://data-star.dev) (Go SDK: `datastar-go` v1.2.2,
 
 The `website/` directory contains an Astro + Starlight documentation site deployed to Firebase Hosting at `emeet-pixyd.lars.software`.
 
-| File                                      | Purpose                                                                                |
-| ----------------------------------------- | -------------------------------------------------------------------------------------- |
-| `website/astro.config.mjs`                | Astro config: Starlight sidebar, sitemap, CSP, Tailwind, fonts                         |
-| `website/firebase.json`                   | Firebase Hosting config (target: `emeet-pixyd`, cache headers, CSP)                    |
-| `website/.firebaserc`                     | Firebase project mapping (project: `lars-software`, target: `emeet-pixyd`)             |
-| `website/flake.nix`                       | Nix flake with `dev`, `build`, `preview`, `deploy` apps                                |
-| `website/package.json`                    | Dependencies: Astro 7, Starlight, Tailwind v4, astro-og-canvas                         |
-| `website/scripts/fix-csp.mjs`             | Post-build script that hashes inline scripts and injects CSP SHA-256 hashes            |
-| `website/src/pages/index.astro`           | Landing page composition                                                               |
-| `website/src/pages/og/[...slug].ts`       | OG image generation via astro-og-canvas (violet border)                                |
-| `website/src/layouts/LandingLayout.astro` | HTML shell (SEO, OG, JSON-LD, CSP)                                                     |
-| `website/src/components/`                 | 14 Astro components (Hero, Features, HowItWorks, Comparison, etc.)                     |
-| `website/src/data/`                       | TypeScript data modules (config, features, sections, types, hero-code)                 |
-| `website/src/styles/`                     | global.css (Tailwind v4 + violet theme) + starlight.css (Starlight overrides)          |
-| `website/src/content/docs/`               | 16 MDX documentation pages                                                             |
-| `website/public/`                         | favicon.svg, manifest.json, robots.txt, JS (theme-init, header, copy-code, animations) |
+| File                                      | Purpose                                                                                                                                                                                                  |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `website/astro.config.mjs`                | Astro config: Starlight sidebar, sitemap, CSP, Tailwind, fonts                                                                                                                                           |
+| `website/firebase.json`                   | Firebase Hosting config (target: `emeet-pixyd`, cache headers, CSP)                                                                                                                                      |
+| `website/.firebaserc`                     | Firebase project mapping (project: `lars-software`, target: `emeet-pixyd`)                                                                                                                               |
+| `website/flake.nix`                       | Nix flake with `dev`, `build`, `preview`, `deploy` apps                                                                                                                                                  |
+| `website/package.json`                    | Dependencies: Astro 7, Starlight, Tailwind v4, astro-og-canvas                                                                                                                                           |
+| `website/scripts/fix-csp.mjs`             | Post-build script that hashes inline scripts and injects CSP SHA-256 hashes                                                                                                                              |
+| `website/src/pages/index.astro`           | Landing page composition                                                                                                                                                                                 |
+| `website/src/pages/og/[...slug].ts`       | OG image generation via astro-og-canvas (violet border)                                                                                                                                                  |
+| `website/src/layouts/LandingLayout.astro` | HTML shell (SEO, OG, JSON-LD, CSP)                                                                                                                                                                       |
+| `website/src/components/`                 | 16 Astro components (Hero, Features, HowItWorks, Comparison, Why, Showcase, etc.)                                                                                                                        |
+| `website/src/data/`                       | TypeScript data modules (config, features, sections, types, hero-code)                                                                                                                                   |
+| `website/src/styles/`                     | global.css (Tailwind v4 + violet theme) + starlight.css (Starlight overrides)                                                                                                                            |
+| `website/src/content/docs/`               | 16 MDX documentation pages                                                                                                                                                                               |
+| `website/public/`                         | favicon.svg, manifest.json, robots.txt, JS (theme-init, header, copy-code, animations)                                                                                                                   |
+| `website/public/{screenshots/,demo.mp4}`  | Headless-captured web-UI screenshots (**offline state**; retake with camera connected — TODO #129) + 25s HyperFrames demo video (composition source lost in `/tmp`; re-render needs rebuild — TODO #130) |
 
 ### Website Conventions
 
 - **Accent color**: Violet (`#8b5cf6`) — distinct from go-atomic-write (emerald) and gogenfilter (cyan)
-- **CSP enabled** via Astro's `security.csp` config + post-build `fix-csp.mjs` script
-- **OG images** generated per-page via astro-og-canvas with violet border
-- **Build**: `pnpm run build` runs `astro build && node scripts/fix-csp.mjs`
-- **Deploy**: `nix run .#deploy` runs `pnpm run build && firebase deploy --only hosting`
-- **Node 24** (`.node-version`)
-- **TypeScript strict** mode — clean typecheck expected
+- **CSP enabled** via Astro's `security.csp` config + post-build `fix-csp.mjs` script; **OG images** per-page via astro-og-canvas (violet border)
+- **Build**: `nix shell nixpkgs#nodejs -c pnpm run build` (pnpm via corepack) — runs `astro build && node scripts/fix-csp.mjs`
+- **Deploy**: from `website/`: `nix shell nixpkgs#nodejs nixpkgs#firebase-tools -c firebase deploy --only hosting:emeet-pixyd --project lars-software`. Cert `CERT_ACTIVE` since 2026-08-18 (CNAME validation sufficed — the ACME TXT staged in `~/projects/domains/lars.software.tf` was never needed). `firebase.json` long-caches `mp4|webm|mov`; `.firebase/` deploy cache is gitignored
+- **Hero terminal split brain**: `src/data/hero-code.ts` (copy-button source) and the hardcoded `highlightedCode` in `HeroSection.astro` duplicate the terminal content — edit both (TODO #135)
+- **Media tooling on NixOS**: HyperFrames needs `HYPERFRAMES_BROWSER_PATH=<nixpkgs chromium>` (NOT `PUPPETEER_EXECUTABLE_PATH`) + `node node_modules/hyperframes/dist/cli.js` (npx/pnpm-exec fail); screenshots via `nix shell nixpkgs#chromium -c chromium --headless=new --no-sandbox --disable-gpu --hide-scrollbars --screenshot=X.png --window-size=WxH --virtual-time-budget=8000 http://127.0.0.1:8090/`
+- **Node 24** (`.node-version`); **TypeScript strict** — but `astro check` crashes on typescript@7.0.2, use standalone `tsc --strict` until pinned (TODO #134)
 
 ---

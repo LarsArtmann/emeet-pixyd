@@ -13,4 +13,4 @@ emeet-pixy track          # Enable face tracking
 emeet-pixy privacy        # Privacy mode
 emeet-pixy center         # Center camera
 emeet-pixy pan -90        # Pan left 90 degrees
-emeet-pixy zoom 120       # Zoom to 120x`;
+emeet-pixy zoom 120       # Zoom to 120%`;

@@ -21,3 +21,6 @@ pnpm-debug.log*
 
 # nix
 result
+
+# firebase deploy cache
+.firebase/
