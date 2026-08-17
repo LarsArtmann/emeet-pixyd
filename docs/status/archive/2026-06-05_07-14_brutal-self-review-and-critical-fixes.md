@@ -245,33 +245,33 @@ Multiple items in the roadmap are completed but not marked. Metrics table, file 
 
 Sorted by impact × effort (highest first):
 
-| #   | Task                                                                  | Impact   | Effort | Why                                                                              |
-| --- | --------------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------------------------------- |
-| 1   | **Add `go build ./...` to BuildFlow pre-commit hook**                 | CRITICAL | 5min   | Prevent broken builds from ever reaching master again                            |
-| 2   | **Add `go test ./...` to BuildFlow pre-commit hook**                  | CRITICAL | 5min   | Same — catch test regressions at commit time                                     |
-| 3   | **Replace `handleCommand(string) string` with typed `CommandResult`** | HIGH     | 2h     | Eliminates stringly-typed command dispatch, enables structured error propagation |
-| 4   | **Consolidate 9 DI function fields into `Dependencies` interface**    | HIGH     | 1h     | Compile-time safety, better test mocks, clearer API surface                      |
-| 5   | **Extract waybar logic from `main.go` into `waybar.go`**              | MED      | 30min  | `main.go` is 684 lines — waybar output is self-contained                         |
-| 6   | **Extract socket listener from `main.go` into `socket.go`**           | MED      | 30min  | Unix socket handling is independent of daemon lifecycle                          |
-| 7   | **Consolidate PTZ logic into `ptz.go`**                               | MED      | 1h     | Currently split across 5 files — handlers, commands, v4l2, cache, web_types      |
-| 8   | **Add command counter metrics**                                       | MED      | 30min  | Track which commands are used, error rates                                       |
-| 9   | **Add HID failure counter + simple circuit breaker**                  | MED      | 1h     | Stop re-probing on every consecutive HID failure                                 |
-| 10  | **Add stream duration + frame counter metrics**                       | MED      | 30min  | Monitor streaming health                                                         |
-| 11  | **Archive `SUPERB_ROADMAP.md` — mark completed items**                | LOW      | 15min  | Document is misleading in current state                                          |
-| 12  | **Update `DESIGN.md` for middleware rewrite**                         | LOW      | 15min  | Reflects httputil adoption                                                       |
-| 13  | **Surface auto-manage errors to web UI**                              | LOW      | 30min  | Currently errors only in logs                                                    |
-| 14  | **PTZ relative mode (`pan+10`, `tilt-5`)**                            | LOW      | 30min  | Useful for fine-tuning position                                                  |
-| 15  | **Add uevent counter metric**                                         | LOW      | 15min  | Track hotplug activity                                                           |
-| 16  | **Extract `HIDDevice` interface**                                     | MED      | 1h     | Separates HID protocol from daemon logic                                         |
-| 17  | **Add probe counter metric**                                          | LOW      | 15min  | Track device probing activity                                                    |
-| 18  | **Graceful degradation for missing optional deps**                    | MED      | 1h     | Better error messages when ffmpeg/wpctl not found                                |
-| 19  | **Mobile-responsive web UI**                                          | MED      | 2h     | Currently desktop-only layout                                                    |
-| 20  | **WebSocket for live state updates**                                  | HIGH     | 3h     | Replace 3s HTMX polling with push-based updates                                  |
-| 21  | **Integration test harness with fake devices**                        | HIGH     | 4h     | Enable testing HID/V4L2 paths without hardware                                   |
-| 22  | **Keyboard shortcuts for PTZ (arrow keys, +/-)**                      | LOW      | 30min  | Better PTZ control UX                                                            |
-| 23  | **Camera preset support**                                             | MED      | 2h     | Save/recall PTZ positions                                                        |
-| 24  | **Add coverage threshold to CI**                                      | LOW      | 15min  | Prevent silent coverage regression                                               |
-| 25  | **Migrate to `encoding/json/v2` when available**                      | LOW      | 1h     | Currently skipped (not in Go 1.26 stdlib)                                        |
+| #  | Task                                                                  | Impact   | Effort | Why                                                                              |
+| -- | --------------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------------------------------- |
+| 1  | **Add `go build ./...` to BuildFlow pre-commit hook**                 | CRITICAL | 5min   | Prevent broken builds from ever reaching master again                            |
+| 2  | **Add `go test ./...` to BuildFlow pre-commit hook**                  | CRITICAL | 5min   | Same — catch test regressions at commit time                                     |
+| 3  | **Replace `handleCommand(string) string` with typed `CommandResult`** | HIGH     | 2h     | Eliminates stringly-typed command dispatch, enables structured error propagation |
+| 4  | **Consolidate 9 DI function fields into `Dependencies` interface**    | HIGH     | 1h     | Compile-time safety, better test mocks, clearer API surface                      |
+| 5  | **Extract waybar logic from `main.go` into `waybar.go`**              | MED      | 30min  | `main.go` is 684 lines — waybar output is self-contained                         |
+| 6  | **Extract socket listener from `main.go` into `socket.go`**           | MED      | 30min  | Unix socket handling is independent of daemon lifecycle                          |
+| 7  | **Consolidate PTZ logic into `ptz.go`**                               | MED      | 1h     | Currently split across 5 files — handlers, commands, v4l2, cache, web_types      |
+| 8  | **Add command counter metrics**                                       | MED      | 30min  | Track which commands are used, error rates                                       |
+| 9  | **Add HID failure counter + simple circuit breaker**                  | MED      | 1h     | Stop re-probing on every consecutive HID failure                                 |
+| 10 | **Add stream duration + frame counter metrics**                       | MED      | 30min  | Monitor streaming health                                                         |
+| 11 | **Archive `SUPERB_ROADMAP.md` — mark completed items**                | LOW      | 15min  | Document is misleading in current state                                          |
+| 12 | **Update `DESIGN.md` for middleware rewrite**                         | LOW      | 15min  | Reflects httputil adoption                                                       |
+| 13 | **Surface auto-manage errors to web UI**                              | LOW      | 30min  | Currently errors only in logs                                                    |
+| 14 | **PTZ relative mode (`pan+10`, `tilt-5`)**                            | LOW      | 30min  | Useful for fine-tuning position                                                  |
+| 15 | **Add uevent counter metric**                                         | LOW      | 15min  | Track hotplug activity                                                           |
+| 16 | **Extract `HIDDevice` interface**                                     | MED      | 1h     | Separates HID protocol from daemon logic                                         |
+| 17 | **Add probe counter metric**                                          | LOW      | 15min  | Track device probing activity                                                    |
+| 18 | **Graceful degradation for missing optional deps**                    | MED      | 1h     | Better error messages when ffmpeg/wpctl not found                                |
+| 19 | **Mobile-responsive web UI**                                          | MED      | 2h     | Currently desktop-only layout                                                    |
+| 20 | **WebSocket for live state updates**                                  | HIGH     | 3h     | Replace 3s HTMX polling with push-based updates                                  |
+| 21 | **Integration test harness with fake devices**                        | HIGH     | 4h     | Enable testing HID/V4L2 paths without hardware                                   |
+| 22 | **Keyboard shortcuts for PTZ (arrow keys, +/-)**                      | LOW      | 30min  | Better PTZ control UX                                                            |
+| 23 | **Camera preset support**                                             | MED      | 2h     | Save/recall PTZ positions                                                        |
+| 24 | **Add coverage threshold to CI**                                      | LOW      | 15min  | Prevent silent coverage regression                                               |
+| 25 | **Migrate to `encoding/json/v2` when available**                      | LOW      | 1h     | Currently skipped (not in Go 1.26 stdlib)                                        |
 
 ---
 

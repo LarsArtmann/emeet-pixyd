@@ -1,7 +1,7 @@
 # emeet-pixyd — Comprehensive Status Report
 
-**Date:** 2026-05-08 00:48  
-**Author:** Crush (GLM-5.1)  
+**Date:** 2026-05-08 00:48\
+**Author:** Crush (GLM-5.1)\
 **Trigger:** Post-session review after cqrs-htmx evaluation + codebase cleanup
 
 ---
@@ -10,8 +10,8 @@
 
 The project is **healthy and production-stable**. All features work. Tests pass with race detector. Lint is 0 issues. Nix build succeeds. This session focused on fixing pre-existing test regressions and applying learnings from the cqrs-htmx library review.
 
-**Coverage:** 72.0% (statements)  
-**Lines of code:** 3,050 (production) + 5,556 (tests)  
+**Coverage:** 72.0% (statements)\
+**Lines of code:** 3,050 (production) + 5,556 (tests)\
 **Open TODO items:** 17 (7 fully done, 2 partial, 8 not started)
 
 ---
@@ -58,20 +58,20 @@ The project is **healthy and production-stable**. All features work. Tests pass 
 
 ## C. NOT STARTED ⬜
 
-| #   | Item                                                                    | Priority | Effort |
-| --- | ----------------------------------------------------------------------- | -------- | ------ |
-| 1   | Eliminate `init()` for Prometheus metrics — lazy registration           | P1       | Small  |
-| 2   | Structured log levels audit                                             | P2       | Small  |
-| 3   | Graceful degradation for missing optional deps                          | P2       | Medium |
-| 4   | Additional Prometheus metrics (stream, frames, commands, probe, uevent) | P2       | Medium |
-| 5   | Circuit breaker for HID failures                                        | P2       | Medium |
-| 6   | Stream health monitoring (frame counter, uptime)                        | P3       | Small  |
-| 7   | Benchmark suite expansion                                               | P3       | Small  |
-| 8   | Continuous fuzz in CI (60s per test)                                    | P3       | Medium |
-| 9   | Extract `Commander` interface for shell commands                        | P3       | Medium |
-| 10  | Extract `HIDDevice` interface for HID I/O                               | P3       | Medium |
-| 11  | Extract `ProcessInspector` interface for /proc                          | P3       | Small  |
-| 12  | Extract `UeventListener` interface for netlink                          | P3       | Small  |
+| #  | Item                                                                    | Priority | Effort |
+| -- | ----------------------------------------------------------------------- | -------- | ------ |
+| 1  | Eliminate `init()` for Prometheus metrics — lazy registration           | P1       | Small  |
+| 2  | Structured log levels audit                                             | P2       | Small  |
+| 3  | Graceful degradation for missing optional deps                          | P2       | Medium |
+| 4  | Additional Prometheus metrics (stream, frames, commands, probe, uevent) | P2       | Medium |
+| 5  | Circuit breaker for HID failures                                        | P2       | Medium |
+| 6  | Stream health monitoring (frame counter, uptime)                        | P3       | Small  |
+| 7  | Benchmark suite expansion                                               | P3       | Small  |
+| 8  | Continuous fuzz in CI (60s per test)                                    | P3       | Medium |
+| 9  | Extract `Commander` interface for shell commands                        | P3       | Medium |
+| 10 | Extract `HIDDevice` interface for HID I/O                               | P3       | Medium |
+| 11 | Extract `ProcessInspector` interface for /proc                          | P3       | Small  |
+| 12 | Extract `UeventListener` interface for netlink                          | P3       | Small  |
 
 ---
 
@@ -113,33 +113,33 @@ The project is **healthy and production-stable**. All features work. Tests pass 
 
 Sorted by impact × effort (Pareto ordering):
 
-| #   | Task                                                                   | Impact  | Effort | Type          |
-| --- | ---------------------------------------------------------------------- | ------- | ------ | ------------- |
-| 1   | Commit or discard the uncommitted test refactoring                     | 🔴 High | 10min  | Fix           |
-| 2   | Fix `withAutoMode` unparam lint (add test with non-Off mode)           | 🟡 Med  | 5min   | Fix           |
-| 3   | Fix pre-commit hook permissions (`chmod +x`)                           | 🟡 Med  | 1min   | Fix           |
-| 4   | Add `String()` method tests for CameraState, AudioMode, AutoMode       | 🟢 Low  | 10min  | Test          |
-| 5   | Add `AutoMode.Activates*()` method tests                               | 🟢 Low  | 10min  | Test          |
-| 6   | Update AGENTS.md with Chain(), PTZValues move, handler dedup           | 🟡 Med  | 5min   | Docs          |
-| 7   | Update TODO_LIST.md — mark completed items                             | 🟡 Med  | 5min   | Docs          |
-| 8   | Eliminate `init()` for Prometheus metrics                              | 🟡 Med  | 30min  | Refactor      |
-| 9   | Structured log levels audit                                            | 🟡 Med  | 20min  | Quality       |
-| 10  | Extract process.go into 3 files (call detection, audio, notifications) | 🟡 Med  | 30min  | Architecture  |
-| 11  | Add command counter Prometheus metric                                  | 🟡 Med  | 30min  | Observability |
-| 12  | Add stream duration/frame Prometheus metrics                           | 🟡 Med  | 30min  | Observability |
-| 13  | Add typed command response struct (replace string returns)             | 🟡 Med  | 60min  | Architecture  |
-| 14  | Add `isDescendantOf` tests with mock /proc                             | 🟡 Med  | 20min  | Test          |
-| 15  | Add HID error path tests (mock hidraw read failures)                   | 🟡 Med  | 30min  | Test          |
-| 16  | Extract `Commander` interface for subprocess calls                     | 🟢 Low  | 60min  | Architecture  |
-| 17  | Circuit breaker for HID failures                                       | 🟢 Low  | 45min  | Reliability   |
-| 18  | Stream health monitoring                                               | 🟢 Low  | 30min  | Observability |
-| 19  | Expand benchmark suite                                                 | 🟢 Low  | 30min  | Quality       |
-| 20  | Continuous fuzz in CI (60s per target)                                 | 🟢 Low  | 45min  | CI            |
-| 21  | Graceful degradation for missing optional deps                         | 🟢 Low  | 45min  | Reliability   |
-| 22  | Extract `HIDDevice` interface                                          | 🟢 Low  | 60min  | Architecture  |
-| 23  | Extract `ProcessInspector` interface                                   | 🟢 Low  | 30min  | Architecture  |
-| 24  | Extract `UeventListener` interface                                     | 🟢 Low  | 30min  | Architecture  |
-| 25  | Web UI accessibility audit (ARIA, focus management)                    | 🟢 Low  | 60min  | UX            |
+| #  | Task                                                                   | Impact  | Effort | Type          |
+| -- | ---------------------------------------------------------------------- | ------- | ------ | ------------- |
+| 1  | Commit or discard the uncommitted test refactoring                     | 🔴 High | 10min  | Fix           |
+| 2  | Fix `withAutoMode` unparam lint (add test with non-Off mode)           | 🟡 Med  | 5min   | Fix           |
+| 3  | Fix pre-commit hook permissions (`chmod +x`)                           | 🟡 Med  | 1min   | Fix           |
+| 4  | Add `String()` method tests for CameraState, AudioMode, AutoMode       | 🟢 Low  | 10min  | Test          |
+| 5  | Add `AutoMode.Activates*()` method tests                               | 🟢 Low  | 10min  | Test          |
+| 6  | Update AGENTS.md with Chain(), PTZValues move, handler dedup           | 🟡 Med  | 5min   | Docs          |
+| 7  | Update TODO_LIST.md — mark completed items                             | 🟡 Med  | 5min   | Docs          |
+| 8  | Eliminate `init()` for Prometheus metrics                              | 🟡 Med  | 30min  | Refactor      |
+| 9  | Structured log levels audit                                            | 🟡 Med  | 20min  | Quality       |
+| 10 | Extract process.go into 3 files (call detection, audio, notifications) | 🟡 Med  | 30min  | Architecture  |
+| 11 | Add command counter Prometheus metric                                  | 🟡 Med  | 30min  | Observability |
+| 12 | Add stream duration/frame Prometheus metrics                           | 🟡 Med  | 30min  | Observability |
+| 13 | Add typed command response struct (replace string returns)             | 🟡 Med  | 60min  | Architecture  |
+| 14 | Add `isDescendantOf` tests with mock /proc                             | 🟡 Med  | 20min  | Test          |
+| 15 | Add HID error path tests (mock hidraw read failures)                   | 🟡 Med  | 30min  | Test          |
+| 16 | Extract `Commander` interface for subprocess calls                     | 🟢 Low  | 60min  | Architecture  |
+| 17 | Circuit breaker for HID failures                                       | 🟢 Low  | 45min  | Reliability   |
+| 18 | Stream health monitoring                                               | 🟢 Low  | 30min  | Observability |
+| 19 | Expand benchmark suite                                                 | 🟢 Low  | 30min  | Quality       |
+| 20 | Continuous fuzz in CI (60s per target)                                 | 🟢 Low  | 45min  | CI            |
+| 21 | Graceful degradation for missing optional deps                         | 🟢 Low  | 45min  | Reliability   |
+| 22 | Extract `HIDDevice` interface                                          | 🟢 Low  | 60min  | Architecture  |
+| 23 | Extract `ProcessInspector` interface                                   | 🟢 Low  | 30min  | Architecture  |
+| 24 | Extract `UeventListener` interface                                     | 🟢 Low  | 30min  | Architecture  |
+| 25 | Web UI accessibility audit (ARIA, focus management)                    | 🟢 Low  | 60min  | UX            |
 
 ---
 

@@ -1,9 +1,9 @@
 # emeet-pixyd — Session 10 Status Report
 
-**Date:** 2026-06-14 15:21+02:00  
-**Branch:** `master`  
-**HEAD:** `16729aa`  
-**Upstream:** in sync with `origin/master`  
+**Date:** 2026-06-14 15:21+02:00\
+**Branch:** `master`\
+**HEAD:** `16729aa`\
+**Upstream:** in sync with `origin/master`\
 **Session focus:** Execute fixes discovered during the brutal self-review started in Session 9.
 
 ---
@@ -124,33 +124,33 @@ Current remaining risks that could become "fucked up" if ignored:
 
 ## f) Top #25 things we should get done next!
 
-| #   | Priority | Task                                                                               | Owner | Estimate |
-| --- | -------- | ---------------------------------------------------------------------------------- | ----- | -------- |
-| 1   | **P0**   | Split `cmdMu` from HID I/O serialization to unblock commands during HID stalls     | TBD   | 4h       |
-| 2   | **P0**   | Build fake device harness for `stream.go`/`hid.go`/`process.go` integration tests  | TBD   | 6h       |
-| 3   | **P1**   | Unify `DefaultConfig()` and `DefaultState()` default values                        | TBD   | 1h       |
-| 4   | **P1**   | Add CI fuzz step (60s per target, cache corpus)                                    | TBD   | 1h       |
-| 5   | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                                        | TBD   | 3h       |
-| 6   | **P1**   | Structured log levels audit                                                        | TBD   | 2h       |
-| 7   | **P1**   | WebSocket/SSE live state updates                                                   | TBD   | 4h       |
-| 8   | **P2**   | Mobile-responsive web UI polish                                                    | TBD   | 3h       |
-| 9   | **P2**   | Camera preset support (save/recall PTZ positions)                                  | TBD   | 4h       |
-| 10  | **P2**   | Extract `Commander` interface for external binaries                                | TBD   | 3h       |
-| 11  | **P2**   | Extract `ProcessInspector` interface for `/proc` scanning                          | TBD   | 2h       |
-| 12  | **P2**   | Extract `UeventListener` interface for netlink                                     | TBD   | 2h       |
-| 13  | **P2**   | Improve MJPEG stream reconnection on transient errors                              | TBD   | 2h       |
-| 14  | **P2**   | PTZ readback accuracy: delay or in-memory last-set value                           | TBD   | 2h       |
-| 15  | **P2**   | Real-hardware integration test (build-tag guarded)                                 | TBD   | 4h       |
-| 16  | **P3**   | `PTZValues.Get` should return `(int, bool)`                                        | TBD   | 1h       |
-| 17  | **P3**   | Surface `setSource` errors in `handleCallStart`                                    | TBD   | 1h       |
-| 18  | **P3**   | Name `stateSetter` type and document contract                                      | TBD   | 30m      |
-| 19  | **P3**   | Add invariant tests for `State.Valid()` / `Config.Validate()`                      | TBD   | 1h       |
-| 20  | **P3**   | Remove dead `metricsInstance.promExporter` production field or move to test helper | TBD   | 1h       |
-| 21  | **P3**   | Add coverage for `uevent.go` listener paths (currently 0%)                         | TBD   | 2h       |
-| 22  | **P3**   | Add coverage for `hidrawDevice.SendRecv` timeout path                              | TBD   | 2h       |
-| 23  | **P3**   | Add coverage for `v4l2Set` error path                                              | TBD   | 1h       |
-| 24  | **P3**   | Investigate `go-error-family` indirect dependency warning                          | TBD   | 30m      |
-| 25  | **P3**   | Update `AGENTS.md` with Session 10 findings and current test file inventory        | TBD   | 30m      |
+| #  | Priority | Task                                                                               | Owner | Estimate |
+| -- | -------- | ---------------------------------------------------------------------------------- | ----- | -------- |
+| 1  | **P0**   | Split `cmdMu` from HID I/O serialization to unblock commands during HID stalls     | TBD   | 4h       |
+| 2  | **P0**   | Build fake device harness for `stream.go`/`hid.go`/`process.go` integration tests  | TBD   | 6h       |
+| 3  | **P1**   | Unify `DefaultConfig()` and `DefaultState()` default values                        | TBD   | 1h       |
+| 4  | **P1**   | Add CI fuzz step (60s per target, cache corpus)                                    | TBD   | 1h       |
+| 5  | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                                        | TBD   | 3h       |
+| 6  | **P1**   | Structured log levels audit                                                        | TBD   | 2h       |
+| 7  | **P1**   | WebSocket/SSE live state updates                                                   | TBD   | 4h       |
+| 8  | **P2**   | Mobile-responsive web UI polish                                                    | TBD   | 3h       |
+| 9  | **P2**   | Camera preset support (save/recall PTZ positions)                                  | TBD   | 4h       |
+| 10 | **P2**   | Extract `Commander` interface for external binaries                                | TBD   | 3h       |
+| 11 | **P2**   | Extract `ProcessInspector` interface for `/proc` scanning                          | TBD   | 2h       |
+| 12 | **P2**   | Extract `UeventListener` interface for netlink                                     | TBD   | 2h       |
+| 13 | **P2**   | Improve MJPEG stream reconnection on transient errors                              | TBD   | 2h       |
+| 14 | **P2**   | PTZ readback accuracy: delay or in-memory last-set value                           | TBD   | 2h       |
+| 15 | **P2**   | Real-hardware integration test (build-tag guarded)                                 | TBD   | 4h       |
+| 16 | **P3**   | `PTZValues.Get` should return `(int, bool)`                                        | TBD   | 1h       |
+| 17 | **P3**   | Surface `setSource` errors in `handleCallStart`                                    | TBD   | 1h       |
+| 18 | **P3**   | Name `stateSetter` type and document contract                                      | TBD   | 30m      |
+| 19 | **P3**   | Add invariant tests for `State.Valid()` / `Config.Validate()`                      | TBD   | 1h       |
+| 20 | **P3**   | Remove dead `metricsInstance.promExporter` production field or move to test helper | TBD   | 1h       |
+| 21 | **P3**   | Add coverage for `uevent.go` listener paths (currently 0%)                         | TBD   | 2h       |
+| 22 | **P3**   | Add coverage for `hidrawDevice.SendRecv` timeout path                              | TBD   | 2h       |
+| 23 | **P3**   | Add coverage for `v4l2Set` error path                                              | TBD   | 1h       |
+| 24 | **P3**   | Investigate `go-error-family` indirect dependency warning                          | TBD   | 30m      |
+| 25 | **P3**   | Update `AGENTS.md` with Session 10 findings and current test file inventory        | TBD   | 30m      |
 
 ---
 
@@ -188,20 +188,20 @@ I picked the second because it matches the existing comment in `AGENTS.md` ("per
 ## Files changed since Session 9 base (`d933ae8`)
 
 ```
- auto.go              |  2 +-
- commands.go          |  4 +---
- device.go            |  2 +-
- flake.nix            | 15 ++++++++++++++-
- hid.go               | 12 ++++++++++++
- hid_fuzz_test.go     |  4 ----
- hid_test.go          | 33 +++++++++++++++++++++++++++++----
- main.go              | 21 ++++++++++++++-------
- probe.go             | 19 +++++++++++++++----
- probe_hidraw_test.go | 17 ++++++++++++++++-
- ptz.go               |  5 +++++
- state.go             | 20 ++++++++++++++++----
- state_test.go        | 43 +++++++++++++++++++++++++++++++++++++++++--
- stream.go            |  7 +++++++
+auto.go              |  2 +-
+commands.go          |  4 +---
+device.go            |  2 +-
+flake.nix            | 15 ++++++++++++++-
+hid.go               | 12 ++++++++++++
+hid_fuzz_test.go     |  4 ----
+hid_test.go          | 33 +++++++++++++++++++++++++++++----
+main.go              | 21 ++++++++++++++-------
+probe.go             | 19 +++++++++++++++----
+probe_hidraw_test.go | 17 ++++++++++++++++-
+ptz.go               |  5 +++++
+state.go             | 20 ++++++++++++++++----
+state_test.go        | 43 +++++++++++++++++++++++++++++++++++++++++--
+stream.go            |  7 +++++++
 ```
 
 ---
@@ -210,8 +210,8 @@ I picked the second because it matches the existing comment in `AGENTS.md` ("per
 
 | File           | Status     | Notes                                                                                                                                               |
 | -------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AGENTS.md`    | ⚠️ Stale   | Last updated 2026-06-05; needs Session 10 changes added (new test files, `applyProbeResultLocked`, `loadState` bool return, env-default semantics). |
-| `TODO_LIST.md` | ⚠️ Stale   | Last updated 2026-06-06; needs new regression-test tasks and closure of completed items.                                                            |
+| `AGENTS.md`    | ⚠️ Stale    | Last updated 2026-06-05; needs Session 10 changes added (new test files, `applyProbeResultLocked`, `loadState` bool return, env-default semantics). |
+| `TODO_LIST.md` | ⚠️ Stale    | Last updated 2026-06-06; needs new regression-test tasks and closure of completed items.                                                            |
 | `FEATURES.md`  | ✅ Current | Feature inventory still accurate.                                                                                                                   |
 | `CHANGELOG.md` | ✅ Current | No release since 0.3.0; bug fixes are in commit log.                                                                                                |
 | `README.md`    | ✅ Current | Usage unaffected.                                                                                                                                   |

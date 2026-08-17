@@ -50,15 +50,15 @@ All 44 features in `FEATURES.md` are ✅ FULLY_FUNCTIONAL. Zero partial, zero br
 
 7 items completed in the previous session:
 
-| #   | Item                                                                                              | Commit    |
-| --- | ------------------------------------------------------------------------------------------------- | --------- |
-| 13  | `init()` elimination — lazy OTel registration via `sync.Once`                                     | `0f1d710` |
-| 19  | Benchmark suite — 7 benchmarks (JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced) | `71ec956` |
-| 25  | `probeDevices()` pure function returning `probeResult`                                            | `d4dae5e` |
-| 37  | Named cache types (`lastFrameCache`, `ptzCache`) in `cache.go`                                    | `edacfd3` |
-| 41  | PTZ axis dispatch into `ptzAxes` lookup table                                                     | `5e7bf44` |
-| 57  | Toast spam suppression during PTZ slider drag                                                     | `e60c37a` |
-| +   | `PTZValues.Clamp()` method for type-safe clamping                                                 | `9c6161c` |
+| #  | Item                                                                                              | Commit    |
+| -- | ------------------------------------------------------------------------------------------------- | --------- |
+| 13 | `init()` elimination — lazy OTel registration via `sync.Once`                                     | `0f1d710` |
+| 19 | Benchmark suite — 7 benchmarks (JPEG, HID, Waybar, HandleCommand, GetWebStatus, FormatLastSynced) | `71ec956` |
+| 25 | `probeDevices()` pure function returning `probeResult`                                            | `d4dae5e` |
+| 37 | Named cache types (`lastFrameCache`, `ptzCache`) in `cache.go`                                    | `edacfd3` |
+| 41 | PTZ axis dispatch into `ptzAxes` lookup table                                                     | `5e7bf44` |
+| 57 | Toast spam suppression during PTZ slider drag                                                     | `e60c37a` |
+| +  | `PTZValues.Clamp()` method for type-safe clamping                                                 | `9c6161c` |
 
 ### TODO List Progress
 
@@ -185,43 +185,43 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Quick Fixes (30 min total, high confidence)
 
-| #   | Item                                                                     | Impact                       | Effort |
-| --- | ------------------------------------------------------------------------ | ---------------------------- | ------ |
-| 1   | Replace `panic("unreachable")` in `handleQueryCommand` with error return | 🔴 Prevents runtime crash    | 2 min  |
-| 2   | Add nil Process guard in `cleanupFFmpeg`                                 | 🔴 Prevents panic            | 2 min  |
-| 3   | Cap debounce counters at `debounceCount`                                 | 🟡 Prevents counter overflow | 2 min  |
-| 4   | Extract `"error: "` to named constant in `errors.go`                     | 🟢 Code clarity              | 1 min  |
-| 5   | Remove dead `StateOffline` case in `cameraHIDByte`                       | 🟢 Dead code removal         | 1 min  |
-| 6   | Remove redundant zero-value initializations in `NewDaemon`               | 🟢 Code clarity              | 2 min  |
-| 7   | Remove duplicate `X-Content-Type-Options` from `cachingFS`               | 🟢 Correctness               | 1 min  |
-| 8   | Use sorted iteration in `v4l2SetMultiple`                                | 🟢 Determinism               | 3 min  |
-| 9   | Consolidate `hasPixyProduct`/`hasPixyVendorProduct`                      | 🟢 Dedup                     | 5 min  |
-| 10  | Fix waybar idle class to use `string(pixy.StateIdle)`                    | 🟢 Type consistency          | 2 min  |
-| 11  | Remove stale `exhaustruct` nolint from `NewDaemon`                       | 🟢 Cleanup                   | 1 min  |
-| 12  | Document config overrides persisted state in `NewDaemon`                 | 🟢 Documentation             | 2 min  |
-| 13  | Add logging for partial device matches in `probeDevices`                 | 🟢 Debuggability             | 3 min  |
+| #  | Item                                                                     | Impact                       | Effort |
+| -- | ------------------------------------------------------------------------ | ---------------------------- | ------ |
+| 1  | Replace `panic("unreachable")` in `handleQueryCommand` with error return | 🔴 Prevents runtime crash    | 2 min  |
+| 2  | Add nil Process guard in `cleanupFFmpeg`                                 | 🔴 Prevents panic            | 2 min  |
+| 3  | Cap debounce counters at `debounceCount`                                 | 🟡 Prevents counter overflow | 2 min  |
+| 4  | Extract `"error: "` to named constant in `errors.go`                     | 🟢 Code clarity              | 1 min  |
+| 5  | Remove dead `StateOffline` case in `cameraHIDByte`                       | 🟢 Dead code removal         | 1 min  |
+| 6  | Remove redundant zero-value initializations in `NewDaemon`               | 🟢 Code clarity              | 2 min  |
+| 7  | Remove duplicate `X-Content-Type-Options` from `cachingFS`               | 🟢 Correctness               | 1 min  |
+| 8  | Use sorted iteration in `v4l2SetMultiple`                                | 🟢 Determinism               | 3 min  |
+| 9  | Consolidate `hasPixyProduct`/`hasPixyVendorProduct`                      | 🟢 Dedup                     | 5 min  |
+| 10 | Fix waybar idle class to use `string(pixy.StateIdle)`                    | 🟢 Type consistency          | 2 min  |
+| 11 | Remove stale `exhaustruct` nolint from `NewDaemon`                       | 🟢 Cleanup                   | 1 min  |
+| 12 | Document config overrides persisted state in `NewDaemon`                 | 🟢 Documentation             | 2 min  |
+| 13 | Add logging for partial device matches in `probeDevices`                 | 🟢 Debuggability             | 3 min  |
 
 ### Tier 2: Testability & UX (1-2 hours)
 
-| #   | Item                                                | Impact          | Effort |
-| --- | --------------------------------------------------- | --------------- | ------ |
-| 14  | Fix `centerCamera` to use `v4l2SetFn` DI            | 🟡 Testability  | 15 min |
-| 15  | Add `--help`/`-h` flag to CLI                       | 🟡 UX           | 15 min |
-| 16  | Update/archive `SUPERB_ROADMAP.md` (items #40, #61) | 🟢 Doc accuracy | 20 min |
+| #  | Item                                                | Impact          | Effort |
+| -- | --------------------------------------------------- | --------------- | ------ |
+| 14 | Fix `centerCamera` to use `v4l2SetFn` DI            | 🟡 Testability  | 15 min |
+| 15 | Add `--help`/`-h` flag to CLI                       | 🟡 UX           | 15 min |
+| 16 | Update/archive `SUPERB_ROADMAP.md` (items #40, #61) | 🟢 Doc accuracy | 20 min |
 
 ### Tier 3: Architecture (future sessions)
 
-| #   | Item                                                              | Impact                 | Effort |
-| --- | ----------------------------------------------------------------- | ---------------------- | ------ |
-| 17  | Consolidate 9 function pointers into `Dependencies` interface     | 🔴 Compile-time safety | 2-3h   |
-| 18  | Replace `handleCommand(string) string` with typed `CommandResult` | 🔴 Type safety         | 2-3h   |
-| 19  | Consolidate PTZ logic into `ptz.go`                               | 🟡 Maintainability     | 1h     |
-| 20  | Extract `Commander` interface for shell commands                  | 🟡 Testability         | 1h     |
-| 21  | Mobile-responsive web UI layout                                   | 🟡 UX                  | 1h     |
-| 22  | WebSocket for live state updates                                  | 🟢 Real-time UX        | 2h     |
-| 23  | Additional Prometheus metrics                                     | 🟢 Observability       | 1h     |
-| 24  | Circuit breaker for HID failures                                  | 🟢 Reliability         | 1h     |
-| 25  | Integration test harness with fake devices                        | 🟡 Test coverage       | 2-3h   |
+| #  | Item                                                              | Impact                 | Effort |
+| -- | ----------------------------------------------------------------- | ---------------------- | ------ |
+| 17 | Consolidate 9 function pointers into `Dependencies` interface     | 🔴 Compile-time safety | 2-3h   |
+| 18 | Replace `handleCommand(string) string` with typed `CommandResult` | 🔴 Type safety         | 2-3h   |
+| 19 | Consolidate PTZ logic into `ptz.go`                               | 🟡 Maintainability     | 1h     |
+| 20 | Extract `Commander` interface for shell commands                  | 🟡 Testability         | 1h     |
+| 21 | Mobile-responsive web UI layout                                   | 🟡 UX                  | 1h     |
+| 22 | WebSocket for live state updates                                  | 🟢 Real-time UX        | 2h     |
+| 23 | Additional Prometheus metrics                                     | 🟢 Observability       | 1h     |
+| 24 | Circuit breaker for HID failures                                  | 🟢 Reliability         | 1h     |
+| 25 | Integration test harness with fake devices                        | 🟡 Test coverage       | 2-3h   |
 
 ---
 

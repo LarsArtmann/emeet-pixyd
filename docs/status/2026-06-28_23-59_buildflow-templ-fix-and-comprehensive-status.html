@@ -52,14 +52,14 @@
         --radius: 0px;
         --radius-sm: 0px;
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -270,15 +270,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -290,15 +302,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -636,9 +660,9 @@
           <h1>emeet-pixyd Comprehensive Status</h1>
           <p class="hero-subtitle">
             Snapshot after restoring the build pipeline from an empty
-            <code>templates_templ.go</code> failure. BuildFlow 40/40 green, race tests pass, 49/49
-            features fully functional. 20 TODOs remain, mostly architectural extraction and
-            hardware-in-the-loop testing.
+            <code>templates_templ.go</code> failure. BuildFlow 40/40 green, race
+            tests pass, 49/49 features fully functional. 20 TODOs remain, mostly
+            architectural extraction and hardware-in-the-loop testing.
           </p>
         </div>
 
@@ -690,9 +714,9 @@
           <div class="where">templates_templ.go:1:1</div>
           <p>
             The generated templ file existed but was empty/EOF. Running
-            <code>templ generate</code> regenerated 970 lines of valid Go; subsequent
-            <code>buildflow --build-mode=dev</code> and <code>buildflow -s test-race</code> both
-            passed.
+            <code>templ generate</code> regenerated 970 lines of valid Go;
+            subsequent <code>buildflow --build-mode=dev</code> and
+            <code>buildflow -s test-race</code> both passed.
           </p>
         </div>
 
@@ -705,8 +729,8 @@
             <div class="text">
               <strong>Camera control suite</strong>
               <span
-                >Tracking, idle, privacy, toggle privacy, center, PTZ sliders/CLI/relative/keyboard
-                all verified in FEATURES.md.</span
+                >Tracking, idle, privacy, toggle privacy, center, PTZ
+                sliders/CLI/relative/keyboard all verified in FEATURES.md.</span
               >
             </div>
           </div>
@@ -714,7 +738,10 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Audio management</strong>
-              <span>NC/Live/Original modes via HID, PipeWire source switching on call start.</span>
+              <span
+                >NC/Live/Original modes via HID, PipeWire source switching on
+                call start.</span
+              >
             </div>
           </div>
           <div class="strength">
@@ -722,8 +749,8 @@
             <div class="text">
               <strong>Auto-management</strong>
               <span
-                >/proc fd scanning, debounced state transitions, four auto modes, systemd
-                notifications.</span
+                >/proc fd scanning, debounced state transitions, four auto
+                modes, systemd notifications.</span
               >
             </div>
           </div>
@@ -732,8 +759,8 @@
             <div class="text">
               <strong>Web UI</strong>
               <span
-                >HTMX SSE live updates, MJPEG preview, security headers, keyboard shortcuts, dark
-                glassmorphism theme.</span
+                >HTMX SSE live updates, MJPEG preview, security headers,
+                keyboard shortcuts, dark glassmorphism theme.</span
               >
             </div>
           </div>
@@ -742,8 +769,8 @@
             <div class="text">
               <strong>Build &amp; packaging</strong>
               <span
-                >Nix flake builds cleanly with <code>proxyVendor=true</code>; lint, test, and fuzz
-                checks all green.</span
+                >Nix flake builds cleanly with <code>proxyVendor=true</code>;
+                lint, test, and fuzz checks all green.</span
               >
             </div>
           </div>
@@ -752,8 +779,8 @@
             <div class="text">
               <strong>cqrs-htmx removal hardened</strong>
               <span
-                >Local SSE Broadcaster, middleware, embedded HTMX, 9 SSE unit tests, updated
-                vendorHash.</span
+                >Local SSE Broadcaster, middleware, embedded HTMX, 9 SSE unit
+                tests, updated vendorHash.</span
               >
             </div>
           </div>
@@ -761,9 +788,9 @@
 
         <h3>Quality Sweep Items (55/76 TODO_LIST.md)</h3>
         <p>
-          All Phase 1 quick wins, Phase 2 decomposition, Phase 3 observability, Phase 4 partially
-          complete, Phase 7 code nits, and Phase 8 audit fixes are done. See TODO_LIST.md lines
-          20–136 for the full checklist.
+          All Phase 1 quick wins, Phase 2 decomposition, Phase 3 observability,
+          Phase 4 partially complete, Phase 7 code nits, and Phase 8 audit fixes
+          are done. See TODO_LIST.md lines 20–136 for the full checklist.
         </p>
 
         <h2 id="partial"><span class="num">02</span>Partially Done</h2>
@@ -771,28 +798,34 @@
         <div class="card card-warning">
           <h4>Architectural interfaces (Phase 4)</h4>
           <p>
-            <code>Commander</code> interface extracted in <code>commander.go</code> for subprocess
-            calls, but only covers command execution — not full orchestration of
-            <code>wpctl</code>/<code>v4l2-ctl</code>/<code>ffmpeg</code>/<code>notify-send</code>
-            policy. <code>HIDDevice</code> interface is complete; <code>ProcessInspector</code>,
-            <code>UeventListener</code>, and fake-device abstractions not started.
+            <code>Commander</code> interface extracted in
+            <code>commander.go</code> for subprocess calls, but only covers
+            command execution — not full orchestration of
+            <code>wpctl</code>/<code>v4l2-ctl</code>/<code>ffmpeg</code>/<code
+              >notify-send</code
+            >
+            policy. <code>HIDDevice</code> interface is complete;
+            <code>ProcessInspector</code>, <code>UeventListener</code>, and
+            fake-device abstractions not started.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>PTZ readback accuracy</h4>
           <p>
-            Cache is updated with set values immediately, but true in-memory "last set" tracking and
-            delayed hardware readback validation are not implemented. Relative PTZ tests require a
-            deterministic stub to avoid real <code>/dev/video0</code> flakiness.
+            Cache is updated with set values immediately, but true in-memory
+            "last set" tracking and delayed hardware readback validation are not
+            implemented. Relative PTZ tests require a deterministic stub to
+            avoid real <code>/dev/video0</code> flakiness.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Mobile-responsive layout</h4>
           <p>
-            The CSS grid collapses on narrow viewports via media query, but no dedicated mobile UX
-            audit has been performed. The current responsive behavior is incidental, not designed.
+            The CSS grid collapses on narrow viewports via media query, but no
+            dedicated mobile UX audit has been performed. The current responsive
+            behavior is incidental, not designed.
           </p>
         </div>
 
@@ -811,13 +844,18 @@
             <tbody>
               <tr>
                 <td>1</td>
-                <td>Extract <code>ProcessInspector</code> interface for /proc traversal</td>
+                <td>
+                  Extract <code>ProcessInspector</code> interface for /proc
+                  traversal
+                </td>
                 <td>Roadmap 1.3</td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
               <tr>
                 <td>2</td>
-                <td>Extract <code>UeventListener</code> interface for netlink</td>
+                <td>
+                  Extract <code>UeventListener</code> interface for netlink
+                </td>
                 <td>Roadmap 1.4</td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
@@ -829,15 +867,18 @@
               </tr>
               <tr>
                 <td>4</td>
-                <td>Integration test harness with fake HID + fake video devices</td>
+                <td>
+                  Integration test harness with fake HID + fake video devices
+                </td>
                 <td>Roadmap 6.1</td>
                 <td><span class="badge badge-high">High</span></td>
               </tr>
               <tr>
                 <td>5</td>
                 <td>
-                  Test coverage for <code>stream.go</code>, <code>process.go</code>,
-                  <code>hid.go</code> real hardware paths
+                  Test coverage for <code>stream.go</code>,
+                  <code>process.go</code>, <code>hid.go</code> real hardware
+                  paths
                 </td>
                 <td>Status E.2</td>
                 <td><span class="badge badge-high">High</span></td>
@@ -896,20 +937,23 @@
           <div class="where">templates_templ.go</div>
           <p>
             The project gitignines <code>*_templ.go</code>, and BuildFlow's
-            <code>templ-generate</code> step should recreate it. Today it produced an empty file
-            instead, causing the first Go compile to fail with
-            <code>expected 'package', found 'EOF'</code>. The root cause is unknown — possibly a
-            race between formatter and generator, or a transient templ daemon state.
+            <code>templ-generate</code> step should recreate it. Today it
+            produced an empty file instead, causing the first Go compile to fail
+            with <code>expected 'package', found 'EOF'</code>. The root cause is
+            unknown — possibly a race between formatter and generator, or a
+            transient templ daemon state.
           </p>
           <div class="callout callout-problem">
             <strong>Why it matters</strong>
-            CI and local builds depend on generated code that is not tracked. If generation flakes,
-            every contributor hits a cryptic compile error and loses trust in the build.
+            CI and local builds depend on generated code that is not tracked. If
+            generation flakes, every contributor hits a cryptic compile error
+            and loses trust in the build.
           </div>
           <div class="callout callout-solution">
             <strong>Fix applied</strong>
-            Ran <code>templ generate</code> manually and verified the file regenerated 970 lines.
-            BuildFlow now passes, but the flake source is not fixed.
+            Ran <code>templ generate</code> manually and verified the file
+            regenerated 970 lines. BuildFlow now passes, but the flake source is
+            not fixed.
           </div>
         </div>
 
@@ -918,10 +962,10 @@
           <h3>BuildFlow CLI hint is misleading</h3>
           <div class="where">buildflow output footer</div>
           <p>
-            Both successful runs end with the tip <code>buildflow dev</code>, but
-            <code>buildflow dev</code> is not a valid subcommand. The correct invocation is
-            <code>buildflow --build-mode=dev</code>. This wastes time and erodes confidence in the
-            tool's own guidance.
+            Both successful runs end with the tip <code>buildflow dev</code>,
+            but <code>buildflow dev</code> is not a valid subcommand. The
+            correct invocation is <code>buildflow --build-mode=dev</code>. This
+            wastes time and erodes confidence in the tool's own guidance.
           </p>
         </div>
 
@@ -930,9 +974,10 @@
           <h3>Five tools are stuck in check-only mode</h3>
           <div class="where">buildflow --build-mode=dev</div>
           <p>
-            BuildFlow reports "5 tool(s) in check-only mode (use --fix to apply fixes)". These are
-            likely formatters/linters that could auto-fix issues but are not configured to do so in
-            default runs, leaving manual cleanup work on the table.
+            BuildFlow reports "5 tool(s) in check-only mode (use --fix to apply
+            fixes)". These are likely formatters/linters that could auto-fix
+            issues but are not configured to do so in default runs, leaving
+            manual cleanup work on the table.
           </p>
         </div>
 
@@ -942,41 +987,46 @@
           <div class="card card-warning">
             <h4>Reliability</h4>
             <p>
-              Make templ generation idempotent and verified. Add a post-generation sanity check
-              (file size &gt; 0, contains <code>package main</code>) before allowing the build to
-              proceed.
+              Make templ generation idempotent and verified. Add a
+              post-generation sanity check (file size &gt; 0, contains
+              <code>package main</code>) before allowing the build to proceed.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Coverage</h4>
             <p>
               The 73.2% coverage is dragged down by hardware-facing paths in
-              <code>stream.go</code>, <code>process.go</code>, and <code>hid.go</code>. Introduce
-              interface seams and fake implementations to push coverage above 80% without requiring
-              a physical PIXY.
+              <code>stream.go</code>, <code>process.go</code>, and
+              <code>hid.go</code>. Introduce interface seams and fake
+              implementations to push coverage above 80% without requiring a
+              physical PIXY.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Documentation hygiene</h4>
             <p>
-              AGENTS.md, TODO_LIST.md, and CHANGELOG.md were last updated 2026-06-21. Today's templ
-              fix and BuildFlow behavior observations should be folded back into AGENTS.md gotchas.
+              AGENTS.md, TODO_LIST.md, and CHANGELOG.md were last updated
+              2026-06-21. Today's templ fix and BuildFlow behavior observations
+              should be folded back into AGENTS.md gotchas.
             </p>
           </div>
           <div class="card card-warning">
             <h4>Tooling messaging</h4>
             <p>
-              Fix or suppress the <code>buildflow dev</code> hint and clarify which 5 tools are
-              check-only so contributors know whether to run <code>--fix</code>.
+              Fix or suppress the <code>buildflow dev</code> hint and clarify
+              which 5 tools are check-only so contributors know whether to run
+              <code>--fix</code>.
             </p>
           </div>
         </div>
 
-        <h2 id="next"><span class="num">06</span>Top #25 Things to Get Done Next</h2>
+        <h2 id="next">
+          <span class="num">06</span>Top #25 Things to Get Done Next
+        </h2>
 
         <p>
-          Sorted by impact first, effort second. P0 = unblock contributors, P1 = architecture debt,
-          P2 = polish and test depth.
+          Sorted by impact first, effort second. P0 = unblock contributors, P1 =
+          architecture debt, P2 = polish and test depth.
         </p>
 
         <div class="table-wrap">
@@ -1001,7 +1051,9 @@
               <tr>
                 <td>2</td>
                 <td><span class="badge badge-critical">P0</span></td>
-                <td>Fix or remove misleading <code>buildflow dev</code> hint</td>
+                <td>
+                  Fix or remove misleading <code>buildflow dev</code> hint
+                </td>
                 <td>Restores trust in build tool output.</td>
                 <td><span class="badge badge-low">Tiny</span></td>
               </tr>
@@ -1086,7 +1138,8 @@
                 <td>14</td>
                 <td><span class="badge badge-low">P3</span></td>
                 <td>
-                  Move <code>SSEEvent</code> + <code>toastType</code> to <code>internal/pixy</code>
+                  Move <code>SSEEvent</code> + <code>toastType</code> to
+                  <code>internal/pixy</code>
                 </td>
                 <td>Cleaner domain boundaries.</td>
                 <td><span class="badge badge-low">Small</span></td>
@@ -1109,7 +1162,9 @@
                 <td>17</td>
                 <td><span class="badge badge-low">P3</span></td>
                 <td>Clarify which 5 tools are check-only</td>
-                <td>Helps contributors decide when to use <code>--fix</code>.</td>
+                <td>
+                  Helps contributors decide when to use <code>--fix</code>.
+                </td>
                 <td><span class="badge badge-low">Tiny</span></td>
               </tr>
               <tr>
@@ -1137,13 +1192,17 @@
                 <td>21</td>
                 <td><span class="badge badge-low">P3</span></td>
                 <td>Document BuildFlow correct invocation in AGENTS.md</td>
-                <td>Replaces incorrect <code>buildflow dev</code> muscle memory.</td>
+                <td>
+                  Replaces incorrect <code>buildflow dev</code> muscle memory.
+                </td>
                 <td><span class="badge badge-low">Tiny</span></td>
               </tr>
               <tr>
                 <td>22</td>
                 <td><span class="badge badge-low">P3</span></td>
-                <td>Investigate <code>go.sum</code> modification on every run</td>
+                <td>
+                  Investigate <code>go.sum</code> modification on every run
+                </td>
                 <td>Uncommitted go.sum changes suggest toolchain drift.</td>
                 <td><span class="badge badge-low">Small</span></td>
               </tr>
@@ -1172,35 +1231,43 @@
           </table>
         </div>
 
-        <h2 id="question"><span class="num">07</span>Top #1 Question I Cannot Figure Out Myself</h2>
+        <h2 id="question">
+          <span class="num">07</span>Top #1 Question I Cannot Figure Out Myself
+        </h2>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Unanswered</span>
-          <h3>Why did templ generate produce an empty <code>templates_templ.go</code>?</h3>
+          <h3>
+            Why did templ generate produce an empty
+            <code>templates_templ.go</code>?
+          </h3>
           <div class="where">templates_templ.go</div>
           <p>
-            The file existed at 42,968 bytes but the Go compiler saw EOF at line 1, column 1. After
-            running <code>templ generate</code> again it grew to 970 lines and compiled. I cannot
-            determine whether the empty state was caused by:
+            The file existed at 42,968 bytes but the Go compiler saw EOF at line
+            1, column 1. After running <code>templ generate</code> again it grew
+            to 970 lines and compiled. I cannot determine whether the empty
+            state was caused by:
           </p>
           <ul style="margin: 0 0 1rem 1.2rem; color: var(--text-muted)">
             <li>
-              a race between <code>templ generate</code> and a formatter step truncating the file,
+              a race between <code>templ generate</code> and a formatter step
+              truncating the file,
             </li>
             <li>a stale templ language-server/daemon state,</li>
             <li>a partial write or crash during an earlier generation, or</li>
             <li>a file-size vs content mismatch in the error message.</li>
           </ul>
           <p>
-            Reproducing it requires running the generation step many times and inspecting the file
-            before Go compilation. Should I add a defensive generator check, or do you want to
-            investigate the root cause first?
+            Reproducing it requires running the generation step many times and
+            inspecting the file before Go compilation. Should I add a defensive
+            generator check, or do you want to investigate the root cause first?
           </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-28 23:59 CEST &middot; Branch master @ 1c4fc0c &middot; BuildFlow 40/40
-          &middot; Race tests passing &middot; 49/49 features functional
+          Generated 2026-06-28 23:59 CEST &middot; Branch master @ 1c4fc0c
+          &middot; BuildFlow 40/40 &middot; Race tests passing &middot; 49/49
+          features functional
         </footer>
       </main>
     </div>

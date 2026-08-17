@@ -1,10 +1,10 @@
 # emeet-pixyd — Session 11 Comprehensive Status Report
 
-**Date:** 2026-06-14 16:14+02:00  
-**Branch:** `master`  
-**HEAD:** `5d06a0c`  
-**Upstream:** in sync with `origin/master` (0 unpushed commits)  
-**Working tree:** clean  
+**Date:** 2026-06-14 16:14+02:00\
+**Branch:** `master`\
+**HEAD:** `5d06a0c`\
+**Upstream:** in sync with `origin/master` (0 unpushed commits)\
+**Working tree:** clean\
 **Session focus:** Self-review of Session 10 work, gap analysis, fix remaining issues, commit everything properly, push.
 
 ---
@@ -103,22 +103,22 @@ Every `d.state.*` mutation path verified:
 
 From `TODO_LIST.md`, remaining items (14 total):
 
-| #   | Priority | Task                                                                    |
-| --- | -------- | ----------------------------------------------------------------------- |
-| 21  | P2       | Extract `Commander` interface for shell commands                        |
-| 23  | P2       | Extract `ProcessInspector` interface for `/proc` traversal              |
-| 24  | P2       | Extract `UeventListener` interface for netlink                          |
-| 26  | P2       | Mobile-responsive web UI layout                                         |
-| 30  | P2       | Camera preset support (save/recall PTZ positions)                       |
-| 31  | P3       | Integration test harness with fake devices                              |
-| 32  | P3       | Test coverage for `stream.go`, `process.go`, `hid.go` hardware paths    |
-| 34  | P2       | Improve MJPEG stream reconnection                                       |
-| 35  | P3       | Integration test with real hardware (build-tag guarded)                 |
-| 42  | P2       | PTZ readback accuracy (delay before readback)                           |
-| —   | P1       | Move `main.go` to `cmd/emeet-pixyd/main.go` (structure linter CRITICAL) |
-| —   | P0       | Split `cmdMu` from HID I/O serialization                                |
-| —   | P3       | Surface `setSource` errors in `handleCallStart`                         |
-| —   | P3       | `PTZValues.Get` should return `(int, bool)`                             |
+| #  | Priority | Task                                                                    |
+| -- | -------- | ----------------------------------------------------------------------- |
+| 21 | P2       | Extract `Commander` interface for shell commands                        |
+| 23 | P2       | Extract `ProcessInspector` interface for `/proc` traversal              |
+| 24 | P2       | Extract `UeventListener` interface for netlink                          |
+| 26 | P2       | Mobile-responsive web UI layout                                         |
+| 30 | P2       | Camera preset support (save/recall PTZ positions)                       |
+| 31 | P3       | Integration test harness with fake devices                              |
+| 32 | P3       | Test coverage for `stream.go`, `process.go`, `hid.go` hardware paths    |
+| 34 | P2       | Improve MJPEG stream reconnection                                       |
+| 35 | P3       | Integration test with real hardware (build-tag guarded)                 |
+| 42 | P2       | PTZ readback accuracy (delay before readback)                           |
+| —  | P1       | Move `main.go` to `cmd/emeet-pixyd/main.go` (structure linter CRITICAL) |
+| —  | P0       | Split `cmdMu` from HID I/O serialization                                |
+| —  | P3       | Surface `setSource` errors in `handleCallStart`                         |
+| —  | P3       | `PTZValues.Get` should return `(int, bool)`                             |
 
 ---
 
@@ -178,33 +178,33 @@ Session 10 did all the work but left everything uncommitted. Session 11 had to a
 
 ## f) Top #25 things we should get done next!
 
-| #   | Priority | Task                                                                  | Effort | Impact |
-| --- | -------- | --------------------------------------------------------------------- | ------ | ------ |
-| 1   | **P0**   | Fix `TestHandleStream_NoFFmpeg` flaky test (skip when ffmpeg in PATH) | 30m    | HIGH   |
-| 2   | **P0**   | Split `cmdMu` from HID I/O serialization                              | 4h     | HIGH   |
-| 3   | **P0**   | Build fake device harness for integration tests                       | 6h     | HIGH   |
-| 4   | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                           | 3h     | MEDIUM |
-| 5   | **P1**   | Extract `Commander` interface for shell commands                      | 3h     | MEDIUM |
-| 6   | **P1**   | Camera preset support (save/recall PTZ)                               | 4h     | MEDIUM |
-| 7   | **P2**   | Extract `ProcessInspector` interface for `/proc`                      | 2h     | MEDIUM |
-| 8   | **P2**   | Extract `UeventListener` interface for netlink                        | 2h     | MEDIUM |
-| 9   | **P2**   | Improve MJPEG stream reconnection                                     | 2h     | MEDIUM |
-| 10  | **P2**   | PTZ readback accuracy (delay or in-memory last-set)                   | 2h     | MEDIUM |
-| 11  | **P2**   | Mobile-responsive web UI polish                                       | 3h     | LOW    |
-| 12  | **P2**   | Real-hardware integration test (build-tag guarded)                    | 4h     | MEDIUM |
-| 13  | **P3**   | `PTZValues.Get` → `(int, bool)` API change                            | 1h     | LOW    |
-| 14  | **P3**   | Surface `setSource` errors in `handleCallStart`                       | 1h     | LOW    |
-| 15  | **P3**   | Named event subscriber type (`eventSubscriber`)                       | 30m    | LOW    |
-| 16  | **P3**   | Coverage for `uevent.go` listener paths                               | 2h     | LOW    |
-| 17  | **P3**   | Coverage for `hidrawDevice.SendRecv` timeout                          | 2h     | LOW    |
-| 18  | **P3**   | Coverage for `v4l2Set` error path                                     | 1h     | LOW    |
-| 19  | **P3**   | Test `handleEvents` SSE context cancellation                          | 1h     | LOW    |
-| 20  | **P3**   | Test concurrent SSE subscriber fan-out                                | 1h     | LOW    |
-| 21  | **P3**   | Extract `handlers.go` to get under 350 lines                          | 1h     | LOW    |
-| 22  | **P3**   | Extract `main.go` to get under 350 lines                              | 2h     | LOW    |
-| 23  | **P3**   | Investigate `go-error-family` indirect dependency                     | 30m    | LOW    |
-| 24  | **P3**   | Fix statix warnings in flake.nix (inherit pattern)                    | 30m    | LOW    |
-| 25  | **P3**   | Document SSE protocol in AGENTS.md                                    | 30m    | LOW    |
+| #  | Priority | Task                                                                  | Effort | Impact |
+| -- | -------- | --------------------------------------------------------------------- | ------ | ------ |
+| 1  | **P0**   | Fix `TestHandleStream_NoFFmpeg` flaky test (skip when ffmpeg in PATH) | 30m    | HIGH   |
+| 2  | **P0**   | Split `cmdMu` from HID I/O serialization                              | 4h     | HIGH   |
+| 3  | **P0**   | Build fake device harness for integration tests                       | 6h     | HIGH   |
+| 4  | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`                           | 3h     | MEDIUM |
+| 5  | **P1**   | Extract `Commander` interface for shell commands                      | 3h     | MEDIUM |
+| 6  | **P1**   | Camera preset support (save/recall PTZ)                               | 4h     | MEDIUM |
+| 7  | **P2**   | Extract `ProcessInspector` interface for `/proc`                      | 2h     | MEDIUM |
+| 8  | **P2**   | Extract `UeventListener` interface for netlink                        | 2h     | MEDIUM |
+| 9  | **P2**   | Improve MJPEG stream reconnection                                     | 2h     | MEDIUM |
+| 10 | **P2**   | PTZ readback accuracy (delay or in-memory last-set)                   | 2h     | MEDIUM |
+| 11 | **P2**   | Mobile-responsive web UI polish                                       | 3h     | LOW    |
+| 12 | **P2**   | Real-hardware integration test (build-tag guarded)                    | 4h     | MEDIUM |
+| 13 | **P3**   | `PTZValues.Get` → `(int, bool)` API change                            | 1h     | LOW    |
+| 14 | **P3**   | Surface `setSource` errors in `handleCallStart`                       | 1h     | LOW    |
+| 15 | **P3**   | Named event subscriber type (`eventSubscriber`)                       | 30m    | LOW    |
+| 16 | **P3**   | Coverage for `uevent.go` listener paths                               | 2h     | LOW    |
+| 17 | **P3**   | Coverage for `hidrawDevice.SendRecv` timeout                          | 2h     | LOW    |
+| 18 | **P3**   | Coverage for `v4l2Set` error path                                     | 1h     | LOW    |
+| 19 | **P3**   | Test `handleEvents` SSE context cancellation                          | 1h     | LOW    |
+| 20 | **P3**   | Test concurrent SSE subscriber fan-out                                | 1h     | LOW    |
+| 21 | **P3**   | Extract `handlers.go` to get under 350 lines                          | 1h     | LOW    |
+| 22 | **P3**   | Extract `main.go` to get under 350 lines                              | 2h     | LOW    |
+| 23 | **P3**   | Investigate `go-error-family` indirect dependency                     | 30m    | LOW    |
+| 24 | **P3**   | Fix statix warnings in flake.nix (inherit pattern)                    | 30m    | LOW    |
+| 25 | **P3**   | Document SSE protocol in AGENTS.md                                    | 30m    | LOW    |
 
 ---
 

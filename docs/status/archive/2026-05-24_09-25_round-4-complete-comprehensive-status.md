@@ -96,13 +96,13 @@ The daemon is **feature-complete and production-ready**. Four rounds of deep rev
 
 ### TODO Items Completed (Round 4)
 
-| #   | Item                                            | Previous Status      |
-| --- | ----------------------------------------------- | -------------------- |
-| 13  | Eliminate `init()` for Prometheus metrics       | ⬜ TODO → ✅ DONE    |
-| 25  | `probeDevices()` pure extraction                | 🔶 PARTIAL → ✅ DONE |
-| 37  | Extract `lastFrame`/`ptzCache` to named types   | ⬜ TODO → ✅ DONE    |
-| 41  | Consolidate PTZ axis dispatch into lookup table | ⬜ TODO → ✅ DONE    |
-| 57  | Suppress toast spam during PTZ slider drag      | ⬜ TODO → ✅ DONE    |
+| #  | Item                                            | Previous Status      |
+| -- | ----------------------------------------------- | -------------------- |
+| 13 | Eliminate `init()` for Prometheus metrics       | ⬜ TODO → ✅ DONE    |
+| 25 | `probeDevices()` pure extraction                | 🔶 PARTIAL → ✅ DONE |
+| 37 | Extract `lastFrame`/`ptzCache` to named types   | ⬜ TODO → ✅ DONE    |
+| 41 | Consolidate PTZ axis dispatch into lookup table | ⬜ TODO → ✅ DONE    |
+| 57 | Suppress toast spam during PTZ slider drag      | ⬜ TODO → ✅ DONE    |
 
 **Updated TODO tally: 32 done, 27 remaining, 1 skip.**
 
@@ -121,55 +121,55 @@ The daemon is **feature-complete and production-ready**. Four rounds of deep rev
 
 ### Architecture (P2-P3)
 
-| #   | Task                                                                  | Why It Matters                                                      |
-| --- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 51  | `Dependencies` interface — consolidate 9 function pointers            | Compile-time safety, testability, clear API surface                 |
-| 52  | Typed `CommandResult` struct — replace `handleCommand(string) string` | Eliminates stringly-typed errors, enables structured HTTP responses |
-| 53  | Consolidate PTZ logic into single `ptz.go`                            | PTZ is spread across handlers, commands, v4l2, middleware           |
-| 21  | `Commander` interface for shell commands                              | Mockable subprocess execution                                       |
-| 22  | `HIDDevice` interface for HID I/O                                     | Testable HID communication                                          |
-| 23  | `ProcessInspector` interface for /proc                                | Testable process scanning                                           |
-| 24  | `UeventListener` interface for netlink                                | Testable hotplug                                                    |
+| #  | Task                                                                  | Why It Matters                                                      |
+| -- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 51 | `Dependencies` interface — consolidate 9 function pointers            | Compile-time safety, testability, clear API surface                 |
+| 52 | Typed `CommandResult` struct — replace `handleCommand(string) string` | Eliminates stringly-typed errors, enables structured HTTP responses |
+| 53 | Consolidate PTZ logic into single `ptz.go`                            | PTZ is spread across handlers, commands, v4l2, middleware           |
+| 21 | `Commander` interface for shell commands                              | Mockable subprocess execution                                       |
+| 22 | `HIDDevice` interface for HID I/O                                     | Testable HID communication                                          |
+| 23 | `ProcessInspector` interface for /proc                                | Testable process scanning                                           |
+| 24 | `UeventListener` interface for netlink                                | Testable hotplug                                                    |
 
 ### Observability (P1-P2)
 
-| #   | Task                             | Why It Matters                                           |
-| --- | -------------------------------- | -------------------------------------------------------- |
-| 14  | Structured log levels audit      | Inconsistent Debug/Info/Warn/Error usage                 |
-| 16  | Additional Prometheus metrics    | Stream duration, frames, command counters, probe, uevent |
-| 17  | Circuit breaker for HID failures | Stop hammering dead device                               |
-| 18  | Stream health monitoring         | Frame counter, uptime metric                             |
+| #  | Task                             | Why It Matters                                           |
+| -- | -------------------------------- | -------------------------------------------------------- |
+| 14 | Structured log levels audit      | Inconsistent Debug/Info/Warn/Error usage                 |
+| 16 | Additional Prometheus metrics    | Stream duration, frames, command counters, probe, uevent |
+| 17 | Circuit breaker for HID failures | Stop hammering dead device                               |
+| 18 | Stream health monitoring         | Frame counter, uptime metric                             |
 
 ### Web UI (P2-P3)
 
-| #   | Task                                   | Why It Matters                    |
-| --- | -------------------------------------- | --------------------------------- |
-| 26  | Mobile-responsive layout               | Unusable on phones/tablets        |
-| 27  | WebSocket for live state updates       | Real-time UX, reduced server load |
-| 28  | Keyboard shortcuts for PTZ             | Arrow keys, +/- zoom              |
-| 29  | PTZ relative mode (`pan+10`, `tilt-5`) | CLI ergonomics                    |
-| 30  | Camera preset support                  | Save/recall PTZ positions         |
+| #  | Task                                   | Why It Matters                    |
+| -- | -------------------------------------- | --------------------------------- |
+| 26 | Mobile-responsive layout               | Unusable on phones/tablets        |
+| 27 | WebSocket for live state updates       | Real-time UX, reduced server load |
+| 28 | Keyboard shortcuts for PTZ             | Arrow keys, +/- zoom              |
+| 29 | PTZ relative mode (`pan+10`, `tilt-5`) | CLI ergonomics                    |
+| 30 | Camera preset support                  | Save/recall PTZ positions         |
 
 ### Testing (P3-P4)
 
-| #   | Task                                           | Why It Matters        |
-| --- | ---------------------------------------------- | --------------------- |
-| 31  | Integration test harness with fake devices     | Test without hardware |
-| 32  | Coverage for stream/process/hid hardware paths | 71.6% overall         |
-| 33  | Surface auto-manage errors to web UI           | Silent failures       |
-| 34  | Improve MJPEG stream reconnection              | Stream robustness     |
-| 35  | Integration test with real hardware            | Build tag guarded     |
+| #  | Task                                           | Why It Matters        |
+| -- | ---------------------------------------------- | --------------------- |
+| 31 | Integration test harness with fake devices     | Test without hardware |
+| 32 | Coverage for stream/process/hid hardware paths | 71.6% overall         |
+| 33 | Surface auto-manage errors to web UI           | Silent failures       |
+| 34 | Improve MJPEG stream reconnection              | Stream robustness     |
+| 35 | Integration test with real hardware            | Build tag guarded     |
 
 ### Other
 
-| #   | Task                                                     | Why It Matters                        |
-| --- | -------------------------------------------------------- | ------------------------------------- |
-| 15  | Graceful degradation for missing deps                    | Startup robustness                    |
-| 19  | Benchmark suite — already done but TODO_LIST not updated | Documentation stale                   |
-| 20  | Continuous fuzz in CI                                    | Existing fuzz tests not running in CI |
-| 40  | Update `SUPERB_ROADMAP.md`                               | Docs freshness                        |
-| 42  | PTZ readback accuracy                                    | UI consistency                        |
-| 61  | Archive or rewrite `SUPERB_ROADMAP.md`                   | Overlaps with TODO_LIST.md            |
+| #  | Task                                                     | Why It Matters                        |
+| -- | -------------------------------------------------------- | ------------------------------------- |
+| 15 | Graceful degradation for missing deps                    | Startup robustness                    |
+| 19 | Benchmark suite — already done but TODO_LIST not updated | Documentation stale                   |
+| 20 | Continuous fuzz in CI                                    | Existing fuzz tests not running in CI |
+| 40 | Update `SUPERB_ROADMAP.md`                               | Docs freshness                        |
+| 42 | PTZ readback accuracy                                    | UI consistency                        |
+| 61 | Archive or rewrite `SUPERB_ROADMAP.md`                   | Overlaps with TODO_LIST.md            |
 
 ---
 
@@ -219,48 +219,48 @@ Ranked by **impact × effort** (Pareto ordering):
 
 ### Tier 1: High Impact, Low Effort (Do First)
 
-| #   | Task                                                                      | Effort | Impact        | Why                                       |
-| --- | ------------------------------------------------------------------------- | ------ | ------------- | ----------------------------------------- |
-| 1   | **Update TODO_LIST.md** — mark items #13, #19, #25, #37, #41, #57 as DONE | 15min  | Docs          | Document is stale, misleading             |
-| 2   | **Archive `docs/SUPERB_ROADMAP.md`** — mark superseded by TODO_LIST       | 30min  | Docs          | Confusing to have stale roadmap           |
-| 3   | **Structured log levels audit** (#14)                                     | 2hr    | Observability | Inconsistent Debug vs Info across files   |
-| 4   | **Graceful degradation for missing tools** (#15)                          | 2hr    | Robustness    | Daemon crashes if v4l2-ctl/ffmpeg missing |
+| # | Task                                                                      | Effort | Impact        | Why                                       |
+| - | ------------------------------------------------------------------------- | ------ | ------------- | ----------------------------------------- |
+| 1 | **Update TODO_LIST.md** — mark items #13, #19, #25, #37, #41, #57 as DONE | 15min  | Docs          | Document is stale, misleading             |
+| 2 | **Archive `docs/SUPERB_ROADMAP.md`** — mark superseded by TODO_LIST       | 30min  | Docs          | Confusing to have stale roadmap           |
+| 3 | **Structured log levels audit** (#14)                                     | 2hr    | Observability | Inconsistent Debug vs Info across files   |
+| 4 | **Graceful degradation for missing tools** (#15)                          | 2hr    | Robustness    | Daemon crashes if v4l2-ctl/ffmpeg missing |
 
 ### Tier 2: High Impact, Medium Effort (Do Next)
 
-| #   | Task                                           | Effort | Impact        | Why                                     |
-| --- | ---------------------------------------------- | ------ | ------------- | --------------------------------------- |
-| 5   | **Typed `CommandResult` struct** (#52)         | 4hr    | Architecture  | Stringly-typed errors are fragile       |
-| 6   | **`Dependencies` interface** (#51)             | 4hr    | Architecture  | Biggest structural improvement possible |
-| 7   | **PTZ consolidation into `ptz.go`** (#53)      | 3hr    | Organization  | PTZ is 5-file spread                    |
-| 8   | **Circuit breaker for HID failures** (#17)     | 3hr    | Reliability   | Currently retries indefinitely          |
-| 9   | **Additional Prometheus metrics** (#16)        | 3hr    | Observability | Production monitoring blind spots       |
-| 10  | **Surface auto-manage errors to web UI** (#33) | 2hr    | Debugging     | Silent failures are hard to diagnose    |
+| #  | Task                                           | Effort | Impact        | Why                                     |
+| -- | ---------------------------------------------- | ------ | ------------- | --------------------------------------- |
+| 5  | **Typed `CommandResult` struct** (#52)         | 4hr    | Architecture  | Stringly-typed errors are fragile       |
+| 6  | **`Dependencies` interface** (#51)             | 4hr    | Architecture  | Biggest structural improvement possible |
+| 7  | **PTZ consolidation into `ptz.go`** (#53)      | 3hr    | Organization  | PTZ is 5-file spread                    |
+| 8  | **Circuit breaker for HID failures** (#17)     | 3hr    | Reliability   | Currently retries indefinitely          |
+| 9  | **Additional Prometheus metrics** (#16)        | 3hr    | Observability | Production monitoring blind spots       |
+| 10 | **Surface auto-manage errors to web UI** (#33) | 2hr    | Debugging     | Silent failures are hard to diagnose    |
 
 ### Tier 3: Medium Impact, Medium Effort
 
-| #   | Task                                             | Effort | Impact         | Why                           |
-| --- | ------------------------------------------------ | ------ | -------------- | ----------------------------- |
-| 11  | **PTZ relative mode** (#29) — `pan+10`, `tilt-5` | 2hr    | CLI ergonomics | Natural expectation           |
-| 12  | **Mobile-responsive layout** (#26)               | 4hr    | UX             | Unusable on phones/tablets    |
-| 13  | **Keyboard shortcuts for PTZ** (#28)             | 2hr    | Power users    | Arrow keys, +/- zoom          |
-| 14  | **Stream health monitoring** (#18)               | 2hr    | Observability  | Frame counter, uptime         |
-| 15  | **Continuous fuzz in CI** (#20)                  | 2hr    | Safety         | Existing fuzz tests not in CI |
-| 16  | **PTZ readback accuracy** (#42)                  | 3hr    | Consistency    | Slider drift from actual      |
+| #  | Task                                             | Effort | Impact         | Why                           |
+| -- | ------------------------------------------------ | ------ | -------------- | ----------------------------- |
+| 11 | **PTZ relative mode** (#29) — `pan+10`, `tilt-5` | 2hr    | CLI ergonomics | Natural expectation           |
+| 12 | **Mobile-responsive layout** (#26)               | 4hr    | UX             | Unusable on phones/tablets    |
+| 13 | **Keyboard shortcuts for PTZ** (#28)             | 2hr    | Power users    | Arrow keys, +/- zoom          |
+| 14 | **Stream health monitoring** (#18)               | 2hr    | Observability  | Frame counter, uptime         |
+| 15 | **Continuous fuzz in CI** (#20)                  | 2hr    | Safety         | Existing fuzz tests not in CI |
+| 16 | **PTZ readback accuracy** (#42)                  | 3hr    | Consistency    | Slider drift from actual      |
 
 ### Tier 4: Higher Effort, Still Valuable
 
-| #   | Task                                          | Effort | Impact       | Why                                    |
-| --- | --------------------------------------------- | ------ | ------------ | -------------------------------------- |
-| 17  | **WebSocket for live state** (#27)            | 8hr    | UX           | Real-time updates, reduced server load |
-| 18  | **Integration test harness** (#31)            | 8hr    | Testing      | Unlocks 85%+ coverage                  |
-| 19  | **`Commander` interface** (#21)               | 3hr    | Architecture | Mockable subprocess                    |
-| 20  | **`HIDDevice` interface** (#22)               | 3hr    | Architecture | Testable HID                           |
-| 21  | **`ProcessInspector` interface** (#23)        | 2hr    | Architecture | Testable /proc                         |
-| 22  | **Camera preset support** (#30)               | 4hr    | Feature      | Save/recall PTZ positions              |
-| 23  | **Improve MJPEG stream reconnection** (#34)   | 3hr    | Robustness   | Stream can die without recovery        |
-| 24  | **Integration test with real hardware** (#35) | 4hr    | Testing      | Hardware-in-the-loop                   |
-| 25  | **Test coverage for hardware paths** (#32)    | 6hr    | Testing      | 71.6% → higher                         |
+| #  | Task                                          | Effort | Impact       | Why                                    |
+| -- | --------------------------------------------- | ------ | ------------ | -------------------------------------- |
+| 17 | **WebSocket for live state** (#27)            | 8hr    | UX           | Real-time updates, reduced server load |
+| 18 | **Integration test harness** (#31)            | 8hr    | Testing      | Unlocks 85%+ coverage                  |
+| 19 | **`Commander` interface** (#21)               | 3hr    | Architecture | Mockable subprocess                    |
+| 20 | **`HIDDevice` interface** (#22)               | 3hr    | Architecture | Testable HID                           |
+| 21 | **`ProcessInspector` interface** (#23)        | 2hr    | Architecture | Testable /proc                         |
+| 22 | **Camera preset support** (#30)               | 4hr    | Feature      | Save/recall PTZ positions              |
+| 23 | **Improve MJPEG stream reconnection** (#34)   | 3hr    | Robustness   | Stream can die without recovery        |
+| 24 | **Integration test with real hardware** (#35) | 4hr    | Testing      | Hardware-in-the-loop                   |
+| 25 | **Test coverage for hardware paths** (#32)    | 6hr    | Testing      | 71.6% → higher                         |
 
 ---
 

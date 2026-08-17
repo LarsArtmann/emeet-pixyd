@@ -6,25 +6,25 @@
 
 ## a) FULLY DONE ✅
 
-| #   | Task                                                                     | Commit    | Impact   |
-| --- | ------------------------------------------------------------------------ | --------- | -------- |
-| 1   | Fixed nix build (vendorHash in package.nix + flake.nix)                  | `e34be9c` | Critical |
-| 2   | Verified nix build + nix flake check pass                                | verified  | Critical |
-| 3   | CHANGELOG updated with cqrs-htmx removal (breaking change)               | `37486b8` | High     |
-| 4   | AGENTS.md comprehensive update (11 edits, all cqrs-htmx refs)            | `37486b8` | High     |
-| 5   | CI cleanup: removed GOPRIVATE, added FuzzParsePTZValue + nix flake check | `37486b8` | High     |
-| 6   | Split sse.go → sse.go (SSE-only) + http.go (HTTP helpers)                | `dd01955` | Medium   |
-| 7   | 9 SSE unit tests (writeSSEEvent, Broadcaster, splitSSELines)             | `dd01955` | Medium   |
-| 8   | TODO_LIST.md updated with Phase 9                                        | `739f0d4` | Medium   |
-| 9   | Commander interface (centralized subprocess logging)                     | `aa07cbe` | High     |
-| 10  | PTZ readback accuracy (cache update vs invalidation)                     | `847e418` | High     |
-| 11  | SSE fuzz test + benchmarks                                               | `159af01` | Medium   |
-| 12  | Replaced contains() with strings.IndexByte (removed allocation)          | `7642147` | Low      |
-| 13  | testdata/ gitignored                                                     | `7642147` | Low      |
-| 14  | ptzCacheTTL moved from handlers.go to cache.go                           | `7642147` | Low      |
-| 15  | toastType moved from handlers.go to web_types.go                         | `7642147` | Low      |
-| 16  | parsePTZValues now logs v4l2-ctl read failures                           | `7642147` | Medium   |
-| 17  | Commander extended with LookPath; checkExternalDeps routed through it    | `7642147` | Medium   |
+| #  | Task                                                                     | Commit    | Impact   |
+| -- | ------------------------------------------------------------------------ | --------- | -------- |
+| 1  | Fixed nix build (vendorHash in package.nix + flake.nix)                  | `e34be9c` | Critical |
+| 2  | Verified nix build + nix flake check pass                                | verified  | Critical |
+| 3  | CHANGELOG updated with cqrs-htmx removal (breaking change)               | `37486b8` | High     |
+| 4  | AGENTS.md comprehensive update (11 edits, all cqrs-htmx refs)            | `37486b8` | High     |
+| 5  | CI cleanup: removed GOPRIVATE, added FuzzParsePTZValue + nix flake check | `37486b8` | High     |
+| 6  | Split sse.go → sse.go (SSE-only) + http.go (HTTP helpers)                | `dd01955` | Medium   |
+| 7  | 9 SSE unit tests (writeSSEEvent, Broadcaster, splitSSELines)             | `dd01955` | Medium   |
+| 8  | TODO_LIST.md updated with Phase 9                                        | `739f0d4` | Medium   |
+| 9  | Commander interface (centralized subprocess logging)                     | `aa07cbe` | High     |
+| 10 | PTZ readback accuracy (cache update vs invalidation)                     | `847e418` | High     |
+| 11 | SSE fuzz test + benchmarks                                               | `159af01` | Medium   |
+| 12 | Replaced contains() with strings.IndexByte (removed allocation)          | `7642147` | Low      |
+| 13 | testdata/ gitignored                                                     | `7642147` | Low      |
+| 14 | ptzCacheTTL moved from handlers.go to cache.go                           | `7642147` | Low      |
+| 15 | toastType moved from handlers.go to web_types.go                         | `7642147` | Low      |
+| 16 | parsePTZValues now logs v4l2-ctl read failures                           | `7642147` | Medium   |
+| 17 | Commander extended with LookPath; checkExternalDeps routed through it    | `7642147` | Medium   |
 
 ---
 
@@ -78,33 +78,33 @@
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Task                                                                  | Impact | Effort |
-| --- | --------------------------------------------------------------------- | ------ | ------ |
-| 1   | Camera preset: define `Preset` type + add to `State`                  | Medium | 10min  |
-| 2   | Camera preset: add CLI commands (`preset save/load/list`)             | Medium | 15min  |
-| 3   | Camera preset: add web UI buttons + HTMX wiring                       | Medium | 15min  |
-| 4   | Camera preset: add tests                                              | Medium | 10min  |
-| 5   | Fake HID device for tests (implements `HIDDevice` interface)          | Medium | 20min  |
-| 6   | Wire fake devices into `newTestDaemon`                                | Medium | 10min  |
-| 7   | Integration tests using fakes (HID round-trip, stream lifecycle)      | Medium | 15min  |
-| 8   | Mobile-responsive CSS (media queries, touch-friendly sliders)         | Low    | 20min  |
-| 9   | Move `SSEEvent` to `internal/pixy` (domain type extraction)           | Low    | 10min  |
-| 10  | Evaluate `otter/v2` for ptzCache (currently single-entry hand-rolled) | Low    | 15min  |
-| 11  | Real hardware integration tests (`//go:build integration` tag)        | Low    | 20min  |
-| 12  | Add `nix run .#test` to CI for reproducible test runs                 | Low    | 10min  |
-| 13  | Consider structured error types (`cockroachdb/errors`)                | Low    | 20min  |
-| 14  | Evaluate `samber/mo` `Result[T]` for `CommandResult`                  | Low    | 15min  |
-| 15  | Review Daemon struct decomposition (17 fields)                        | Low    | 15min  |
-| 16  | PTZ slider keyboard accessibility (arrow keys, ARIA labels)           | Low    | 10min  |
-| 17  | Add retry logic for HID operations on transient failures              | Low    | 15min  |
-| 18  | Document the V4L2 multiplier system in AGENTS.md                      | Low    | 5min   |
-| 19  | Consider WebSocket as SSE alternative (bidirectional)                 | Low    | 30min  |
-| 20  | Add graceful degradation when v4l2-ctl is missing                     | Low    | 10min  |
-| 21  | Add health check for ffmpeg availability                              | Low    | 5min   |
-| 22  | Consider rate limiting for PTZ commands                               | Low    | 10min  |
-| 23  | Add telemetry for PTZ usage patterns                                  | Low    | 10min  |
-| 24  | Consider camera profile support (different camera configs)            | Low    | 30min  |
-| 25  | Evaluate Waybar module templating for richer display                  | Low    | 15min  |
+| #  | Task                                                                  | Impact | Effort |
+| -- | --------------------------------------------------------------------- | ------ | ------ |
+| 1  | Camera preset: define `Preset` type + add to `State`                  | Medium | 10min  |
+| 2  | Camera preset: add CLI commands (`preset save/load/list`)             | Medium | 15min  |
+| 3  | Camera preset: add web UI buttons + HTMX wiring                       | Medium | 15min  |
+| 4  | Camera preset: add tests                                              | Medium | 10min  |
+| 5  | Fake HID device for tests (implements `HIDDevice` interface)          | Medium | 20min  |
+| 6  | Wire fake devices into `newTestDaemon`                                | Medium | 10min  |
+| 7  | Integration tests using fakes (HID round-trip, stream lifecycle)      | Medium | 15min  |
+| 8  | Mobile-responsive CSS (media queries, touch-friendly sliders)         | Low    | 20min  |
+| 9  | Move `SSEEvent` to `internal/pixy` (domain type extraction)           | Low    | 10min  |
+| 10 | Evaluate `otter/v2` for ptzCache (currently single-entry hand-rolled) | Low    | 15min  |
+| 11 | Real hardware integration tests (`//go:build integration` tag)        | Low    | 20min  |
+| 12 | Add `nix run .#test` to CI for reproducible test runs                 | Low    | 10min  |
+| 13 | Consider structured error types (`cockroachdb/errors`)                | Low    | 20min  |
+| 14 | Evaluate `samber/mo` `Result[T]` for `CommandResult`                  | Low    | 15min  |
+| 15 | Review Daemon struct decomposition (17 fields)                        | Low    | 15min  |
+| 16 | PTZ slider keyboard accessibility (arrow keys, ARIA labels)           | Low    | 10min  |
+| 17 | Add retry logic for HID operations on transient failures              | Low    | 15min  |
+| 18 | Document the V4L2 multiplier system in AGENTS.md                      | Low    | 5min   |
+| 19 | Consider WebSocket as SSE alternative (bidirectional)                 | Low    | 30min  |
+| 20 | Add graceful degradation when v4l2-ctl is missing                     | Low    | 10min  |
+| 21 | Add health check for ffmpeg availability                              | Low    | 5min   |
+| 22 | Consider rate limiting for PTZ commands                               | Low    | 10min  |
+| 23 | Add telemetry for PTZ usage patterns                                  | Low    | 10min  |
+| 24 | Consider camera profile support (different camera configs)            | Low    | 30min  |
+| 25 | Evaluate Waybar module templating for richer display                  | Low    | 15min  |
 
 ---
 

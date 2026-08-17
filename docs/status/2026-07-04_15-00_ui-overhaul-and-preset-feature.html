@@ -31,7 +31,8 @@
         --radius: 0px;
         --font-heading: ui-sans-serif, system-ui, -apple-system, sans-serif;
         --font-body: ui-sans-serif, system-ui, -apple-system, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
       }
       * {
         box-sizing: border-box;
@@ -284,15 +285,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -304,15 +317,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -531,10 +556,11 @@
           </div>
           <h1>emeet-pixyd — UI/UX Overhaul &amp; Preset Feature</h1>
           <p class="hero-subtitle">
-            Auto-activation daemon for the EMEET PIXY dual-camera AI webcam. This session delivered
-            a complete UI redesign (preview hero, mode cards, PTZ radar, snapshot, shortcut legend),
-            then surfaced the previously backend-only preset feature into the web UI. All tests pass
-            (race-detected), lint is clean, vet is clean.
+            Auto-activation daemon for the EMEET PIXY dual-camera AI webcam.
+            This session delivered a complete UI redesign (preview hero, mode
+            cards, PTZ radar, snapshot, shortcut legend), then surfaced the
+            previously backend-only preset feature into the web UI. All tests
+            pass (race-detected), lint is clean, vet is clean.
           </p>
         </section>
 
@@ -579,16 +605,20 @@
           <div class="card">
             <h3>Session Diff</h3>
             <p>
-              <strong>+1,856 insertions / −666 deletions</strong> across 9 files. Two major areas of
-              work: (1) Complete UI/UX redesign — templates, CSS, JS; (2) Preset feature — data
-              wiring, templates, CSS, JS, tests.
+              <strong>+1,856 insertions / −666 deletions</strong> across 9
+              files. Two major areas of work: (1) Complete UI/UX redesign —
+              templates, CSS, JS; (2) Preset feature — data wiring, templates,
+              CSS, JS, tests.
             </p>
           </div>
         </section>
 
         <!-- =================== FULLY DONE =================== -->
         <section id="done">
-          <h2><span class="num">02</span>Fully Done <span class="tag amber">8 items</span></h2>
+          <h2>
+            <span class="num">02</span>Fully Done
+            <span class="tag amber">8 items</span>
+          </h2>
 
           <div class="strengths">
             <div class="strength">
@@ -596,9 +626,9 @@
               <div class="text">
                 <strong>UI Layout Redesign — Preview as Hero</strong>
                 <span
-                  >Camera preview is now full-width above the status panel. Was cramped in a
-                  2-column grid. Renders once in <code>page()</code>, survives HTMX panel
-                  swaps.</span
+                  >Camera preview is now full-width above the status panel. Was
+                  cramped in a 2-column grid. Renders once in
+                  <code>page()</code>, survives HTMX panel swaps.</span
                 >
               </div>
             </div>
@@ -607,9 +637,9 @@
               <div class="text">
                 <strong>Camera Mode Cards with SVG Icons</strong>
                 <span
-                  >Three selectable cards (Track/Idle/Privacy) replace plain text buttons. Each has
-                  an inline SVG icon, description, keyboard shortcut badge, and per-mode color
-                  glow.</span
+                  >Three selectable cards (Track/Idle/Privacy) replace plain
+                  text buttons. Each has an inline SVG icon, description,
+                  keyboard shortcut badge, and per-mode color glow.</span
                 >
               </div>
             </div>
@@ -618,8 +648,9 @@
               <div class="text">
                 <strong>Audio Segmented Control</strong>
                 <span
-                  >Clean pill-style selector replacing loose buttons. Active segment highlighted
-                  with accent color. Posts <code>hx-vals</code> to <code>/api/audio</code>.</span
+                  >Clean pill-style selector replacing loose buttons. Active
+                  segment highlighted with accent color. Posts
+                  <code>hx-vals</code> to <code>/api/audio</code>.</span
                 >
               </div>
             </div>
@@ -628,9 +659,10 @@
               <div class="text">
                 <strong>PTZ Radar (Three-Axis)</strong>
                 <span
-                  >120px circular position indicator with crosshair, inner ring, zoom ring, center
-                  dot, and glowing position dot. All three axes animate live from slider input via
-                  CSS custom properties.</span
+                  >120px circular position indicator with crosshair, inner ring,
+                  zoom ring, center dot, and glowing position dot. All three
+                  axes animate live from slider input via CSS custom
+                  properties.</span
                 >
               </div>
             </div>
@@ -639,8 +671,9 @@
               <div class="text">
                 <strong>Snapshot Button</strong>
                 <span
-                  >Overlay on the preview. Fetches <code>/api/snapshot</code>, triggers download as
-                  timestamped JPEG, shows toast feedback.</span
+                  >Overlay on the preview. Fetches <code>/api/snapshot</code>,
+                  triggers download as timestamped JPEG, shows toast
+                  feedback.</span
                 >
               </div>
             </div>
@@ -649,8 +682,9 @@
               <div class="text">
                 <strong>Keyboard Shortcut Legend</strong>
                 <span
-                  >Toggleable panel (<code>?</code> key or FAB). Lists all shortcuts: T/I/P/C,
-                  arrows, +/−, ?. FAB has <code>aria-expanded</code>.</span
+                  >Toggleable panel (<code>?</code> key or FAB). Lists all
+                  shortcuts: T/I/P/C, arrows, +/−, ?. FAB has
+                  <code>aria-expanded</code>.</span
                 >
               </div>
             </div>
@@ -659,10 +693,10 @@
               <div class="text">
                 <strong>Preset UI (End-to-End)</strong>
                 <span
-                  >Backend supported presets but web UI had zero controls. Now wired:
-                  <code>webStatus.PresetNames</code> (sorted), <code>presetSection</code> template
-                  (save input + chips), CSS, JS handler (delegated events, Enter key), two
-                  tests.</span
+                  >Backend supported presets but web UI had zero controls. Now
+                  wired: <code>webStatus.PresetNames</code> (sorted),
+                  <code>presetSection</code> template (save input + chips), CSS,
+                  JS handler (delegated events, Enter key), two tests.</span
                 >
               </div>
             </div>
@@ -671,8 +705,9 @@
               <div class="text">
                 <strong>SVG Icon Consistency</strong>
                 <span
-                  >All placeholder states now use <code>iconCameraOff()</code> SVG. Zero emoji in
-                  the UI. Every icon is inline SVG.</span
+                  >All placeholder states now use
+                  <code>iconCameraOff()</code> SVG. Zero emoji in the UI. Every
+                  icon is inline SVG.</span
                 >
               </div>
             </div>
@@ -681,27 +716,34 @@
 
         <!-- =================== PARTIALLY DONE =================== -->
         <section id="partial">
-          <h2><span class="num">03</span>Partially Done <span class="tag amber">5 items</span></h2>
+          <h2>
+            <span class="num">03</span>Partially Done
+            <span class="tag amber">5 items</span>
+          </h2>
 
           <div class="issue issue-important">
             <span class="severity severity-important">Partial</span>
             <h3>Responsive Design</h3>
             <div class="where">static/style.css — @media breakpoints</div>
             <p>
-              Desktop and tablet breakpoints are solid. Mobile (<code>&lt;400px</code>) collapses
-              mode cards to rows and stacks everything, but hasn't been tested on real mobile
-              devices. The PTZ radar at 100px is usable but cramped on small screens.
+              Desktop and tablet breakpoints are solid. Mobile
+              (<code>&lt;400px</code>) collapses mode cards to rows and stacks
+              everything, but hasn't been tested on real mobile devices. The PTZ
+              radar at 100px is usable but cramped on small screens.
             </p>
           </div>
 
           <div class="issue issue-important">
             <span class="severity severity-important">Partial</span>
             <h3>Accessibility / Screen Readers</h3>
-            <div class="where">templates.templ — aria-label, role attributes</div>
+            <div class="where">
+              templates.templ — aria-label, role attributes
+            </div>
             <p>
-              All interactive elements have <code>aria-label</code>. Toggle switches use
-              <code>role="switch"</code>. But no screen reader testing has been done. The PTZ radar
-              is purely visual — no ARIA description of position. Preset chips don't announce their
+              All interactive elements have <code>aria-label</code>. Toggle
+              switches use <code>role="switch"</code>. But no screen reader
+              testing has been done. The PTZ radar is purely visual — no ARIA
+              description of position. Preset chips don't announce their
               purpose.
             </p>
           </div>
@@ -711,9 +753,10 @@
             <h3>Test Coverage for New UI</h3>
             <div class="where">web_test.go, behavior_ptz_test.go</div>
             <p>
-              Existing tests verify HTML structure (IDs, classes, endpoints, text). Two new preset
-              tests added. But no tests verify: mode card active state CSS classes, audio segment
-              active states, snapshot button HTML, shortcut legend HTML, radar CSS variable values.
+              Existing tests verify HTML structure (IDs, classes, endpoints,
+              text). Two new preset tests added. But no tests verify: mode card
+              active state CSS classes, audio segment active states, snapshot
+              button HTML, shortcut legend HTML, radar CSS variable values.
               Coverage is structural, not behavioral.
             </p>
           </div>
@@ -723,9 +766,9 @@
             <h3>Waybar Integration UI</h3>
             <div class="where">waybar.go — JSON output only</div>
             <p>
-              Waybar output is fully functional (tested, optimized). But the web UI doesn't mention
-              or surface Waybar as an integration. Users have no way to discover this feature from
-              the web panel.
+              Waybar output is fully functional (tested, optimized). But the web
+              UI doesn't mention or surface Waybar as an integration. Users have
+              no way to discover this feature from the web panel.
             </p>
           </div>
 
@@ -734,17 +777,21 @@
             <h3>Preset Validation Feedback</h3>
             <div class="where">app.js — savePreset()</div>
             <p>
-              The JS checks for empty name and shows a toast. But doesn't check for: duplicate names
-              (backend overwrites silently), name length limits, or special characters in URLs. The
-              <code>encodeURIComponent</code> call handles special chars but backend might not
-              decode them.
+              The JS checks for empty name and shows a toast. But doesn't check
+              for: duplicate names (backend overwrites silently), name length
+              limits, or special characters in URLs. The
+              <code>encodeURIComponent</code> call handles special chars but
+              backend might not decode them.
             </p>
           </div>
         </section>
 
         <!-- =================== NOT STARTED =================== -->
         <section id="not-started">
-          <h2><span class="num">04</span>Not Started <span class="tag amber">7 items</span></h2>
+          <h2>
+            <span class="num">04</span>Not Started
+            <span class="tag amber">7 items</span>
+          </h2>
 
           <div class="card">
             <h4>Dark/Light Theme Toggle</h4>
@@ -756,38 +803,39 @@
           <div class="card">
             <h4>Keyboard Navigation Focus Indicators</h4>
             <p>
-              <code>:focus-visible</code> outlines exist on buttons, but Tab order through mode
-              cards → segments → toggles → sliders hasn't been systematically tested. No
-              skip-to-content link.
+              <code>:focus-visible</code> outlines exist on buttons, but Tab
+              order through mode cards → segments → toggles → sliders hasn't
+              been systematically tested. No skip-to-content link.
             </p>
           </div>
           <div class="card">
             <h4>Error Recovery UI for Preset Operations</h4>
             <p>
-              If preset save/load/delete fails, the HTMX response includes an error toast. But no
-              visual feedback on the specific chip that failed (load button stays in
+              If preset save/load/delete fails, the HTMX response includes an
+              error toast. But no visual feedback on the specific chip that
+              failed (load button stays in
               <code>htmx-request</code> state).
             </p>
           </div>
           <div class="card">
             <h4>Preset Rename</h4>
             <p>
-              Backend only supports save/load/delete/list. No rename. Users must delete + re-save to
-              rename.
+              Backend only supports save/load/delete/list. No rename. Users must
+              delete + re-save to rename.
             </p>
           </div>
           <div class="card">
             <h4>Mobile PTZ Gesture Controls</h4>
             <p>
-              Sliders work on touch (<code>touch-action: none</code>), but no swipe-to-pan gesture
-              on the preview or radar.
+              Sliders work on touch (<code>touch-action: none</code>), but no
+              swipe-to-pan gesture on the preview or radar.
             </p>
           </div>
           <div class="card">
             <h4>Connection Status Indicator (SSE)</h4>
             <p>
-              SSE reconnection is handled silently. No visual indicator when SSE is disconnected vs
-              connected.
+              SSE reconnection is handled silently. No visual indicator when SSE
+              is disconnected vs connected.
             </p>
           </div>
           <div class="card">
@@ -799,7 +847,8 @@
         <!-- =================== TOTALLY FUCKED UP =================== -->
         <section id="problems">
           <h2>
-            <span class="num">05</span>Totally Fucked Up <span class="tag amber">3 items</span>
+            <span class="num">05</span>Totally Fucked Up
+            <span class="tag amber">3 items</span>
           </h2>
 
           <div class="issue issue-critical">
@@ -808,14 +857,15 @@
             <div class="where">flake.nix → nix flake check</div>
             <p>
               <code>nix flake check</code> fails with
-              <code>FATAL: $$f empty after templ generate</code>. The sandboxed build can't find
-              <code>templ</code> at the lint check stage.
-              <strong>This was a pre-existing issue</strong> (present before this session's changes)
-              and is documented in AGENTS.md. The <code>proxyVendor = true</code> approach works for
-              the package build itself, but the flake check's lint derivation fails. CI runs via
-              GitHub Actions with <code>go test</code> directly, not through nix, so this doesn't
-              block releases — but it means <code>nix flake check</code> cannot be used as a quality
-              gate.
+              <code>FATAL: $$f empty after templ generate</code>. The sandboxed
+              build can't find <code>templ</code> at the lint check stage.
+              <strong>This was a pre-existing issue</strong> (present before
+              this session's changes) and is documented in AGENTS.md. The
+              <code>proxyVendor = true</code> approach works for the package
+              build itself, but the flake check's lint derivation fails. CI runs
+              via GitHub Actions with <code>go test</code> directly, not through
+              nix, so this doesn't block releases — but it means
+              <code>nix flake check</code> cannot be used as a quality gate.
             </p>
           </div>
 
@@ -824,26 +874,33 @@
             <h3>7 Unused Test Helpers in fake_device_test.go</h3>
             <div class="where">fake_device_test.go:55-225</div>
             <p>
-              gopls reports 7 unused functions/methods: <code>trigger</code>, <code>calls</code>,
-              <code>lastSent</code>, <code>withFakeCameraInUse</code>,
+              gopls reports 7 unused functions/methods: <code>trigger</code>,
+              <code>calls</code>, <code>lastSent</code>,
+              <code>withFakeCameraInUse</code>,
               <code>withFakeHIDResponse</code>, <code>withFakePPID</code>,
-              <code>fakeSleepDuration</code>. These are dead code — vestiges of earlier test
-              infrastructure. Lint passes because test files are excluded from <code>unused</code>,
-              but gopls flags them. Should be removed.
+              <code>fakeSleepDuration</code>. These are dead code — vestiges of
+              earlier test infrastructure. Lint passes because test files are
+              excluded from <code>unused</code>, but gopls flags them. Should be
+              removed.
             </p>
           </div>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Design Smell</span>
             <h3>Preset Name in URL Path — No Sanitization</h3>
-            <div class="where">handlers.go:298-341 — handlePresetSave/Load/Delete</div>
+            <div class="where">
+              handlers.go:298-341 — handlePresetSave/Load/Delete
+            </div>
             <p>
-              Preset names go directly into URL paths (<code>/api/preset/save/{name}</code>). The Go
-              <code>net/http</code> router decodes <code>{name}</code> from the path, but there's no
-              validation that the name is URL-safe. <code>encodeURIComponent</code> in JS handles
-              most cases, but CLI/socket callers could pass arbitrary strings. A name like
-              <code>"../../../etc/passwd"</code> would be rejected by the router (path traversal),
-              but names with spaces, slashes, or Unicode are underspecified.
+              Preset names go directly into URL paths
+              (<code>/api/preset/save/{name}</code>). The Go
+              <code>net/http</code> router decodes <code>{name}</code> from the
+              path, but there's no validation that the name is URL-safe.
+              <code>encodeURIComponent</code> in JS handles most cases, but
+              CLI/socket callers could pass arbitrary strings. A name like
+              <code>"../../../etc/passwd"</code> would be rejected by the router
+              (path traversal), but names with spaces, slashes, or Unicode are
+              underspecified.
             </p>
           </div>
         </section>
@@ -856,48 +913,56 @@
             <div class="card card-solution">
               <h4>Type Safety: Preset Name</h4>
               <p>
-                Presets use raw <code>string</code> everywhere. Should be a branded type
-                <code>PresetName</code> with validation (<code>Valid()</code> checking length,
-                allowed chars). Prevents invalid names at compile time.
+                Presets use raw <code>string</code> everywhere. Should be a
+                branded type <code>PresetName</code> with validation (<code
+                  >Valid()</code
+                >
+                checking length, allowed chars). Prevents invalid names at
+                compile time.
               </p>
             </div>
             <div class="card card-solution">
               <h4>View Model Separation</h4>
               <p>
-                <code>webStatus</code> mixes domain state with view concerns (<code>Toast</code>,
-                <code>ToastType</code>, <code>LastSynced</code>). Should split into
+                <code>webStatus</code> mixes domain state with view concerns
+                (<code>Toast</code>, <code>ToastType</code>,
+                <code>LastSynced</code>). Should split into
                 <code>domainStatus</code> + <code>viewModel</code> wrapping it.
               </p>
             </div>
             <div class="card card-warning">
               <h4>Preset Limit Constants</h4>
               <p>
-                <code>maxPresets = 16</code> lives in <code>commands.go</code> (package main). The
-                template references it directly. Should move to <code>pixy.MaxPresets</code> in the
+                <code>maxPresets = 16</code> lives in
+                <code>commands.go</code> (package main). The template references
+                it directly. Should move to <code>pixy.MaxPresets</code> in the
                 domain package so both layers import from one place.
               </p>
             </div>
             <div class="card card-warning">
               <h4>CSS File Size</h4>
               <p>
-                <code>style.css</code> is 1,510 lines — large for a single file with 6 cards. Could
-                be split by component (preview, mode-cards, ptz, presets, toast, responsive) but the
-                single-file approach matches the existing pattern. Not urgent, but watch.
+                <code>style.css</code> is 1,510 lines — large for a single file
+                with 6 cards. Could be split by component (preview, mode-cards,
+                ptz, presets, toast, responsive) but the single-file approach
+                matches the existing pattern. Not urgent, but watch.
               </p>
             </div>
             <div class="card card-problem">
               <h4>Preset Name Collision on Overwrite</h4>
               <p>
-                Saving a preset with an existing name silently overwrites. No confirmation. Should
-                either warn or show a toast like "Updated preset 'home'".
+                Saving a preset with an existing name silently overwrites. No
+                confirmation. Should either warn or show a toast like "Updated
+                preset 'home'".
               </p>
             </div>
             <div class="card card-problem">
               <h4>Snapshot Error Handling</h4>
               <p>
-                <code>/api/snapshot</code> returns 503 when no frame is available. JS catches this
-                but shows generic "Snapshot unavailable". Should distinguish "camera offline" vs "no
-                frame ready, try again".
+                <code>/api/snapshot</code> returns 503 when no frame is
+                available. JS catches this but shows generic "Snapshot
+                unavailable". Should distinguish "camera offline" vs "no frame
+                ready, try again".
               </p>
             </div>
           </div>
@@ -919,14 +984,19 @@
             <tbody>
               <tr>
                 <td>1</td>
-                <td>Fix <code>nix flake check</code> — templ generate in sandbox</td>
+                <td>
+                  Fix <code>nix flake check</code> — templ generate in sandbox
+                </td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td>Build</td>
               </tr>
               <tr>
                 <td>2</td>
-                <td>Delete 7 unused test helpers in <code>fake_device_test.go</code></td>
+                <td>
+                  Delete 7 unused test helpers in
+                  <code>fake_device_test.go</code>
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Code Quality</td>
@@ -934,7 +1004,8 @@
               <tr>
                 <td>3</td>
                 <td>
-                  Move <code>maxPresets</code> to <code>pixy.MaxPresets</code> in domain package
+                  Move <code>maxPresets</code> to
+                  <code>pixy.MaxPresets</code> in domain package
                 </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">Low</span></td>
@@ -956,7 +1027,9 @@
               </tr>
               <tr>
                 <td>6</td>
-                <td>Screen reader testing pass — label all interactive elements</td>
+                <td>
+                  Screen reader testing pass — label all interactive elements
+                </td>
                 <td><span class="badge badge-high">High</span></td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td>Accessibility</td>
@@ -998,7 +1071,10 @@
               </tr>
               <tr>
                 <td>12</td>
-                <td>Test: radar CSS variables (<code>--pan-x</code>, <code>--zoom-pct</code>)</td>
+                <td>
+                  Test: radar CSS variables (<code>--pan-x</code>,
+                  <code>--zoom-pct</code>)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Testing</td>
@@ -1006,7 +1082,8 @@
               <tr>
                 <td>13</td>
                 <td>
-                  Preset name validation in <code>handlePresetSave</code> (reject empty, too long)
+                  Preset name validation in
+                  <code>handlePresetSave</code> (reject empty, too long)
                 </td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td><span class="badge badge-low">Low</span></td>
@@ -1042,14 +1119,18 @@
               </tr>
               <tr>
                 <td>18</td>
-                <td>Preset rename endpoint (<code>preset rename old new</code>)</td>
+                <td>
+                  Preset rename endpoint (<code>preset rename old new</code>)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-medium">Med</span></td>
                 <td>Backend</td>
               </tr>
               <tr>
                 <td>19</td>
-                <td>Waybar integration hint in web UI (small card or footer link)</td>
+                <td>
+                  Waybar integration hint in web UI (small card or footer link)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>UX</td>
@@ -1091,7 +1172,10 @@
               </tr>
               <tr>
                 <td>25</td>
-                <td>Add <code>govulncheck</code> to CI (already configured — verify it runs)</td>
+                <td>
+                  Add <code>govulncheck</code> to CI (already configured —
+                  verify it runs)
+                </td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td><span class="badge badge-low">Low</span></td>
                 <td>Security</td>
@@ -1106,24 +1190,29 @@
           <div class="callout callout-problem">
             <strong>The nix flake check problem:</strong>
             <code>nix flake check</code> fails because the lint derivation runs
-            <code>templ generate</code> in a sandbox where the <code>templ</code> binary isn't on
-            PATH. The package build itself uses <code>proxyVendor = true</code> and a
-            <code>preBuild</code> hook that runs <code>templ generate</code> — this works. But the
-            flake check's lint step has a different derivation structure and fails with
+            <code>templ generate</code> in a sandbox where the
+            <code>templ</code> binary isn't on PATH. The package build itself
+            uses <code>proxyVendor = true</code> and a
+            <code>preBuild</code> hook that runs <code>templ generate</code> —
+            this works. But the flake check's lint step has a different
+            derivation structure and fails with
             <code>FATAL: $$f empty after templ generate</code>. <br /><br />
-            <strong>I cannot determine:</strong> Should the fix be (a) adding <code>templ</code> as
-            a nativeBuildInput to the lint check derivation, (b) restructuring the flake to share a
-            common pre-build step, or (c) disabling <code>nix flake check</code> for the lint target
-            and relying on CI's GitHub Actions instead? The nix sandboxing model makes it hard to
-            debug without understanding the intended flake architecture. This was pre-existing and I
-            chose not to touch it since <code>proxyVendor</code> was deliberately chosen per
-            AGENTS.md.
+            <strong>I cannot determine:</strong> Should the fix be (a) adding
+            <code>templ</code> as a nativeBuildInput to the lint check
+            derivation, (b) restructuring the flake to share a common pre-build
+            step, or (c) disabling <code>nix flake check</code> for the lint
+            target and relying on CI's GitHub Actions instead? The nix
+            sandboxing model makes it hard to debug without understanding the
+            intended flake architecture. This was pre-existing and I chose not
+            to touch it since <code>proxyVendor</code> was deliberately chosen
+            per AGENTS.md.
           </div>
         </section>
 
         <footer class="footer">
-          Generated 2026-07-04 15:00 &middot; 8 commits, 9 files changed, +1856/−666 &middot; go
-          1.26.4 &middot; golangci-lint v2 &middot; all tests pass with -race
+          Generated 2026-07-04 15:00 &middot; 8 commits, 9 files changed,
+          +1856/−666 &middot; go 1.26.4 &middot; golangci-lint v2 &middot; all
+          tests pass with -race
         </footer>
       </main>
     </div>
@@ -1136,7 +1225,9 @@
         var links = nav.querySelectorAll("a[href^='#']");
         var sections = [];
         links.forEach(function (link) {
-          var target = document.getElementById(link.getAttribute("href").slice(1));
+          var target = document.getElementById(
+            link.getAttribute("href").slice(1),
+          );
           if (target) sections.push({ link: link, el: target });
         });
         if (!("IntersectionObserver" in window)) return;

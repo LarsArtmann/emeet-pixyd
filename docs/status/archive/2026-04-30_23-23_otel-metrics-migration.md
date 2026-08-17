@@ -50,13 +50,13 @@ These need fixing before commit.
 
 ## C) NOT STARTED
 
-| #   | Item                                                                                                                      |
-| --- | ------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Push commits to remote                                                                                                    |
-| 2   | `.golangci.yml` — remove `prometheus_client` suppression rules (if any were added)                                        |
-| 3   | Remove `prometheus/client_golang` from go.mod entirely (requires replacing `promhttp.Handler()` with OTel-native handler) |
-| 4   | OTel tracing integration (not requested, but natural next step)                                                           |
-| 5   | OTel resource attributes (service.name, service.version) for the Prometheus exporter                                      |
+| # | Item                                                                                                                      |
+| - | ------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Push commits to remote                                                                                                    |
+| 2 | `.golangci.yml` — remove `prometheus_client` suppression rules (if any were added)                                        |
+| 3 | Remove `prometheus/client_golang` from go.mod entirely (requires replacing `promhttp.Handler()` with OTel-native handler) |
+| 4 | OTel tracing integration (not requested, but natural next step)                                                           |
+| 5 | OTel resource attributes (service.name, service.version) for the Prometheus exporter                                      |
 
 ---
 
@@ -98,43 +98,43 @@ These need fixing before commit.
 
 ### High Priority (do next session)
 
-| #   | Action                                                                                              | Effort | Impact |
-| --- | --------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Fix 2 lint issues in unstaged test files, commit, push                                              | Low    | High   |
-| 2   | Push all commits to remote                                                                          | Low    | High   |
-| 3   | Add integration test for `/metrics` endpoint — verify OTel metrics appear in Prometheus text format | Medium | High   |
-| 4   | Extract metric name constants (`metricNameInCall`, etc.) to avoid duplication                       | Low    | Medium |
-| 5   | Pass `context.Context` to `updateMetrics()` instead of `context.Background()`                       | Low    | Medium |
+| # | Action                                                                                              | Effort | Impact |
+| - | --------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | Fix 2 lint issues in unstaged test files, commit, push                                              | Low    | High   |
+| 2 | Push all commits to remote                                                                          | Low    | High   |
+| 3 | Add integration test for `/metrics` endpoint — verify OTel metrics appear in Prometheus text format | Medium | High   |
+| 4 | Extract metric name constants (`metricNameInCall`, etc.) to avoid duplication                       | Low    | Medium |
+| 5 | Pass `context.Context` to `updateMetrics()` instead of `context.Background()`                       | Low    | Medium |
 
 ### Medium Priority (next sprint)
 
-| #   | Action                                                                         | Effort | Impact |
-| --- | ------------------------------------------------------------------------------ | ------ | ------ |
-| 6   | Remove `prometheus/client_golang` direct dep — replace `promhttp.Handler()`    | Medium | Medium |
-| 7   | Add OTel resource attributes (service.name=emeet-pixyd, version)               | Low    | Medium |
-| 8   | Make `registerMetrics()` return error instead of `slog.Error` + silent failure | Low    | Medium |
-| 9   | `flake.nix` — verify OTel deps don't bloat closure size                        | Low    | Medium |
-| 10  | Add `go.opentelemetry.io/otel` to `.golangci.yml` depguard allowlist if needed | Low    | Low    |
-| 11  | Table-driven test for `actionToast()`                                          | Low    | Low    |
-| 12  | Fuzz test for `matchAttrs`                                                     | Low    | Low    |
-| 13  | Add Prometheus metric for device online/offline state                          | Low    | Medium |
-| 14  | Add Prometheus histogram for HID command latency                               | Medium | High   |
-| 15  | Add Prometheus counter for call detection events                               | Low    | Medium |
+| #  | Action                                                                         | Effort | Impact |
+| -- | ------------------------------------------------------------------------------ | ------ | ------ |
+| 6  | Remove `prometheus/client_golang` direct dep — replace `promhttp.Handler()`    | Medium | Medium |
+| 7  | Add OTel resource attributes (service.name=emeet-pixyd, version)               | Low    | Medium |
+| 8  | Make `registerMetrics()` return error instead of `slog.Error` + silent failure | Low    | Medium |
+| 9  | `flake.nix` — verify OTel deps don't bloat closure size                        | Low    | Medium |
+| 10 | Add `go.opentelemetry.io/otel` to `.golangci.yml` depguard allowlist if needed | Low    | Low    |
+| 11 | Table-driven test for `actionToast()`                                          | Low    | Low    |
+| 12 | Fuzz test for `matchAttrs`                                                     | Low    | Low    |
+| 13 | Add Prometheus metric for device online/offline state                          | Low    | Medium |
+| 14 | Add Prometheus histogram for HID command latency                               | Medium | High   |
+| 15 | Add Prometheus counter for call detection events                               | Low    | Medium |
 
 ### Lower Priority (backlog)
 
-| #   | Action                                                   | Effort | Impact |
-| --- | -------------------------------------------------------- | ------ | ------ |
-| 16  | OTel tracing for HID commands                            | Medium | High   |
-| 17  | OTel tracing for auto-manage cycle                       | Medium | Medium |
-| 18  | structured logging correlation with trace IDs            | Medium | Medium |
-| 19  | Export metrics via OTLP in addition to Prometheus        | Medium | Medium |
-| 20  | Health check endpoint (`/healthz`)                       | Low    | Medium |
-| 21  | Readiness endpoint (`/readyz`) — checks device connected | Low    | Medium |
-| 22  | Graceful OTel SDK shutdown on daemon stop                | Low    | Medium |
-| 23  | Config option for metrics endpoint disable               | Low    | Low    |
-| 24  | Grafana dashboard JSON for PIXY metrics                  | Medium | Medium |
-| 25  | Alert rules for device offline, HID failures             | Medium | Medium |
+| #  | Action                                                   | Effort | Impact |
+| -- | -------------------------------------------------------- | ------ | ------ |
+| 16 | OTel tracing for HID commands                            | Medium | High   |
+| 17 | OTel tracing for auto-manage cycle                       | Medium | Medium |
+| 18 | structured logging correlation with trace IDs            | Medium | Medium |
+| 19 | Export metrics via OTLP in addition to Prometheus        | Medium | Medium |
+| 20 | Health check endpoint (`/healthz`)                       | Low    | Medium |
+| 21 | Readiness endpoint (`/readyz`) — checks device connected | Low    | Medium |
+| 22 | Graceful OTel SDK shutdown on daemon stop                | Low    | Medium |
+| 23 | Config option for metrics endpoint disable               | Low    | Low    |
+| 24 | Grafana dashboard JSON for PIXY metrics                  | Medium | Medium |
+| 25 | Alert rules for device offline, HID failures             | Medium | Medium |
 
 ---
 

@@ -11,37 +11,37 @@
 
 ### Refactoring (Session 1 — committed, pushed)
 
-| #   | What                                                           | Commit    | Impact                    |
-| --- | -------------------------------------------------------------- | --------- | ------------------------- |
-| 1   | Extract `webStatus` from `templates.templ` → `web_types.go`    | `f7c4464` | Separation of concerns    |
-| 2   | Extract device probing from `main.go` → `probe.go`             | `a2d9222` | main.go 882→599 lines     |
-| 3   | Extract state persistence from `main.go` → `state.go`          | `7892caa` | Single responsibility     |
-| 4   | Extract auto-manage from `main.go` → `auto.go`                 | `4cb1168` | Single responsibility     |
-| 5   | Add `GOWORK=off` to CI workflow                                | `7ca3a43` | CI was broken, now passes |
-| 6   | Normalize `new()` → `ptr()` in integration tests               | `a6d8c94` | Consistency               |
-| 7   | Consolidate 5 test daemon builders → 1 with functional options | `17c23ab` | Fixed `streamSema` bug    |
-| 8   | Create `AGENTS.md` with full project documentation             | `b0a428d` | Knowledge capture         |
+| # | What                                                           | Commit    | Impact                    |
+| - | -------------------------------------------------------------- | --------- | ------------------------- |
+| 1 | Extract `webStatus` from `templates.templ` → `web_types.go`    | `f7c4464` | Separation of concerns    |
+| 2 | Extract device probing from `main.go` → `probe.go`             | `a2d9222` | main.go 882→599 lines     |
+| 3 | Extract state persistence from `main.go` → `state.go`          | `7892caa` | Single responsibility     |
+| 4 | Extract auto-manage from `main.go` → `auto.go`                 | `4cb1168` | Single responsibility     |
+| 5 | Add `GOWORK=off` to CI workflow                                | `7ca3a43` | CI was broken, now passes |
+| 6 | Normalize `new()` → `ptr()` in integration tests               | `a6d8c94` | Consistency               |
+| 7 | Consolidate 5 test daemon builders → 1 with functional options | `17c23ab` | Fixed `streamSema` bug    |
+| 8 | Create `AGENTS.md` with full project documentation             | `b0a428d` | Knowledge capture         |
 
 ### Linter Quality Cleanup (Session 2 — committed, pushed)
 
-| #   | Phase   | What                                                           | Commit    | Issues Fixed           |
-| --- | ------- | -------------------------------------------------------------- | --------- | ---------------------- |
-| 9   | 1       | Gosec exclusions in `.golangci.yml` (G304, G204, G706, G115)   | `61584a0` | 21 suppressed          |
-| 10  | 2       | goconst, perfsprint, errcheck, prealloc fixes                  | `61584a0` | ~11 fixed              |
-| 11  | 3       | Doc comments on 12 exported symbols in `internal/pixy/pixy.go` | `9dd7a90` | 13 revive fixed        |
-| 12  | 3       | Package comment on `auto.go`                                   | `9dd7a90` | 1 revive fixed         |
-| 13  | 4       | Extract `registerMetrics()` from `init()` → `NewDaemon()`      | `f61fcd8` | 1 gochecknoinits fixed |
-| 14  | 5       | Add `golangci-lint-action@v7` to CI workflow                   | `87dfbab` | CI now runs lint       |
-| 15  | 6       | Update AGENTS.md with lint commands + gosec context            | `e55bce3` | Documentation          |
-| 16  | Cleanup | Remove dead `withAudio` test helper                            | `6668202` | 1 unused fixed         |
-| 17  | Style   | Gofumpt formatting on pixy.go                                  | `1afb15b` | Formatting             |
+| #  | Phase   | What                                                           | Commit    | Issues Fixed           |
+| -- | ------- | -------------------------------------------------------------- | --------- | ---------------------- |
+| 9  | 1       | Gosec exclusions in `.golangci.yml` (G304, G204, G706, G115)   | `61584a0` | 21 suppressed          |
+| 10 | 2       | goconst, perfsprint, errcheck, prealloc fixes                  | `61584a0` | ~11 fixed              |
+| 11 | 3       | Doc comments on 12 exported symbols in `internal/pixy/pixy.go` | `9dd7a90` | 13 revive fixed        |
+| 12 | 3       | Package comment on `auto.go`                                   | `9dd7a90` | 1 revive fixed         |
+| 13 | 4       | Extract `registerMetrics()` from `init()` → `NewDaemon()`      | `f61fcd8` | 1 gochecknoinits fixed |
+| 14 | 5       | Add `golangci-lint-action@v7` to CI workflow                   | `87dfbab` | CI now runs lint       |
+| 15 | 6       | Update AGENTS.md with lint commands + gosec context            | `e55bce3` | Documentation          |
+| 16 | Cleanup | Remove dead `withAudio` test helper                            | `6668202` | 1 unused fixed         |
+| 17 | Style   | Gofumpt formatting on pixy.go                                  | `1afb15b` | Formatting             |
 
 ### Documentation & Planning (committed, pushed)
 
-| #   | What                                    | Commit    |
-| --- | --------------------------------------- | --------- |
-| 18  | Execution plan with Pareto analysis     | `39b4c10` |
-| 19  | Refactoring quality audit status report | `fba2559` |
+| #  | What                                    | Commit    |
+| -- | --------------------------------------- | --------- |
+| 18 | Execution plan with Pareto analysis     | `39b4c10` |
+| 19 | Refactoring quality audit status report | `fba2559` |
 
 ---
 
@@ -162,33 +162,33 @@ No regressions. No broken tests. No broken builds. All changes tested before com
 
 Sorted by impact × effort (highest first):
 
-| #   | Action                                                                 | Impact | Effort | Risk   | Category      |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | ------ | ------------- |
-| 1   | Configure `exhaustruct` exclusions for stdlib types in `.golangci.yml` | High   | 15min  | None   | Lint          |
-| 2   | Configure `paralleltest` to ignore `t.Setenv`, temp-dir tests          | High   | 10min  | None   | Lint          |
-| 3   | Suppress `contextcheck` for templ-generated patterns                   | Medium | 10min  | None   | Lint          |
-| 4   | Add `t.Helper()` to all test helper functions                          | Medium | 10min  | None   | Test          |
-| 5   | Fix `errcheck` in tests (unchecked Close, RemoveAll)                   | Medium | 20min  | None   | Test          |
-| 6   | Fix `unparam` warnings (unused test helper params)                     | Low    | 10min  | None   | Lint          |
-| 7   | Fix remaining `goconst` string duplication                             | Low    | 10min  | None   | Lint          |
-| 8   | Extract `handleStream` ffmpeg lifecycle into helper                    | Medium | 30min  | Low    | Architecture  |
-| 9   | Extract signal handling from `Run()` into `handleSignals()`            | Medium | 20min  | Low    | Architecture  |
-| 10  | Extract HTTP server setup from `Run()` into `newHTTPServer()`          | Medium | 20min  | Low    | Architecture  |
-| 11  | Extract connection handler from `listenUnix` into `handleConn()`       | Medium | 15min  | Low    | Architecture  |
-| 12  | Extract per-field sync logic from `syncState` into smaller methods     | Medium | 30min  | Low    | Architecture  |
-| 13  | Add `//nolint:exhaustruct` comments to intentional partial inits       | Medium | 15min  | None   | Lint          |
-| 14  | Add command latency histogram Prometheus metric                        | Medium | 20min  | None   | Observability |
-| 15  | Add HID error counter Prometheus metric                                | Low    | 15min  | None   | Observability |
-| 16  | Add fuzz tests for `parseUevent`, `ParseAudioMode`, `ParseCameraState` | Medium | 30min  | None   | Test          |
-| 17  | Extract `hidCommander` interface for testability                       | High   | 60min  | Medium | Architecture  |
-| 18  | Extract `v4l2Controller` interface for testability                     | High   | 45min  | Medium | Architecture  |
-| 19  | Extract `processScanner` interface for testability                     | Medium | 30min  | Medium | Architecture  |
-| 20  | Add `nix run .#lint` and `nix run .#test` to flake.nix                 | Medium | 20min  | None   | DevEx         |
-| 21  | Replace string error responses with structured error types             | Medium | 60min  | Low    | Architecture  |
-| 22  | Add WebSocket support for real-time state updates                      | High   | 120min | Medium | Feature       |
-| 23  | Refactor `handleCommand` into command registry pattern                 | High   | 90min  | Medium | Architecture  |
-| 24  | Add systemd hardening to NixOS module                                  | Medium | 30min  | Low    | Ops           |
-| 25  | Add integration tests with mock HID/V4L2 devices                       | High   | 180min | Medium | Test          |
+| #  | Action                                                                 | Impact | Effort | Risk   | Category      |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | ------ | ------------- |
+| 1  | Configure `exhaustruct` exclusions for stdlib types in `.golangci.yml` | High   | 15min  | None   | Lint          |
+| 2  | Configure `paralleltest` to ignore `t.Setenv`, temp-dir tests          | High   | 10min  | None   | Lint          |
+| 3  | Suppress `contextcheck` for templ-generated patterns                   | Medium | 10min  | None   | Lint          |
+| 4  | Add `t.Helper()` to all test helper functions                          | Medium | 10min  | None   | Test          |
+| 5  | Fix `errcheck` in tests (unchecked Close, RemoveAll)                   | Medium | 20min  | None   | Test          |
+| 6  | Fix `unparam` warnings (unused test helper params)                     | Low    | 10min  | None   | Lint          |
+| 7  | Fix remaining `goconst` string duplication                             | Low    | 10min  | None   | Lint          |
+| 8  | Extract `handleStream` ffmpeg lifecycle into helper                    | Medium | 30min  | Low    | Architecture  |
+| 9  | Extract signal handling from `Run()` into `handleSignals()`            | Medium | 20min  | Low    | Architecture  |
+| 10 | Extract HTTP server setup from `Run()` into `newHTTPServer()`          | Medium | 20min  | Low    | Architecture  |
+| 11 | Extract connection handler from `listenUnix` into `handleConn()`       | Medium | 15min  | Low    | Architecture  |
+| 12 | Extract per-field sync logic from `syncState` into smaller methods     | Medium | 30min  | Low    | Architecture  |
+| 13 | Add `//nolint:exhaustruct` comments to intentional partial inits       | Medium | 15min  | None   | Lint          |
+| 14 | Add command latency histogram Prometheus metric                        | Medium | 20min  | None   | Observability |
+| 15 | Add HID error counter Prometheus metric                                | Low    | 15min  | None   | Observability |
+| 16 | Add fuzz tests for `parseUevent`, `ParseAudioMode`, `ParseCameraState` | Medium | 30min  | None   | Test          |
+| 17 | Extract `hidCommander` interface for testability                       | High   | 60min  | Medium | Architecture  |
+| 18 | Extract `v4l2Controller` interface for testability                     | High   | 45min  | Medium | Architecture  |
+| 19 | Extract `processScanner` interface for testability                     | Medium | 30min  | Medium | Architecture  |
+| 20 | Add `nix run .#lint` and `nix run .#test` to flake.nix                 | Medium | 20min  | None   | DevEx         |
+| 21 | Replace string error responses with structured error types             | Medium | 60min  | Low    | Architecture  |
+| 22 | Add WebSocket support for real-time state updates                      | High   | 120min | Medium | Feature       |
+| 23 | Refactor `handleCommand` into command registry pattern                 | High   | 90min  | Medium | Architecture  |
+| 24 | Add systemd hardening to NixOS module                                  | Medium | 30min  | Low    | Ops           |
+| 25 | Add integration tests with mock HID/V4L2 devices                       | High   | 180min | Medium | Test          |
 
 ---
 

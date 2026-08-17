@@ -133,33 +133,33 @@ Lines 81-97 contain 3 errcheck exclude-rules that do nothing. They're documentat
 
 ## f) Top 25 Things to Do Next
 
-| #   | Task                                                                    | Impact | Effort | Category      |
-| --- | ----------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | File golangci-lint bug: `linters.enable` blocks `exclude-rules`         | HIGH   | 15min  | Tooling       |
-| 2   | File golangci-lint bug: `errcheck` not suppressible via `exclude-rules` | HIGH   | 15min  | Tooling       |
-| 3   | Migrate `.golangci.yml` back to `linters.enable` once bugs fixed        | HIGH   | 30min  | Tooling       |
-| 4   | Remove dead errcheck exclude-rules from `.golangci.yml` (lines 81-97)   | LOW    | 2min   | Cleanup       |
-| 5   | Re-enable `staticcheck` in `.golangci.yml`                              | HIGH   | 10min  | Linting       |
-| 6   | Re-enable `misspell` in `.golangci.yml`                                 | MEDIUM | 5min   | Linting       |
-| 7   | Re-enable `unconvert` in `.golangci.yml`                                | MEDIUM | 5min   | Linting       |
-| 8   | Re-enable `dupl` in `.golangci.yml`                                     | MEDIUM | 10min  | Linting       |
-| 9   | Re-enable `exhaustive` in `.golangci.yml`                               | MEDIUM | 5min   | Linting       |
-| 10  | Re-enable `nilerr` in `.golangci.yml`                                   | MEDIUM | 5min   | Linting       |
-| 11  | Replace `get()`/`post()` with context-aware versions                    | MEDIUM | 15min  | Testing       |
-| 12  | Add `t.Parallel()` to all 50 test functions                             | MEDIUM | 20min  | Testing       |
-| 13  | Extract `handleCommand` → command handler map                           | HIGH   | 30min  | Architecture  |
-| 14  | Extract `handleStream` → separate frame extractor                       | MEDIUM | 20min  | Architecture  |
-| 15  | Extract `Run()` signal handling → lifecycle methods                     | MEDIUM | 20min  | Architecture  |
-| 16  | Extract `syncState` → result builder                                    | LOW    | 15min  | Architecture  |
-| 17  | Address gopls `ptr → new(x)` hints (75+ instances)                      | LOW    | 10min  | Cleanup       |
-| 18  | Add Prometheus `Namespace`/`Subsystem` to metrics                       | LOW    | 5min   | Observability |
-| 19  | Replace `"error: ..."` string matching with typed errors                | HIGH   | 45min  | Architecture  |
-| 20  | Improve test coverage to 80%+                                           | HIGH   | 60min  | Testing       |
-| 21  | Verify `.golangci.yml` works in GitHub Actions CI                       | HIGH   | 10min  | CI            |
-| 22  | Pin golangci-lint version in CI to match local                          | MEDIUM | 5min   | CI            |
-| 23  | Add `//nolint` explanation comments for non-obvious suppressions        | LOW    | 10min  | Documentation |
-| 24  | Consider `errcheck` linter settings: `exclude-functions`                | MEDIUM | 10min  | Tooling       |
-| 25  | Extract MJPEG streaming to separate package                             | LOW    | 30min  | Architecture  |
+| #  | Task                                                                    | Impact | Effort | Category      |
+| -- | ----------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | File golangci-lint bug: `linters.enable` blocks `exclude-rules`         | HIGH   | 15min  | Tooling       |
+| 2  | File golangci-lint bug: `errcheck` not suppressible via `exclude-rules` | HIGH   | 15min  | Tooling       |
+| 3  | Migrate `.golangci.yml` back to `linters.enable` once bugs fixed        | HIGH   | 30min  | Tooling       |
+| 4  | Remove dead errcheck exclude-rules from `.golangci.yml` (lines 81-97)   | LOW    | 2min   | Cleanup       |
+| 5  | Re-enable `staticcheck` in `.golangci.yml`                              | HIGH   | 10min  | Linting       |
+| 6  | Re-enable `misspell` in `.golangci.yml`                                 | MEDIUM | 5min   | Linting       |
+| 7  | Re-enable `unconvert` in `.golangci.yml`                                | MEDIUM | 5min   | Linting       |
+| 8  | Re-enable `dupl` in `.golangci.yml`                                     | MEDIUM | 10min  | Linting       |
+| 9  | Re-enable `exhaustive` in `.golangci.yml`                               | MEDIUM | 5min   | Linting       |
+| 10 | Re-enable `nilerr` in `.golangci.yml`                                   | MEDIUM | 5min   | Linting       |
+| 11 | Replace `get()`/`post()` with context-aware versions                    | MEDIUM | 15min  | Testing       |
+| 12 | Add `t.Parallel()` to all 50 test functions                             | MEDIUM | 20min  | Testing       |
+| 13 | Extract `handleCommand` → command handler map                           | HIGH   | 30min  | Architecture  |
+| 14 | Extract `handleStream` → separate frame extractor                       | MEDIUM | 20min  | Architecture  |
+| 15 | Extract `Run()` signal handling → lifecycle methods                     | MEDIUM | 20min  | Architecture  |
+| 16 | Extract `syncState` → result builder                                    | LOW    | 15min  | Architecture  |
+| 17 | Address gopls `ptr → new(x)` hints (75+ instances)                      | LOW    | 10min  | Cleanup       |
+| 18 | Add Prometheus `Namespace`/`Subsystem` to metrics                       | LOW    | 5min   | Observability |
+| 19 | Replace `"error: ..."` string matching with typed errors                | HIGH   | 45min  | Architecture  |
+| 20 | Improve test coverage to 80%+                                           | HIGH   | 60min  | Testing       |
+| 21 | Verify `.golangci.yml` works in GitHub Actions CI                       | HIGH   | 10min  | CI            |
+| 22 | Pin golangci-lint version in CI to match local                          | MEDIUM | 5min   | CI            |
+| 23 | Add `//nolint` explanation comments for non-obvious suppressions        | LOW    | 10min  | Documentation |
+| 24 | Consider `errcheck` linter settings: `exclude-functions`                | MEDIUM | 10min  | Tooling       |
+| 25 | Extract MJPEG streaming to separate package                             | LOW    | 30min  | Architecture  |
 
 ---
 

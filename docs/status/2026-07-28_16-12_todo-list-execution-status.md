@@ -13,7 +13,7 @@
 | 115 | `RejectUnknownMembers(true)` on state decoder               | `TestStateFileRejectsUnknownFields` passes                               |
 | 114 | `commandMsgError` consolidated into `CommandError`          | Build OK; existing `TestCommandError_*` pass                             |
 | 126 | All 9 GitHub Actions pinned to commit SHAs                  | `grep` confirms SHA pins in all 3 workflow files                         |
-| 128 | govulncheck + pnpm audit triage                              | Go: 0 vulns. Website: `pnpm audit fix` → 0 vulns. Build verified.         |
+| 128 | govulncheck + pnpm audit triage                             | Go: 0 vulns. Website: `pnpm audit fix` → 0 vulns. Build verified.        |
 | 107 | SSE connection status indicator (green/amber/red dot)       | CSS + JS + template; `templ generate` + build OK                         |
 | 106 | Focus management across HTMX `outerHTML` swaps              | `htmx:beforeRequest` + `htmx:afterSettle` handlers in `app.js`           |
 | 111 | Preset name autocomplete via `<datalist>`                   | Template renders `<datalist>` from existing preset names                 |
@@ -106,12 +106,12 @@ Root package coverage is **70.4%** — barely above the 70% CI threshold. The ne
 
 The auto-git daemon generated commit messages that don't describe what actually changed:
 
-| Commit    | Message                                                                   | What it actually was                                                                                      |
-| --------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `3f00b83` | "chore(ci): add Nix flake support and GitHub Actions workflows"           | GitHub Actions SHA pinning (#126) + accidental flake.lock                                                 |
+| Commit    | Message                                                                   | What it actually was                                                                                       |
+| --------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `3f00b83` | "chore(ci): add Nix flake support and GitHub Actions workflows"           | GitHub Actions SHA pinning (#126) + accidental flake.lock                                                  |
 | `401c4bc` | "feat(ui): enhance frontend interface with updated styles and components" | SSE indicator (#107) + focus mgmt (#106) + autocomplete (#111) + WCAG fixes (#110) + pnpm audit fix (#128) |
-| `71c6e76` | "feat(hid): add eMeet Pixy HID protocol support and control interface"    | HID protocol **documentation** (#122) — not a code feature                                                |
-| `5b82d8a` | "test(pixy): update property and state tests with TODO list sync"         | Property tests (#118) + TODO_LIST.md rewrite                                                              |
+| `71c6e76` | "feat(hid): add eMeet Pixy HID protocol support and control interface"    | HID protocol **documentation** (#122) — not a code feature                                                 |
+| `5b82d8a` | "test(pixy): update property and state tests with TODO list sync"         | Property tests (#118) + TODO_LIST.md rewrite                                                               |
 
 These messages will confuse anyone reading git history.
 

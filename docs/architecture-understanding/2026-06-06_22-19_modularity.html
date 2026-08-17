@@ -158,7 +158,9 @@
   </head>
   <body>
     <h1>emeet-pixyd Architecture Review</h1>
-    <p class="meta">2026-06-06 | ~10K lines Go (prod + tests) | Single binary Linux daemon</p>
+    <p class="meta">
+      2026-06-06 | ~10K lines Go (prod + tests) | Single binary Linux daemon
+    </p>
 
     <h2>Executive Summary</h2>
 
@@ -186,8 +188,9 @@
     <div class="finding">
       <h3>Current Module Structure</h3>
       <p>
-        Single <code>main</code> package with one internal package (<code>internal/pixy</code>). The
-        codebase is well-decomposed into 23 focused files with clear responsibilities.
+        Single <code>main</code> package with one internal package
+        (<code>internal/pixy</code>). The codebase is well-decomposed into 23
+        focused files with clear responsibilities.
       </p>
 
       <table>
@@ -260,9 +263,9 @@
       </table>
 
       <p>
-        <strong>Verdict:</strong> <span class="tag tag-strong">Strong</span> — Each file has a
-        single clear responsibility. No god-files. File sizes are well-controlled (max 365 lines for
-        commands.go).
+        <strong>Verdict:</strong> <span class="tag tag-strong">Strong</span> —
+        Each file has a single clear responsibility. No god-files. File sizes
+        are well-controlled (max 365 lines for commands.go).
       </p>
     </div>
 
@@ -270,31 +273,45 @@
 
     <div class="finding">
       <h3>Concurrency Model</h3>
-      <p>The daemon uses a well-structured concurrency model with three distinct lock scopes:</p>
+      <p>
+        The daemon uses a well-structured concurrency model with three distinct
+        lock scopes:
+      </p>
       <ul>
-        <li><code>D.mu</code> (RWMutex) — protects state, device paths, debounce counters</li>
-        <li><code>D.cmdMu</code> (Mutex) — serializes mutating commands only; queries bypass</li>
-        <li><code>streamSema</code> (chan, cap 1) — limits to one MJPEG stream</li>
+        <li>
+          <code>D.mu</code> (RWMutex) — protects state, device paths, debounce
+          counters
+        </li>
+        <li>
+          <code>D.cmdMu</code> (Mutex) — serializes mutating commands only;
+          queries bypass
+        </li>
+        <li>
+          <code>streamSema</code> (chan, cap 1) — limits to one MJPEG stream
+        </li>
       </ul>
       <p>
-        This is appropriate for a single-device hardware daemon. The read/write lock separation
-        allows concurrent status queries while serializing state mutations.
+        This is appropriate for a single-device hardware daemon. The read/write
+        lock separation allows concurrent status queries while serializing state
+        mutations.
       </p>
       <p>
-        <strong>Scalability limit:</strong> Designed for exactly one PIXY device. Not a flaw — this
-        is a hardware daemon.
+        <strong>Scalability limit:</strong> Designed for exactly one PIXY
+        device. Not a flaw — this is a hardware daemon.
       </p>
     </div>
 
     <div class="finding">
       <h3>Dependency Injection</h3>
       <p>
-        The <code>Dependencies</code> struct consolidates 10 function fields for testability.
-        Production wiring in <code>NewDaemon()</code>, tests override via functional options.
+        The <code>Dependencies</code> struct consolidates 10 function fields for
+        testability. Production wiring in <code>NewDaemon()</code>, tests
+        override via functional options.
       </p>
       <p>
-        <span class="tag tag-strong">Strong</span> — All external interactions (HID, v4l2, /proc,
-        PipeWire, notifications) are injectable. The two-phase init handles circular refs cleanly.
+        <span class="tag tag-strong">Strong</span> — All external interactions
+        (HID, v4l2, /proc, PipeWire, notifications) are injectable. The
+        two-phase init handles circular refs cleanly.
       </p>
     </div>
 
@@ -330,13 +347,14 @@
         </tr>
       </table>
       <p>
-        The socket protocol is simple and effective. HTTP handlers use templ for type-safe HTML. The
+        The socket protocol is simple and effective. HTTP handlers use templ for
+        type-safe HTML. The
         <code>CommandResult</code> type unifies socket and HTTP responses.
       </p>
       <p>
-        <span class="tag tag-moderate">Moderate</span> — The socket protocol is unversioned text.
-        This is fine for a local-only daemon but would need versioning if ever exposed over a
-        network.
+        <span class="tag tag-moderate">Moderate</span> — The socket protocol is
+        unversioned text. This is fine for a local-only daemon but would need
+        versioning if ever exposed over a network.
       </p>
     </div>
 
@@ -346,14 +364,23 @@
       <h3>Strengths</h3>
       <ul>
         <li>
-          <code>internal/pixy</code> package provides clean domain types with branded IDs
-          (<code>PID</code>, <code>SourceID</code>)
+          <code>internal/pixy</code> package provides clean domain types with
+          branded IDs (<code>PID</code>, <code>SourceID</code>)
         </li>
-        <li><code>CommandResult</code> typed return eliminates stringly-typed command results</li>
+        <li>
+          <code>CommandResult</code> typed return eliminates stringly-typed
+          command results
+        </li>
         <li><code>HIDDevice</code> interface abstracts hardware I/O</li>
         <li><code>Dependencies</code> struct provides complete DI surface</li>
-        <li><code>probeDevices()</code> is a pure function — easy to test and reason about</li>
-        <li><code>pixy.State.Valid()</code> prevents garbage enum values from persisting</li>
+        <li>
+          <code>probeDevices()</code> is a pure function — easy to test and
+          reason about
+        </li>
+        <li>
+          <code>pixy.State.Valid()</code> prevents garbage enum values from
+          persisting
+        </li>
       </ul>
     </div>
 
@@ -406,19 +433,26 @@
       <p>Excellent type discipline throughout:</p>
       <ul>
         <li>
-          <code>CameraState</code>, <code>AudioMode</code>, <code>AutoMode</code> — string-based
-          with <code>Valid()</code> + <code>String()</code>
+          <code>CameraState</code>, <code>AudioMode</code>,
+          <code>AutoMode</code> — string-based with <code>Valid()</code> +
+          <code>String()</code>
         </li>
         <li>
-          <code>PID</code> and <code>SourceID</code> — branded types prevent mixing at compile time
+          <code>PID</code> and <code>SourceID</code> — branded types prevent
+          mixing at compile time
         </li>
         <li><code>PTZValues</code> with <code>Clamp()</code> method</li>
-        <li><code>CommandResult</code> — typed returns for all command handlers</li>
-        <li><code>CommandError</code> — structured error type with sentinel errors</li>
+        <li>
+          <code>CommandResult</code> — typed returns for all command handlers
+        </li>
+        <li>
+          <code>CommandError</code> — structured error type with sentinel errors
+        </li>
       </ul>
       <p>
-        <span class="tag tag-strong">Strong</span> — Impossible states are largely unrepresentable.
-        The branded ID pattern is particularly well-applied.
+        <span class="tag tag-strong">Strong</span> — Impossible states are
+        largely unrepresentable. The branded ID pattern is particularly
+        well-applied.
       </p>
     </div>
 
@@ -517,7 +551,9 @@
         <tr>
           <td>Service Orientation</td>
           <td><span class="score score-good">7/10</span></td>
-          <td>Good API surface, unversioned socket protocol is fine for local use</td>
+          <td>
+            Good API surface, unversioned socket protocol is fine for local use
+          </td>
         </tr>
         <tr>
           <td>Composability</td>
@@ -541,9 +577,10 @@
         </tr>
       </table>
       <p style="margin-top: 1rem">
-        <strong>Overall: 8/10</strong> — A well-crafted single-purpose daemon with strong type
-        discipline, clean decomposition, and appropriate abstractions. The remaining TODOs are
-        mostly incremental improvements, not architectural issues.
+        <strong>Overall: 8/10</strong> — A well-crafted single-purpose daemon
+        with strong type discipline, clean decomposition, and appropriate
+        abstractions. The remaining TODOs are mostly incremental improvements,
+        not architectural issues.
       </p>
     </div>
   </body>

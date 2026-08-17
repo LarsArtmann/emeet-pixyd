@@ -133,33 +133,33 @@ The project is in **excellent shape**. Over the last 3 sessions, 16 commits deli
 
 Sorted by **Impact / Effort** ratio (highest first).
 
-| #   | Task                                                                         | Impact | Effort   | Category     |
-| --- | ---------------------------------------------------------------------------- | ------ | -------- | ------------ |
-| 1   | Update TODO_LIST.md and CHANGELOG.md                                         | MED    | VERY LOW | Docs         |
-| 2   | Update FEATURES.md with UI overhaul + preset UI + self-review changes        | MED    | LOW      | Docs         |
-| 3   | Add screen reader test pass (manual, document findings)                      | MED    | LOW      | A11y         |
-| 4   | Add `hx-on::after-swap` focus management for keyboard users                  | MED    | LOW      | UX           |
-| 5   | Add SSE connection status indicator (green dot / red dot)                    | MED    | LOW      | UX           |
-| 6   | Wire `errors.Is` checks for sentinel errors in production callers            | MED    | LOW      | Architecture |
-| 7   | Add gesture toggle button to web UI mode cards                               | MED    | LOW      | Feature      |
-| 8   | Add snapshot testing for web panel HTML (`go-snaps`)                         | MED    | MED      | Testing      |
-| 9   | Property-based tests for `ValidatePresetName` and `Range.Clamp`              | LOW    | MED      | Testing      |
-| 10  | Consolidate `commandMsgError` into `CommandError` pattern                    | LOW    | MED      | Architecture |
-| 11  | Unexport package main symbols (mechanical pass)                              | LOW    | MED      | Architecture |
-| 12  | Structured command types instead of string-split dispatch                    | HIGH   | HIGH     | Architecture |
-| 13  | Light theme support (CSS variables already structured)                       | LOW    | MED      | UX           |
-| 14  | Mobile device testing pass (real devices)                                    | MED    | MED      | UX           |
-| 15  | WCAG 2.1 AA audit                                                            | MED    | MED      | A11y         |
-| 16  | Preset rename feature (CLI + web)                                            | LOW    | MED      | Feature      |
-| 17  | Add `DisallowUnknownFields` to state JSON decoder for strict schema checking | LOW    | LOW      | Architecture |
-| 18  | Add `go-snaps` snapshot test for waybar JSON output                          | LOW    | LOW      | Testing      |
-| 19  | Improve main package test coverage beyond 70.7%                              | MED    | HIGH     | Testing      |
-| 20  | Integration test: full auto-manage lifecycle with fake devices               | MED    | MED      | Testing      |
-| 21  | Add preset name autocomplete in web UI save input                            | LOW    | MED      | UX           |
-| 22  | Add dark/light theme toggle persisted in state.json                          | LOW    | MED      | UX           |
-| 23  | Document HID protocol reverse-engineering findings                           | LOW    | LOW      | Docs         |
-| 24  | Add `wpctl` mock for PipeWire integration tests                              | LOW    | MED      | Testing      |
-| 25  | Migrate to `encoding/json/v2` when it leaves GOEXPERIMENT                    | LOW    | LOW      | Architecture |
+| #  | Task                                                                         | Impact | Effort   | Category     |
+| -- | ---------------------------------------------------------------------------- | ------ | -------- | ------------ |
+| 1  | Update TODO_LIST.md and CHANGELOG.md                                         | MED    | VERY LOW | Docs         |
+| 2  | Update FEATURES.md with UI overhaul + preset UI + self-review changes        | MED    | LOW      | Docs         |
+| 3  | Add screen reader test pass (manual, document findings)                      | MED    | LOW      | A11y         |
+| 4  | Add `hx-on::after-swap` focus management for keyboard users                  | MED    | LOW      | UX           |
+| 5  | Add SSE connection status indicator (green dot / red dot)                    | MED    | LOW      | UX           |
+| 6  | Wire `errors.Is` checks for sentinel errors in production callers            | MED    | LOW      | Architecture |
+| 7  | Add gesture toggle button to web UI mode cards                               | MED    | LOW      | Feature      |
+| 8  | Add snapshot testing for web panel HTML (`go-snaps`)                         | MED    | MED      | Testing      |
+| 9  | Property-based tests for `ValidatePresetName` and `Range.Clamp`              | LOW    | MED      | Testing      |
+| 10 | Consolidate `commandMsgError` into `CommandError` pattern                    | LOW    | MED      | Architecture |
+| 11 | Unexport package main symbols (mechanical pass)                              | LOW    | MED      | Architecture |
+| 12 | Structured command types instead of string-split dispatch                    | HIGH   | HIGH     | Architecture |
+| 13 | Light theme support (CSS variables already structured)                       | LOW    | MED      | UX           |
+| 14 | Mobile device testing pass (real devices)                                    | MED    | MED      | UX           |
+| 15 | WCAG 2.1 AA audit                                                            | MED    | MED      | A11y         |
+| 16 | Preset rename feature (CLI + web)                                            | LOW    | MED      | Feature      |
+| 17 | Add `DisallowUnknownFields` to state JSON decoder for strict schema checking | LOW    | LOW      | Architecture |
+| 18 | Add `go-snaps` snapshot test for waybar JSON output                          | LOW    | LOW      | Testing      |
+| 19 | Improve main package test coverage beyond 70.7%                              | MED    | HIGH     | Testing      |
+| 20 | Integration test: full auto-manage lifecycle with fake devices               | MED    | MED      | Testing      |
+| 21 | Add preset name autocomplete in web UI save input                            | LOW    | MED      | UX           |
+| 22 | Add dark/light theme toggle persisted in state.json                          | LOW    | MED      | UX           |
+| 23 | Document HID protocol reverse-engineering findings                           | LOW    | LOW      | Docs         |
+| 24 | Add `wpctl` mock for PipeWire integration tests                              | LOW    | MED      | Testing      |
+| 25 | Migrate to `encoding/json/v2` when it leaves GOEXPERIMENT                    | LOW    | LOW      | Architecture |
 
 ---
 

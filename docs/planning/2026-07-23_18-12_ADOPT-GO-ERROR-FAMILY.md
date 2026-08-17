@@ -126,15 +126,15 @@ Call `errorfamily.RegisterStdlibDefaults(errorfamily.DefaultRegistry)` for:
 
 Sorted by impact (highest first), then effort (lowest first).
 
-| #   | Task                                                                 | Impact   | Effort | Customer Value                                                        | Depends On |
-| --- | -------------------------------------------------------------------- | -------- | ------ | --------------------------------------------------------------------- | ---------- |
-| C1  | Add go-error-family dependency + sync vendorHash                     | Critical | 30min  | Foundation — nothing works without this                               | —          |
-| C2  | Create `errorfamily.go` — register sentinels + stdlib defaults       | Critical | 45min  | Core value: Classify/HTTPStatus/ExitCode work for all existing errors | C1         |
-| C3  | Wire typed stream errors in stream.go (fix 3x 500→503)               | High     | 30min  | Correctness: 3 genuine HTTP status bugs fixed                         | C2         |
-| C4  | CLI exit codes: `ExitCode(err)` in exitWithDaemonError + daemon init | Medium   | 20min  | UX: correct sysexits codes for CLI failures                           | C2         |
-| C5  | Use `HTTPStatus(err)` for preset validation in handlers.go           | Low      | 15min  | Consistency: status derived from error family                         | C2         |
-| C6  | Tests: classification, HTTP status mapping, stream handler codes     | High     | 60min  | Confidence: verifies all classifications are correct                  | C2, C3     |
-| C7  | AGENTS.md update + lint + nix flake check                            | Medium   | 30min  | Maintenance: docs current, build/lint clean                           | C1–C6      |
+| #  | Task                                                                 | Impact   | Effort | Customer Value                                                        | Depends On |
+| -- | -------------------------------------------------------------------- | -------- | ------ | --------------------------------------------------------------------- | ---------- |
+| C1 | Add go-error-family dependency + sync vendorHash                     | Critical | 30min  | Foundation — nothing works without this                               | —          |
+| C2 | Create `errorfamily.go` — register sentinels + stdlib defaults       | Critical | 45min  | Core value: Classify/HTTPStatus/ExitCode work for all existing errors | C1         |
+| C3 | Wire typed stream errors in stream.go (fix 3x 500→503)               | High     | 30min  | Correctness: 3 genuine HTTP status bugs fixed                         | C2         |
+| C4 | CLI exit codes: `ExitCode(err)` in exitWithDaemonError + daemon init | Medium   | 20min  | UX: correct sysexits codes for CLI failures                           | C2         |
+| C5 | Use `HTTPStatus(err)` for preset validation in handlers.go           | Low      | 15min  | Consistency: status derived from error family                         | C2         |
+| C6 | Tests: classification, HTTP status mapping, stream handler codes     | High     | 60min  | Confidence: verifies all classifications are correct                  | C2, C3     |
+| C7 | AGENTS.md update + lint + nix flake check                            | Medium   | 30min  | Maintenance: docs current, build/lint clean                           | C1–C6      |
 
 **Total estimated effort: ~3.5h**
 

@@ -1,9 +1,9 @@
 # emeet-pixyd — Comprehensive Status Report
 
-**Date:** 2026-05-03 02:47  
-**Branch:** `master` (up to date with `origin/master`)  
-**Coverage:** 69.6% (main), 77.9% (internal/pixy)  
-**Lint:** 0 issues  
+**Date:** 2026-05-03 02:47\
+**Branch:** `master` (up to date with `origin/master`)\
+**Coverage:** 69.6% (main), 77.9% (internal/pixy)\
+**Lint:** 0 issues\
 **Build:** Clean (with `GOWORK=off`)
 
 ---
@@ -164,48 +164,48 @@ This file is the only blemish on an otherwise clean tree:
 
 ### Priority 1: Critical Fixes (Do First)
 
-| #   | Task                                                                                                                                                                                                                 | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **Fix or delete `behavior_test.go`** — The only broken file in the tree. Fix compilation errors (`sync` import, `syncRWMutex`), fix runtime panics (mock all DI points), or delete if redundant with existing tests. | High   | Low    |
-| 2   | **Add `POST /api/toggle-privacy` HTTP handler test** — Zero coverage for a primary user feature.                                                                                                                     | High   | Low    |
-| 3   | **Add `POST /api/gesture` HTTP handler test** — Untested endpoint.                                                                                                                                                   | Medium | Low    |
-| 4   | **Add `POST /api/auto` HTTP handler test** — Untested endpoint.                                                                                                                                                      | Medium | Low    |
+| # | Task                                                                                                                                                                                                                 | Impact | Effort |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | **Fix or delete `behavior_test.go`** — The only broken file in the tree. Fix compilation errors (`sync` import, `syncRWMutex`), fix runtime panics (mock all DI points), or delete if redundant with existing tests. | High   | Low    |
+| 2 | **Add `POST /api/toggle-privacy` HTTP handler test** — Zero coverage for a primary user feature.                                                                                                                     | High   | Low    |
+| 3 | **Add `POST /api/gesture` HTTP handler test** — Untested endpoint.                                                                                                                                                   | Medium | Low    |
+| 4 | **Add `POST /api/auto` HTTP handler test** — Untested endpoint.                                                                                                                                                      | Medium | Low    |
 
 ### Priority 2: Architecture (High Impact)
 
-| #   | Task                                                                                                                                                                                       | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------- |
-| 5   | **Extract `main.go` HID methods into `device.go`** — `queryTracking`, `queryAudio`, `queryGesture`, `setTracking`, `setAudio`, `setGesture`, `centerCamera`, `setDeviceState`. ~200 lines. | High   | Medium  |
-| 6   | **Extract `main.go` socket listener into `socket.go`** — `listenUnix`, `sendCommand`. ~80 lines.                                                                                           | Medium | Low     |
-| 7   | **Extract `main.go` waybar/status into `status.go`** — `getStatus`, `waybarOutput`, `boolStr`, `sdNotify`. ~60 lines.                                                                      | Medium | Low     |
-| 8   | **Structured command response type** — Replace `"error: ..."` string prefix with `CommandResponse{Status, Message, Data}`. Eliminates string-matching bugs.                                | High   | Medium  |
-| 9   | **Add `GET /api/health` endpoint** — Standard for any HTTP daemon. Returns JSON with uptime, device status, version.                                                                       | Medium | Low     |
-| 10  | **Move `checkDevice` into `stream.go`** — It's only used there; wrong file currently.                                                                                                      | Low    | Trivial |
+| #  | Task                                                                                                                                                                                       | Impact | Effort  |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------- |
+| 5  | **Extract `main.go` HID methods into `device.go`** — `queryTracking`, `queryAudio`, `queryGesture`, `setTracking`, `setAudio`, `setGesture`, `centerCamera`, `setDeviceState`. ~200 lines. | High   | Medium  |
+| 6  | **Extract `main.go` socket listener into `socket.go`** — `listenUnix`, `sendCommand`. ~80 lines.                                                                                           | Medium | Low     |
+| 7  | **Extract `main.go` waybar/status into `status.go`** — `getStatus`, `waybarOutput`, `boolStr`, `sdNotify`. ~60 lines.                                                                      | Medium | Low     |
+| 8  | **Structured command response type** — Replace `"error: ..."` string prefix with `CommandResponse{Status, Message, Data}`. Eliminates string-matching bugs.                                | High   | Medium  |
+| 9  | **Add `GET /api/health` endpoint** — Standard for any HTTP daemon. Returns JSON with uptime, device status, version.                                                                       | Medium | Low     |
+| 10 | **Move `checkDevice` into `stream.go`** — It's only used there; wrong file currently.                                                                                                      | Low    | Trivial |
 
 ### Priority 3: Test Coverage
 
-| #   | Task                                                                                                                                                                       | Impact | Effort |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 11  | **Add audio mode button `hx-vals` test** — Verify each audio button sends correct mode value.                                                                              | Medium | Low    |
-| 12  | **Validate generated HTML for literal variable names** — Integration test that checks no `aria-label="ariaLabel"` or `hx-post="endpoint"` patterns exist in rendered HTML. | Medium | Low    |
-| 13  | **Add integration test for device hotplug** — uevent → probe → state change flow.                                                                                          | High   | Medium |
-| 14  | **Add graceful stream reconnection test** — Test FFmpeg restart during active stream.                                                                                      | Medium | Medium |
-| 15  | **Benchmark `/proc/*/fd` scanning** — Know the cost of the hot path.                                                                                                       | Medium | Low    |
-| 16  | **Review `extractJPEGFrame` edge cases** — Truncated frames between FFmpeg restarts.                                                                                       | Medium | Medium |
+| #  | Task                                                                                                                                                                       | Impact | Effort |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 11 | **Add audio mode button `hx-vals` test** — Verify each audio button sends correct mode value.                                                                              | Medium | Low    |
+| 12 | **Validate generated HTML for literal variable names** — Integration test that checks no `aria-label="ariaLabel"` or `hx-post="endpoint"` patterns exist in rendered HTML. | Medium | Low    |
+| 13 | **Add integration test for device hotplug** — uevent → probe → state change flow.                                                                                          | High   | Medium |
+| 14 | **Add graceful stream reconnection test** — Test FFmpeg restart during active stream.                                                                                      | Medium | Medium |
+| 15 | **Benchmark `/proc/*/fd` scanning** — Know the cost of the hot path.                                                                                                       | Medium | Low    |
+| 16 | **Review `extractJPEGFrame` edge cases** — Truncated frames between FFmpeg restarts.                                                                                       | Medium | Medium |
 
 ### Priority 4: Robustness & Polish
 
-| #   | Task                                                                                       | Impact | Effort  |
-| --- | ------------------------------------------------------------------------------------------ | ------ | ------- |
-| 17  | **`go:embed` for `app.js`** — Ensure template scripts always match served static files.    | Medium | Low     |
-| 18  | **Document HID protocol byte layout** — In code comments or separate doc.                  | Medium | Low     |
-| 19  | **Move `isPixyName` and device constants into `internal/pixy`** — Centralize for reuse.    | Low    | Low     |
-| 20  | **Consider `inotify`/`fanotify` for call detection** — Replace `/proc/*/fd` polling.       | High   | High    |
-| 21  | **Consider `koanf` for configuration** — File + env + flags instead of env-only.           | Medium | Medium  |
-| 22  | **Consider SSE instead of MJPEG multipart** — For the preview stream.                      | Medium | High    |
-| 23  | **Consider direct V4L2 ioctl calls** — Replace `exec.Command("v4l2-ctl")` subprocess.      | Medium | High    |
-| 24  | **Add CORS headers** — For potential remote access scenarios.                              | Low    | Low     |
-| 25  | **Document `WriteTimeout: 30s` interaction with MJPEG** — Currently fine but worth noting. | Low    | Trivial |
+| #  | Task                                                                                       | Impact | Effort  |
+| -- | ------------------------------------------------------------------------------------------ | ------ | ------- |
+| 17 | **`go:embed` for `app.js`** — Ensure template scripts always match served static files.    | Medium | Low     |
+| 18 | **Document HID protocol byte layout** — In code comments or separate doc.                  | Medium | Low     |
+| 19 | **Move `isPixyName` and device constants into `internal/pixy`** — Centralize for reuse.    | Low    | Low     |
+| 20 | **Consider `inotify`/`fanotify` for call detection** — Replace `/proc/*/fd` polling.       | High   | High    |
+| 21 | **Consider `koanf` for configuration** — File + env + flags instead of env-only.           | Medium | Medium  |
+| 22 | **Consider SSE instead of MJPEG multipart** — For the preview stream.                      | Medium | High    |
+| 23 | **Consider direct V4L2 ioctl calls** — Replace `exec.Command("v4l2-ctl")` subprocess.      | Medium | High    |
+| 24 | **Add CORS headers** — For potential remote access scenarios.                              | Low    | Low     |
+| 25 | **Document `WriteTimeout: 30s` interaction with MJPEG** — Currently fine but worth noting. | Low    | Trivial |
 
 ---
 
@@ -227,13 +227,13 @@ I recommend **Option 1 (fix it)** because BDD-style behavioral tests exercise mu
 
 ## Summary
 
-| Category          | Status                                                                  |
-| ----------------- | ----------------------------------------------------------------------- |
-| Build             | ✅ Clean                                                                |
-| Lint              | ✅ 0 issues                                                             |
-| Tests (committed) | ✅ All pass, race-clean, 69.6% coverage                                 |
-| Tests (untracked) | ❌ `behavior_test.go` broken (won't compile + panics)                   |
-| Production bugs   | ✅ None known                                                           |
+| Category          | Status                                                                 |
+| ----------------- | ---------------------------------------------------------------------- |
+| Build             | ✅ Clean                                                               |
+| Lint              | ✅ 0 issues                                                            |
+| Tests (committed) | ✅ All pass, race-clean, 69.6% coverage                                |
+| Tests (untracked) | ❌ `behavior_test.go` broken (won't compile + panics)                  |
+| Production bugs   | ✅ None known                                                          |
 | Architecture      | ⚠️ handlers.go extracted, main.go still monolithic (611 lines)          |
-| Documentation     | ✅ AGENTS.md and FEATURES.md current                                    |
+| Documentation     | ✅ AGENTS.md and FEATURES.md current                                   |
 | Untracked files   | ⚠️ `behavior_test.go`, `docs/architecture-understanding/` (D2 diagrams) |

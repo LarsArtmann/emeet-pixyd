@@ -1,7 +1,7 @@
 # emeet-pixyd — Comprehensive Status Report
 
-**Generated:** 2026-05-01 02:42  
-**Branch:** `master` (clean, up to date with `origin/master`)  
+**Generated:** 2026-05-01 02:42\
+**Branch:** `master` (clean, up to date with `origin/master`)\
 **Latest commit:** `b40c951` feat: add pprof endpoints and CommandError type
 
 ---
@@ -129,33 +129,33 @@
 
 Sorted by **impact / effort ratio** (highest first):
 
-| #   | Task                                                                                          | Impact                          | Effort       | Category      |
-| --- | --------------------------------------------------------------------------------------------- | ------------------------------- | ------------ | ------------- |
-| 1   | Extract `Commander` interface + wire into `process.go`, `v4l2.go`, `handlers.go`              | HIGH (+8-10% coverage)          | Medium       | Architecture  |
-| 2   | Fix CRLF → LF in `integration_test.go` via `.gitattributes`                                   | MEDIUM (prevent silent bugs)    | Trivial      | Code Quality  |
-| 3   | Normalize `CommandError` usage in remaining paths (`syncState`, socket, HTTP)                 | MEDIUM (type safety)            | Small        | Code Quality  |
-| 4   | Add `errors.As(CommandError)` checks in `handlers.go` replacing `HasPrefix("error:")`         | MEDIUM (type safety)            | Small        | Code Quality  |
-| 5   | Add `t.Parallel()` to all integration tests                                                   | LOW (test speed)                | Small        | Testing       |
-| 6   | Add `CameraState.String()` + `AudioMode.String()` tests                                       | LOW (+2% pixy coverage)         | Trivial      | Testing       |
-| 7   | Add `CommandError` unit tests                                                                 | MEDIUM (error type safety)      | Trivial      | Testing       |
-| 8   | Move global metrics into `webServer` struct                                                   | MEDIUM (hermetic tests)         | Small        | Architecture  |
-| 9   | Add benchmark suite (4 benchmarks for hot paths)                                              | LOW (perf regression detection) | Small        | Testing       |
-| 10  | Graceful degradation: cache `ffmpeg`/`wpctl`/`notify-send`/`v4l2-ctl` availability at startup | MEDIUM (cleaner logs)           | Small        | Robustness    |
-| 11  | Structured log levels audit (Debug/Info/Warn/Error)                                           | MEDIUM (log noise reduction)    | Small        | Observability |
-| 12  | Add `emeet_pixyd_command_total` + `emeet_pixyd_command_errors_total` counters                 | MEDIUM (production health)      | Small        | Observability |
-| 13  | Refactor `handleCommand` → dispatch table (cyclop 20→5)                                       | MEDIUM (readability)            | Medium       | Architecture  |
-| 14  | Decompose `Run()` into `startWebServer()`, `runPollLoop()`, `handleShutdown()`                | MEDIUM (testability)            | Small        | Architecture  |
-| 15  | Extract `ProcessInspector` interface for `/proc` traversal                                    | MEDIUM (+3-5% coverage)         | Small        | Architecture  |
-| 16  | Extract `UeventListener` interface for netlink                                                | LOW (+2-3% coverage)            | Small        | Architecture  |
-| 17  | Add `.gitattributes` with `*.go text eol=lf` to prevent CRLF issues                           | LOW (prevention)                | Trivial      | DevEx         |
-| 18  | Add CI fuzz job (60s per fuzz test)                                                           | MEDIUM (safety net)             | Small        | CI            |
-| 19  | Add `emeet_pixyd_stream_duration_seconds` histogram                                           | LOW (stream observability)      | Small        | Observability |
-| 20  | Circuit breaker for HID failures                                                              | MEDIUM (log spam prevention)    | Medium       | Robustness    |
-| 21  | Keyboard shortcuts in web UI                                                                  | LOW (UX)                        | Small        | Web UI        |
-| 22  | WebSocket for live state updates                                                              | MEDIUM (instant UI)             | Medium       | Web UI        |
-| 23  | Mobile-responsive layout                                                                      | LOW (phone control)             | Small        | Web UI        |
-| 24  | Integration test harness with fake devices                                                    | HIGH (E2E confidence)           | Large        | Testing       |
-| 25  | Extract `HIDDevice` interface                                                                 | HIGH (+15-20% coverage)         | Medium-Large | Architecture  |
+| #  | Task                                                                                          | Impact                          | Effort       | Category      |
+| -- | --------------------------------------------------------------------------------------------- | ------------------------------- | ------------ | ------------- |
+| 1  | Extract `Commander` interface + wire into `process.go`, `v4l2.go`, `handlers.go`              | HIGH (+8-10% coverage)          | Medium       | Architecture  |
+| 2  | Fix CRLF → LF in `integration_test.go` via `.gitattributes`                                   | MEDIUM (prevent silent bugs)    | Trivial      | Code Quality  |
+| 3  | Normalize `CommandError` usage in remaining paths (`syncState`, socket, HTTP)                 | MEDIUM (type safety)            | Small        | Code Quality  |
+| 4  | Add `errors.As(CommandError)` checks in `handlers.go` replacing `HasPrefix("error:")`         | MEDIUM (type safety)            | Small        | Code Quality  |
+| 5  | Add `t.Parallel()` to all integration tests                                                   | LOW (test speed)                | Small        | Testing       |
+| 6  | Add `CameraState.String()` + `AudioMode.String()` tests                                       | LOW (+2% pixy coverage)         | Trivial      | Testing       |
+| 7  | Add `CommandError` unit tests                                                                 | MEDIUM (error type safety)      | Trivial      | Testing       |
+| 8  | Move global metrics into `webServer` struct                                                   | MEDIUM (hermetic tests)         | Small        | Architecture  |
+| 9  | Add benchmark suite (4 benchmarks for hot paths)                                              | LOW (perf regression detection) | Small        | Testing       |
+| 10 | Graceful degradation: cache `ffmpeg`/`wpctl`/`notify-send`/`v4l2-ctl` availability at startup | MEDIUM (cleaner logs)           | Small        | Robustness    |
+| 11 | Structured log levels audit (Debug/Info/Warn/Error)                                           | MEDIUM (log noise reduction)    | Small        | Observability |
+| 12 | Add `emeet_pixyd_command_total` + `emeet_pixyd_command_errors_total` counters                 | MEDIUM (production health)      | Small        | Observability |
+| 13 | Refactor `handleCommand` → dispatch table (cyclop 20→5)                                       | MEDIUM (readability)            | Medium       | Architecture  |
+| 14 | Decompose `Run()` into `startWebServer()`, `runPollLoop()`, `handleShutdown()`                | MEDIUM (testability)            | Small        | Architecture  |
+| 15 | Extract `ProcessInspector` interface for `/proc` traversal                                    | MEDIUM (+3-5% coverage)         | Small        | Architecture  |
+| 16 | Extract `UeventListener` interface for netlink                                                | LOW (+2-3% coverage)            | Small        | Architecture  |
+| 17 | Add `.gitattributes` with `*.go text eol=lf` to prevent CRLF issues                           | LOW (prevention)                | Trivial      | DevEx         |
+| 18 | Add CI fuzz job (60s per fuzz test)                                                           | MEDIUM (safety net)             | Small        | CI            |
+| 19 | Add `emeet_pixyd_stream_duration_seconds` histogram                                           | LOW (stream observability)      | Small        | Observability |
+| 20 | Circuit breaker for HID failures                                                              | MEDIUM (log spam prevention)    | Medium       | Robustness    |
+| 21 | Keyboard shortcuts in web UI                                                                  | LOW (UX)                        | Small        | Web UI        |
+| 22 | WebSocket for live state updates                                                              | MEDIUM (instant UI)             | Medium       | Web UI        |
+| 23 | Mobile-responsive layout                                                                      | LOW (phone control)             | Small        | Web UI        |
+| 24 | Integration test harness with fake devices                                                    | HIGH (E2E confidence)           | Large        | Testing       |
+| 25 | Extract `HIDDevice` interface                                                                 | HIGH (+15-20% coverage)         | Medium-Large | Architecture  |
 
 ---
 

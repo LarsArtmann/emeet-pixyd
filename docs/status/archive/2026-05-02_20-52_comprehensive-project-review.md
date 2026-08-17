@@ -45,22 +45,22 @@
 
 ### This Session (2026-05-02)
 
-| #   | Item                                    | Detail                                                                                                                                                                                | Commit    |
-| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 1   | Remove 5 false-positive linters (again) | `contextcheck`, `exhaustruct`, `gochecknoglobals`, `gochecknoinits`, `paralleltest` removed from `.golangci.yml` — they were re-added in staged changes, producing 51 false positives | `88cad01` |
-| 2   | Clean gocritic config                   | Removed 3 already-disabled-by-default entries (`dupImport`, `octalLiteral`, `whyNoLint`) — eliminates config warnings                                                                 | `88cad01` |
-| 3   | Fix `TestIsCommandErrorResponse`        | Test case `"error: pan"` had a space but comment said "no space after colon". Fixed to `"error:pan"`                                                                                  | `12970c9` |
-| 4   | Fix `TestHandleCenterCommand_NoDevice`  | Removed `centerCameraFn` spy that bypassed real `d.centerCamera` device check. Real impl already errors on empty `videoDev`                                                           | `12970c9` |
+| # | Item                                    | Detail                                                                                                                                                                                | Commit    |
+| - | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1 | Remove 5 false-positive linters (again) | `contextcheck`, `exhaustruct`, `gochecknoglobals`, `gochecknoinits`, `paralleltest` removed from `.golangci.yml` — they were re-added in staged changes, producing 51 false positives | `88cad01` |
+| 2 | Clean gocritic config                   | Removed 3 already-disabled-by-default entries (`dupImport`, `octalLiteral`, `whyNoLint`) — eliminates config warnings                                                                 | `88cad01` |
+| 3 | Fix `TestIsCommandErrorResponse`        | Test case `"error: pan"` had a space but comment said "no space after colon". Fixed to `"error:pan"`                                                                                  | `12970c9` |
+| 4 | Fix `TestHandleCenterCommand_NoDevice`  | Removed `centerCameraFn` spy that bypassed real `d.centerCamera` device check. Real impl already errors on empty `videoDev`                                                           | `12970c9` |
 
 ### Since Last Status Report (2026-05-01 → 2026-05-02, 5 commits)
 
-| #   | Item                                 | Detail                                                                                                                                                           | Commit    |
-| --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 5   | `AutoMode` typed enum                | Replaced `bool` auto field with `AutoMode` enum (`off`/`full`/`tracking-only`/`privacy-only`) in `pixy.State` — extensible for future modes                      | `021b599` |
-| 6   | Rename methods to Fn-suffixed fields | `setTracking`→`setTrackingFn`, `setAudio`→`setAudioFn`, `setGesture`→`setGestureFn`, `centerCamera`→`centerCameraFn`, `v4l2Set`→`v4l2SetFn` — clearer DI pattern | `976a20f` |
-| 7   | Error consolidation                  | Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) moved to `errors.go`, removed duplicates                                                  | `976a20f` |
-| 8   | Expanded test coverage               | New tests for `handleCenterCommand`, `handleAutoCommand`, `handleGestureCommand`, command routing, `CommandError`                                                | `976a20f` |
-| 9   | Dependency evaluation for samber/lo  | Evaluated `samber/lo` and `samber/ro` — concluded not worth adding for this codebase's size                                                                      | `d4ef606` |
+| # | Item                                 | Detail                                                                                                                                                           | Commit    |
+| - | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 5 | `AutoMode` typed enum                | Replaced `bool` auto field with `AutoMode` enum (`off`/`full`/`tracking-only`/`privacy-only`) in `pixy.State` — extensible for future modes                      | `021b599` |
+| 6 | Rename methods to Fn-suffixed fields | `setTracking`→`setTrackingFn`, `setAudio`→`setAudioFn`, `setGesture`→`setGestureFn`, `centerCamera`→`centerCameraFn`, `v4l2Set`→`v4l2SetFn` — clearer DI pattern | `976a20f` |
+| 7 | Error consolidation                  | Exported sentinel errors (`ErrAudioSourceNotFound`, `ErrInvalidValue`) moved to `errors.go`, removed duplicates                                                  | `976a20f` |
+| 8 | Expanded test coverage               | New tests for `handleCenterCommand`, `handleAutoCommand`, `handleGestureCommand`, command routing, `CommandError`                                                | `976a20f` |
+| 9 | Dependency evaluation for samber/lo  | Evaluated `samber/lo` and `samber/ro` — concluded not worth adding for this codebase's size                                                                      | `d4ef606` |
 
 ### Major Milestones Completed (Full Project History)
 
@@ -138,7 +138,7 @@
 | `TestHandleCenterCommand_NoDevice` was broken          | Test overrode `centerCameraFn` with a spy returning nil, bypassing the real device check that should have produced the error        | Removed spy, let real impl run                                                                                       | ✅ Fixed     |
 | `TestIsCommandErrorResponse` had wrong test string     | `"error: pan"` matched `HasPrefix("error: ")` but test expected false — comment said "no space" but string had space                | Changed to `"error:pan"`                                                                                             | ✅ Fixed     |
 | SUPERB_ROADMAP.md is stale                             | Roadmap says 63.4% coverage, 120 tests, ~73 linter warnings — all significantly outdated                                            | Needs full update                                                                                                    | ❌ Not fixed |
-| `templates_templ.go` gitignored but required for build | CI has no `templ generate` step, file is gitignored, but `go build`/`go test` require it. Nix build generates it, but Go CI doesn't | Actually: file IS tracked in git (verified via `git ls-files`), just gitignored for future changes — confusing setup | ⚠️ Confusing |
+| `templates_templ.go` gitignored but required for build | CI has no `templ generate` step, file is gitignored, but `go build`/`go test` require it. Nix build generates it, but Go CI doesn't | Actually: file IS tracked in git (verified via `git ls-files`), just gitignored for future changes — confusing setup | ⚠️ Confusing  |
 | gci formatting mismatch                                | Comment alignment in `commands_test.go` didn't match gci expectations                                                               | Auto-fixed by `golangci-lint run --fix`                                                                              | ✅ Fixed     |
 
 ---
@@ -180,33 +180,33 @@
 
 Sorted by **Impact × (1/Effort)** — highest value first.
 
-| #   | Task                                                                                                 | Impact | Effort       | Category       |
-| --- | ---------------------------------------------------------------------------------------------------- | ------ | ------------ | -------------- |
-| 1   | Update `SUPERB_ROADMAP.md` with current metrics (69.7% coverage, 193 tests, 0 lint)                  | Medium | Low          | Docs           |
-| 2   | Add tests for `AutoMode` methods (`String`, `Valid`, `IsOff`, `Activates*`, `SwitchesSource`)        | Medium | Low          | Testing        |
-| 3   | Add tests for `CameraState.String()` and `AudioMode.String()`                                        | Low    | Trivial      | Testing        |
-| 4   | Use `pixy.CameraState`/`pixy.AudioMode` in `webStatus` instead of raw strings                        | Medium | Low          | Types          |
-| 5   | Name `Daemon.lastFrame` and `Daemon.ptzCache` anonymous structs                                      | Medium | Low          | Architecture   |
-| 6   | Consolidate all command error returns to use `CommandError` consistently                             | Medium | Low          | Error handling |
-| 7   | Extract `Commander` interface for shell commands (`wpctl`, `notify-send`, `v4l2-ctl`, `ffmpeg`)      | High   | Medium       | DI             |
-| 8   | Eliminate `init()` — accept `prometheus.Registerer` in web server setup                              | Medium | Small        | Architecture   |
-| 9   | Decompose `Run()` into testable sub-functions (signal handler, uevent, web server, poll loop)        | High   | Medium       | Architecture   |
-| 10  | Add graceful degradation for missing optional deps (cache availability at startup)                   | Medium | Small        | Robustness     |
-| 11  | Audit and standardize log levels (Debug/Info/Warn/Error)                                             | Medium | Small        | Observability  |
-| 12  | Add additional OTel metrics (command counters, stream duration, probe counters)                      | Medium | Small        | Observability  |
-| 13  | Add `--version` flag with `ldflags`-based build info                                                 | Medium | Low          | CLI            |
-| 14  | Document HID protocol in `docs/HID_PROTOCOL.md`                                                      | Medium | Medium       | Docs           |
-| 15  | Add `emeet-pixyd diagnose` command (device state, HID health, V4L2 status)                           | High   | Medium       | CLI            |
-| 16  | Add benchmark suite for hot paths (extractJPEGFrame, parseHIDResponse, updateMetrics, handleCommand) | Low    | Small        | Testing        |
-| 17  | Add CI fuzz job (60s per fuzz test, store corpus in repo)                                            | Medium | Small        | CI             |
-| 18  | Add circuit breaker for HID failures (stop retrying after N consecutive failures)                    | Medium | Medium       | Robustness     |
-| 19  | Add WebSocket for live state updates (replace HTMX polling)                                          | Medium | Medium       | Web UI         |
-| 20  | Add keyboard shortcuts in web UI (Space=privacy, T=tracking, A=audio, G=gesture)                     | Low    | Small        | Web UI         |
-| 21  | Extract `HIDDevice` interface for HID I/O (enables mocking `/dev/hidraw*`)                           | High   | Medium-large | DI             |
-| 22  | Add mobile-responsive layout (CSS breakpoints for control buttons + PTZ sliders)                     | Low    | Small        | Web UI         |
-| 23  | Add Nix flake integration test (daemon + mocked device)                                              | High   | High         | Testing        |
-| 24  | Add config hot-reload via SIGHUP                                                                     | Medium | Medium       | Features       |
-| 25  | Migrate `process_test.go` off real `/proc` to testable interface                                     | Medium | Medium       | Testing        |
+| #  | Task                                                                                                 | Impact | Effort       | Category       |
+| -- | ---------------------------------------------------------------------------------------------------- | ------ | ------------ | -------------- |
+| 1  | Update `SUPERB_ROADMAP.md` with current metrics (69.7% coverage, 193 tests, 0 lint)                  | Medium | Low          | Docs           |
+| 2  | Add tests for `AutoMode` methods (`String`, `Valid`, `IsOff`, `Activates*`, `SwitchesSource`)        | Medium | Low          | Testing        |
+| 3  | Add tests for `CameraState.String()` and `AudioMode.String()`                                        | Low    | Trivial      | Testing        |
+| 4  | Use `pixy.CameraState`/`pixy.AudioMode` in `webStatus` instead of raw strings                        | Medium | Low          | Types          |
+| 5  | Name `Daemon.lastFrame` and `Daemon.ptzCache` anonymous structs                                      | Medium | Low          | Architecture   |
+| 6  | Consolidate all command error returns to use `CommandError` consistently                             | Medium | Low          | Error handling |
+| 7  | Extract `Commander` interface for shell commands (`wpctl`, `notify-send`, `v4l2-ctl`, `ffmpeg`)      | High   | Medium       | DI             |
+| 8  | Eliminate `init()` — accept `prometheus.Registerer` in web server setup                              | Medium | Small        | Architecture   |
+| 9  | Decompose `Run()` into testable sub-functions (signal handler, uevent, web server, poll loop)        | High   | Medium       | Architecture   |
+| 10 | Add graceful degradation for missing optional deps (cache availability at startup)                   | Medium | Small        | Robustness     |
+| 11 | Audit and standardize log levels (Debug/Info/Warn/Error)                                             | Medium | Small        | Observability  |
+| 12 | Add additional OTel metrics (command counters, stream duration, probe counters)                      | Medium | Small        | Observability  |
+| 13 | Add `--version` flag with `ldflags`-based build info                                                 | Medium | Low          | CLI            |
+| 14 | Document HID protocol in `docs/HID_PROTOCOL.md`                                                      | Medium | Medium       | Docs           |
+| 15 | Add `emeet-pixyd diagnose` command (device state, HID health, V4L2 status)                           | High   | Medium       | CLI            |
+| 16 | Add benchmark suite for hot paths (extractJPEGFrame, parseHIDResponse, updateMetrics, handleCommand) | Low    | Small        | Testing        |
+| 17 | Add CI fuzz job (60s per fuzz test, store corpus in repo)                                            | Medium | Small        | CI             |
+| 18 | Add circuit breaker for HID failures (stop retrying after N consecutive failures)                    | Medium | Medium       | Robustness     |
+| 19 | Add WebSocket for live state updates (replace HTMX polling)                                          | Medium | Medium       | Web UI         |
+| 20 | Add keyboard shortcuts in web UI (Space=privacy, T=tracking, A=audio, G=gesture)                     | Low    | Small        | Web UI         |
+| 21 | Extract `HIDDevice` interface for HID I/O (enables mocking `/dev/hidraw*`)                           | High   | Medium-large | DI             |
+| 22 | Add mobile-responsive layout (CSS breakpoints for control buttons + PTZ sliders)                     | Low    | Small        | Web UI         |
+| 23 | Add Nix flake integration test (daemon + mocked device)                                              | High   | High         | Testing        |
+| 24 | Add config hot-reload via SIGHUP                                                                     | Medium | Medium       | Features       |
+| 25 | Migrate `process_test.go` off real `/proc` to testable interface                                     | Medium | Medium       | Testing        |
 
 ---
 

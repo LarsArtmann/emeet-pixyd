@@ -1,6 +1,6 @@
 # Dependency Evaluation: samber/lo & samber/ro
 
-**Date:** 2026-05-01  
+**Date:** 2026-05-01\
 **Verdict:** Adopt neither.
 
 ---

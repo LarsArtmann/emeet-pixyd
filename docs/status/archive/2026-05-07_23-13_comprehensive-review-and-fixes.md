@@ -1,7 +1,7 @@
 # Comprehensive Status Report — emeet-pixyd
 
-**Date:** 2026-05-07 23:13  
-**Session:** Full code review + brutal self-review + comprehensive fix execution  
+**Date:** 2026-05-07 23:13\
+**Session:** Full code review + brutal self-review + comprehensive fix execution\
 **Commit:** `cf0b64f` fix(handlers): propagate toast type from actionToast to web responses
 
 ---
@@ -70,18 +70,18 @@
 
 ## C) NOT STARTED ❌
 
-| #   | Item                                                                | Effort | Impact | Notes                                                                              |
-| --- | ------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------------------- |
-| 1   | Extract `webServer` dependencies — inject read-only state interface | 60min  | Medium | Would decouple web layer from mutable `*Daemon`. Architectural improvement.        |
-| 2   | Test `loggingMiddleware`                                            | 15min  | Low    | `responseWriter.WriteHeader` wrapper, status code capture, log output verification |
-| 3   | Test `Run()` lifecycle (signal handling, shutdown)                  | 30min  | Medium | Full integration test with signal injection                                        |
-| 4   | Test `findPixySource` with mock `wpctl`                             | 15min  | Low    | Extractable via existing `findSourceFn` pattern                                    |
-| 5   | Test `notify` with mock `notify-send`                               | 10min  | Low    | Extractable via existing `notifyFn` pattern                                        |
-| 6   | Test `listenUevents` context cancellation                           | 15min  | Medium | Verify fd closed on context cancel, no goroutine leak                              |
-| 7   | Test `unixOpenNetlinkKobjectUevent` bind failure                    | 10min  | Low    | Error path coverage                                                                |
-| 8   | Web UI frontend design review                                       | 45min  | Medium | Review `templates.templ`, `static/style.css`, `static/app.js` for UX improvements  |
-| 9   | AGENTS.md update with new constants and toast fix                   | 10min  | Low    | Document new constants, toast type behavior                                        |
-| 10  | Integration test for full auto lifecycle via HTTP                   | 20min  | Medium | Call start/end through web API, verify state changes                               |
+| #  | Item                                                                | Effort | Impact | Notes                                                                              |
+| -- | ------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------------------------- |
+| 1  | Extract `webServer` dependencies — inject read-only state interface | 60min  | Medium | Would decouple web layer from mutable `*Daemon`. Architectural improvement.        |
+| 2  | Test `loggingMiddleware`                                            | 15min  | Low    | `responseWriter.WriteHeader` wrapper, status code capture, log output verification |
+| 3  | Test `Run()` lifecycle (signal handling, shutdown)                  | 30min  | Medium | Full integration test with signal injection                                        |
+| 4  | Test `findPixySource` with mock `wpctl`                             | 15min  | Low    | Extractable via existing `findSourceFn` pattern                                    |
+| 5  | Test `notify` with mock `notify-send`                               | 10min  | Low    | Extractable via existing `notifyFn` pattern                                        |
+| 6  | Test `listenUevents` context cancellation                           | 15min  | Medium | Verify fd closed on context cancel, no goroutine leak                              |
+| 7  | Test `unixOpenNetlinkKobjectUevent` bind failure                    | 10min  | Low    | Error path coverage                                                                |
+| 8  | Web UI frontend design review                                       | 45min  | Medium | Review `templates.templ`, `static/style.css`, `static/app.js` for UX improvements  |
+| 9  | AGENTS.md update with new constants and toast fix                   | 10min  | Low    | Document new constants, toast type behavior                                        |
+| 10 | Integration test for full auto lifecycle via HTTP                   | 20min  | Medium | Call start/end through web API, verify state changes                               |
 
 ---
 
@@ -125,33 +125,33 @@ The only "fuck up" was the pre-existing toast type bug that was silently affecti
 
 Sorted by impact/effort ratio:
 
-| #   | Task                                                              | Impact | Effort | Category     |
-| --- | ----------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Test `loggingMiddleware` — status code capture, log output        | Medium | 15min  | Testing      |
-| 2   | Update AGENTS.md with new constants and toast fix                 | Low    | 10min  | Docs         |
-| 3   | Test `findPixySource` with mock `wpctl` output                    | Low    | 15min  | Testing      |
-| 4   | Test `notify` with mock `notify-send`                             | Low    | 10min  | Testing      |
-| 5   | Test `listenUevents` context cancellation + goroutine cleanup     | Medium | 15min  | Testing      |
-| 6   | Test `unixOpenNetlinkKobjectUevent` error paths                   | Low    | 10min  | Testing      |
-| 7   | Optimize `WaybarOutput` — reduce 23 allocs with `strings.Builder` | Low    | 15min  | Perf         |
-| 8   | Add `BenchmarkIsCameraInUse` — hot path, runs every 2s            | Low    | 10min  | Perf         |
-| 9   | Add `BenchmarkParseUevent` — uevent parsing performance           | Low    | 5min   | Perf         |
-| 10  | Test `handleCommand` concurrent access via `cmdMu`                | Medium | 20min  | Testing      |
-| 11  | Integration test: full auto lifecycle via HTTP API                | Medium | 20min  | Testing      |
-| 12  | Extract `webServer` read-only state interface from `*Daemon`      | Medium | 60min  | Architecture |
-| 13  | Test `Run()` lifecycle — signal handling, graceful shutdown       | Medium | 30min  | Testing      |
-| 14  | Test `hidSendRecv` timeout + context cancellation paths           | Medium | 20min  | Testing      |
-| 15  | Web UI frontend design review — templates, CSS, JS                | Medium | 45min  | UX           |
-| 16  | Make OTel meter provider injectable (fix serial metrics tests)    | Medium | 30min  | Architecture |
-| 17  | Add `ptzAxisLabel` and `ptzAxisValue` tests (both at 40%)         | Low    | 10min  | Testing      |
-| 18  | Test `centerCamera` happy path with mock `v4l2SetMultiple`        | Low    | 10min  | Testing      |
-| 19  | Test `syncState` — HID query + state reconciliation (59.5%)       | Medium | 20min  | Testing      |
-| 20  | Add fuzz test for `handlePTZ` HTTP endpoint                       | Low    | 15min  | Testing      |
-| 21  | Verify NixOS module builds with `nix build`                       | Medium | 10min  | Build        |
-| 22  | Add `CHANGELOG.md` entry for toast fix                            | Low    | 5min   | Docs         |
-| 23  | Test `handleStream` happy path with fake ffmpeg output            | Medium | 30min  | Testing      |
-| 24  | Review `static/app.js` for error handling improvements            | Low    | 15min  | UX           |
-| 25  | Add `go:generate` directives for templ in `go.mod`                | Low    | 5min   | Build        |
+| #  | Task                                                              | Impact | Effort | Category     |
+| -- | ----------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Test `loggingMiddleware` — status code capture, log output        | Medium | 15min  | Testing      |
+| 2  | Update AGENTS.md with new constants and toast fix                 | Low    | 10min  | Docs         |
+| 3  | Test `findPixySource` with mock `wpctl` output                    | Low    | 15min  | Testing      |
+| 4  | Test `notify` with mock `notify-send`                             | Low    | 10min  | Testing      |
+| 5  | Test `listenUevents` context cancellation + goroutine cleanup     | Medium | 15min  | Testing      |
+| 6  | Test `unixOpenNetlinkKobjectUevent` error paths                   | Low    | 10min  | Testing      |
+| 7  | Optimize `WaybarOutput` — reduce 23 allocs with `strings.Builder` | Low    | 15min  | Perf         |
+| 8  | Add `BenchmarkIsCameraInUse` — hot path, runs every 2s            | Low    | 10min  | Perf         |
+| 9  | Add `BenchmarkParseUevent` — uevent parsing performance           | Low    | 5min   | Perf         |
+| 10 | Test `handleCommand` concurrent access via `cmdMu`                | Medium | 20min  | Testing      |
+| 11 | Integration test: full auto lifecycle via HTTP API                | Medium | 20min  | Testing      |
+| 12 | Extract `webServer` read-only state interface from `*Daemon`      | Medium | 60min  | Architecture |
+| 13 | Test `Run()` lifecycle — signal handling, graceful shutdown       | Medium | 30min  | Testing      |
+| 14 | Test `hidSendRecv` timeout + context cancellation paths           | Medium | 20min  | Testing      |
+| 15 | Web UI frontend design review — templates, CSS, JS                | Medium | 45min  | UX           |
+| 16 | Make OTel meter provider injectable (fix serial metrics tests)    | Medium | 30min  | Architecture |
+| 17 | Add `ptzAxisLabel` and `ptzAxisValue` tests (both at 40%)         | Low    | 10min  | Testing      |
+| 18 | Test `centerCamera` happy path with mock `v4l2SetMultiple`        | Low    | 10min  | Testing      |
+| 19 | Test `syncState` — HID query + state reconciliation (59.5%)       | Medium | 20min  | Testing      |
+| 20 | Add fuzz test for `handlePTZ` HTTP endpoint                       | Low    | 15min  | Testing      |
+| 21 | Verify NixOS module builds with `nix build`                       | Medium | 10min  | Build        |
+| 22 | Add `CHANGELOG.md` entry for toast fix                            | Low    | 5min   | Docs         |
+| 23 | Test `handleStream` happy path with fake ffmpeg output            | Medium | 30min  | Testing      |
+| 24 | Review `static/app.js` for error handling improvements            | Low    | 15min  | UX           |
+| 25 | Add `go:generate` directives for templ in `go.mod`                | Low    | 5min   | Build        |
 
 ---
 

@@ -28,8 +28,12 @@
         --problem: var(--color-red);
         --solution: var(--color-blue);
         --warning: var(--color-yellow);
-        --font-heading: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          sans-serif;
         --font-mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
       }
       * {
@@ -316,11 +320,13 @@
         <div class="hero-badge">Pareto Plan · Hardware-Limit Fix</div>
         <h1>Fix PTZ limits to match real EMEET PIXY hardware</h1>
         <p class="hero-subtitle">
-          The daemon lies about the camera's pan/tilt/zoom range. Three constants in
-          <code>internal/pixy/pixy.go</code> are wrong, which artificially restricts tilt (the
-          user's complaint: "can you move up?") and over-promises on pan &amp; zoom. The tilt sign
-          convention is <strong>not</strong> a bug — positive=up is consistent everywhere (CLI, web,
-          V4L2 read/write, keyboard arrows).
+          The daemon lies about the camera's pan/tilt/zoom range. Three
+          constants in
+          <code>internal/pixy/pixy.go</code> are wrong, which artificially
+          restricts tilt (the user's complaint: "can you move up?") and
+          over-promises on pan &amp; zoom. The tilt sign convention is
+          <strong>not</strong> a bug — positive=up is consistent everywhere
+          (CLI, web, V4L2 read/write, keyboard arrows).
         </p>
       </div>
 
@@ -385,10 +391,11 @@
         </tbody>
       </table>
       <div class="callout callout-warning">
-        <strong>Root cause is ONE place.</strong> The constants in <code>pixy.go:304-309</code> are
-        referenced by the clamp logic, V4L2 multiplier map, template sliders, and all tests. Fix the
-        3 constants and the entire stack realigns — except the ~7 test lines that hardcode the old
-        literal numbers, and the docs that quote them.
+        <strong>Root cause is ONE place.</strong> The constants in
+        <code>pixy.go:304-309</code> are referenced by the clamp logic, V4L2
+        multiplier map, template sliders, and all tests. Fix the 3 constants and
+        the entire stack realigns — except the ~7 test lines that hardcode the
+        old literal numbers, and the docs that quote them.
       </div>
 
       <h2><span class="num">02</span>Pareto breakdown</h2>
@@ -397,36 +404,40 @@
           <h3>Tier 1 — 1% effort → 51% impact</h3>
           <p>
             Fix the 3 PTZ limit constants. This
-            <strong>directly solves the user's pain</strong> (tilt was capped at ±30°; camera could
-            barely look up/down). Everything downstream reads these constants.
+            <strong>directly solves the user's pain</strong> (tilt was capped at
+            ±30°; camera could barely look up/down). Everything downstream reads
+            these constants.
             <strong>3 minutes total.</strong>
           </p>
         </div>
         <div class="card card-warning">
           <h3>Tier 2 — 4% effort → 64% impact</h3>
           <p>
-            Update the 7 test lines that hardcode old literals. Without this, CI goes red and blocks
-            the fix. Mechanical, low-risk.
+            Update the 7 test lines that hardcode old literals. Without this, CI
+            goes red and blocks the fix. Mechanical, low-risk.
           </p>
         </div>
         <div class="card card-solution">
           <h3>Tier 3 — 20% effort → 80% impact</h3>
           <p>
-            Update user-facing docs (README, FEATURES, CHANGELOG) so they stop telling users the
-            wrong ranges. Honesty + trust.
+            Update user-facing docs (README, FEATURES, CHANGELOG) so they stop
+            telling users the wrong ranges. Honesty + trust.
           </p>
         </div>
       </div>
       <div class="callout callout-solution">
-        <strong>Remaining 20% (Tier 4):</strong> Build/test/lint verification, AGENTS.md gotcha
-        update, hardware smoke-test, and a separate investigation of the dead control socket
-        (operational, not code).
+        <strong>Remaining 20% (Tier 4):</strong> Build/test/lint verification,
+        AGENTS.md gotcha update, hardware smoke-test, and a separate
+        investigation of the dead control socket (operational, not code).
       </div>
 
-      <h2><span class="num">03</span>Comprehensive task list (max 12 min each)</h2>
+      <h2>
+        <span class="num">03</span>Comprehensive task list (max 12 min each)
+      </h2>
       <p>
-        Sorted by importance / impact / effort / customer-value. <strong>Effort</strong> in minutes;
-        <strong>Priority</strong> reflects both customer value and whether it unblocks other work.
+        Sorted by importance / impact / effort / customer-value.
+        <strong>Effort</strong> in minutes; <strong>Priority</strong> reflects
+        both customer value and whether it unblocks other work.
       </p>
       <table>
         <thead>
@@ -444,7 +455,10 @@
           <tr>
             <td class="mono-cell">T1</td>
             <td><span class="tier-tag tier-1">1</span></td>
-            <td>Fix <code>TiltMin</code>/<code>TiltMax</code>: −30/30 → <strong>−90/90</strong></td>
+            <td>
+              Fix <code>TiltMin</code>/<code>TiltMax</code>: −30/30 →
+              <strong>−90/90</strong>
+            </td>
             <td class="mono-cell">internal/pixy/pixy.go:306-307</td>
             <td class="mono-cell">1m</td>
             <td><span class="badge badge-critical">Critical</span></td>
@@ -454,7 +468,8 @@
             <td class="mono-cell">T2</td>
             <td><span class="tier-tag tier-1">1</span></td>
             <td>
-              Fix <code>PanMin</code>/<code>PanMax</code>: −170/170 → <strong>−150/150</strong>
+              Fix <code>PanMin</code>/<code>PanMax</code>: −170/170 →
+              <strong>−150/150</strong>
             </td>
             <td class="mono-cell">internal/pixy/pixy.go:304-305</td>
             <td class="mono-cell">1m</td>
@@ -473,7 +488,9 @@
           <tr>
             <td class="mono-cell">T4</td>
             <td><span class="tier-tag tier-2">2</span></td>
-            <td>Update <code>TestClampInt</code> pan limits (−170/170 → −150/150)</td>
+            <td>
+              Update <code>TestClampInt</code> pan limits (−170/170 → −150/150)
+            </td>
             <td class="mono-cell">ptz_unit_test.go:89-91</td>
             <td class="mono-cell">2m</td>
             <td><span class="badge badge-high">High</span></td>
@@ -491,7 +508,9 @@
           <tr>
             <td class="mono-cell">T6</td>
             <td><span class="tier-tag tier-2">2</span></td>
-            <td>Update <code>Clamp</code> "within limits" case (Zoom 200 → 125)</td>
+            <td>
+              Update <code>Clamp</code> "within limits" case (Zoom 200 → 125)
+            </td>
             <td class="mono-cell">internal/pixy/ptz_test.go:15</td>
             <td class="mono-cell">2m</td>
             <td><span class="badge badge-medium">Med</span></td>
@@ -500,7 +519,9 @@
           <tr>
             <td class="mono-cell">T7</td>
             <td><span class="tier-tag tier-2">2</span></td>
-            <td>Update behavior clamp test: pan expect <code>612000→540000</code></td>
+            <td>
+              Update behavior clamp test: pan expect <code>612000→540000</code>
+            </td>
             <td class="mono-cell">behavior_ptz_test.go:104</td>
             <td class="mono-cell">2m</td>
             <td><span class="badge badge-medium">Med</span></td>
@@ -510,7 +531,8 @@
             <td class="mono-cell">T8</td>
             <td><span class="tier-tag tier-2">2</span></td>
             <td>
-              Update behavior clamp test: tilt input −50→<strong>−100</strong>, expect
+              Update behavior clamp test: tilt input −50→<strong>−100</strong>,
+              expect
               <code>−324000</code>
             </td>
             <td class="mono-cell">behavior_ptz_test.go:106-110</td>
@@ -521,7 +543,9 @@
           <tr>
             <td class="mono-cell">T9</td>
             <td><span class="tier-tag tier-2">2</span></td>
-            <td>Update behavior clamp test: zoom expect <code>400→150</code></td>
+            <td>
+              Update behavior clamp test: zoom expect <code>400→150</code>
+            </td>
             <td class="mono-cell">behavior_ptz_test.go:116</td>
             <td class="mono-cell">2m</td>
             <td><span class="badge badge-medium">Med</span></td>
@@ -530,7 +554,9 @@
           <tr>
             <td class="mono-cell">T10</td>
             <td><span class="tier-tag tier-2">2</span></td>
-            <td>Update behavior web test: zoom value 200 → <strong>125</strong></td>
+            <td>
+              Update behavior web test: zoom value 200 → <strong>125</strong>
+            </td>
             <td class="mono-cell">behavior_ptz_test.go:190</td>
             <td class="mono-cell">2m</td>
             <td><span class="badge badge-medium">Med</span></td>
@@ -566,7 +592,10 @@
           <tr>
             <td class="mono-cell">T14</td>
             <td><span class="tier-tag tier-4">4</span></td>
-            <td><code>templ generate</code> + <code>go build</code> (verify compile)</td>
+            <td>
+              <code>templ generate</code> + <code>go build</code> (verify
+              compile)
+            </td>
             <td class="mono-cell">—</td>
             <td class="mono-cell">3m</td>
             <td><span class="badge badge-high">High</span></td>
@@ -622,11 +651,15 @@
 
       <h2><span class="num">04</span>Execution graph (dependencies)</h2>
       <p>
-        Constants gate the tests; tests gate the build; build gates lint &amp; hardware
-        verification. Docs are independent.
+        Constants gate the tests; tests gate the build; build gates lint &amp;
+        hardware verification. Docs are independent.
       </p>
       <div class="diagram-box">
-        <object type="image/svg+xml" data="ptz-fix.svg" style="width: 100%; min-width: 700px">
+        <object
+          type="image/svg+xml"
+          data="ptz-fix.svg"
+          style="width: 100%; min-width: 700px"
+        >
           SVG graph unavailable — see ptz-fix.svg
         </object>
       </div>
@@ -634,18 +667,20 @@
       <h2><span class="num">05</span>Why no tilt-sign fix?</h2>
       <div class="card card-solution">
         <p>
-          Earlier I suggested "fixing the tilt sign convention." After full investigation that is
+          Earlier I suggested "fixing the tilt sign convention." After full
+          investigation that is
           <strong>wrong</strong>. Positive=up is consistent across V4L2 read
-          (<code>ptz.go:132</code>), V4L2 write (<code>ptz.go:174</code>), the web slider
-          (<code>templates.templ:194</code>), and keyboard arrows (<code>app.js:231-236</code>). The
-          only tilt problem is the <strong>range</strong> being capped at ±30°. Fixing that (T1) is
-          what lets the camera look fully up.
+          (<code>ptz.go:132</code>), V4L2 write (<code>ptz.go:174</code>), the
+          web slider (<code>templates.templ:194</code>), and keyboard arrows
+          (<code>app.js:231-236</code>). The only tilt problem is the
+          <strong>range</strong> being capped at ±30°. Fixing that (T1) is what
+          lets the camera look fully up.
         </p>
       </div>
 
       <div class="footer">
-        Generated 2026-06-20 · Reviewed against emeet-pixyd master @ 0e310ce · 19 tasks, all ≤12 min
-        · Total est. ~58 min
+        Generated 2026-06-20 · Reviewed against emeet-pixyd master @ 0e310ce ·
+        19 tasks, all ≤12 min · Total est. ~58 min
       </div>
     </div>
   </body>

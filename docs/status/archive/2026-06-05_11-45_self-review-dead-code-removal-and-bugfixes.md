@@ -194,33 +194,33 @@ but it makes IDE usage annoying.
 
 ## f) Top 25 Things to Do Next (Sorted by Impact × Effort)
 
-| #   | Task                                                                | Impact      | Effort  | Type         |
-| --- | ------------------------------------------------------------------- | ----------- | ------- | ------------ |
-| 1   | Fix `.golangci.yml` exclude-rules to restore 0-issue lint           | 🔴 Critical | Medium  | Config       |
-| 2   | Update TODO_LIST.md to mark 6 DONE items                            | 🔴 High     | Low     | Docs         |
-| 3   | Update AGENTS.md with all session 2026-06-05 changes                | 🟠 High     | Low     | Docs         |
-| 4   | Update FEATURES.md with new features                                | 🟠 High     | Low     | Docs         |
-| 5   | Delete `cover.out` and add to `.gitignore`                          | 🟡 Medium   | Trivial | Cleanup      |
-| 6   | Remove `//nolint:exhaustruct` from remaining CommandResult literals | 🟡 Medium   | Trivial | Cleanup      |
-| 7   | Extract `checkExternalDeps()` into `startup.go`                     | 🟡 Medium   | Low     | Structure    |
-| 8   | Extract `setDeviceState()` into `hid_control.go`                    | 🟡 Medium   | Low     | Structure    |
-| 9   | Split `main_test.go` (1,537 lines) into focused files               | 🟡 Medium   | Medium  | Tests        |
-| 10  | Add `TestAutoManage_ClearsAutoError` test                           | 🟡 Medium   | Low     | Tests        |
-| 11  | Add `TestAutoManage_AutoOffSkipsAllActions` test                    | 🟡 Medium   | Low     | Tests        |
-| 12  | Add test for `errNoHIDResponse`/`errUnrecognizedHID` sentinels      | 🟡 Medium   | Low     | Tests        |
-| 13  | Make `checkExternalDeps()` testable (inject exec.LookPath)          | 🟡 Medium   | Low     | Testability  |
-| 14  | Add integration test harness with fake HID device                   | 🟠 High     | High    | Testing      |
-| 15  | Structured log levels audit (Debug/Info/Warn/Error)                 | 🟢 Low      | Medium  | Quality      |
-| 16  | Mobile-responsive CSS (720px breakpoint)                            | 🟠 High     | Medium  | UX           |
-| 17  | WebSocket for live state updates                                    | 🟠 High     | High    | UX           |
-| 18  | Camera preset support (save/recall PTZ)                             | 🟢 Low      | Medium  | Feature      |
-| 19  | Continuous fuzz in CI (60s per test)                                | 🟢 Low      | Medium  | CI           |
-| 20  | Expand benchmark suite (auto-manage, state persistence)             | 🟢 Low      | Low     | Testing      |
-| 21  | Extract `Commander` interface for shell commands                    | 🟢 Low      | Medium  | Architecture |
-| 22  | Extract `ProcessInspector` interface                                | 🟢 Low      | Medium  | Architecture |
-| 23  | Extract `UeventListener` interface                                  | 🟢 Low      | Medium  | Architecture |
-| 24  | MJPEG stream reconnection improvement                               | 🟢 Low      | Medium  | Reliability  |
-| 25  | Real hardware integration tests (build-tag guarded)                 | 🟢 Low      | High    | Testing      |
+| #  | Task                                                                | Impact      | Effort  | Type         |
+| -- | ------------------------------------------------------------------- | ----------- | ------- | ------------ |
+| 1  | Fix `.golangci.yml` exclude-rules to restore 0-issue lint           | 🔴 Critical | Medium  | Config       |
+| 2  | Update TODO_LIST.md to mark 6 DONE items                            | 🔴 High     | Low     | Docs         |
+| 3  | Update AGENTS.md with all session 2026-06-05 changes                | 🟠 High     | Low     | Docs         |
+| 4  | Update FEATURES.md with new features                                | 🟠 High     | Low     | Docs         |
+| 5  | Delete `cover.out` and add to `.gitignore`                          | 🟡 Medium   | Trivial | Cleanup      |
+| 6  | Remove `//nolint:exhaustruct` from remaining CommandResult literals | 🟡 Medium   | Trivial | Cleanup      |
+| 7  | Extract `checkExternalDeps()` into `startup.go`                     | 🟡 Medium   | Low     | Structure    |
+| 8  | Extract `setDeviceState()` into `hid_control.go`                    | 🟡 Medium   | Low     | Structure    |
+| 9  | Split `main_test.go` (1,537 lines) into focused files               | 🟡 Medium   | Medium  | Tests        |
+| 10 | Add `TestAutoManage_ClearsAutoError` test                           | 🟡 Medium   | Low     | Tests        |
+| 11 | Add `TestAutoManage_AutoOffSkipsAllActions` test                    | 🟡 Medium   | Low     | Tests        |
+| 12 | Add test for `errNoHIDResponse`/`errUnrecognizedHID` sentinels      | 🟡 Medium   | Low     | Tests        |
+| 13 | Make `checkExternalDeps()` testable (inject exec.LookPath)          | 🟡 Medium   | Low     | Testability  |
+| 14 | Add integration test harness with fake HID device                   | 🟠 High     | High    | Testing      |
+| 15 | Structured log levels audit (Debug/Info/Warn/Error)                 | 🟢 Low      | Medium  | Quality      |
+| 16 | Mobile-responsive CSS (720px breakpoint)                            | 🟠 High     | Medium  | UX           |
+| 17 | WebSocket for live state updates                                    | 🟠 High     | High    | UX           |
+| 18 | Camera preset support (save/recall PTZ)                             | 🟢 Low      | Medium  | Feature      |
+| 19 | Continuous fuzz in CI (60s per test)                                | 🟢 Low      | Medium  | CI           |
+| 20 | Expand benchmark suite (auto-manage, state persistence)             | 🟢 Low      | Low     | Testing      |
+| 21 | Extract `Commander` interface for shell commands                    | 🟢 Low      | Medium  | Architecture |
+| 22 | Extract `ProcessInspector` interface                                | 🟢 Low      | Medium  | Architecture |
+| 23 | Extract `UeventListener` interface                                  | 🟢 Low      | Medium  | Architecture |
+| 24 | MJPEG stream reconnection improvement                               | 🟢 Low      | Medium  | Reliability  |
+| 25 | Real hardware integration tests (build-tag guarded)                 | 🟢 Low      | High    | Testing      |
 
 ---
 

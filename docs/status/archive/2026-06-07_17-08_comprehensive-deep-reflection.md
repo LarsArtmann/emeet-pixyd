@@ -83,21 +83,21 @@
 
 ## C. NOT STARTED (from TODO_LIST.md)
 
-| #   | Task                                                    | Priority |
-| --- | ------------------------------------------------------- | -------- |
-| 14  | Structured log levels audit                             | P2       |
-| 20  | Continuous fuzz in CI                                   | P2       |
-| 21  | Extract `Commander` interface for shell commands        | P3       |
-| 23  | Extract `ProcessInspector` interface for /proc          | P3       |
-| 24  | Extract `UeventListener` interface for netlink          | P3       |
-| 26  | Mobile-responsive layout                                | P3       |
-| 27  | WebSocket for live state updates                        | P3       |
-| 30  | Camera preset support (save/recall PTZ positions)       | P3       |
-| 31  | Integration test harness with fake devices              | P3       |
-| 32  | Test coverage for real hardware paths                   | P3       |
-| 34  | Improve MJPEG stream reconnection                       | P3       |
-| 35  | Integration test with real hardware (build tag guarded) | P4       |
-| 42  | PTZ readback accuracy (delay or in-memory "last set")   | P2       |
+| #  | Task                                                    | Priority |
+| -- | ------------------------------------------------------- | -------- |
+| 14 | Structured log levels audit                             | P2       |
+| 20 | Continuous fuzz in CI                                   | P2       |
+| 21 | Extract `Commander` interface for shell commands        | P3       |
+| 23 | Extract `ProcessInspector` interface for /proc          | P3       |
+| 24 | Extract `UeventListener` interface for netlink          | P3       |
+| 26 | Mobile-responsive layout                                | P3       |
+| 27 | WebSocket for live state updates                        | P3       |
+| 30 | Camera preset support (save/recall PTZ positions)       | P3       |
+| 31 | Integration test harness with fake devices              | P3       |
+| 32 | Test coverage for real hardware paths                   | P3       |
+| 34 | Improve MJPEG stream reconnection                       | P3       |
+| 35 | Integration test with real hardware (build tag guarded) | P4       |
+| 42 | PTZ readback accuracy (delay or in-memory "last set")   | P2       |
 
 ---
 
@@ -236,7 +236,7 @@ The current code spawns a goroutine to read the HID response, with a select raci
 Options:
 
 1. **Close the fd on timeout** — but `SendRecv` doesn't own the fd lifecycle (the `hidrawDevice` does). Closing mid-read would corrupt the device state.
-2. **Use ` SetDeadline` on the fd** — `hidrawDevice.Open()` already calls `SetDeadline(3s)`, so the timeout in `SendRecv` is redundant. If the fd deadline works correctly, the goroutine shouldn't block forever — it would return on deadline expiry. **Question: Is the `SetDeadline` already handling this, making the timeout select redundant?**
+2. **Use `SetDeadline` on the fd** — `hidrawDevice.Open()` already calls `SetDeadline(3s)`, so the timeout in `SendRecv` is redundant. If the fd deadline works correctly, the goroutine shouldn't block forever — it would return on deadline expiry. **Question: Is the `SetDeadline` already handling this, making the timeout select redundant?**
 3. **Use a context-aware reader** — but raw fd reads don't respect context.
 
 I'm not confident enough to pick between option 2 (remove redundant timeout) vs option 1 (close fd) without testing on real hardware. The HID protocol timing requirements (200ms between config+commit) may also be affected.

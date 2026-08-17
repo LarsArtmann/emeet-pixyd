@@ -66,21 +66,21 @@ Nothing is in a partially-done state. All started work was completed or intentio
 
 ### From TODO_LIST.md (17 remaining items)
 
-| #   | Task                                                                                 | Priority |
-| --- | ------------------------------------------------------------------------------------ | -------- |
-| 14  | Structured log levels audit                                                          | P1       |
-| 20  | Continuous fuzz in CI (60s per test, store corpus)                                   | P2       |
-| 21  | Extract `Commander` interface for shell commands                                     | P2       |
-| 23  | Extract `ProcessInspector` interface for /proc traversal                             | P2       |
-| 24  | Extract `UeventListener` interface for netlink                                       | P2       |
-| 26  | Mobile-responsive layout                                                             | P2       |
-| 27  | WebSocket for live state updates (replace 3s HTMX polling)                           | P3       |
-| 30  | Camera preset support (save/recall PTZ positions)                                    | P3       |
-| 31  | Integration test harness with fake devices                                           | P3       |
-| 32  | Test coverage for stream.go/process.go/hid.go real hardware paths                    | P3       |
-| 34  | Improve MJPEG stream reconnection                                                    | P3       |
-| 35  | Integration test with real hardware (build tag guarded)                              | P3       |
-| 42  | PTZ readback accuracy — delay before readback or maintain in-memory "last set" value | P3       |
+| #  | Task                                                                                 | Priority |
+| -- | ------------------------------------------------------------------------------------ | -------- |
+| 14 | Structured log levels audit                                                          | P1       |
+| 20 | Continuous fuzz in CI (60s per test, store corpus)                                   | P2       |
+| 21 | Extract `Commander` interface for shell commands                                     | P2       |
+| 23 | Extract `ProcessInspector` interface for /proc traversal                             | P2       |
+| 24 | Extract `UeventListener` interface for netlink                                       | P2       |
+| 26 | Mobile-responsive layout                                                             | P2       |
+| 27 | WebSocket for live state updates (replace 3s HTMX polling)                           | P3       |
+| 30 | Camera preset support (save/recall PTZ positions)                                    | P3       |
+| 31 | Integration test harness with fake devices                                           | P3       |
+| 32 | Test coverage for stream.go/process.go/hid.go real hardware paths                    | P3       |
+| 34 | Improve MJPEG stream reconnection                                                    | P3       |
+| 35 | Integration test with real hardware (build tag guarded)                              | P3       |
+| 42 | PTZ readback accuracy — delay before readback or maintain in-memory "last set" value | P3       |
 
 ---
 
@@ -138,33 +138,33 @@ Nothing is in a partially-done state. All started work was completed or intentio
 
 ## F. Top 25 Next Actions (Sorted by Impact × Effort)
 
-| #   | Action                                                                          | Impact | Effort | Category      |
-| --- | ------------------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | Add `nix build` + `nix flake check` to GitHub Actions CI                        | HIGH   | 30min  | CI            |
-| 2   | Replace `prometheus/client_golang` with custom `promExporter.Collect()` handler | HIGH   | 1hr    | Deps          |
-| 3   | Structured log levels audit — standardize Debug/Info/Warn/Error (TODO #14)      | MED    | 1hr    | Observability |
-| 4   | Continuous fuzz in CI with corpus storage (TODO #20)                            | MED    | 1hr    | Testing       |
-| 5   | Mobile-responsive web UI (TODO #26)                                             | MED    | 2hr    | UX            |
-| 6   | WebSocket for live state updates (TODO #27)                                     | MED    | 4hr    | UX            |
-| 7   | Integration test harness with fake HID + video devices (TODO #31)               | MED    | 3hr    | Testing       |
-| 8   | Extract `Commander` interface for subprocess calls (TODO #21)                   | MED    | 2hr    | Architecture  |
-| 9   | Extract `ProcessInspector` interface (TODO #23)                                 | MED    | 1hr    | Architecture  |
-| 10  | Extract `UeventListener` interface (TODO #24)                                   | MED    | 1hr    | Architecture  |
-| 11  | PTZ readback accuracy — in-memory "last set" value (TODO #42)                   | MED    | 1hr    | Reliability   |
-| 12  | Test coverage for `stream.go` with fake ffmpeg output                           | MED    | 2hr    | Testing       |
-| 13  | Test coverage for `hid.go` with fake hidraw device                              | MED    | 2hr    | Testing       |
-| 14  | Camera preset support — save/recall PTZ positions (TODO #30)                    | LOW    | 3hr    | Feature       |
-| 15  | Improve MJPEG stream reconnection with backoff (TODO #34)                       | LOW    | 1hr    | Reliability   |
-| 16  | Integration test with real hardware, build-tag guarded (TODO #35)               | LOW    | 2hr    | Testing       |
-| 17  | Move `metricsInstance` onto `Daemon` struct for hermetic tests                  | MED    | 2hr    | Architecture  |
-| 18  | Add `--no-verify` pre-commit hook whitelist for `library-policy`                | LOW    | 15min  | DX            |
-| 19  | Split `main_test.go` by test category (state, config, probe)                    | LOW    | 1hr    | Code          |
-| 20  | Split `commands_test.go` by command type                                        | LOW    | 30min  | Code          |
-| 21  | Add max retry count for MJPEG stream reconnection in `app.js`                   | LOW    | 15min  | Reliability   |
-| 22  | Verify `app.js` toast animations work in Firefox/Safari                         | LOW    | 15min  | UX            |
-| 23  | Add `templ version` check to nix build (warning about version mismatch)         | LOW    | 15min  | DX            |
-| 24  | Vendor hash auto-update script for `package.nix` + `flake.nix`                  | LOW    | 30min  | DX            |
-| 25  | Add `nix flake check` to pre-commit hooks                                       | LOW    | 15min  | DX            |
+| #  | Action                                                                          | Impact | Effort | Category      |
+| -- | ------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Add `nix build` + `nix flake check` to GitHub Actions CI                        | HIGH   | 30min  | CI            |
+| 2  | Replace `prometheus/client_golang` with custom `promExporter.Collect()` handler | HIGH   | 1hr    | Deps          |
+| 3  | Structured log levels audit — standardize Debug/Info/Warn/Error (TODO #14)      | MED    | 1hr    | Observability |
+| 4  | Continuous fuzz in CI with corpus storage (TODO #20)                            | MED    | 1hr    | Testing       |
+| 5  | Mobile-responsive web UI (TODO #26)                                             | MED    | 2hr    | UX            |
+| 6  | WebSocket for live state updates (TODO #27)                                     | MED    | 4hr    | UX            |
+| 7  | Integration test harness with fake HID + video devices (TODO #31)               | MED    | 3hr    | Testing       |
+| 8  | Extract `Commander` interface for subprocess calls (TODO #21)                   | MED    | 2hr    | Architecture  |
+| 9  | Extract `ProcessInspector` interface (TODO #23)                                 | MED    | 1hr    | Architecture  |
+| 10 | Extract `UeventListener` interface (TODO #24)                                   | MED    | 1hr    | Architecture  |
+| 11 | PTZ readback accuracy — in-memory "last set" value (TODO #42)                   | MED    | 1hr    | Reliability   |
+| 12 | Test coverage for `stream.go` with fake ffmpeg output                           | MED    | 2hr    | Testing       |
+| 13 | Test coverage for `hid.go` with fake hidraw device                              | MED    | 2hr    | Testing       |
+| 14 | Camera preset support — save/recall PTZ positions (TODO #30)                    | LOW    | 3hr    | Feature       |
+| 15 | Improve MJPEG stream reconnection with backoff (TODO #34)                       | LOW    | 1hr    | Reliability   |
+| 16 | Integration test with real hardware, build-tag guarded (TODO #35)               | LOW    | 2hr    | Testing       |
+| 17 | Move `metricsInstance` onto `Daemon` struct for hermetic tests                  | MED    | 2hr    | Architecture  |
+| 18 | Add `--no-verify` pre-commit hook whitelist for `library-policy`                | LOW    | 15min  | DX            |
+| 19 | Split `main_test.go` by test category (state, config, probe)                    | LOW    | 1hr    | Code          |
+| 20 | Split `commands_test.go` by command type                                        | LOW    | 30min  | Code          |
+| 21 | Add max retry count for MJPEG stream reconnection in `app.js`                   | LOW    | 15min  | Reliability   |
+| 22 | Verify `app.js` toast animations work in Firefox/Safari                         | LOW    | 15min  | UX            |
+| 23 | Add `templ version` check to nix build (warning about version mismatch)         | LOW    | 15min  | DX            |
+| 24 | Vendor hash auto-update script for `package.nix` + `flake.nix`                  | LOW    | 30min  | DX            |
+| 25 | Add `nix flake check` to pre-commit hooks                                       | LOW    | 15min  | DX            |
 
 ---
 
@@ -186,32 +186,32 @@ This is the single most annoying DX issue in the project. It affects every commi
 
 ## Build & Test Matrix
 
-| Check                                  | Status                                     |
-| -------------------------------------- | ------------------------------------------ |
-| `go build ./...`                       | ✅ Clean                                   |
-| `go test -race -count=1 ./...`         | ✅ 268 tests pass                          |
-| `golangci-lint run --timeout 2m ./...` | ✅ 0 issues                                |
-| `nix build`                            | ✅ Clean (with updated vendorHash)         |
-| `nix build .#checks.x86_64-linux.lint` | ✅ Clean                                   |
-| `nix flake check --no-build`           | ✅ All derivations evaluate                |
+| Check                                  | Status                                    |
+| -------------------------------------- | ----------------------------------------- |
+| `go build ./...`                       | ✅ Clean                                  |
+| `go test -race -count=1 ./...`         | ✅ 268 tests pass                         |
+| `golangci-lint run --timeout 2m ./...` | ✅ 0 issues                               |
+| `nix build`                            | ✅ Clean (with updated vendorHash)        |
+| `nix build .#checks.x86_64-linux.lint` | ✅ Clean                                  |
+| `nix flake check --no-build`           | ✅ All derivations evaluate               |
 | Pre-commit hooks (BuildFlow)           | ⚠️ `library-policy` false positive (known) |
 
 ## File Size Audit
 
 All production `.go` files under 350 lines:
 
-| File          | Lines | Status    |
-| ------------- | ----- | --------- |
-| `main.go`     | 335   | ✅        |
+| File          | Lines | Status   |
+| ------------- | ----- | -------- |
+| `main.go`     | 335   | ✅       |
 | `commands.go` | 355   | ⚠️ 5 over |
-| `handlers.go` | 330   | ✅        |
-| `device.go`   | 280   | ✅        |
-| `hid.go`      | 282   | ✅        |
-| `stream.go`   | 279   | ✅        |
-| `metrics.go`  | 199   | ✅        |
-| `auto.go`     | 167   | ✅        |
-| `probe.go`    | 155   | ✅        |
-| `process.go`  | 151   | ✅        |
+| `handlers.go` | 330   | ✅       |
+| `device.go`   | 280   | ✅       |
+| `hid.go`      | 282   | ✅       |
+| `stream.go`   | 279   | ✅       |
+| `metrics.go`  | 199   | ✅       |
+| `auto.go`     | 167   | ✅       |
+| `probe.go`    | 155   | ✅       |
+| `process.go`  | 151   | ✅       |
 
 ## Commits Since Last Push (13 ahead of origin)
 

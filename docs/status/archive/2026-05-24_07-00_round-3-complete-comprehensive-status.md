@@ -96,42 +96,42 @@ The daemon is **feature-complete and production-ready**. Three rounds of deep re
 
 ### High-Impact Architecture (P2-P3)
 
-| #   | Task                                                                                   | Why It Matters                                                       |
-| --- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 51  | `Dependencies` interface — consolidate 9 function pointers into a single interface     | Compile-time safety, testability, clear API surface                  |
-| 52  | Typed `CommandResult` struct — replace `handleCommand(string) string`                  | Eliminates stringly-typed errors, enables structured responses       |
-| 53  | Consolidate PTZ logic into single `ptz.go` (currently split across 5 files)            | PTZ is spread across handlers, commands, v4l2, templates, middleware |
-| 13  | Eliminate `init()` for Prometheus metrics — lazy registration or constructor injection | `init()` in `metrics.go` is the only remaining one                   |
-| 14  | Structured log levels audit                                                            | Standardize Debug/Info/Warn/Error usage                              |
-| 41  | Consolidate PTZ axis dispatch into lookup table                                        | Reduce boilerplate in handler                                        |
+| #  | Task                                                                                   | Why It Matters                                                       |
+| -- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 51 | `Dependencies` interface — consolidate 9 function pointers into a single interface     | Compile-time safety, testability, clear API surface                  |
+| 52 | Typed `CommandResult` struct — replace `handleCommand(string) string`                  | Eliminates stringly-typed errors, enables structured responses       |
+| 53 | Consolidate PTZ logic into single `ptz.go` (currently split across 5 files)            | PTZ is spread across handlers, commands, v4l2, templates, middleware |
+| 13 | Eliminate `init()` for Prometheus metrics — lazy registration or constructor injection | `init()` in `metrics.go` is the only remaining one                   |
+| 14 | Structured log levels audit                                                            | Standardize Debug/Info/Warn/Error usage                              |
+| 41 | Consolidate PTZ axis dispatch into lookup table                                        | Reduce boilerplate in handler                                        |
 
 ### Observability (P1-P2)
 
-| #   | Task                                                             | Why It Matters               |
-| --- | ---------------------------------------------------------------- | ---------------------------- |
-| 16  | Additional Prometheus metrics (stream, frames, command counters) | Production visibility        |
-| 17  | Circuit breaker for HID failures                                 | Stop hammering dead device   |
-| 18  | Stream health monitoring                                         | Frame counter, uptime metric |
-| 20  | Continuous fuzz in CI (60s per test, store corpus)               | Crash safety                 |
+| #  | Task                                                             | Why It Matters               |
+| -- | ---------------------------------------------------------------- | ---------------------------- |
+| 16 | Additional Prometheus metrics (stream, frames, command counters) | Production visibility        |
+| 17 | Circuit breaker for HID failures                                 | Stop hammering dead device   |
+| 18 | Stream health monitoring                                         | Frame counter, uptime metric |
+| 20 | Continuous fuzz in CI (60s per test, store corpus)               | Crash safety                 |
 
 ### Web UI (P2-P3)
 
-| #   | Task                                                  | Why It Matters                    |
-| --- | ----------------------------------------------------- | --------------------------------- |
-| 26  | Mobile-responsive layout                              | Phone/tablet access               |
-| 27  | WebSocket for live state updates (replace 3s polling) | Real-time UX, reduced server load |
-| 28  | Keyboard shortcuts for PTZ (arrow keys, +/- for zoom) | Power-user control                |
-| 57  | Suppress toast spam during PTZ slider drag            | Annoying UX when dragging sliders |
+| #  | Task                                                  | Why It Matters                    |
+| -- | ----------------------------------------------------- | --------------------------------- |
+| 26 | Mobile-responsive layout                              | Phone/tablet access               |
+| 27 | WebSocket for live state updates (replace 3s polling) | Real-time UX, reduced server load |
+| 28 | Keyboard shortcuts for PTZ (arrow keys, +/- for zoom) | Power-user control                |
+| 57 | Suppress toast spam during PTZ slider drag            | Annoying UX when dragging sliders |
 
 ### Testing (P3-P4)
 
-| #   | Task                                                    | Why It Matters                         |
-| --- | ------------------------------------------------------- | -------------------------------------- |
-| 31  | Integration test harness with fake devices              | Test without hardware                  |
-| 32  | Coverage for stream/process/hid real hardware paths     | 71.9% overall, hardware paths untested |
-| 33  | Surface auto-manage errors to web UI                    | Silent failures                        |
-| 34  | Improve MJPEG stream reconnection                       | Stream robustness                      |
-| 35  | Integration test with real hardware (build tag guarded) | Hardware-in-the-loop testing           |
+| #  | Task                                                    | Why It Matters                         |
+| -- | ------------------------------------------------------- | -------------------------------------- |
+| 31 | Integration test harness with fake devices              | Test without hardware                  |
+| 32 | Coverage for stream/process/hid real hardware paths     | 71.9% overall, hardware paths untested |
+| 33 | Surface auto-manage errors to web UI                    | Silent failures                        |
+| 34 | Improve MJPEG stream reconnection                       | Stream robustness                      |
+| 35 | Integration test with real hardware (build tag guarded) | Hardware-in-the-loop testing           |
 
 ### Other
 
@@ -196,48 +196,48 @@ Ranked by **impact × effort** (Pareto ordering):
 
 ### Tier 1: High Impact, Low Effort (Do First)
 
-| #   | Task                                                                       | Effort | Impact        | Why                                                         |
-| --- | -------------------------------------------------------------------------- | ------ | ------------- | ----------------------------------------------------------- |
-| 1   | **Fix flaky `TestAutoManage_NoDevice_Returns`** — skip when device present | 30min  | Stability     | Only failing test, blocks CI on hardware machines           |
-| 2   | **Suppress toast spam during PTZ slider drag** (#57)                       | 1hr    | UX            | Most annoying remaining UX issue                            |
-| 3   | **Eliminate `init()` in `metrics.go`** (#13) — move to constructor         | 1hr    | Architecture  | Last `init()`, enables cleaner testing                      |
-| 4   | **Extract `lastFrame`/`ptzCache` to named types** (#37)                    | 1hr    | Code clarity  | Anonymous embedded structs are harder to reason about       |
-| 5   | **Consolidate PTZ axis dispatch into lookup table** (#41)                  | 1hr    | Code quality  | Reduces boilerplate, single place for axis mapping          |
-| 6   | **Archive/rewrite `SUPERB_ROADMAP.md`** (#61) — mark completed items       | 1hr    | Docs          | Confusing to have stale roadmap alongside current TODO_LIST |
-| 7   | **Structured log levels audit** (#14) — standardize slog levels            | 2hr    | Observability | Inconsistent Info vs Debug usage across files               |
-| 8   | **Graceful degradation for missing tools** (#15) — warn at startup         | 2hr    | Robustness    | Daemon crashes if `v4l2-ctl`/`ffmpeg` missing at runtime    |
+| # | Task                                                                       | Effort | Impact        | Why                                                         |
+| - | -------------------------------------------------------------------------- | ------ | ------------- | ----------------------------------------------------------- |
+| 1 | **Fix flaky `TestAutoManage_NoDevice_Returns`** — skip when device present | 30min  | Stability     | Only failing test, blocks CI on hardware machines           |
+| 2 | **Suppress toast spam during PTZ slider drag** (#57)                       | 1hr    | UX            | Most annoying remaining UX issue                            |
+| 3 | **Eliminate `init()` in `metrics.go`** (#13) — move to constructor         | 1hr    | Architecture  | Last `init()`, enables cleaner testing                      |
+| 4 | **Extract `lastFrame`/`ptzCache` to named types** (#37)                    | 1hr    | Code clarity  | Anonymous embedded structs are harder to reason about       |
+| 5 | **Consolidate PTZ axis dispatch into lookup table** (#41)                  | 1hr    | Code quality  | Reduces boilerplate, single place for axis mapping          |
+| 6 | **Archive/rewrite `SUPERB_ROADMAP.md`** (#61) — mark completed items       | 1hr    | Docs          | Confusing to have stale roadmap alongside current TODO_LIST |
+| 7 | **Structured log levels audit** (#14) — standardize slog levels            | 2hr    | Observability | Inconsistent Info vs Debug usage across files               |
+| 8 | **Graceful degradation for missing tools** (#15) — warn at startup         | 2hr    | Robustness    | Daemon crashes if `v4l2-ctl`/`ffmpeg` missing at runtime    |
 
 ### Tier 2: High Impact, Medium Effort (Do Next)
 
-| #   | Task                                                                            | Effort | Impact            | Why                                                             |
-| --- | ------------------------------------------------------------------------------- | ------ | ----------------- | --------------------------------------------------------------- |
-| 9   | **Typed `CommandResult` struct** (#52) — replace `handleCommand(string) string` | 3hr    | Architecture      | Stringly-typed errors are fragile, limits HTTP response quality |
-| 10  | **`Dependencies` interface** (#51) — consolidate 9 function pointers            | 4hr    | Architecture      | Biggest structural improvement possible                         |
-| 11  | **Consolidate PTZ into `ptz.go`** (#53)                                         | 3hr    | Code organization | PTZ is 5-file spread, should be 1                               |
-| 12  | **Circuit breaker for HID failures** (#17)                                      | 3hr    | Reliability       | Currently retries indefinitely on dead device                   |
-| 13  | **`probeDevices()` pure extraction** (#25) — return `ProbeResult`               | 2hr    | Testability       | Last impure mutation under lock                                 |
+| #  | Task                                                                            | Effort | Impact            | Why                                                             |
+| -- | ------------------------------------------------------------------------------- | ------ | ----------------- | --------------------------------------------------------------- |
+| 9  | **Typed `CommandResult` struct** (#52) — replace `handleCommand(string) string` | 3hr    | Architecture      | Stringly-typed errors are fragile, limits HTTP response quality |
+| 10 | **`Dependencies` interface** (#51) — consolidate 9 function pointers            | 4hr    | Architecture      | Biggest structural improvement possible                         |
+| 11 | **Consolidate PTZ into `ptz.go`** (#53)                                         | 3hr    | Code organization | PTZ is 5-file spread, should be 1                               |
+| 12 | **Circuit breaker for HID failures** (#17)                                      | 3hr    | Reliability       | Currently retries indefinitely on dead device                   |
+| 13 | **`probeDevices()` pure extraction** (#25) — return `ProbeResult`               | 2hr    | Testability       | Last impure mutation under lock                                 |
 
 ### Tier 3: Medium Impact, Medium Effort (Do After)
 
-| #   | Task                                                                      | Effort | Impact         | Why                                      |
-| --- | ------------------------------------------------------------------------- | ------ | -------------- | ---------------------------------------- |
-| 14  | **Additional Prometheus metrics** (#16) — command counters, probe, stream | 3hr    | Observability  | Production monitoring blind spots        |
-| 15  | **PTZ relative mode** (#29) — `pan+10`, `tilt-5` from CLI                 | 2hr    | CLI ergonomics | Users expect relative adjustments        |
-| 16  | **Mobile-responsive layout** (#26)                                        | 4hr    | UX             | Unusable on phones/tablets currently     |
-| 17  | **Keyboard shortcuts for PTZ** (#28) — arrow keys, +/- zoom               | 2hr    | Power users    | Natural camera control expectation       |
-| 18  | **Surface auto-manage errors to web UI** (#33)                            | 2hr    | Debugging      | Silent failures are hard to diagnose     |
-| 19  | **Integration test harness** (#31) — fake devices                         | 8hr    | Testing        | Unlocks 85%+ coverage                    |
-| 20  | **Continuous fuzz in CI** (#20) — 60s per target                          | 2hr    | Safety         | Existing fuzz tests aren't running in CI |
+| #  | Task                                                                      | Effort | Impact         | Why                                      |
+| -- | ------------------------------------------------------------------------- | ------ | -------------- | ---------------------------------------- |
+| 14 | **Additional Prometheus metrics** (#16) — command counters, probe, stream | 3hr    | Observability  | Production monitoring blind spots        |
+| 15 | **PTZ relative mode** (#29) — `pan+10`, `tilt-5` from CLI                 | 2hr    | CLI ergonomics | Users expect relative adjustments        |
+| 16 | **Mobile-responsive layout** (#26)                                        | 4hr    | UX             | Unusable on phones/tablets currently     |
+| 17 | **Keyboard shortcuts for PTZ** (#28) — arrow keys, +/- zoom               | 2hr    | Power users    | Natural camera control expectation       |
+| 18 | **Surface auto-manage errors to web UI** (#33)                            | 2hr    | Debugging      | Silent failures are hard to diagnose     |
+| 19 | **Integration test harness** (#31) — fake devices                         | 8hr    | Testing        | Unlocks 85%+ coverage                    |
+| 20 | **Continuous fuzz in CI** (#20) — 60s per target                          | 2hr    | Safety         | Existing fuzz tests aren't running in CI |
 
 ### Tier 4: Lower Impact, Higher Effort (Do Later)
 
-| #   | Task                                                            | Effort | Impact       | Why                                                    |
-| --- | --------------------------------------------------------------- | ------ | ------------ | ------------------------------------------------------ |
-| 21  | **WebSocket for live state** (#27) — replace HTMX polling       | 8hr    | UX           | Real-time updates, reduced server load                 |
-| 22  | **Interface extractions** (#21-24) — Commander, HIDDevice, etc. | 6hr    | Architecture | Clean but lower priority than `Dependencies` interface |
-| 23  | **Camera preset support** (#30) — save/recall PTZ positions     | 4hr    | Feature      | Nice-to-have power user feature                        |
-| 24  | **PTZ readback accuracy** (#42) — delay or in-memory cache      | 3hr    | Consistency  | Slider position may drift from actual                  |
-| 25  | **Stream reconnection** (#34) — improve MJPEG resilience        | 3hr    | Robustness   | Stream can die without recovery                        |
+| #  | Task                                                            | Effort | Impact       | Why                                                    |
+| -- | --------------------------------------------------------------- | ------ | ------------ | ------------------------------------------------------ |
+| 21 | **WebSocket for live state** (#27) — replace HTMX polling       | 8hr    | UX           | Real-time updates, reduced server load                 |
+| 22 | **Interface extractions** (#21-24) — Commander, HIDDevice, etc. | 6hr    | Architecture | Clean but lower priority than `Dependencies` interface |
+| 23 | **Camera preset support** (#30) — save/recall PTZ positions     | 4hr    | Feature      | Nice-to-have power user feature                        |
+| 24 | **PTZ readback accuracy** (#42) — delay or in-memory cache      | 3hr    | Consistency  | Slider position may drift from actual                  |
+| 25 | **Stream reconnection** (#34) — improve MJPEG resilience        | 3hr    | Robustness   | Stream can die without recovery                        |
 
 ---
 

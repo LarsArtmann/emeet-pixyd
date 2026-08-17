@@ -1,7 +1,7 @@
 # emeet-pixyd — Comprehensive Status Report
 
-**Date:** 2026-05-30 07:46  
-**Branch:** `master` at `f8b5be4`  
+**Date:** 2026-05-30 07:46\
+**Branch:** `master` at `f8b5be4`\
 **Session:** Stream `http.Flusher` fix + comprehensive status update
 
 ---
@@ -16,26 +16,26 @@ This session fixed a **production 500 error** on `/api/stream` caused by `loggin
 
 ### This Session
 
-| #   | Item                                                     | Impact                                | Files              |
-| --- | -------------------------------------------------------- | ------------------------------------- | ------------------ |
-| 1   | Add `Flush()` to `responseWriter` in `loggingMiddleware` | 🔴 Fixes production `/api/stream` 500 | `middleware.go`    |
-| 2   | Regression test `TestLoggingMiddleware_Flusher`          | 🔴 Prevents regression                | `handlers_test.go` |
+| # | Item                                                     | Impact                                | Files              |
+| - | -------------------------------------------------------- | ------------------------------------- | ------------------ |
+| 1 | Add `Flush()` to `responseWriter` in `loggingMiddleware` | 🔴 Fixes production `/api/stream` 500 | `middleware.go`    |
+| 2 | Regression test `TestLoggingMiddleware_Flusher`          | 🔴 Prevents regression                | `handlers_test.go` |
 
 ### Quality Metrics (Current)
 
-| Metric                  | Value                | Status                                             |
-| ----------------------- | -------------------- | -------------------------------------------------- |
-| Build                   | ✅ Clean             | 0 errors                                           |
-| Lint (golangci-lint v2) | ✅ 0 issues          | Clean                                              |
+| Metric                  | Value               | Status                                             |
+| ----------------------- | ------------------- | -------------------------------------------------- |
+| Build                   | ✅ Clean            | 0 errors                                           |
+| Lint (golangci-lint v2) | ✅ 0 issues         | Clean                                              |
 | Tests (race detector)   | ⚠️ 253 PASS / 4 FAIL | All 4 failures pre-existing (go-branded-id v0.3.0) |
-| Fuzz tests              | ✅ 2 passing         | `FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`     |
-| Benchmarks              | ✅ 7 passing         | All green                                          |
-| Source lines (non-test) | 4,263                | —                                                  |
-| Test lines              | 6,057                | 1.42:1 test:source ratio                           |
-| Test functions          | 257                  | —                                                  |
-| Source files            | 19                   | —                                                  |
-| Test files              | 14                   | —                                                  |
-| Total Go files          | 33                   | —                                                  |
+| Fuzz tests              | ✅ 2 passing        | `FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`     |
+| Benchmarks              | ✅ 7 passing        | All green                                          |
+| Source lines (non-test) | 4,263               | —                                                  |
+| Test lines              | 6,057               | 1.42:1 test:source ratio                           |
+| Test functions          | 257                 | —                                                  |
+| Source files            | 19                  | —                                                  |
+| Test files              | 14                  | —                                                  |
+| Total Go files          | 33                  | —                                                  |
 
 ### Feature Delivery (44/44 — 100%)
 
@@ -174,63 +174,63 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Critical Fixes (30 min)
 
-| #   | Item                                               | Impact                             | Effort |
-| --- | -------------------------------------------------- | ---------------------------------- | ------ |
-| 1   | Fix `go-branded-id` v0.3.0 test failures (4 tests) | 🔴 CI reliability                  | 15 min |
-| 2   | Add middleware-aware integration test harness      | 🔴 Prevents middleware regressions | 30 min |
+| # | Item                                               | Impact                             | Effort |
+| - | -------------------------------------------------- | ---------------------------------- | ------ |
+| 1 | Fix `go-branded-id` v0.3.0 test failures (4 tests) | 🔴 CI reliability                  | 15 min |
+| 2 | Add middleware-aware integration test harness      | 🔴 Prevents middleware regressions | 30 min |
 
 ### Tier 2: Code Quality (1-2 hours)
 
-| #   | Item                                                 | Impact           | Effort |
-| --- | ---------------------------------------------------- | ---------------- | ------ |
-| 3   | Structured log levels audit (#14)                    | 🟢 Observability | 30 min |
-| 4   | Graceful degradation for missing optional deps (#15) | 🟢 Robustness    | 30 min |
-| 5   | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | 🟢 Doc accuracy  | 20 min |
+| # | Item                                                 | Impact           | Effort |
+| - | ---------------------------------------------------- | ---------------- | ------ |
+| 3 | Structured log levels audit (#14)                    | 🟢 Observability | 30 min |
+| 4 | Graceful degradation for missing optional deps (#15) | 🟢 Robustness    | 30 min |
+| 5 | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | 🟢 Doc accuracy  | 20 min |
 
 ### Tier 3: Observability (2-3 hours)
 
-| #   | Item                                                                 | Impact           | Effort |
-| --- | -------------------------------------------------------------------- | ---------------- | ------ |
-| 6   | Additional Prometheus metrics — stream duration, frames served (#16) | 🟢 Observability | 1h     |
-| 7   | Stream health monitoring — frame counter, uptime metric (#18)        | 🟢 Reliability   | 1h     |
-| 8   | Circuit breaker for HID failures (#17)                               | 🟢 Stability     | 1h     |
+| # | Item                                                                 | Impact           | Effort |
+| - | -------------------------------------------------------------------- | ---------------- | ------ |
+| 6 | Additional Prometheus metrics — stream duration, frames served (#16) | 🟢 Observability | 1h     |
+| 7 | Stream health monitoring — frame counter, uptime metric (#18)        | 🟢 Reliability   | 1h     |
+| 8 | Circuit breaker for HID failures (#17)                               | 🟢 Stability     | 1h     |
 
 ### Tier 4: Architecture (4-8 hours)
 
-| #   | Item                                   | Impact                              | Effort |
-| --- | -------------------------------------- | ----------------------------------- | ------ |
-| 9   | Extract `Dependencies` interface (#51) | 🔵 Testability, compile-time safety | 2h     |
-| 10  | Typed `CommandResult` (#52)            | 🔵 Richer command responses         | 2h     |
-| 11  | Consolidate PTZ into `ptz.go` (#53)    | 🟢 Maintainability                  | 1h     |
-| 12  | Extract `Commander` interface (#21)    | 🔵 Mockable shell commands          | 2h     |
-| 13  | Extract `HIDDevice` interface (#22)    | 🔵 Mockable HID I/O                 | 2h     |
+| #  | Item                                   | Impact                              | Effort |
+| -- | -------------------------------------- | ----------------------------------- | ------ |
+| 9  | Extract `Dependencies` interface (#51) | 🔵 Testability, compile-time safety | 2h     |
+| 10 | Typed `CommandResult` (#52)            | 🔵 Richer command responses         | 2h     |
+| 11 | Consolidate PTZ into `ptz.go` (#53)    | 🟢 Maintainability                  | 1h     |
+| 12 | Extract `Commander` interface (#21)    | 🔵 Mockable shell commands          | 2h     |
+| 13 | Extract `HIDDevice` interface (#22)    | 🔵 Mockable HID I/O                 | 2h     |
 
 ### Tier 5: Web UI (4-8 hours)
 
-| #   | Item                                   | Impact           | Effort |
-| --- | -------------------------------------- | ---------------- | ------ |
-| 14  | WebSocket for live state updates (#27) | 🔵 Real-time UX  | 3h     |
-| 15  | Mobile-responsive layout (#26)         | 🟢 Accessibility | 2h     |
-| 16  | Keyboard shortcuts for PTZ (#28)       | 🟢 UX            | 1h     |
-| 17  | PTZ relative mode (#29)                | 🟢 UX            | 1h     |
-| 18  | Camera preset support (#30)            | 🟢 UX            | 2h     |
+| #  | Item                                   | Impact           | Effort |
+| -- | -------------------------------------- | ---------------- | ------ |
+| 14 | WebSocket for live state updates (#27) | 🔵 Real-time UX  | 3h     |
+| 15 | Mobile-responsive layout (#26)         | 🟢 Accessibility | 2h     |
+| 16 | Keyboard shortcuts for PTZ (#28)       | 🟢 UX            | 1h     |
+| 17 | PTZ relative mode (#29)                | 🟢 UX            | 1h     |
+| 18 | Camera preset support (#30)            | 🟢 UX            | 2h     |
 
 ### Tier 6: Testing (4-8 hours)
 
-| #   | Item                                                                               | Impact            | Effort |
-| --- | ---------------------------------------------------------------------------------- | ----------------- | ------ |
-| 19  | Integration test harness with fake devices (#31)                                   | 🔵 Test coverage  | 3h     |
-| 20  | Test coverage for real hardware paths (#32)                                        | 🟢 Confidence     | 2h     |
-| 21  | Surface auto-manage errors to web UI (#33)                                         | 🟢 Debuggability  | 1h     |
-| 22  | Improve MJPEG stream reconnection (#34)                                            | 🟢 Reliability    | 2h     |
-| 23  | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | 🔴 CI reliability | 30 min |
-| 24  | Integration test with real hardware (#35)                                          | 🟢 Validation     | 3h     |
+| #  | Item                                                                               | Impact            | Effort |
+| -- | ---------------------------------------------------------------------------------- | ----------------- | ------ |
+| 19 | Integration test harness with fake devices (#31)                                   | 🔵 Test coverage  | 3h     |
+| 20 | Test coverage for real hardware paths (#32)                                        | 🟢 Confidence     | 2h     |
+| 21 | Surface auto-manage errors to web UI (#33)                                         | 🟢 Debuggability  | 1h     |
+| 22 | Improve MJPEG stream reconnection (#34)                                            | 🟢 Reliability    | 2h     |
+| 23 | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | 🔴 CI reliability | 30 min |
+| 24 | Integration test with real hardware (#35)                                          | 🟢 Validation     | 3h     |
 
 ### Tier 7: Polish (1-2 hours)
 
-| #   | Item                                               | Impact | Effort |
-| --- | -------------------------------------------------- | ------ | ------ |
-| 25  | PTZ readback accuracy — in-memory "last set" (#42) | 🟢 UX  | 1h     |
+| #  | Item                                               | Impact | Effort |
+| -- | -------------------------------------------------- | ------ | ------ |
+| 25 | PTZ readback accuracy — in-memory "last set" (#42) | 🟢 UX  | 1h     |
 
 ---
 

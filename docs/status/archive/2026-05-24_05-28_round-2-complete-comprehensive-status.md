@@ -90,55 +90,55 @@ These are the 32 remaining TODO items from `TODO_LIST.md`, grouped by priority:
 
 ### P1 — Should Do Next
 
-| #   | Item                                           | Notes                                                                    |
-| --- | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| 13  | Eliminate `init()` for Prometheus metrics      | Move to explicit `setupMetrics()` called from `Run()`                    |
-| 14  | Structured log levels audit                    | Ensure all log calls use appropriate level (Debug/Info/Warn/Error)       |
-| 15  | Graceful degradation for missing optional deps | `v4l2-ctl`, `ffmpeg`, `wpctl`, `notify-send` — surface which are missing |
-| 16  | Additional Prometheus metrics                  | Call count, HID error count, stream connections                          |
-| 17  | Circuit breaker for HID failures               | Stop retrying after N consecutive failures                               |
-| 18  | Stream health monitoring                       | Track stream uptime, reconnect count                                     |
-| 19  | Benchmark suite                                | Only 4 benchmarks exist, need more for hot paths                         |
-| 20  | Continuous fuzz in CI                          | Fuzz tests exist but not run in CI                                       |
+| #  | Item                                           | Notes                                                                    |
+| -- | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| 13 | Eliminate `init()` for Prometheus metrics      | Move to explicit `setupMetrics()` called from `Run()`                    |
+| 14 | Structured log levels audit                    | Ensure all log calls use appropriate level (Debug/Info/Warn/Error)       |
+| 15 | Graceful degradation for missing optional deps | `v4l2-ctl`, `ffmpeg`, `wpctl`, `notify-send` — surface which are missing |
+| 16 | Additional Prometheus metrics                  | Call count, HID error count, stream connections                          |
+| 17 | Circuit breaker for HID failures               | Stop retrying after N consecutive failures                               |
+| 18 | Stream health monitoring                       | Track stream uptime, reconnect count                                     |
+| 19 | Benchmark suite                                | Only 4 benchmarks exist, need more for hot paths                         |
+| 20 | Continuous fuzz in CI                          | Fuzz tests exist but not run in CI                                       |
 
 ### P2-P3 — Architecture Hardening
 
-| #   | Item                                                              | Notes                                                    |
-| --- | ----------------------------------------------------------------- | -------------------------------------------------------- |
-| 21  | Extract `Commander` interface                                     | Decouple command handling from `Daemon` struct           |
-| 22  | Extract `HIDDevice` interface                                     | Mock HID without function pointers                       |
-| 23  | Extract `ProcessInspector` interface                              | Mock `/proc` scanning                                    |
-| 24  | Extract `UeventListener` interface                                | Mock uevent source                                       |
-| 51  | Consolidate 9 function pointers into `Dependencies` interface     | Replace DI function fields with single interface         |
-| 52  | Replace `handleCommand(string) string` with typed `CommandResult` | Biggest remaining smell — stringly-typed command results |
-| 53  | Consolidate PTZ logic into single `ptz.go`                        | PTZ spread across 5 files                                |
-| 41  | Consolidate PTZ axis dispatch into lookup table                   | Replace switch with map                                  |
-| 37  | Extract `lastFrame`/`ptzCache` to named types                     | Named structs instead of anonymous embedded structs      |
-| 25  | `probeDevices()` pure function refactor                           | Return results, don't mutate                             |
+| #  | Item                                                              | Notes                                                    |
+| -- | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| 21 | Extract `Commander` interface                                     | Decouple command handling from `Daemon` struct           |
+| 22 | Extract `HIDDevice` interface                                     | Mock HID without function pointers                       |
+| 23 | Extract `ProcessInspector` interface                              | Mock `/proc` scanning                                    |
+| 24 | Extract `UeventListener` interface                                | Mock uevent source                                       |
+| 51 | Consolidate 9 function pointers into `Dependencies` interface     | Replace DI function fields with single interface         |
+| 52 | Replace `handleCommand(string) string` with typed `CommandResult` | Biggest remaining smell — stringly-typed command results |
+| 53 | Consolidate PTZ logic into single `ptz.go`                        | PTZ spread across 5 files                                |
+| 41 | Consolidate PTZ axis dispatch into lookup table                   | Replace switch with map                                  |
+| 37 | Extract `lastFrame`/`ptzCache` to named types                     | Named structs instead of anonymous embedded structs      |
+| 25 | `probeDevices()` pure function refactor                           | Return results, don't mutate                             |
 
 ### P2-P3 — UX Enhancements
 
-| #   | Item                                         | Notes                                         |
-| --- | -------------------------------------------- | --------------------------------------------- |
-| 26  | Mobile-responsive layout                     | Currently desktop-focused                     |
-| 27  | WebSocket for live state updates             | Replace 3s polling                            |
-| 28  | Keyboard shortcuts for PTZ (arrow keys, +/-) | Only T/I/P/C exist now                        |
-| 29  | PTZ relative mode                            | Send relative movements, not absolute         |
-| 30  | Camera preset support                        | Named PTZ positions                           |
-| 57  | Suppress toast spam during PTZ slider drag   | Toast fires on every slider change            |
-| 42  | PTZ readback accuracy                        | V4L2 readback may drift from requested values |
-| 33  | Surface auto-manage errors to web UI         | Currently only logged                         |
+| #  | Item                                         | Notes                                         |
+| -- | -------------------------------------------- | --------------------------------------------- |
+| 26 | Mobile-responsive layout                     | Currently desktop-focused                     |
+| 27 | WebSocket for live state updates             | Replace 3s polling                            |
+| 28 | Keyboard shortcuts for PTZ (arrow keys, +/-) | Only T/I/P/C exist now                        |
+| 29 | PTZ relative mode                            | Send relative movements, not absolute         |
+| 30 | Camera preset support                        | Named PTZ positions                           |
+| 57 | Suppress toast spam during PTZ slider drag   | Toast fires on every slider change            |
+| 42 | PTZ readback accuracy                        | V4L2 readback may drift from requested values |
+| 33 | Surface auto-manage errors to web UI         | Currently only logged                         |
 
 ### P3-P4 — Testing & Documentation
 
-| #   | Item                                                    | Notes                         |
-| --- | ------------------------------------------------------- | ----------------------------- |
-| 31  | Integration test harness with fake devices              | Fake HID/V4L2 devices         |
-| 32  | Test coverage for stream/process/hid real hardware      | Hard to test without hardware |
-| 34  | Improve MJPEG stream reconnection                       | Current retry logic is basic  |
-| 35  | Integration test with real hardware (build tag guarded) | Optional, needs hardware      |
-| 40  | Update `SUPERB_ROADMAP.md`                              | Completely stale              |
-| 61  | Archive or rewrite `SUPERB_ROADMAP.md`                  | May just archive              |
+| #  | Item                                                    | Notes                         |
+| -- | ------------------------------------------------------- | ----------------------------- |
+| 31 | Integration test harness with fake devices              | Fake HID/V4L2 devices         |
+| 32 | Test coverage for stream/process/hid real hardware      | Hard to test without hardware |
+| 34 | Improve MJPEG stream reconnection                       | Current retry logic is basic  |
+| 35 | Integration test with real hardware (build tag guarded) | Optional, needs hardware      |
+| 40 | Update `SUPERB_ROADMAP.md`                              | Completely stale              |
+| 61 | Archive or rewrite `SUPERB_ROADMAP.md`                  | May just archive              |
 
 ---
 

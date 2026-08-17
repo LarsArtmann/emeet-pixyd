@@ -18,16 +18,16 @@ The emeet-pixyd website already existed and was deployed. Per the skill's Phase 
 
 ### Skill phase completion
 
-| Phase                       | Status | Detail                                                                                                   |
-| --------------------------- | ------ | -------------------------------------------------------------------------------------------------------- |
-| Phase 0: Pre-flight         | DONE   | Detected existing site, entered maintenance mode                                                         |
-| Phase 1: Research           | DONE   | Read README, all 17 docs pages, astro.config.mjs, firebase.json, package.json                            |
-| Phase 2: README retrofit    | DONE   | Added 3 missing sections (see below)                                                                     |
-| Phase 3: Docs retrofit      | DONE   | All 17 pages retrofitted (see below)                                                                     |
+| Phase                       | Status | Detail                                                                                                    |
+| --------------------------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| Phase 0: Pre-flight         | DONE   | Detected existing site, entered maintenance mode                                                          |
+| Phase 1: Research           | DONE   | Read README, all 17 docs pages, astro.config.mjs, firebase.json, package.json                             |
+| Phase 2: README retrofit    | DONE   | Added 3 missing sections (see below)                                                                      |
+| Phase 3: Docs retrofit      | DONE   | All 17 pages retrofitted (see below)                                                                      |
 | Phase 4: Build verification | DONE   | `pnpm run build` = 0 errors, `astro check` = 0 errors/warnings/hints, `html-validate` = 0 errors (exit 0) |
-| Phase 5: Go-live            | N/A    | Site already deployed — no new Firebase/DNS work needed                                                  |
-| Phase 6: GitHub metadata    | N/A    | Already configured                                                                                       |
-| Phase 7: CI/CD              | N/A    | Already configured                                                                                       |
+| Phase 5: Go-live            | N/A    | Site already deployed — no new Firebase/DNS work needed                                                   |
+| Phase 6: GitHub metadata    | N/A    | Already configured                                                                                        |
+| Phase 7: CI/CD              | N/A    | Already configured                                                                                        |
 
 ### README retrofit (3 sections added)
 

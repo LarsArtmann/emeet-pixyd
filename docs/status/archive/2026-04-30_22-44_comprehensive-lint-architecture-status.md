@@ -171,33 +171,33 @@ It was not. `*new(T)` heap-allocates via `new()`, then dereferences. `var zero T
 
 ## f) Top 25 Things to Do Next
 
-| #   | Task                                                    | Impact | Effort | Category       |
-| --- | ------------------------------------------------------- | ------ | ------ | -------------- |
-| 1   | Re-enable `staticcheck`, fix or suppress issues         | HIGH   | 15min  | Linting        |
-| 2   | Re-enable `misspell`                                    | MEDIUM | 2min   | Linting        |
-| 3   | Re-enable `unconvert`                                   | MEDIUM | 5min   | Linting        |
-| 4   | Re-enable `nilerr`                                      | HIGH   | 5min   | Linting        |
-| 5   | Introduce `CommandResponse` type                        | HIGH   | 45min  | Architecture   |
-| 6   | Use `pixy.CameraState`/`AudioMode` in `webStatus`       | MEDIUM | 20min  | Types          |
-| 7   | Add Prometheus `Subsystem` to metrics                   | LOW    | 10min  | Observability  |
-| 8   | Extract `boolToFloat` helper for updateMetrics          | LOW    | 5min   | Cleanup        |
-| 9   | Replace `ptr[T]` with `new(T)` (120+ instances)         | LOW    | 20min  | Cleanup        |
-| 10  | File golangci-lint bug: `enable` blocks `exclude-rules` | HIGH   | 15min  | Tooling        |
-| 11  | File golangci-lint bug: errcheck not suppressible       | HIGH   | 15min  | Tooling        |
-| 12  | Pin golangci-lint version in CI                         | MEDIUM | 5min   | CI             |
-| 13  | Replace `get()`/`post()` with context-aware helpers     | MEDIUM | 15min  | Testing        |
-| 14  | Add `t.Parallel()` to integration tests                 | MEDIUM | 20min  | Testing        |
-| 15  | Refactor `handleCommand` into handler map               | HIGH   | 30min  | Architecture   |
-| 16  | Improve test coverage to 80%+                           | HIGH   | 60min  | Testing        |
-| 17  | Add integration test for MJPEG streaming                | MEDIUM | 30min  | Testing        |
-| 18  | Add benchmarks for HID parsing, JPEG extraction         | LOW    | 20min  | Testing        |
-| 19  | Re-enable `dupl` with threshold                         | MEDIUM | 10min  | Linting        |
-| 20  | Re-enable `exhaustive` for non-test code                | MEDIUM | 10min  | Linting        |
-| 21  | Use `errors.Is`/`errors.As` consistently                | MEDIUM | 15min  | Error Handling |
-| 22  | Add structured logging with `slog.With()`               | LOW    | 15min  | Observability  |
-| 23  | Verify `.golangci.yml` works in GitHub Actions          | HIGH   | 10min  | CI             |
-| 24  | Consider `errcheck` `exclude-functions` setting         | MEDIUM | 10min  | Tooling        |
-| 25  | Extract MJPEG streaming to internal package             | LOW    | 30min  | Architecture   |
+| #  | Task                                                    | Impact | Effort | Category       |
+| -- | ------------------------------------------------------- | ------ | ------ | -------------- |
+| 1  | Re-enable `staticcheck`, fix or suppress issues         | HIGH   | 15min  | Linting        |
+| 2  | Re-enable `misspell`                                    | MEDIUM | 2min   | Linting        |
+| 3  | Re-enable `unconvert`                                   | MEDIUM | 5min   | Linting        |
+| 4  | Re-enable `nilerr`                                      | HIGH   | 5min   | Linting        |
+| 5  | Introduce `CommandResponse` type                        | HIGH   | 45min  | Architecture   |
+| 6  | Use `pixy.CameraState`/`AudioMode` in `webStatus`       | MEDIUM | 20min  | Types          |
+| 7  | Add Prometheus `Subsystem` to metrics                   | LOW    | 10min  | Observability  |
+| 8  | Extract `boolToFloat` helper for updateMetrics          | LOW    | 5min   | Cleanup        |
+| 9  | Replace `ptr[T]` with `new(T)` (120+ instances)         | LOW    | 20min  | Cleanup        |
+| 10 | File golangci-lint bug: `enable` blocks `exclude-rules` | HIGH   | 15min  | Tooling        |
+| 11 | File golangci-lint bug: errcheck not suppressible       | HIGH   | 15min  | Tooling        |
+| 12 | Pin golangci-lint version in CI                         | MEDIUM | 5min   | CI             |
+| 13 | Replace `get()`/`post()` with context-aware helpers     | MEDIUM | 15min  | Testing        |
+| 14 | Add `t.Parallel()` to integration tests                 | MEDIUM | 20min  | Testing        |
+| 15 | Refactor `handleCommand` into handler map               | HIGH   | 30min  | Architecture   |
+| 16 | Improve test coverage to 80%+                           | HIGH   | 60min  | Testing        |
+| 17 | Add integration test for MJPEG streaming                | MEDIUM | 30min  | Testing        |
+| 18 | Add benchmarks for HID parsing, JPEG extraction         | LOW    | 20min  | Testing        |
+| 19 | Re-enable `dupl` with threshold                         | MEDIUM | 10min  | Linting        |
+| 20 | Re-enable `exhaustive` for non-test code                | MEDIUM | 10min  | Linting        |
+| 21 | Use `errors.Is`/`errors.As` consistently                | MEDIUM | 15min  | Error Handling |
+| 22 | Add structured logging with `slog.With()`               | LOW    | 15min  | Observability  |
+| 23 | Verify `.golangci.yml` works in GitHub Actions          | HIGH   | 10min  | CI             |
+| 24 | Consider `errcheck` `exclude-functions` setting         | MEDIUM | 10min  | Tooling        |
+| 25 | Extract MJPEG streaming to internal package             | LOW    | 30min  | Architecture   |
 
 ---
 

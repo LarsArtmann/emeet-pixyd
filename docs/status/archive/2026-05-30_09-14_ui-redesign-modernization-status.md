@@ -16,14 +16,14 @@ This session completely redesigned the web UI control panel. The previous design
 
 ### This Session
 
-| #   | Item                                                                               | Impact          | Files              |
-| --- | ---------------------------------------------------------------------------------- | --------------- | ------------------ |
-| 1   | Complete CSS rewrite — removed glassmorphism, gradient text, glow effects          | Visual identity | `static/style.css` |
-| 2   | Replaced inline badge styles with semantic CSS classes                             | Maintainability | `templates.templ`  |
-| 3   | Removed inline `margin-bottom` from cards (now CSS-driven)                         | Consistency     | `templates.templ`  |
-| 4   | Removed inline color styles from "In call" indicator                               | Maintainability | `templates.templ`  |
-| 5   | Added `PRODUCT.md` — product register, users, brand personality, design principles | Design context  | `PRODUCT.md`       |
-| 6   | Added `DESIGN.md` — color palette, typography, motion, component specs             | Design context  | `DESIGN.md`        |
+| # | Item                                                                               | Impact          | Files              |
+| - | ---------------------------------------------------------------------------------- | --------------- | ------------------ |
+| 1 | Complete CSS rewrite — removed glassmorphism, gradient text, glow effects          | Visual identity | `static/style.css` |
+| 2 | Replaced inline badge styles with semantic CSS classes                             | Maintainability | `templates.templ`  |
+| 3 | Removed inline `margin-bottom` from cards (now CSS-driven)                         | Consistency     | `templates.templ`  |
+| 4 | Removed inline color styles from "In call" indicator                               | Maintainability | `templates.templ`  |
+| 5 | Added `PRODUCT.md` — product register, users, brand personality, design principles | Design context  | `PRODUCT.md`       |
+| 6 | Added `DESIGN.md` — color palette, typography, motion, component specs             | Design context  | `DESIGN.md`        |
 
 ### Quality Metrics (Current)
 
@@ -176,58 +176,58 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Critical Fixes (30 min)
 
-| #   | Item                                               | Impact                          | Effort |
-| --- | -------------------------------------------------- | ------------------------------- | ------ |
-| 1   | Fix `go-branded-id` v0.3.0 test failures (4 tests) | CI reliability                  | 15 min |
-| 2   | Add middleware-aware integration test harness      | Prevents middleware regressions | 30 min |
+| # | Item                                               | Impact                          | Effort |
+| - | -------------------------------------------------- | ------------------------------- | ------ |
+| 1 | Fix `go-branded-id` v0.3.0 test failures (4 tests) | CI reliability                  | 15 min |
+| 2 | Add middleware-aware integration test harness      | Prevents middleware regressions | 30 min |
 
 ### Tier 2: Code Quality (1-2 hours)
 
-| #   | Item                                                 | Impact        | Effort |
-| --- | ---------------------------------------------------- | ------------- | ------ |
-| 3   | Structured log levels audit (#14)                    | Observability | 30 min |
-| 4   | Graceful degradation for missing optional deps (#15) | Robustness    | 30 min |
-| 5   | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | Doc accuracy  | 20 min |
-| 6   | Update `FEATURES.md` theme description               | Doc accuracy  | 5 min  |
+| # | Item                                                 | Impact        | Effort |
+| - | ---------------------------------------------------- | ------------- | ------ |
+| 3 | Structured log levels audit (#14)                    | Observability | 30 min |
+| 4 | Graceful degradation for missing optional deps (#15) | Robustness    | 30 min |
+| 5 | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | Doc accuracy  | 20 min |
+| 6 | Update `FEATURES.md` theme description               | Doc accuracy  | 5 min  |
 
 ### Tier 3: Observability (2-3 hours)
 
-| #   | Item                                                                 | Impact        | Effort |
-| --- | -------------------------------------------------------------------- | ------------- | ------ |
-| 7   | Additional Prometheus metrics — stream duration, frames served (#16) | Observability | 1h     |
-| 8   | Stream health monitoring — frame counter, uptime metric (#18)        | Reliability   | 1h     |
-| 9   | Circuit breaker for HID failures (#17)                               | Stability     | 1h     |
+| # | Item                                                                 | Impact        | Effort |
+| - | -------------------------------------------------------------------- | ------------- | ------ |
+| 7 | Additional Prometheus metrics — stream duration, frames served (#16) | Observability | 1h     |
+| 8 | Stream health monitoring — frame counter, uptime metric (#18)        | Reliability   | 1h     |
+| 9 | Circuit breaker for HID failures (#17)                               | Stability     | 1h     |
 
 ### Tier 4: Architecture (4-8 hours)
 
-| #   | Item                                   | Impact                           | Effort |
-| --- | -------------------------------------- | -------------------------------- | ------ |
-| 10  | Extract `Dependencies` interface (#51) | Testability, compile-time safety | 2h     |
-| 11  | Typed `CommandResult` (#52)            | Richer command responses         | 2h     |
-| 12  | Consolidate PTZ into `ptz.go` (#53)    | Maintainability                  | 1h     |
-| 13  | Extract `Commander` interface (#21)    | Mockable shell commands          | 2h     |
-| 14  | Extract `HIDDevice` interface (#22)    | Mockable HID I/O                 | 2h     |
+| #  | Item                                   | Impact                           | Effort |
+| -- | -------------------------------------- | -------------------------------- | ------ |
+| 10 | Extract `Dependencies` interface (#51) | Testability, compile-time safety | 2h     |
+| 11 | Typed `CommandResult` (#52)            | Richer command responses         | 2h     |
+| 12 | Consolidate PTZ into `ptz.go` (#53)    | Maintainability                  | 1h     |
+| 13 | Extract `Commander` interface (#21)    | Mockable shell commands          | 2h     |
+| 14 | Extract `HIDDevice` interface (#22)    | Mockable HID I/O                 | 2h     |
 
 ### Tier 5: Web UI (4-8 hours)
 
-| #   | Item                                   | Impact        | Effort |
-| --- | -------------------------------------- | ------------- | ------ |
-| 15  | WebSocket for live state updates (#27) | Real-time UX  | 3h     |
-| 16  | Mobile-responsive layout (#26)         | Accessibility | 2h     |
-| 17  | Keyboard shortcuts for PTZ (#28)       | UX            | 1h     |
-| 18  | PTZ relative mode (#29)                | UX            | 1h     |
-| 19  | Camera preset support (#30)            | UX            | 2h     |
+| #  | Item                                   | Impact        | Effort |
+| -- | -------------------------------------- | ------------- | ------ |
+| 15 | WebSocket for live state updates (#27) | Real-time UX  | 3h     |
+| 16 | Mobile-responsive layout (#26)         | Accessibility | 2h     |
+| 17 | Keyboard shortcuts for PTZ (#28)       | UX            | 1h     |
+| 18 | PTZ relative mode (#29)                | UX            | 1h     |
+| 19 | Camera preset support (#30)            | UX            | 2h     |
 
 ### Tier 6: Testing (4-8 hours)
 
-| #   | Item                                                                               | Impact         | Effort |
-| --- | ---------------------------------------------------------------------------------- | -------------- | ------ |
-| 20  | Integration test harness with fake devices (#31)                                   | Test coverage  | 3h     |
-| 21  | Test coverage for real hardware paths (#32)                                        | Confidence     | 2h     |
-| 22  | Surface auto-manage errors to web UI (#33)                                         | Debuggability  | 1h     |
-| 23  | Improve MJPEG stream reconnection (#34)                                            | Reliability    | 2h     |
-| 24  | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | CI reliability | 30 min |
-| 25  | Integration test with real hardware (#35)                                          | Validation     | 3h     |
+| #  | Item                                                                               | Impact         | Effort |
+| -- | ---------------------------------------------------------------------------------- | -------------- | ------ |
+| 20 | Integration test harness with fake devices (#31)                                   | Test coverage  | 3h     |
+| 21 | Test coverage for real hardware paths (#32)                                        | Confidence     | 2h     |
+| 22 | Surface auto-manage errors to web UI (#33)                                         | Debuggability  | 1h     |
+| 23 | Improve MJPEG stream reconnection (#34)                                            | Reliability    | 2h     |
+| 24 | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | CI reliability | 30 min |
+| 25 | Integration test with real hardware (#35)                                          | Validation     | 3h     |
 
 ---
 

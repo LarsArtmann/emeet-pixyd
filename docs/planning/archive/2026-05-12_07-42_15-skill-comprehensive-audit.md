@@ -30,61 +30,61 @@
 
 ### 1% → 51% Impact (Foundational — Do First)
 
-| #   | Task                                                         | Category     | Effort | Impact                                     |
-| --- | ------------------------------------------------------------ | ------------ | ------ | ------------------------------------------ |
-| 1   | Move PTZ limits to `internal/pixy/` shared constants         | Split Brain  | 15min  | Eliminates template/code desync risk       |
-| 2   | Fix `autoManage` — conditional `saveState` only when changed | Performance  | 15min  | Eliminates 30 unnecessary disk writes/min  |
-| 3   | Validate loaded state in `loadState()`                       | Correctness  | 15min  | Prevents garbage state from persisted JSON |
-| 4   | Fix false-positive test `TestHandleCommandSyncWithDevice`    | Test Quality | 10min  | Makes test actually catch bugs             |
-| 5   | Fix `uevent.go` — retry on transient read errors             | Reliability  | 30min  | Prevents permanent hotplug disable         |
+| # | Task                                                         | Category     | Effort | Impact                                     |
+| - | ------------------------------------------------------------ | ------------ | ------ | ------------------------------------------ |
+| 1 | Move PTZ limits to `internal/pixy/` shared constants         | Split Brain  | 15min  | Eliminates template/code desync risk       |
+| 2 | Fix `autoManage` — conditional `saveState` only when changed | Performance  | 15min  | Eliminates 30 unnecessary disk writes/min  |
+| 3 | Validate loaded state in `loadState()`                       | Correctness  | 15min  | Prevents garbage state from persisted JSON |
+| 4 | Fix false-positive test `TestHandleCommandSyncWithDevice`    | Test Quality | 10min  | Makes test actually catch bugs             |
+| 5 | Fix `uevent.go` — retry on transient read errors             | Reliability  | 30min  | Prevents permanent hotplug disable         |
 
 ### 4% → 64% Impact (High Leverage)
 
-| #   | Task                                                               | Category      | Effort | Impact                                                       |
-| --- | ------------------------------------------------------------------ | ------------- | ------ | ------------------------------------------------------------ |
-| 6   | Replace `handleCommand(string) string` with `CommandResult` struct | Architecture  | 60min  | Type-safe command routing, kills `IsCommandErrorResponse`    |
-| 7   | Consolidate PTZ into single `ptz.go` file                          | Architecture  | 45min  | One place to understand PTZ, eliminates duplicate validation |
-| 8   | Consolidate 9 function pointers into `Dependencies` interface      | Architecture  | 45min  | Compile-time safety, simpler test setup                      |
-| 9   | Remove `, change` from PTZ slider trigger                          | Frontend      | 5min   | Eliminates doubled requests                                  |
-| 10  | Suppress toast spam on PTZ slider drag                             | Frontend      | 15min  | Usability fix                                                |
-| 11  | Migrate to `encoding/json/v2`                                      | Go Policy     | 30min  | 10x JSON performance                                         |
-| 12  | Add `role="alert"` to error banners                                | Accessibility | 5min   | Screen reader support                                        |
-| 13  | Add `extractJPEGFrame` max-iterations guard                        | Robustness    | 10min  | Prevents infinite loop on corrupt stream                     |
+| #  | Task                                                               | Category      | Effort | Impact                                                       |
+| -- | ------------------------------------------------------------------ | ------------- | ------ | ------------------------------------------------------------ |
+| 6  | Replace `handleCommand(string) string` with `CommandResult` struct | Architecture  | 60min  | Type-safe command routing, kills `IsCommandErrorResponse`    |
+| 7  | Consolidate PTZ into single `ptz.go` file                          | Architecture  | 45min  | One place to understand PTZ, eliminates duplicate validation |
+| 8  | Consolidate 9 function pointers into `Dependencies` interface      | Architecture  | 45min  | Compile-time safety, simpler test setup                      |
+| 9  | Remove `, change` from PTZ slider trigger                          | Frontend      | 5min   | Eliminates doubled requests                                  |
+| 10 | Suppress toast spam on PTZ slider drag                             | Frontend      | 15min  | Usability fix                                                |
+| 11 | Migrate to `encoding/json/v2`                                      | Go Policy     | 30min  | 10x JSON performance                                         |
+| 12 | Add `role="alert"` to error banners                                | Accessibility | 5min   | Screen reader support                                        |
+| 13 | Add `extractJPEGFrame` max-iterations guard                        | Robustness    | 10min  | Prevents infinite loop on corrupt stream                     |
 
 ### 20% → 80% Impact (Broad Value)
 
-| #   | Task                                                                | Category | Effort | Impact                                            |
-| --- | ------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------- |
-| 14  | Add systemd hardening to NixOS module                               | Security | 30min  | MemoryMax, ProtectSystem, RestrictAddressFamilies |
-| 15  | Add missing behavioral tests (hot-unplug, auto mode switch)         | Testing  | 90min  | Covers critical untested user journeys            |
-| 16  | Archive/rewrite `docs/SUPERB_ROADMAP.md`                            | Docs     | 30min  | Eliminates dangerously stale reference            |
-| 17  | Fix false-positive tests (toggle privacy, gesture endpoint)         | Testing  | 30min  | Makes 5+ tests actually verify behavior           |
-| 18  | Mobile responsiveness fixes (touch-action, touch targets, hide kbd) | Frontend | 30min  | Usable on mobile                                  |
+| #  | Task                                                                | Category | Effort | Impact                                            |
+| -- | ------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------- |
+| 14 | Add systemd hardening to NixOS module                               | Security | 30min  | MemoryMax, ProtectSystem, RestrictAddressFamilies |
+| 15 | Add missing behavioral tests (hot-unplug, auto mode switch)         | Testing  | 90min  | Covers critical untested user journeys            |
+| 16 | Archive/rewrite `docs/SUPERB_ROADMAP.md`                            | Docs     | 30min  | Eliminates dangerously stale reference            |
+| 17 | Fix false-positive tests (toggle privacy, gesture endpoint)         | Testing  | 30min  | Makes 5+ tests actually verify behavior           |
+| 18 | Mobile responsiveness fixes (touch-action, touch targets, hide kbd) | Frontend | 30min  | Usable on mobile                                  |
 
 ### Remaining 80% (Polish / Lower Priority)
 
-| #   | Task                                               | Category     | Effort |
-| --- | -------------------------------------------------- | ------------ | ------ |
-| 19  | Extract `AutoManager` sub-struct from Daemon       | Architecture | 60min  |
-| 20  | Extract `Streamer` sub-struct from Daemon          | Architecture | 45min  |
-| 21  | Centralize state mutation + persistence            | Architecture | 60min  |
-| 22  | Eliminate `cmdMu` for single-lock serialization    | Architecture | 60min  |
-| 23  | Add `cockroachdb/errors` + `uniflow`               | Go Policy    | 45min  |
-| 24  | Add visual depth to preview card (frontend polish) | Frontend     | 15min  |
-| 25  | Add custom scrollbar styling                       | Frontend     | 5min   |
-| 26  | Add keyboard shortcut discoverability (? button)   | Frontend     | 15min  |
-| 27  | Predictable request IDs → use crypto/rand          | Security     | 10min  |
+| #  | Task                                               | Category     | Effort |
+| -- | -------------------------------------------------- | ------------ | ------ |
+| 19 | Extract `AutoManager` sub-struct from Daemon       | Architecture | 60min  |
+| 20 | Extract `Streamer` sub-struct from Daemon          | Architecture | 45min  |
+| 21 | Centralize state mutation + persistence            | Architecture | 60min  |
+| 22 | Eliminate `cmdMu` for single-lock serialization    | Architecture | 60min  |
+| 23 | Add `cockroachdb/errors` + `uniflow`               | Go Policy    | 45min  |
+| 24 | Add visual depth to preview card (frontend polish) | Frontend     | 15min  |
+| 25 | Add custom scrollbar styling                       | Frontend     | 5min   |
+| 26 | Add keyboard shortcut discoverability (? button)   | Frontend     | 15min  |
+| 27 | Predictable request IDs → use crypto/rand          | Security     | 10min  |
 
 ---
 
 ## Bugs Fixed During Audit
 
-| #   | File             | Bug                                                   | Fix                       |
-| --- | ---------------- | ----------------------------------------------------- | ------------------------- |
-| 1   | `hid.go:132`     | `%w` wrapping nil error produces garbled `%!w(<nil>)` | Split into two conditions |
-| 2   | `probe.go:76`    | `return false` on malformed HID_ID kills probe        | Changed to `continue`     |
-| 3   | `flake.nix:61`   | Invalid `env` attribute in app definition             | Removed `env`             |
-| 4   | `package.nix:22` | Version string duplicated in ldflags                  | `let version` binding     |
+| # | File             | Bug                                                   | Fix                       |
+| - | ---------------- | ----------------------------------------------------- | ------------------------- |
+| 1 | `hid.go:132`     | `%w` wrapping nil error produces garbled `%!w(<nil>)` | Split into two conditions |
+| 2 | `probe.go:76`    | `return false` on malformed HID_ID kills probe        | Changed to `continue`     |
+| 3 | `flake.nix:61`   | Invalid `env` attribute in app definition             | Removed `env`             |
+| 4 | `package.nix:22` | Version string duplicated in ldflags                  | `let version` binding     |
 
 ---
 

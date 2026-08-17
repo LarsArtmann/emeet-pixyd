@@ -5,7 +5,6 @@
   version,
   templ,
   replaceBrandedId,
-  goBrandedSrc,
   ...
 }:
 buildGoModule {

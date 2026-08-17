@@ -1,7 +1,7 @@
 # emeet-pixyd — Comprehensive Status Report
 
-**Date:** 2026-05-30 11:27  
-**Branch:** `master` at `765db53`  
+**Date:** 2026-05-30 11:27\
+**Branch:** `master` at `765db53`\
 **Session:** Nix flake improvements + UI redesign follow-up status
 
 ---
@@ -16,10 +16,10 @@ This session completed two independent workstreams: (1) a full web UI redesign r
 
 ### This Session (Two Commits)
 
-| #   | Commit    | Description                                                                                           | Files                                                            |
-| --- | --------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1   | `a8bc41e` | UI redesign — modernized CSS, removed glassmorphism/gradient text/glows, added PRODUCT.md + DESIGN.md | `static/style.css`, `templates.templ`, `PRODUCT.md`, `DESIGN.md` |
-| 2   | `765db53` | Nix improvements — pattern-based sourceFiles, app meta, required user option                          | `flake.nix`, `modules/nixos.nix`                                 |
+| # | Commit    | Description                                                                                           | Files                                                            |
+| - | --------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1 | `a8bc41e` | UI redesign — modernized CSS, removed glassmorphism/gradient text/glows, added PRODUCT.md + DESIGN.md | `static/style.css`, `templates.templ`, `PRODUCT.md`, `DESIGN.md` |
+| 2 | `765db53` | Nix improvements — pattern-based sourceFiles, app meta, required user option                          | `flake.nix`, `modules/nixos.nix`                                 |
 
 ### UI Redesign Details
 
@@ -192,58 +192,58 @@ Prioritized by impact × effort (Pareto order):
 
 ### Tier 1: Critical Fixes (30 min)
 
-| #   | Item                                               | Impact                          | Effort |
-| --- | -------------------------------------------------- | ------------------------------- | ------ |
-| 1   | Fix `go-branded-id` v0.3.0 test failures (4 tests) | CI reliability                  | 15 min |
-| 2   | Add middleware-aware integration test harness      | Prevents middleware regressions | 30 min |
+| # | Item                                               | Impact                          | Effort |
+| - | -------------------------------------------------- | ------------------------------- | ------ |
+| 1 | Fix `go-branded-id` v0.3.0 test failures (4 tests) | CI reliability                  | 15 min |
+| 2 | Add middleware-aware integration test harness      | Prevents middleware regressions | 30 min |
 
 ### Tier 2: Code Quality (1–2 hours)
 
-| #   | Item                                                 | Impact        | Effort |
-| --- | ---------------------------------------------------- | ------------- | ------ |
-| 3   | Structured log levels audit (#14)                    | Observability | 30 min |
-| 4   | Graceful degradation for missing optional deps (#15) | Robustness    | 30 min |
-| 5   | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | Doc accuracy  | 20 min |
-| 6   | Update `FEATURES.md` theme description               | Doc accuracy  | 5 min  |
-| 7   | Exclude `templates_templ.go` from Nix source filter  | Purity        | 5 min  |
+| # | Item                                                 | Impact        | Effort |
+| - | ---------------------------------------------------- | ------------- | ------ |
+| 3 | Structured log levels audit (#14)                    | Observability | 30 min |
+| 4 | Graceful degradation for missing optional deps (#15) | Robustness    | 30 min |
+| 5 | Update/archive `SUPERB_ROADMAP.md` (#40, #61)        | Doc accuracy  | 20 min |
+| 6 | Update `FEATURES.md` theme description               | Doc accuracy  | 5 min  |
+| 7 | Exclude `templates_templ.go` from Nix source filter  | Purity        | 5 min  |
 
 ### Tier 3: Observability (2–3 hours)
 
-| #   | Item                                                                 | Impact        | Effort |
-| --- | -------------------------------------------------------------------- | ------------- | ------ |
-| 8   | Additional Prometheus metrics — stream duration, frames served (#16) | Observability | 1h     |
-| 9   | Stream health monitoring — frame counter, uptime metric (#18)        | Reliability   | 1h     |
-| 10  | Circuit breaker for HID failures (#17)                               | Stability     | 1h     |
+| #  | Item                                                                 | Impact        | Effort |
+| -- | -------------------------------------------------------------------- | ------------- | ------ |
+| 8  | Additional Prometheus metrics — stream duration, frames served (#16) | Observability | 1h     |
+| 9  | Stream health monitoring — frame counter, uptime metric (#18)        | Reliability   | 1h     |
+| 10 | Circuit breaker for HID failures (#17)                               | Stability     | 1h     |
 
 ### Tier 4: Architecture (4–8 hours)
 
-| #   | Item                                   | Impact                           | Effort |
-| --- | -------------------------------------- | -------------------------------- | ------ |
-| 11  | Extract `Dependencies` interface (#51) | Testability, compile-time safety | 2h     |
-| 12  | Typed `CommandResult` (#52)            | Richer command responses         | 2h     |
-| 13  | Consolidate PTZ into `ptz.go` (#53)    | Maintainability                  | 1h     |
-| 14  | Extract `Commander` interface (#21)    | Mockable shell commands          | 2h     |
-| 15  | Extract `HIDDevice` interface (#22)    | Mockable HID I/O                 | 2h     |
+| #  | Item                                   | Impact                           | Effort |
+| -- | -------------------------------------- | -------------------------------- | ------ |
+| 11 | Extract `Dependencies` interface (#51) | Testability, compile-time safety | 2h     |
+| 12 | Typed `CommandResult` (#52)            | Richer command responses         | 2h     |
+| 13 | Consolidate PTZ into `ptz.go` (#53)    | Maintainability                  | 1h     |
+| 14 | Extract `Commander` interface (#21)    | Mockable shell commands          | 2h     |
+| 15 | Extract `HIDDevice` interface (#22)    | Mockable HID I/O                 | 2h     |
 
 ### Tier 5: Web UI (4–8 hours)
 
-| #   | Item                                   | Impact        | Effort |
-| --- | -------------------------------------- | ------------- | ------ |
-| 16  | WebSocket for live state updates (#27) | Real-time UX  | 3h     |
-| 17  | Mobile-responsive layout (#26)         | Accessibility | 2h     |
-| 18  | Keyboard shortcuts for PTZ (#28)       | UX            | 1h     |
-| 19  | PTZ relative mode (#29)                | UX            | 1h     |
-| 20  | Camera preset support (#30)            | UX            | 2h     |
+| #  | Item                                   | Impact        | Effort |
+| -- | -------------------------------------- | ------------- | ------ |
+| 16 | WebSocket for live state updates (#27) | Real-time UX  | 3h     |
+| 17 | Mobile-responsive layout (#26)         | Accessibility | 2h     |
+| 18 | Keyboard shortcuts for PTZ (#28)       | UX            | 1h     |
+| 19 | PTZ relative mode (#29)                | UX            | 1h     |
+| 20 | Camera preset support (#30)            | UX            | 2h     |
 
 ### Tier 6: Testing (4–8 hours)
 
-| #   | Item                                                                               | Impact         | Effort |
-| --- | ---------------------------------------------------------------------------------- | -------------- | ------ |
-| 21  | Integration test harness with fake devices (#31)                                   | Test coverage  | 3h     |
-| 22  | Test coverage for real hardware paths (#32)                                        | Confidence     | 2h     |
-| 23  | Surface auto-manage errors to web UI (#33)                                         | Debuggability  | 1h     |
-| 24  | Improve MJPEG stream reconnection (#34)                                            | Reliability    | 2h     |
-| 25  | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | CI reliability | 30 min |
+| #  | Item                                                                               | Impact         | Effort |
+| -- | ---------------------------------------------------------------------------------- | -------------- | ------ |
+| 21 | Integration test harness with fake devices (#31)                                   | Test coverage  | 3h     |
+| 22 | Test coverage for real hardware paths (#32)                                        | Confidence     | 2h     |
+| 23 | Surface auto-manage errors to web UI (#33)                                         | Debuggability  | 1h     |
+| 24 | Improve MJPEG stream reconnection (#34)                                            | Reliability    | 2h     |
+| 25 | Fix flaky parallel tests (`TestHandleStream_NoFFmpeg`, `TestSocket_StatusCommand`) | CI reliability | 30 min |
 
 ---
 

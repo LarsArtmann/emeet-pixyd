@@ -53,14 +53,14 @@
         --radius-sm: 0px;
 
         --font-heading:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-body:
-          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --font-mono:
-          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
-          monospace;
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
       }
 
       * {
@@ -268,15 +268,27 @@
       }
       .card-problem {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .card-solution {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .card-warning {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
 
       .issue {
@@ -288,15 +300,27 @@
       }
       .issue-critical {
         border-left-color: var(--problem);
-        background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-important {
         border-left-color: var(--warning);
-        background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
       }
       .issue-nice {
         border-left-color: var(--solution);
-        background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised));
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
       }
       .issue h3 {
         margin-bottom: 0.3rem;
@@ -720,9 +744,10 @@
           <div class="hero-badge">Project Status</div>
           <h1>emeet-pixyd — Race-Free, Nix-Clean, Feature-Complete</h1>
           <p class="hero-subtitle">
-            Post-flaky-test remediation snapshot. Fixed a parallel-test state-file collision in
-            <code>newTestDaemon</code>, restored green builds, and mapped the remaining
-            architectural gaps.
+            Post-flaky-test remediation snapshot. Fixed a parallel-test
+            state-file collision in
+            <code>newTestDaemon</code>, restored green builds, and mapped the
+            remaining architectural gaps.
           </p>
         </div>
 
@@ -779,20 +804,22 @@
         <div class="card card-solution">
           <h4>Current Headline</h4>
           <p>
-            Build pipeline is green: <code>buildflow --build-mode=dev</code> passes 40/40 steps,
-            race tests pass (stress-tested count=10), and golangci-lint reports 0 issues. The last
-            commit (<code>241348f</code>) made test state directories parallel-safe by passing
-            <code>testing.TB</code> into <code>newTestDaemon</code> and using
-            <code>t.TempDir()</code>.
+            Build pipeline is green:
+            <code>buildflow --build-mode=dev</code> passes 40/40 steps, race
+            tests pass (stress-tested count=10), and golangci-lint reports 0
+            issues. The last commit (<code>241348f</code>) made test state
+            directories parallel-safe by passing <code>testing.TB</code> into
+            <code>newTestDaemon</code> and using <code>t.TempDir()</code>.
           </p>
         </div>
 
         <div class="card card-warning">
           <h4>Watch Items</h4>
           <p>
-            20 TODOs remain, all architectural or nice-to-have: interface extraction (Commander,
-            ProcessInspector, UeventListener), mobile UI, camera presets, fake-device test harness,
-            and PTZ readback smoothing. Nothing blocks release.
+            20 TODOs remain, all architectural or nice-to-have: interface
+            extraction (Commander, ProcessInspector, UeventListener), mobile UI,
+            camera presets, fake-device test harness, and PTZ readback
+            smoothing. Nothing blocks release.
           </p>
         </div>
 
@@ -813,9 +840,10 @@
             <div class="text">
               <strong>Parallel-safe test state directories</strong
               ><span
-                ><code>newTestDaemon</code> now takes <code>testing.TB</code> and sets
-                <code>StateDir: tb.TempDir()</code>; eliminated shared <code>/tmp</code> state-file
-                race.</span
+                ><code>newTestDaemon</code> now takes
+                <code>testing.TB</code> and sets
+                <code>StateDir: tb.TempDir()</code>; eliminated shared
+                <code>/tmp</code> state-file race.</span
               >
             </div>
           </div>
@@ -824,8 +852,8 @@
             <div class="text">
               <strong>Race detector clean</strong
               ><span
-                >Stress-tested with <code>-race -count=10</code>; no data races in
-                <code>saveState</code> or elsewhere.</span
+                >Stress-tested with <code>-race -count=10</code>; no data races
+                in <code>saveState</code> or elsewhere.</span
               >
             </div>
           </div>
@@ -834,8 +862,8 @@
             <div class="text">
               <strong>Lint clean</strong
               ><span
-                >golangci-lint (all linters enabled) reports 0 issues after fixing
-                <code>thelper</code> parameter naming.</span
+                >golangci-lint (all linters enabled) reports 0 issues after
+                fixing <code>thelper</code> parameter naming.</span
               >
             </div>
           </div>
@@ -844,8 +872,8 @@
             <div class="text">
               <strong>cqrs-htmx dependency removed</strong
               ><span
-                >~30 transitive deps eliminated; SSE, middleware, HTMX JS reimplemented
-                locally.</span
+                >~30 transitive deps eliminated; SSE, middleware, HTMX JS
+                reimplemented locally.</span
               >
             </div>
           </div>
@@ -855,8 +883,8 @@
               <strong>Nix flake builds</strong
               ><span
                 ><code>nix build</code>, <code>nix run</code>,
-                <code>nix flake check</code> functional with <code>proxyVendor</code> for
-                templ.</span
+                <code>nix flake check</code> functional with
+                <code>proxyVendor</code> for templ.</span
               >
             </div>
           </div>
@@ -865,8 +893,8 @@
             <div class="text">
               <strong>44/44 product features functional</strong
               ><span
-                >Camera, audio, auto-management, web UI, CLI, notifications, metrics, NixOS module
-                all verified.</span
+                >Camera, audio, auto-management, web UI, CLI, notifications,
+                metrics, NixOS module all verified.</span
               >
             </div>
           </div>
@@ -875,7 +903,8 @@
             <div class="text">
               <strong>HID/V4L2 abstraction layers</strong
               ><span
-                ><code>HIDDevice</code> interface, <code>Dependencies</code> struct,
+                ><code>HIDDevice</code> interface,
+                <code>Dependencies</code> struct,
                 <code>CommandRunner</code> interface in place.</span
               >
             </div>
@@ -885,8 +914,8 @@
             <div class="text">
               <strong>Observability complete</strong
               ><span
-                >OTel Prometheus metrics, pprof gated by debug, health endpoint, systemd
-                watchdog/notify.</span
+                >OTel Prometheus metrics, pprof gated by debug, health endpoint,
+                systemd watchdog/notify.</span
               >
             </div>
           </div>
@@ -895,7 +924,8 @@
             <div class="text">
               <strong>Comprehensive test suite</strong
               ><span
-                >71 Go files, 42 test files, unit + integration + fuzz + BDD behavioral tests.</span
+                >71 Go files, 42 test files, unit + integration + fuzz + BDD
+                behavioral tests.</span
               >
             </div>
           </div>
@@ -904,8 +934,8 @@
             <div class="text">
               <strong>State persistence hardened</strong
               ><span
-                >Atomic write (tmp + rename), validation of loaded enums, SIGHUP save, tmp
-                cleanup.</span
+                >Atomic write (tmp + rename), validation of loaded enums, SIGHUP
+                save, tmp cleanup.</span
               >
             </div>
           </div>
@@ -914,8 +944,8 @@
             <div class="text">
               <strong>Web UI polished</strong
               ><span
-                >Glassmorphism theme, SSE live updates, keyboard shortcuts, PTZ sliders, toast
-                feedback.</span
+                >Glassmorphism theme, SSE live updates, keyboard shortcuts, PTZ
+                sliders, toast feedback.</span
               >
             </div>
           </div>
@@ -925,9 +955,10 @@
         <div class="card card-warning">
           <h4>Nothing currently partial</h4>
           <p>
-            Per <code>TODO_LIST.md</code>, there are 0 partial items. Every tracked task is either
-            fully verified (55) or not started (20). The one SKIP item
-            (<code>encoding/json/v2</code>) is blocked on upstream Go stdlib availability.
+            Per <code>TODO_LIST.md</code>, there are 0 partial items. Every
+            tracked task is either fully verified (55) or not started (20). The
+            one SKIP item (<code>encoding/json/v2</code>) is blocked on upstream
+            Go stdlib availability.
           </p>
         </div>
 
@@ -946,21 +977,26 @@
               <tr>
                 <td>1</td>
                 <td>
-                  Extract <code>Commander</code> interface for subprocess calls (v4l2-ctl, wpctl,
-                  ffmpeg, notify-send)
+                  Extract <code>Commander</code> interface for subprocess calls
+                  (v4l2-ctl, wpctl, ffmpeg, notify-send)
                 </td>
                 <td>Architecture</td>
                 <td>Roadmap 1.1</td>
               </tr>
               <tr>
                 <td>2</td>
-                <td>Extract <code>ProcessInspector</code> interface for /proc traversal</td>
+                <td>
+                  Extract <code>ProcessInspector</code> interface for /proc
+                  traversal
+                </td>
                 <td>Architecture</td>
                 <td>Roadmap 1.3</td>
               </tr>
               <tr>
                 <td>3</td>
-                <td>Extract <code>UeventListener</code> interface for netlink</td>
+                <td>
+                  Extract <code>UeventListener</code> interface for netlink
+                </td>
                 <td>Architecture</td>
                 <td>Roadmap 1.4</td>
               </tr>
@@ -1021,8 +1057,9 @@
               <tr>
                 <td>12</td>
                 <td>
-                  Test coverage for <code>stream.go</code>, <code>process.go</code>,
-                  <code>hid.go</code> real hardware paths
+                  Test coverage for <code>stream.go</code>,
+                  <code>process.go</code>, <code>hid.go</code> real hardware
+                  paths
                 </td>
                 <td>Testing</td>
                 <td>Status E.2</td>
@@ -1035,39 +1072,53 @@
               </tr>
               <tr>
                 <td>14</td>
-                <td>Defensive post-generation check for empty <code>*_templ.go</code> files</td>
+                <td>
+                  Defensive post-generation check for empty
+                  <code>*_templ.go</code> files
+                </td>
                 <td>Build</td>
                 <td>Open question</td>
               </tr>
               <tr>
                 <td>15</td>
-                <td>Investigate root cause of empty <code>templates_templ.go</code> generation</td>
+                <td>
+                  Investigate root cause of empty
+                  <code>templates_templ.go</code> generation
+                </td>
                 <td>Build</td>
                 <td>Open question</td>
               </tr>
               <tr>
                 <td>16</td>
-                <td>Fix or suppress misleading <code>buildflow dev</code> CLI hint</td>
+                <td>
+                  Fix or suppress misleading <code>buildflow dev</code> CLI hint
+                </td>
                 <td>Tooling</td>
                 <td>Open question</td>
               </tr>
               <tr>
                 <td>17</td>
-                <td>Decide whether to stage/commit unstaged <code>go.sum</code> drift or revert</td>
+                <td>
+                  Decide whether to stage/commit unstaged
+                  <code>go.sum</code> drift or revert
+                </td>
                 <td>Repo</td>
                 <td>Prior session</td>
               </tr>
               <tr>
                 <td>18</td>
                 <td>
-                  Hardware-independence audit: every test path that opens /dev should be stubbable
+                  Hardware-independence audit: every test path that opens /dev
+                  should be stubbable
                 </td>
                 <td>Testing</td>
                 <td>Quality</td>
               </tr>
               <tr>
                 <td>19</td>
-                <td>Behavioral tests for SSE disconnect/reconnect edge cases</td>
+                <td>
+                  Behavioral tests for SSE disconnect/reconnect edge cases
+                </td>
                 <td>Testing</td>
                 <td>Quality</td>
               </tr>
@@ -1085,23 +1136,26 @@
         <div class="card card-problem">
           <h4>Nothing is totally fucked up right now</h4>
           <p>
-            The build passes, tests pass, lint is clean, and the Nix flake builds. The closest thing
-            to "fucked" is a class of <strong>latent build-tool hazards</strong> that have bitten us
-            once and could bite again:
+            The build passes, tests pass, lint is clean, and the Nix flake
+            builds. The closest thing to "fucked" is a class of
+            <strong>latent build-tool hazards</strong> that have bitten us once
+            and could bite again:
           </p>
           <ul style="margin: 0.5rem 0 0 1.2rem; color: var(--text-muted)">
             <li>
               <code>templ generate</code> can silently produce an empty
-              <code>*_templ.go</code> file, breaking Go compilation with an EOF error at line 1.
+              <code>*_templ.go</code> file, breaking Go compilation with an EOF
+              error at line 1.
             </li>
             <li>
-              <code>buildflow</code>'s success footer recommends <code>buildflow dev</code>, which
-              is not a valid subcommand; the correct invocation is
-              <code>buildflow --build-mode=dev</code>.
+              <code>buildflow</code>'s success footer recommends
+              <code>buildflow dev</code>, which is not a valid subcommand; the
+              correct invocation is <code>buildflow --build-mode=dev</code>.
             </li>
             <li>
-              <code>go.sum</code> drift was introduced by the pre-commit hook in the previous
-              session and is currently unstaged; no decision has been made to commit or revert it.
+              <code>go.sum</code> drift was introduced by the pre-commit hook in
+              the previous session and is currently unstaged; no decision has
+              been made to commit or revert it.
             </li>
           </ul>
         </div>
@@ -1111,14 +1165,16 @@
           <h3>templ generation can produce empty files</h3>
           <div class="where">build pipeline / templ v0.3.1020</div>
           <p>
-            During the previous session, <code>templates_templ.go</code> existed on disk (42,968
-            bytes) but the Go compiler saw EOF at line 1. Running <code>templ generate</code> fixed
-            it. We do not know the root cause, so it could recur on CI or a fresh clone.
+            During the previous session, <code>templates_templ.go</code> existed
+            on disk (42,968 bytes) but the Go compiler saw EOF at line 1.
+            Running <code>templ generate</code> fixed it. We do not know the
+            root cause, so it could recur on CI or a fresh clone.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Add a post-generation validation step that checks every <code>*_templ.go</code> file
-            parses as valid Go; fail the build if any file is empty or unparseable.
+            Add a post-generation validation step that checks every
+            <code>*_templ.go</code> file parses as valid Go; fail the build if
+            any file is empty or unparseable.
           </div>
         </div>
 
@@ -1129,9 +1185,10 @@
           <div class="where">Architecture Phase 4</div>
           <p>
             We have <code>HIDDevice</code> and <code>CommandRunner</code>, but
-            <code>ProcessInspector</code>, <code>UeventListener</code>, and a unified
-            <code>Commander</code> facade for all subprocesses are still TODO. Completing these
-            would make the daemon fully testable without real /proc, netlink, or external binaries.
+            <code>ProcessInspector</code>, <code>UeventListener</code>, and a
+            unified <code>Commander</code> facade for all subprocesses are still
+            TODO. Completing these would make the daemon fully testable without
+            real /proc, netlink, or external binaries.
           </p>
         </div>
         <div class="issue issue-important">
@@ -1140,10 +1197,11 @@
           <div class="where">Testing Phase 6</div>
           <p>
             Many tests still default to real <code>/dev/hidraw7</code> and
-            <code>/dev/video0</code> paths and rely on no-op options to avoid hardware calls. A fake
-            HID device and fake video node would let us test the real HID/V4L2 code paths
-            deterministically and raise coverage on <code>stream.go</code>, <code>process.go</code>,
-            and <code>hid.go</code>.
+            <code>/dev/video0</code> paths and rely on no-op options to avoid
+            hardware calls. A fake HID device and fake video node would let us
+            test the real HID/V4L2 code paths deterministically and raise
+            coverage on <code>stream.go</code>, <code>process.go</code>, and
+            <code>hid.go</code>.
           </p>
         </div>
         <div class="issue issue-important">
@@ -1151,9 +1209,9 @@
           <h3>Mobile-responsive layout</h3>
           <div class="where">Web UI / static/style.css</div>
           <p>
-            The glassmorphism dashboard looks good on desktop but has never been verified on small
-            screens. The PTZ sliders and action cards will likely need stacked layout and larger
-            touch targets.
+            The glassmorphism dashboard looks good on desktop but has never been
+            verified on small screens. The PTZ sliders and action cards will
+            likely need stacked layout and larger touch targets.
           </p>
         </div>
         <div class="issue issue-important">
@@ -1161,9 +1219,10 @@
           <h3>PTZ readback accuracy</h3>
           <div class="where">ptz.go / cache.go</div>
           <p>
-            After a PTZ set, the cache is updated with the requested value, but if the hardware
-            rejects or rounds the value, the UI displays a lie. Either poll-after-delay or maintain
-            authoritative in-memory state with explicit sync events.
+            After a PTZ set, the cache is updated with the requested value, but
+            if the hardware rejects or rounds the value, the UI displays a lie.
+            Either poll-after-delay or maintain authoritative in-memory state
+            with explicit sync events.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -1171,9 +1230,9 @@
           <h3>Trim prometheus/client_golang</h3>
           <div class="where">go.mod</div>
           <p>
-            Only <code>promhttp.Handler</code> is used from the Prometheus client. Removing it would
-            simplify the dependency graph, but requires reimplementing or importing a tiny HTTP
-            handler.
+            Only <code>promhttp.Handler</code> is used from the Prometheus
+            client. Removing it would simplify the dependency graph, but
+            requires reimplementing or importing a tiny HTTP handler.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -1181,13 +1240,15 @@
           <h3>Domain-type consolidation</h3>
           <div class="where">internal/pixy</div>
           <p>
-            <code>SSEEvent</code> and <code>toastType</code> still live in the web layer; moving
-            them to <code>internal/pixy</code> would keep domain types in one place and make the SSE
-            contract explicit.
+            <code>SSEEvent</code> and <code>toastType</code> still live in the
+            web layer; moving them to <code>internal/pixy</code> would keep
+            domain types in one place and make the SSE contract explicit.
           </p>
         </div>
 
-        <h2 id="next"><span class="num">06</span>Top #25 Things We Should Get Done Next!</h2>
+        <h2 id="next">
+          <span class="num">06</span>Top #25 Things We Should Get Done Next!
+        </h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1203,8 +1264,8 @@
                 <td>1</td>
                 <td><span class="badge badge-critical">Critical</span></td>
                 <td>
-                  Add post-<code>templ generate</code> validation to detect empty / EOF
-                  <code>*_templ.go</code> files
+                  Add post-<code>templ generate</code> validation to detect
+                  empty / EOF <code>*_templ.go</code> files
                 </td>
                 <td>Build pipeline</td>
               </tr>
@@ -1212,26 +1273,35 @@
                 <td>2</td>
                 <td><span class="badge badge-high">High</span></td>
                 <td>
-                  Investigate and document why <code>templ generate</code> produced an empty file
+                  Investigate and document why
+                  <code>templ generate</code> produced an empty file
                 </td>
                 <td>Build pipeline</td>
               </tr>
               <tr>
                 <td>3</td>
                 <td><span class="badge badge-high">High</span></td>
-                <td>Extract <code>Commander</code> interface for all subprocess calls</td>
+                <td>
+                  Extract <code>Commander</code> interface for all subprocess
+                  calls
+                </td>
                 <td>Architecture</td>
               </tr>
               <tr>
                 <td>4</td>
                 <td><span class="badge badge-high">High</span></td>
-                <td>Extract <code>ProcessInspector</code> interface for /proc traversal</td>
+                <td>
+                  Extract <code>ProcessInspector</code> interface for /proc
+                  traversal
+                </td>
                 <td>Architecture</td>
               </tr>
               <tr>
                 <td>5</td>
                 <td><span class="badge badge-high">High</span></td>
-                <td>Extract <code>UeventListener</code> interface for netlink</td>
+                <td>
+                  Extract <code>UeventListener</code> interface for netlink
+                </td>
                 <td>Architecture</td>
               </tr>
               <tr>
@@ -1273,7 +1343,9 @@
               <tr>
                 <td>12</td>
                 <td><span class="badge badge-medium">Medium</span></td>
-                <td>Cover real hardware paths in stream.go, process.go, hid.go</td>
+                <td>
+                  Cover real hardware paths in stream.go, process.go, hid.go
+                </td>
                 <td>Testing</td>
               </tr>
               <tr>
@@ -1291,7 +1363,9 @@
               <tr>
                 <td>15</td>
                 <td><span class="badge badge-low">Low</span></td>
-                <td>Fix or suppress misleading <code>buildflow dev</code> CLI hint</td>
+                <td>
+                  Fix or suppress misleading <code>buildflow dev</code> CLI hint
+                </td>
                 <td>Tooling</td>
               </tr>
               <tr>
@@ -1345,7 +1419,9 @@
               <tr>
                 <td>24</td>
                 <td><span class="badge badge-low">Low</span></td>
-                <td>Revisit <code>encoding/json/v2</code> when Go stdlib ships it</td>
+                <td>
+                  Revisit <code>encoding/json/v2</code> when Go stdlib ships it
+                </td>
                 <td>Deps</td>
               </tr>
               <tr>
@@ -1358,40 +1434,54 @@
           </table>
         </div>
 
-        <h2 id="question"><span class="num">07</span>Top #1 Question I Cannot Figure Out Myself</h2>
+        <h2 id="question">
+          <span class="num">07</span>Top #1 Question I Cannot Figure Out Myself
+        </h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Open Question</span>
           <h3>
-            Why did <code>templ generate</code> produce a file that looked valid on disk but caused
-            Go to see EOF at line 1?
+            Why did <code>templ generate</code> produce a file that looked valid
+            on disk but caused Go to see EOF at line 1?
           </h3>
-          <div class="where">templates_templ.go / build pipeline / 2026-06-28</div>
+          <div class="where">
+            templates_templ.go / build pipeline / 2026-06-28
+          </div>
           <p>
-            The file was 42,968 bytes according to the filesystem, yet <code>go build</code> and the
-            race test failed with
-            <code>templates_templ.go:1:1: expected 'package', found 'EOF'</code>. Regenerating with
-            <code>templ generate</code> produced 970 lines of valid Go. No process crashed, no
-            disk-full condition was reported, and the source <code>templates.templ</code> was
-            unchanged and valid.
+            The file was 42,968 bytes according to the filesystem, yet
+            <code>go build</code> and the race test failed with
+            <code>templates_templ.go:1:1: expected 'package', found 'EOF'</code
+            >. Regenerating with <code>templ generate</code> produced 970 lines
+            of valid Go. No process crashed, no disk-full condition was
+            reported, and the source <code>templates.templ</code> was unchanged
+            and valid.
           </p>
-          <p>I cannot reproduce it on demand, and I do not know whether it was:</p>
+          <p>
+            I cannot reproduce it on demand, and I do not know whether it was:
+          </p>
           <ul style="margin: 0.5rem 0 0 1.2rem; color: var(--text-muted)">
-            <li>a <code>templ</code> CLI bug (truncated/empty write without error),</li>
-            <li>a filesystem race where a previous incomplete write was partially visible,</li>
+            <li>
+              a <code>templ</code> CLI bug (truncated/empty write without
+              error),
+            </li>
+            <li>
+              a filesystem race where a previous incomplete write was partially
+              visible,
+            </li>
             <li>a Nix / build sandbox artifact,</li>
             <li>or something else entirely.</li>
           </ul>
           <div class="callout callout-warning">
             <strong>What I need</strong>
-            Guidance on whether to add a defensive build-time check, file an upstream templ issue,
-            or instrument the preBuild step. This is the one risk that could silently break CI or
-            fresh contributors without warning.
+            Guidance on whether to add a defensive build-time check, file an
+            upstream templ issue, or instrument the preBuild step. This is the
+            one risk that could silently break CI or fresh contributors without
+            warning.
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-06-29 00:46 CEST &middot; Commit 241348f &middot; Verified: buildflow
-          40/40, go test -race pass, golangci-lint 0 issues
+          Generated 2026-06-29 00:46 CEST &middot; Commit 241348f &middot;
+          Verified: buildflow 40/40, go test -race pass, golangci-lint 0 issues
         </footer>
       </main>
     </div>

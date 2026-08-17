@@ -1,7 +1,7 @@
 # Comprehensive Code Review & Fix Plan — emeet-pixyd
 
-**Date:** 2026-05-07  
-**Scope:** Full code review + frontend design review + brutal self-review  
+**Date:** 2026-05-07\
+**Scope:** Full code review + frontend design review + brutal self-review\
 **Source:** 28 source files (8185 LOC), all tests, all documentation
 
 ---
@@ -10,32 +10,32 @@
 
 ### 1% → 51% Impact (Critical)
 
-| #   | Task                                                | Why                                                                                                                                                                                             |
-| --- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Fix toast type bug** in `applyResponseToStatus()` | Real user-facing bug: all success toasts render as "info" instead of "success". `actionToast()` returns a type that `action()` discards with `_`. The `toastTypeSuccess` constant is dead code. |
+| # | Task                                                | Why                                                                                                                                                                                             |
+| - | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Fix toast type bug** in `applyResponseToStatus()` | Real user-facing bug: all success toasts render as "info" instead of "success". `actionToast()` returns a type that `action()` discards with `_`. The `toastTypeSuccess` constant is dead code. |
 
 ### 4% → 64% Impact (High)
 
-| #   | Task                                                                                         | Why                                                                                                            |
-| --- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 2   | **Deduplicate `audioCommand`/`cmdAudio`**                                                    | Same string `"audio"` defined twice in same package. Remove `audioCommand`, use `cmdAudio` everywhere.         |
-| 3   | **Replace raw string literals with constants** in `newWebMux()` and `handleGestureCommand()` | 8+ places use `"track"`, `"privacy"`, `"center"`, etc. where matching constants exist. Split-brain risk.       |
-| 4   | **Add test for toast type propagation**                                                      | Would have caught bug #1. Test that `applyResponseToStatus` sets the correct `ToastType` for success vs error. |
+| # | Task                                                                                         | Why                                                                                                            |
+| - | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 2 | **Deduplicate `audioCommand`/`cmdAudio`**                                                    | Same string `"audio"` defined twice in same package. Remove `audioCommand`, use `cmdAudio` everywhere.         |
+| 3 | **Replace raw string literals with constants** in `newWebMux()` and `handleGestureCommand()` | 8+ places use `"track"`, `"privacy"`, `"center"`, etc. where matching constants exist. Split-brain risk.       |
+| 4 | **Add test for toast type propagation**                                                      | Would have caught bug #1. Test that `applyResponseToStatus` sets the correct `ToastType` for success vs error. |
 
 ### 20% → 80% Impact (Medium)
 
-| #   | Task                                                  | Why                                                                                                                       |
-| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 5   | **Add missing command constants**                     | `"status"`, `"toggle-privacy"`, `"waybar"`, `"device"` have no constants.                                                 |
-| 6   | **Test `handleStream` error paths**                   | 12% coverage. No ffmpeg, stream semaphore full, context cancel, device gone mid-stream.                                   |
-| 7   | **Test `v4l2Set`/`v4l2SetMultiple` via command mock** | 0% coverage. Already injectable via `v4l2SetFn` — just need a test that exercises the real function with a mock v4l2-ctl. |
-| 8   | **Add benchmarks for hot paths**                      | `isCameraInUse` runs every 2s scanning all of `/proc`. `parseHIDResponse` runs on every HID query.                        |
+| # | Task                                                  | Why                                                                                                                       |
+| - | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 5 | **Add missing command constants**                     | `"status"`, `"toggle-privacy"`, `"waybar"`, `"device"` have no constants.                                                 |
+| 6 | **Test `handleStream` error paths**                   | 12% coverage. No ffmpeg, stream semaphore full, context cancel, device gone mid-stream.                                   |
+| 7 | **Test `v4l2Set`/`v4l2SetMultiple` via command mock** | 0% coverage. Already injectable via `v4l2SetFn` — just need a test that exercises the real function with a mock v4l2-ctl. |
+| 8 | **Add benchmarks for hot paths**                      | `isCameraInUse` runs every 2s scanning all of `/proc`. `parseHIDResponse` runs on every HID query.                        |
 
 ### Remaining (Nice-to-have)
 
-| #   | Task                                                                                             | Why                                                                          |
-| --- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| 9   | **Extract `webServer` dependencies** — inject read-only state interface instead of raw `*Daemon` | Architectural improvement, reduces coupling. Large effort (60min). Deferred. |
+| # | Task                                                                                             | Why                                                                          |
+| - | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| 9 | **Extract `webServer` dependencies** — inject read-only state interface instead of raw `*Daemon` | Architectural improvement, reduces coupling. Large effort (60min). Deferred. |
 
 ---
 

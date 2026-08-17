@@ -110,33 +110,33 @@ During templ dedup, I accidentally changed `webStatus` fields from `string` to `
 
 ## f) Top #25 Things to Do Next
 
-| #   | Priority | Item                                                                                | Effort |
-| --- | -------- | ----------------------------------------------------------------------------------- | ------ |
-| 1   | HIGH     | Audit commit `042507c` — webStatus type change may be half-baked on master          | S      |
-| 2   | HIGH     | Verify `templ generate` output matches committed `_templ.go` (or add to CI)         | S      |
-| 3   | HIGH     | Add pre-commit hook for `templ generate` + `go build` check                         | S      |
-| 4   | MED      | Fix 5 paralleltest warnings (add `t.Parallel()` to subtests)                        | S      |
-| 5   | MED      | Add CI check for art-dupl clone count regression                                    | S      |
-| 6   | MED      | Properly type webStatus fields (pixy.CameraState instead of string)                 | M      |
-| 7   | MED      | Remove `string()` conversions in handlers.go after webStatus typing                 | S      |
-| 8   | MED      | Update integration_test.go webStatusCheck types to match                            | S      |
-| 9   | MED      | Add integration test for cameraBtn/audioBtn HTML output                             | M      |
-| 10  | MED      | Review if `readState[T]` generic helper is worth the complexity vs explicit helpers | S      |
-| 11  | MED      | Consider table-driven tests for PTZ commands to reduce remaining clones             | M      |
-| 12  | MED      | Add `//go:generate templ generate` CI verification                                  | S      |
-| 13  | LOW      | Extract common test setup patterns into test fixtures                               | M      |
-| 14  | LOW      | Add fuzz tests for new template helpers                                             | M      |
-| 15  | LOW      | Benchmark template rendering with helpers vs inline                                 | S      |
-| 16  | LOW      | Document test helper conventions in AGENTS.md                                       | S      |
-| 17  | LOW      | Review exhaustruct exclusions — can any be fixed?                                   | M      |
-| 18  | LOW      | Consider replacing gochecknoglobals with targeted nolint comments                   | S      |
-| 19  | LOW      | Add godoc to exported test helpers (if any are exported)                            | S      |
-| 20  | LOW      | Verify aarch64-linux build (commit caf740d added cross-compilation)                 | M      |
-| 21  | LOW      | Update README with deduplication stats                                              | S      |
-| 22  | LOW      | Review if audioBtn color parameter handling (KV with empty string) is correct       | S      |
-| 23  | LOW      | Add test for disabled button state in templates                                     | S      |
-| 24  | LOW      | Clean up git stash list — may have stale entries                                    | S      |
-| 25  | LOW      | Consider extracting test helpers to `internal/testutil` package                     | M      |
+| #  | Priority | Item                                                                                | Effort |
+| -- | -------- | ----------------------------------------------------------------------------------- | ------ |
+| 1  | HIGH     | Audit commit `042507c` — webStatus type change may be half-baked on master          | S      |
+| 2  | HIGH     | Verify `templ generate` output matches committed `_templ.go` (or add to CI)         | S      |
+| 3  | HIGH     | Add pre-commit hook for `templ generate` + `go build` check                         | S      |
+| 4  | MED      | Fix 5 paralleltest warnings (add `t.Parallel()` to subtests)                        | S      |
+| 5  | MED      | Add CI check for art-dupl clone count regression                                    | S      |
+| 6  | MED      | Properly type webStatus fields (pixy.CameraState instead of string)                 | M      |
+| 7  | MED      | Remove `string()` conversions in handlers.go after webStatus typing                 | S      |
+| 8  | MED      | Update integration_test.go webStatusCheck types to match                            | S      |
+| 9  | MED      | Add integration test for cameraBtn/audioBtn HTML output                             | M      |
+| 10 | MED      | Review if `readState[T]` generic helper is worth the complexity vs explicit helpers | S      |
+| 11 | MED      | Consider table-driven tests for PTZ commands to reduce remaining clones             | M      |
+| 12 | MED      | Add `//go:generate templ generate` CI verification                                  | S      |
+| 13 | LOW      | Extract common test setup patterns into test fixtures                               | M      |
+| 14 | LOW      | Add fuzz tests for new template helpers                                             | M      |
+| 15 | LOW      | Benchmark template rendering with helpers vs inline                                 | S      |
+| 16 | LOW      | Document test helper conventions in AGENTS.md                                       | S      |
+| 17 | LOW      | Review exhaustruct exclusions — can any be fixed?                                   | M      |
+| 18 | LOW      | Consider replacing gochecknoglobals with targeted nolint comments                   | S      |
+| 19 | LOW      | Add godoc to exported test helpers (if any are exported)                            | S      |
+| 20 | LOW      | Verify aarch64-linux build (commit caf740d added cross-compilation)                 | M      |
+| 21 | LOW      | Update README with deduplication stats                                              | S      |
+| 22 | LOW      | Review if audioBtn color parameter handling (KV with empty string) is correct       | S      |
+| 23 | LOW      | Add test for disabled button state in templates                                     | S      |
+| 24 | LOW      | Clean up git stash list — may have stale entries                                    | S      |
+| 25 | LOW      | Consider extracting test helpers to `internal/testutil` package                     | M      |
 
 ---
 

@@ -1,8 +1,8 @@
 # emeet-pixyd — Session 11 Status Report
 
-**Date:** 2026-06-14 16:04+02:00  
-**Branch:** `master`  
-**HEAD:** `a818122`  
+**Date:** 2026-06-14 16:04+02:00\
+**Branch:** `master`\
+**HEAD:** `a818122`\
 **Session focus:** Self-review of Session 10 work, gap analysis, fix remaining issues, commit everything properly.
 
 ---
@@ -155,33 +155,33 @@ From `TODO_LIST.md`, remaining items (14 total):
 
 ## f) Top #25 things we should get done next!
 
-| #   | Priority | Task                                                    | Effort | Impact |
-| --- | -------- | ------------------------------------------------------- | ------ | ------ |
-| 1   | **P0**   | Split `cmdMu` from HID I/O serialization                | 4h     | HIGH   |
-| 2   | **P0**   | Build fake device harness for integration tests         | 6h     | HIGH   |
-| 3   | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`             | 3h     | MEDIUM |
-| 4   | **P1**   | Extract `Commander` interface for shell commands        | 3h     | MEDIUM |
-| 5   | **P1**   | Camera preset support (save/recall PTZ)                 | 4h     | MEDIUM |
-| 6   | **P2**   | Extract `ProcessInspector` interface for `/proc`        | 2h     | MEDIUM |
-| 7   | **P2**   | Extract `UeventListener` interface for netlink          | 2h     | MEDIUM |
-| 8   | **P2**   | Improve MJPEG stream reconnection                       | 2h     | MEDIUM |
-| 9   | **P2**   | PTZ readback accuracy (delay or in-memory last-set)     | 2h     | MEDIUM |
-| 10  | **P2**   | Mobile-responsive web UI polish                         | 3h     | LOW    |
-| 11  | **P2**   | Real-hardware integration test (build-tag guarded)      | 4h     | MEDIUM |
-| 12  | **P3**   | `PTZValues.Get` → `(int, bool)` API change              | 1h     | LOW    |
-| 13  | **P3**   | Surface `setSource` errors in `handleCallStart`         | 1h     | LOW    |
-| 14  | **P3**   | Named event subscriber type                             | 30m    | LOW    |
-| 15  | **P3**   | Coverage for `uevent.go` listener paths                 | 2h     | LOW    |
-| 16  | **P3**   | Coverage for `hidrawDevice.SendRecv` timeout            | 2h     | LOW    |
-| 17  | **P3**   | Coverage for `v4l2Set` error path                       | 1h     | LOW    |
-| 18  | **P3**   | Test `handleEvents` context cancellation path           | 1h     | LOW    |
-| 19  | **P3**   | Test concurrent SSE subscriber fan-out                  | 1h     | LOW    |
-| 20  | **P3**   | Extract `handlers.go` to get under 350 lines            | 1h     | LOW    |
-| 21  | **P3**   | Extract `main.go` to get under 350 lines                | 2h     | LOW    |
-| 22  | **P3**   | Investigate `go-error-family` indirect dependency       | 30m    | LOW    |
-| 23  | **P3**   | Add `result` to gitignore for go-structure-linter       | 15m    | LOW    |
-| 24  | **P3**   | Document SSE protocol in AGENTS.md                      | 30m    | LOW    |
-| 25  | **P3**   | Consider WebSocket fallback for non-EventSource clients | 2h     | LOW    |
+| #  | Priority | Task                                                    | Effort | Impact |
+| -- | -------- | ------------------------------------------------------- | ------ | ------ |
+| 1  | **P0**   | Split `cmdMu` from HID I/O serialization                | 4h     | HIGH   |
+| 2  | **P0**   | Build fake device harness for integration tests         | 6h     | HIGH   |
+| 3  | **P1**   | Move `main.go` to `cmd/emeet-pixyd/main.go`             | 3h     | MEDIUM |
+| 4  | **P1**   | Extract `Commander` interface for shell commands        | 3h     | MEDIUM |
+| 5  | **P1**   | Camera preset support (save/recall PTZ)                 | 4h     | MEDIUM |
+| 6  | **P2**   | Extract `ProcessInspector` interface for `/proc`        | 2h     | MEDIUM |
+| 7  | **P2**   | Extract `UeventListener` interface for netlink          | 2h     | MEDIUM |
+| 8  | **P2**   | Improve MJPEG stream reconnection                       | 2h     | MEDIUM |
+| 9  | **P2**   | PTZ readback accuracy (delay or in-memory last-set)     | 2h     | MEDIUM |
+| 10 | **P2**   | Mobile-responsive web UI polish                         | 3h     | LOW    |
+| 11 | **P2**   | Real-hardware integration test (build-tag guarded)      | 4h     | MEDIUM |
+| 12 | **P3**   | `PTZValues.Get` → `(int, bool)` API change              | 1h     | LOW    |
+| 13 | **P3**   | Surface `setSource` errors in `handleCallStart`         | 1h     | LOW    |
+| 14 | **P3**   | Named event subscriber type                             | 30m    | LOW    |
+| 15 | **P3**   | Coverage for `uevent.go` listener paths                 | 2h     | LOW    |
+| 16 | **P3**   | Coverage for `hidrawDevice.SendRecv` timeout            | 2h     | LOW    |
+| 17 | **P3**   | Coverage for `v4l2Set` error path                       | 1h     | LOW    |
+| 18 | **P3**   | Test `handleEvents` context cancellation path           | 1h     | LOW    |
+| 19 | **P3**   | Test concurrent SSE subscriber fan-out                  | 1h     | LOW    |
+| 20 | **P3**   | Extract `handlers.go` to get under 350 lines            | 1h     | LOW    |
+| 21 | **P3**   | Extract `main.go` to get under 350 lines                | 2h     | LOW    |
+| 22 | **P3**   | Investigate `go-error-family` indirect dependency       | 30m    | LOW    |
+| 23 | **P3**   | Add `result` to gitignore for go-structure-linter       | 15m    | LOW    |
+| 24 | **P3**   | Document SSE protocol in AGENTS.md                      | 30m    | LOW    |
+| 25 | **P3**   | Consider WebSocket fallback for non-EventSource clients | 2h     | LOW    |
 
 ---
 

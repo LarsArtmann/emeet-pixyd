@@ -96,63 +96,63 @@ This session added **2 new test functions** (`TestSimulator_MultiInterfacePendin
 
 ### High Priority — Genuine Test Gaps (1-5)
 
-| #   | Task                                                                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Test `sendErr` + `commitErr` simultaneous priority (verify commitErr wins for commits, sendErr for configs)                         | Medium | 10 min |
-| 2   | Test `sendRecvErr` + `corruptResp` simultaneous priority (verify sendRecvErr wins)                                                  | Low    | 10 min |
-| 3   | Extend fuzz to cover `buildResponse` (random query bytes, verify no panic)                                                          | Medium | 15 min |
-| 4   | Test `handleConfig` with nil report (should error, not panic) — already covered by fuzz but an explicit test documents the contract | Low    | 5 min  |
-| 5   | Test `handleCommit` with nil report (same)                                                                                          | Low    | 5 min  |
+| # | Task                                                                                                                                | Impact | Effort |
+| - | ----------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | Test `sendErr` + `commitErr` simultaneous priority (verify commitErr wins for commits, sendErr for configs)                         | Medium | 10 min |
+| 2 | Test `sendRecvErr` + `corruptResp` simultaneous priority (verify sendRecvErr wins)                                                  | Low    | 10 min |
+| 3 | Extend fuzz to cover `buildResponse` (random query bytes, verify no panic)                                                          | Medium | 15 min |
+| 4 | Test `handleConfig` with nil report (should error, not panic) — already covered by fuzz but an explicit test documents the contract | Low    | 5 min  |
+| 5 | Test `handleCommit` with nil report (same)                                                                                          | Low    | 5 min  |
 
 ### Medium Priority — Simulator Robustness (6-10)
 
-| #   | Task                                                                              | Impact | Effort |
-| --- | --------------------------------------------------------------------------------- | ------ | ------ |
-| 6   | Add `Reset()` method to `pixySimulator` for clearing state between subtests       | Low    | 5 min  |
-| 7   | Add `SentReportsByType()` helper (returns configs and commits as separate slices) | Low    | 10 min |
-| 8   | Add `StateSnapshot()` method returning a value copy of `pixyProtocolState`        | Low    | 10 min |
-| 9   | Track `commitCount` and `configCount` separately for finer assertions             | Low    | 10 min |
-| 10  | Add `LastSentReport()` convenience accessor                                       | Low    | 5 min  |
+| #  | Task                                                                              | Impact | Effort |
+| -- | --------------------------------------------------------------------------------- | ------ | ------ |
+| 6  | Add `Reset()` method to `pixySimulator` for clearing state between subtests       | Low    | 5 min  |
+| 7  | Add `SentReportsByType()` helper (returns configs and commits as separate slices) | Low    | 10 min |
+| 8  | Add `StateSnapshot()` method returning a value copy of `pixyProtocolState`        | Low    | 10 min |
+| 9  | Track `commitCount` and `configCount` separately for finer assertions             | Low    | 10 min |
+| 10 | Add `LastSentReport()` convenience accessor                                       | Low    | 5 min  |
 
 ### Medium Priority — Layer 2 Infrastructure (11-15)
 
-| #   | Task                                                                          | Impact | Effort  |
-| --- | ----------------------------------------------------------------------------- | ------ | ------- |
-| 11  | Research Go `uhid` syscall feasibility (create `/dev/hidraw*` from userspace) | High   | 30 min  |
-| 12  | Prototype `/dev/uhid` virtual device using `pixyProtocolState` as backend     | High   | 2 hours |
-| 13  | Test `hidrawDevice.Send` against uhid-created device                          | High   | 1 hour  |
-| 14  | Test `hidrawDevice.SendRecv` against uhid-created device (including timeout)  | High   | 1 hour  |
-| 15  | Test circuit breaker against real file I/O (not simulator)                    | Medium | 1 hour  |
+| #  | Task                                                                          | Impact | Effort  |
+| -- | ----------------------------------------------------------------------------- | ------ | ------- |
+| 11 | Research Go `uhid` syscall feasibility (create `/dev/hidraw*` from userspace) | High   | 30 min  |
+| 12 | Prototype `/dev/uhid` virtual device using `pixyProtocolState` as backend     | High   | 2 hours |
+| 13 | Test `hidrawDevice.Send` against uhid-created device                          | High   | 1 hour  |
+| 14 | Test `hidrawDevice.SendRecv` against uhid-created device (including timeout)  | High   | 1 hour  |
+| 15 | Test circuit breaker against real file I/O (not simulator)                    | Medium | 1 hour  |
 
 ### Medium Priority — Layer 3 Infrastructure (16-18)
 
-| #   | Task                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 16  | Create `tests/nixos-vm.nix` skeleton with `makeTest`           | Medium | 30 min |
-| 17  | NixOS VM test: verify systemd service starts + socket creation | Medium | 1 hour |
-| 18  | NixOS VM test: verify `sd_notify READY=1`                      | Low    | 30 min |
+| #  | Task                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------- | ------ | ------ |
+| 16 | Create `tests/nixos-vm.nix` skeleton with `makeTest`           | Medium | 30 min |
+| 17 | NixOS VM test: verify systemd service starts + socket creation | Medium | 1 hour |
+| 18 | NixOS VM test: verify `sd_notify READY=1`                      | Low    | 30 min |
 
 ### Lower Priority — Documentation & Polish (19-25)
 
-| #   | Task                                                                                           | Impact | Effort |
-| --- | ---------------------------------------------------------------------------------------------- | ------ | ------ |
-| 19  | Consolidate 4 simulator status reports into 1 authoritative (keep self-review, archive others) | Low    | 20 min |
-| 20  | Add `// Example` test function showing simulator usage                                         | Low    | 10 min |
-| 21  | Create `docs/testing.md` with simulator usage guide + Layers 1/2/3 explanation                 | Low    | 20 min |
-| 22  | Give AGENTS.md a 20-line buffer (trim to ~357 lines)                                           | Low    | 15 min |
-| 23  | Research `vivid` kernel module for V4L2 testing                                                | Low    | 30 min |
-| 24  | Auto-manage lifecycle test using `withPixySimulator()` instead of `withFakeDevices()`          | Medium | 20 min |
-| 25  | Test `nilResponse`/`corruptResp` path through full daemon `syncState`                          | Low    | 15 min |
+| #  | Task                                                                                           | Impact | Effort |
+| -- | ---------------------------------------------------------------------------------------------- | ------ | ------ |
+| 19 | Consolidate 4 simulator status reports into 1 authoritative (keep self-review, archive others) | Low    | 20 min |
+| 20 | Add `// Example` test function showing simulator usage                                         | Low    | 10 min |
+| 21 | Create `docs/testing.md` with simulator usage guide + Layers 1/2/3 explanation                 | Low    | 20 min |
+| 22 | Give AGENTS.md a 20-line buffer (trim to ~357 lines)                                           | Low    | 15 min |
+| 23 | Research `vivid` kernel module for V4L2 testing                                                | Low    | 30 min |
+| 24 | Auto-manage lifecycle test using `withPixySimulator()` instead of `withFakeDevices()`          | Medium | 20 min |
+| 25 | Test `nilResponse`/`corruptResp` path through full daemon `syncState`                          | Low    | 15 min |
 
 ### Lower Priority — Edge Cases (26-30)
 
-| #   | Task                                                                                                 | Impact | Effort |
-| --- | ---------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 26  | Test config→commit→config→commit sequencing for different interfaces (interleaved)                   | Low    | 10 min |
-| 27  | Test `Send` with empty `[]byte{}` (should error from handleConfig)                                   | Low    | 5 min  |
-| 28  | Test `SendRecv` with context already cancelled before call                                           | Low    | 5 min  |
-| 29  | Test stale pending config (config for tracking, commit for audio → no match, audio pending survives) | Low    | 10 min |
-| 30  | Test circuit breaker recovery: open → probe finds device → reset → works                             | Low    | 25 min |
+| #  | Task                                                                                                 | Impact | Effort |
+| -- | ---------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 26 | Test config→commit→config→commit sequencing for different interfaces (interleaved)                   | Low    | 10 min |
+| 27 | Test `Send` with empty `[]byte{}` (should error from handleConfig)                                   | Low    | 5 min  |
+| 28 | Test `SendRecv` with context already cancelled before call                                           | Low    | 5 min  |
+| 29 | Test stale pending config (config for tracking, commit for audio → no match, audio pending survives) | Low    | 10 min |
+| 30 | Test circuit breaker recovery: open → probe finds device → reset → works                             | Low    | 25 min |
 
 ---
 

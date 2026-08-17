@@ -156,33 +156,33 @@ Currently zero direct tests. Should have table-driven tests covering:
 
 Sorted by **impact/effort ratio** (highest first). Effort in minutes.
 
-| #   | Task                                                                                                                                 | Impact                     | Effort | Ratio  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- | ------ | ------ |
-| 1   | **Fix `parsePTZValue`: support absolute negative values** — use `rel`/`+`/`-` prefix ONLY for relative, bare numbers always absolute | Critical usability         | 15m    | 🔥🔥🔥 |
-| 2   | **Add direct unit tests for `parsePTZValue`** — table-driven, covering all edge cases including the relative-mode trap               | High test coverage         | 10m    | 🔥🔥🔥 |
-| 3   | **Restart daemon** (`systemctl --user restart emeet-pixyd`) to restore unix socket control                                           | Unblocks CLI usage         | 1m     | 🔥🔥🔥 |
-| 4   | **Commit planning artifacts** or delete them — they're untracked ghosts right now                                                    | Cleanup                    | 2m     | 🔥🔥   |
-| 5   | **Replace hardcoded test literals with constants** in `TestClampInt` (`-150` → `pixy.PanMin`)                                        | Prevents drift             | 5m     | 🔥🔥   |
-| 6   | **Add `Range` type** to pixy package — pairs min/max, self-documenting                                                               | Architecture               | 10m    | 🔥🔥   |
-| 7   | **Verify web UI in browser** — confirm sliders show new ranges, tilt goes ±90°                                                       | User confidence            | 5m     | 🔥🔥   |
-| 8   | **Test the rebuilt daemon binary** with PTZ commands — not just raw v4l2-ctl                                                         | End-to-end verification    | 10m    | 🔥     |
-| 9   | **Investigate WHY socket bind fails** at startup — is tmpfiles.d ordering wrong?                                                     | Prevents recurrence        | 20m    | 🔥     |
-| 10  | **Add integration test: set absolute negative tilt via CLI** — proves fix #1 works                                                   | Regression guard           | 10m    | 🔥     |
-| 11  | **Document `parsePTZValue` behavior in `--help`** — even if we don't fix it yet                                                      | User clarity               | 5m     | 🔥     |
-| 12  | **Add fuzz test for `parsePTZValue`** — catch malformed inputs                                                                       | Robustness                 | 10m    | ⚡     |
-| 13  | **Consider `otter` cache for PTZ values** — replace hand-rolled `ptzCache` with `maypok86/otter/v2`                                  | Performance + simpler code | 30m    | ⚡     |
-| 14  | **Extract V4L2 interaction into interface** — `V4L2Controller` for testability without mocks                                         | Architecture               | 30m    | ⚡     |
-| 15  | **Add `tilt`/`pan` to waybar output** — currently only shows camera/audio/auto                                                       | Feature parity             | 15m    | ⚡     |
-| 16  | **Consider `slog` structured logging for PTZ operations** — currently scattered `fmt.Errorf`                                         | Observability              | 20m    | ⚡     |
-| 17  | **Add `govulncheck` to pre-commit** — CI runs it but local doesn't                                                                   | Security                   | 5m     | ⚡     |
-| 18  | **NixOS module: add `Restart=on-failure`** if not present — socket bind failure should auto-recover                                  | Resilience                 | 5m     | ⚡     |
-| 19  | **Add PTZ preset positions** (e.g., "save current as preset 1", "go to preset 1")                                                    | Feature                    | 45m    | 💡     |
-| 20  | **Add PTZ patrol/sweep mode** — automatic periodic pan sweep                                                                         | Feature                    | 60m    | 💡     |
-| 21  | **Consider `koanf` for config** — replace env-var-only config with layered config (file + env)                                       | Architecture               | 45m    | 💡     |
-| 22  | **Add OpenTelemetry tracing** (not just metrics) — trace PTZ command latency                                                         | Observability              | 30m    | 💡     |
-| 23  | **Consider SSE for PTZ position streaming** — live position updates without polling                                                  | UX                         | 60m    | 💡     |
-| 24  | **Add `gopter` property-based test for Clamp** — verify clamp is idempotent and commutative                                          | Test depth                 | 20m    | 💡     |
-| 25  | **Consider `charm.land/log/v2`** for structured logging — replace raw `slog` with richer output                                      | DX                         | 30m    | 💡     |
+| #  | Task                                                                                                                                 | Impact                     | Effort | Ratio  |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- | ------ | ------ |
+| 1  | **Fix `parsePTZValue`: support absolute negative values** — use `rel`/`+`/`-` prefix ONLY for relative, bare numbers always absolute | Critical usability         | 15m    | 🔥🔥🔥 |
+| 2  | **Add direct unit tests for `parsePTZValue`** — table-driven, covering all edge cases including the relative-mode trap               | High test coverage         | 10m    | 🔥🔥🔥 |
+| 3  | **Restart daemon** (`systemctl --user restart emeet-pixyd`) to restore unix socket control                                           | Unblocks CLI usage         | 1m     | 🔥🔥🔥 |
+| 4  | **Commit planning artifacts** or delete them — they're untracked ghosts right now                                                    | Cleanup                    | 2m     | 🔥🔥   |
+| 5  | **Replace hardcoded test literals with constants** in `TestClampInt` (`-150` → `pixy.PanMin`)                                        | Prevents drift             | 5m     | 🔥🔥   |
+| 6  | **Add `Range` type** to pixy package — pairs min/max, self-documenting                                                               | Architecture               | 10m    | 🔥🔥   |
+| 7  | **Verify web UI in browser** — confirm sliders show new ranges, tilt goes ±90°                                                       | User confidence            | 5m     | 🔥🔥   |
+| 8  | **Test the rebuilt daemon binary** with PTZ commands — not just raw v4l2-ctl                                                         | End-to-end verification    | 10m    | 🔥     |
+| 9  | **Investigate WHY socket bind fails** at startup — is tmpfiles.d ordering wrong?                                                     | Prevents recurrence        | 20m    | 🔥     |
+| 10 | **Add integration test: set absolute negative tilt via CLI** — proves fix #1 works                                                   | Regression guard           | 10m    | 🔥     |
+| 11 | **Document `parsePTZValue` behavior in `--help`** — even if we don't fix it yet                                                      | User clarity               | 5m     | 🔥     |
+| 12 | **Add fuzz test for `parsePTZValue`** — catch malformed inputs                                                                       | Robustness                 | 10m    | ⚡     |
+| 13 | **Consider `otter` cache for PTZ values** — replace hand-rolled `ptzCache` with `maypok86/otter/v2`                                  | Performance + simpler code | 30m    | ⚡     |
+| 14 | **Extract V4L2 interaction into interface** — `V4L2Controller` for testability without mocks                                         | Architecture               | 30m    | ⚡     |
+| 15 | **Add `tilt`/`pan` to waybar output** — currently only shows camera/audio/auto                                                       | Feature parity             | 15m    | ⚡     |
+| 16 | **Consider `slog` structured logging for PTZ operations** — currently scattered `fmt.Errorf`                                         | Observability              | 20m    | ⚡     |
+| 17 | **Add `govulncheck` to pre-commit** — CI runs it but local doesn't                                                                   | Security                   | 5m     | ⚡     |
+| 18 | **NixOS module: add `Restart=on-failure`** if not present — socket bind failure should auto-recover                                  | Resilience                 | 5m     | ⚡     |
+| 19 | **Add PTZ preset positions** (e.g., "save current as preset 1", "go to preset 1")                                                    | Feature                    | 45m    | 💡     |
+| 20 | **Add PTZ patrol/sweep mode** — automatic periodic pan sweep                                                                         | Feature                    | 60m    | 💡     |
+| 21 | **Consider `koanf` for config** — replace env-var-only config with layered config (file + env)                                       | Architecture               | 45m    | 💡     |
+| 22 | **Add OpenTelemetry tracing** (not just metrics) — trace PTZ command latency                                                         | Observability              | 30m    | 💡     |
+| 23 | **Consider SSE for PTZ position streaming** — live position updates without polling                                                  | UX                         | 60m    | 💡     |
+| 24 | **Add `gopter` property-based test for Clamp** — verify clamp is idempotent and commutative                                          | Test depth                 | 20m    | 💡     |
+| 25 | **Consider `charm.land/log/v2`** for structured logging — replace raw `slog` with richer output                                      | DX                         | 30m    | 💡     |
 
 ---
 

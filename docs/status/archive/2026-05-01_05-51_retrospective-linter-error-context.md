@@ -86,33 +86,33 @@ None — no planned work remains unstarted from the previous session.
 
 Sorted by: **Impact × (1/Effort)** — highest-value first.
 
-| #   | Task                                                                                                       | Impact | Effort | Score |
-| --- | ---------------------------------------------------------------------------------------------------------- | ------ | ------ | ----- |
-| 1   | Add `handlePTZCommand` unit tests (3 error paths + happy path)                                             | High   | Low    | ★★★★★ |
-| 2   | Replace `fmt.Sprintf` error returns in `handlePTZCommand` with `CommandError`                              | Medium | Low    | ★★★★☆ |
-| 3   | Name `Daemon.lastFrame` and `Daemon.ptzCache` anonymous structs                                            | Medium | Low    | ★★★★☆ |
-| 4   | Use `pixy.CameraState`/`pixy.AudioMode` in `webStatus` instead of raw strings                              | Medium | Low    | ★★★★☆ |
-| 5   | Audit `fmt` import in `commands.go` — replace remaining `fmt.Sprintf` with `strconv`/concat where possible | Low    | Low    | ★★★☆☆ |
-| 6   | Add `handleCenterCommand` + `handleAutoCommand` + `handleGestureCommand` unit tests                        | High   | Medium | ★★★★☆ |
-| 7   | Fix branching-flow remaining HIGH: add `hidrawDev` value to `hidSend`/`hidSendRecv` empty-device errors    | Low    | Low    | ★★★☆☆ |
-| 8   | Consolidate all command error returns to use `CommandError` consistently                                   | Medium | Medium | ★★★☆☆ |
-| 9   | Add `--version` flag with ldflags-based build info                                                         | Medium | Low    | ★★★☆☆ |
-| 10  | Add `emeet-pixyd diagnose` command (device state, HID health, V4L2 status)                                 | High   | Medium | ★★★☆☆ |
-| 11  | Extract `Daemon` god object: separate `HIDController`, `PTZController`, `AutoManager`                      | High   | High   | ★★☆☆☆ |
-| 12  | Document HID protocol in `docs/HID_PROTOCOL.md`                                                            | Medium | Medium | ★★☆☆☆ |
-| 13  | Add OTel tracing for HID command round-trips                                                               | Medium | Medium | ★★☆☆☆ |
-| 14  | Make `AutoMode` a typed enum instead of `bool` in `pixy.State`                                             | Low    | Medium | ★★☆☆☆ |
-| 15  | Add config hot-reload via SIGHUP                                                                           | Medium | Medium | ★★☆☆☆ |
-| 16  | Add rate-limiting for rapid-fire CLI commands                                                              | Low    | Medium | ★★☆☆☆ |
-| 17  | Add graceful shutdown timeout for in-flight requests                                                       | Low    | Medium | ★★☆☆☆ |
-| 18  | Improve `findPixySource` robustness with multiple name patterns                                            | Low    | Medium | ★☆☆☆☆ |
-| 19  | Add MJPEG quality selector in web UI                                                                       | Low    | Medium | ★☆☆☆☆ |
-| 20  | Add HID exponential backoff on repeated failures                                                           | Medium | Medium | ★☆☆☆☆ |
-| 21  | Add shell completions (bash, zsh, fish) for CLI                                                            | Low    | Medium | ★☆☆☆☆ |
-| 22  | Add latency histograms to `/metrics` for HID round-trips                                                   | Medium | Medium | ★☆☆☆☆ |
-| 23  | Add integration test for device hotplug (plug/unplug PIXY)                                                 | High   | High   | ★☆☆☆☆ |
-| 24  | Add Nix flake integration test (daemon + mocked device)                                                    | High   | High   | ★☆☆☆☆ |
-| 25  | Migrate `process_test.go` off real `/proc` to testable interface                                           | Medium | High   | ★☆☆☆☆ |
+| #  | Task                                                                                                       | Impact | Effort | Score |
+| -- | ---------------------------------------------------------------------------------------------------------- | ------ | ------ | ----- |
+| 1  | Add `handlePTZCommand` unit tests (3 error paths + happy path)                                             | High   | Low    | ★★★★★ |
+| 2  | Replace `fmt.Sprintf` error returns in `handlePTZCommand` with `CommandError`                              | Medium | Low    | ★★★★☆ |
+| 3  | Name `Daemon.lastFrame` and `Daemon.ptzCache` anonymous structs                                            | Medium | Low    | ★★★★☆ |
+| 4  | Use `pixy.CameraState`/`pixy.AudioMode` in `webStatus` instead of raw strings                              | Medium | Low    | ★★★★☆ |
+| 5  | Audit `fmt` import in `commands.go` — replace remaining `fmt.Sprintf` with `strconv`/concat where possible | Low    | Low    | ★★★☆☆ |
+| 6  | Add `handleCenterCommand` + `handleAutoCommand` + `handleGestureCommand` unit tests                        | High   | Medium | ★★★★☆ |
+| 7  | Fix branching-flow remaining HIGH: add `hidrawDev` value to `hidSend`/`hidSendRecv` empty-device errors    | Low    | Low    | ★★★☆☆ |
+| 8  | Consolidate all command error returns to use `CommandError` consistently                                   | Medium | Medium | ★★★☆☆ |
+| 9  | Add `--version` flag with ldflags-based build info                                                         | Medium | Low    | ★★★☆☆ |
+| 10 | Add `emeet-pixyd diagnose` command (device state, HID health, V4L2 status)                                 | High   | Medium | ★★★☆☆ |
+| 11 | Extract `Daemon` god object: separate `HIDController`, `PTZController`, `AutoManager`                      | High   | High   | ★★☆☆☆ |
+| 12 | Document HID protocol in `docs/HID_PROTOCOL.md`                                                            | Medium | Medium | ★★☆☆☆ |
+| 13 | Add OTel tracing for HID command round-trips                                                               | Medium | Medium | ★★☆☆☆ |
+| 14 | Make `AutoMode` a typed enum instead of `bool` in `pixy.State`                                             | Low    | Medium | ★★☆☆☆ |
+| 15 | Add config hot-reload via SIGHUP                                                                           | Medium | Medium | ★★☆☆☆ |
+| 16 | Add rate-limiting for rapid-fire CLI commands                                                              | Low    | Medium | ★★☆☆☆ |
+| 17 | Add graceful shutdown timeout for in-flight requests                                                       | Low    | Medium | ★★☆☆☆ |
+| 18 | Improve `findPixySource` robustness with multiple name patterns                                            | Low    | Medium | ★☆☆☆☆ |
+| 19 | Add MJPEG quality selector in web UI                                                                       | Low    | Medium | ★☆☆☆☆ |
+| 20 | Add HID exponential backoff on repeated failures                                                           | Medium | Medium | ★☆☆☆☆ |
+| 21 | Add shell completions (bash, zsh, fish) for CLI                                                            | Low    | Medium | ★☆☆☆☆ |
+| 22 | Add latency histograms to `/metrics` for HID round-trips                                                   | Medium | Medium | ★☆☆☆☆ |
+| 23 | Add integration test for device hotplug (plug/unplug PIXY)                                                 | High   | High   | ★☆☆☆☆ |
+| 24 | Add Nix flake integration test (daemon + mocked device)                                                    | High   | High   | ★☆☆☆☆ |
+| 25 | Migrate `process_test.go` off real `/proc` to testable interface                                           | Medium | High   | ★☆☆☆☆ |
 
 ---
 

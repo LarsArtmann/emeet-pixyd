@@ -112,78 +112,78 @@ All tests pass with `-race`. Lint 0 issues. Vet clean. AGENTS.md updated (still 
 
 ### High Priority — Test Depth (1-10)
 
-| #   | Task                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Config-failure re-probe verification test (prove config failures can't accumulate)  | High   | 20 min |
-| 2   | Concurrent daemon-level test (5 goroutines × `setTracking`/`setAudio`/`setGesture`) | High   | 20 min |
-| 3   | Fuzz test for `handleConfig` (random bytes, verify no panic)                        | Medium | 15 min |
-| 4   | Fuzz test for `handleCommit` (random bytes, verify no panic)                        | Medium | 15 min |
-| 5   | `parseHIDResponse` direct table test (crafted valid + invalid byte arrays)          | Medium | 20 min |
-| 6   | Add `delayResponse` field to simulator                                              | Medium | 15 min |
-| 7   | Test `hidResponseTimeout` (500ms) expiration with `delayResponse`                   | Medium | 15 min |
-| 8   | Add `failOnNthCall` counter for flaky device simulation                             | Medium | 15 min |
-| 9   | Test flaky device recovery: fail once → retry succeeds → count resets               | Medium | 15 min |
-| 10  | `BenchmarkSimulatorRoundTrip` (config → commit → query latency)                     | Low    | 10 min |
+| #  | Task                                                                                | Impact | Effort |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Config-failure re-probe verification test (prove config failures can't accumulate)  | High   | 20 min |
+| 2  | Concurrent daemon-level test (5 goroutines × `setTracking`/`setAudio`/`setGesture`) | High   | 20 min |
+| 3  | Fuzz test for `handleConfig` (random bytes, verify no panic)                        | Medium | 15 min |
+| 4  | Fuzz test for `handleCommit` (random bytes, verify no panic)                        | Medium | 15 min |
+| 5  | `parseHIDResponse` direct table test (crafted valid + invalid byte arrays)          | Medium | 20 min |
+| 6  | Add `delayResponse` field to simulator                                              | Medium | 15 min |
+| 7  | Test `hidResponseTimeout` (500ms) expiration with `delayResponse`                   | Medium | 15 min |
+| 8  | Add `failOnNthCall` counter for flaky device simulation                             | Medium | 15 min |
+| 9  | Test flaky device recovery: fail once → retry succeeds → count resets               | Medium | 15 min |
+| 10 | `BenchmarkSimulatorRoundTrip` (config → commit → query latency)                     | Low    | 10 min |
 
 ### Medium Priority — Simulator Enhancements (11-20)
 
-| #   | Task                                                                                  | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------ |
-| 11  | Move `isCommitReport` to `hid.go` (production code)                                   | Medium | 10 min |
-| 12  | Add `queryErr` failure injection (SendRecv-specific, distinct from corrupt/nil)       | Low    | 10 min |
-| 13  | Track `commitCount` and `configCount` separately for finer assertions                 | Low    | 10 min |
-| 14  | Add `Reset()` method to clear simulator state between subtests                        | Low    | 5 min  |
-| 15  | Add `SentReportsByType()` helper (returns configs and commits separately)             | Low    | 10 min |
-| 16  | Add `QueriesByInterface()` helper (returns queries grouped by interface byte)         | Low    | 10 min |
-| 17  | Add `StateSnapshot()` method returning a value copy of current state                  | Low    | 10 min |
-| 18  | Add `LastCommitIface()` accessor to verify commit sequencing                          | Low    | 5 min  |
-| 19  | Auto-manage lifecycle test using `withPixySimulator()` instead of `withFakeDevices()` | Medium | 20 min |
-| 20  | Test `nilResponse`/`corruptResp` path through full daemon `syncState`                 | Low    | 15 min |
+| #  | Task                                                                                  | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------- | ------ | ------ |
+| 11 | Move `isCommitReport` to `hid.go` (production code)                                   | Medium | 10 min |
+| 12 | Add `queryErr` failure injection (SendRecv-specific, distinct from corrupt/nil)       | Low    | 10 min |
+| 13 | Track `commitCount` and `configCount` separately for finer assertions                 | Low    | 10 min |
+| 14 | Add `Reset()` method to clear simulator state between subtests                        | Low    | 5 min  |
+| 15 | Add `SentReportsByType()` helper (returns configs and commits separately)             | Low    | 10 min |
+| 16 | Add `QueriesByInterface()` helper (returns queries grouped by interface byte)         | Low    | 10 min |
+| 17 | Add `StateSnapshot()` method returning a value copy of current state                  | Low    | 10 min |
+| 18 | Add `LastCommitIface()` accessor to verify commit sequencing                          | Low    | 5 min  |
+| 19 | Auto-manage lifecycle test using `withPixySimulator()` instead of `withFakeDevices()` | Medium | 20 min |
+| 20 | Test `nilResponse`/`corruptResp` path through full daemon `syncState`                 | Low    | 15 min |
 
 ### Medium Priority — Architecture & Infrastructure (21-30)
 
-| #   | Task                                                                          | Impact | Effort  |
-| --- | ----------------------------------------------------------------------------- | ------ | ------- |
-| 21  | Research Go `uhid` syscall feasibility (create `/dev/hidraw*` from userspace) | Medium | 30 min  |
-| 22  | Prototype `/dev/uhid` virtual device using `pixyProtocolState` as backend     | Medium | 2 hours |
-| 23  | Test `hidrawDevice.Send` against uhid-created device                          | Medium | 1 hour  |
-| 24  | Test `hidrawDevice.SendRecv` against uhid-created device                      | Medium | 1 hour  |
-| 25  | Create `tests/nixos-vm.nix` skeleton with `makeTest`                          | Medium | 30 min  |
-| 26  | NixOS VM test: verify systemd service starts                                  | Medium | 1 hour  |
-| 27  | NixOS VM test: verify unix socket creation                                    | Medium | 30 min  |
-| 28  | NixOS VM test: verify `sd_notify READY=1`                                     | Low    | 30 min  |
-| 29  | Research `vivid` kernel module for V4L2 testing                               | Low    | 30 min  |
-| 30  | Prototype `vivid`-based PTZ round-trip test                                   | Low    | 2 hours |
+| #  | Task                                                                          | Impact | Effort  |
+| -- | ----------------------------------------------------------------------------- | ------ | ------- |
+| 21 | Research Go `uhid` syscall feasibility (create `/dev/hidraw*` from userspace) | Medium | 30 min  |
+| 22 | Prototype `/dev/uhid` virtual device using `pixyProtocolState` as backend     | Medium | 2 hours |
+| 23 | Test `hidrawDevice.Send` against uhid-created device                          | Medium | 1 hour  |
+| 24 | Test `hidrawDevice.SendRecv` against uhid-created device                      | Medium | 1 hour  |
+| 25 | Create `tests/nixos-vm.nix` skeleton with `makeTest`                          | Medium | 30 min  |
+| 26 | NixOS VM test: verify systemd service starts                                  | Medium | 1 hour  |
+| 27 | NixOS VM test: verify unix socket creation                                    | Medium | 30 min  |
+| 28 | NixOS VM test: verify `sd_notify READY=1`                                     | Low    | 30 min  |
+| 29 | Research `vivid` kernel module for V4L2 testing                               | Low    | 30 min  |
+| 30 | Prototype `vivid`-based PTZ round-trip test                                   | Low    | 2 hours |
 
 ### Lower Priority — Polish & Documentation (31-40)
 
-| #   | Task                                                                                  | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------- | ------ | ------ |
-| 31  | Give AGENTS.md a 20-line buffer (trim to ~357 lines)                                  | Low    | 15 min |
-| 32  | Annotate `2026-08-03_03-16` and `2026-08-03_03-40` reports as superseded              | Low    | 5 min  |
-| 33  | Consolidate 4 simulator status reports into one authoritative report                  | Low    | 20 min |
-| 34  | Add `// Example` test function showing simulator usage                                | Low    | 10 min |
-| 35  | Create `docs/testing.md` with simulator usage guide                                   | Low    | 20 min |
-| 36  | Add README section on testing strategy (Layers 1/2/3)                                 | Low    | 15 min |
-| 37  | Verify simulator works with `go test -short` skip pattern                             | Low    | 10 min |
-| 38  | Add CI step to run simulator tests separately with verbose output                     | Low    | 15 min |
-| 39  | Add test coverage report for simulator files specifically                             | Low    | 10 min |
-| 40  | Review whether `pixyProtocolState` should be a separate package (`internal/pixysim/`) | Low    | 20 min |
+| #  | Task                                                                                  | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------- | ------ | ------ |
+| 31 | Give AGENTS.md a 20-line buffer (trim to ~357 lines)                                  | Low    | 15 min |
+| 32 | Annotate `2026-08-03_03-16` and `2026-08-03_03-40` reports as superseded              | Low    | 5 min  |
+| 33 | Consolidate 4 simulator status reports into one authoritative report                  | Low    | 20 min |
+| 34 | Add `// Example` test function showing simulator usage                                | Low    | 10 min |
+| 35 | Create `docs/testing.md` with simulator usage guide                                   | Low    | 20 min |
+| 36 | Add README section on testing strategy (Layers 1/2/3)                                 | Low    | 15 min |
+| 37 | Verify simulator works with `go test -short` skip pattern                             | Low    | 10 min |
+| 38 | Add CI step to run simulator tests separately with verbose output                     | Low    | 15 min |
+| 39 | Add test coverage report for simulator files specifically                             | Low    | 10 min |
+| 40 | Review whether `pixyProtocolState` should be a separate package (`internal/pixysim/`) | Low    | 20 min |
 
 ### Lower Priority — Edge Cases & Hardening (41-50)
 
-| #   | Task                                                                              | Impact | Effort |
-| --- | --------------------------------------------------------------------------------- | ------ | ------ |
-| 41  | Test `handleConfig` with `nil` report (should return error, not panic)            | Low    | 5 min  |
-| 42  | Test `handleCommit` with `nil` report (should return error, not panic)            | Low    | 5 min  |
-| 43  | Test `buildResponse` with `nil` query (should return error, not panic)            | Low    | 5 min  |
-| 44  | Test `Send` with empty `[]byte{}` (should return error from handleConfig)         | Low    | 5 min  |
-| 45  | Test config→commit→config→commit sequencing for different interfaces              | Low    | 10 min |
-| 46  | Test stale pending config (config for tracking, commit for audio → no match)      | Low    | 10 min |
-| 47  | Test `SendRecv` with context already cancelled before call                        | Low    | 5 min  |
-| 48  | Test circuit breaker recovery: open → `probeDevices` finds device → reset → works | Low    | 25 min |
-| 49  | Test that `broadcastStateChanged` fires on circuit breaker state transitions      | Low    | 15 min |
-| 50  | Archive planning doc after all Layer 1 items are closed                           | Low    | 5 min  |
+| #  | Task                                                                              | Impact | Effort |
+| -- | --------------------------------------------------------------------------------- | ------ | ------ |
+| 41 | Test `handleConfig` with `nil` report (should return error, not panic)            | Low    | 5 min  |
+| 42 | Test `handleCommit` with `nil` report (should return error, not panic)            | Low    | 5 min  |
+| 43 | Test `buildResponse` with `nil` query (should return error, not panic)            | Low    | 5 min  |
+| 44 | Test `Send` with empty `[]byte{}` (should return error from handleConfig)         | Low    | 5 min  |
+| 45 | Test config→commit→config→commit sequencing for different interfaces              | Low    | 10 min |
+| 46 | Test stale pending config (config for tracking, commit for audio → no match)      | Low    | 10 min |
+| 47 | Test `SendRecv` with context already cancelled before call                        | Low    | 5 min  |
+| 48 | Test circuit breaker recovery: open → `probeDevices` finds device → reset → works | Low    | 25 min |
+| 49 | Test that `broadcastStateChanged` fires on circuit breaker state transitions      | Low    | 15 min |
+| 50 | Archive planning doc after all Layer 1 items are closed                           | Low    | 5 min  |
 
 ---
 

@@ -13,46 +13,46 @@ Session 1 (20:04) extracted emeet-pixyd from SystemNix into standalone project. 
 
 ## A) FULLY DONE
 
-| #   | Item                                     | Commit    | Details                                                                                                                            |
-| --- | ---------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Extract `webStatus` from templates.templ | `f7c4464` | Moved Go struct to `web_types.go` — templates should only contain HTML                                                             |
-| 2   | Extract device probing to `probe.go`     | `a2d9222` | `probeVideo4linux`, `probeHidraw`, `hasPixyVendorProduct`, `Daemon.probeDevices`                                                   |
-| 3   | Extract state persistence to `state.go`  | `7892caa` | `loadState`, `saveState`, `ensureStateDir`, `stateSetter` type                                                                     |
-| 4   | Extract auto-manage to `auto.go`         | `4cb1168` | `handleCallStart`, `handleCallEnd`, `autoManage` with debounce                                                                     |
-| 5   | Fix CI with GOWORK=off                   | `7ca3a43` | Tests were broken locally due to parent `go.work` not including this project                                                       |
-| 6   | Normalize `new()` → `ptr()` in tests     | `a6d8c94` | Consistent pointer literal creation in `integration_test.go`                                                                       |
-| 7   | Consolidate test daemon builders         | `17c23ab` | Fixed **missing `streamSema` bug** in `testDaemonBase`/`testDaemonWithState`; unified into `newTestDaemon` with functional options |
-| 8   | Update AGENTS.md                         | `b0a428d` | Documented refactored file structure, GOWORK gotcha, test patterns                                                                 |
-| 9   | All tests pass                           | —         | `GOWORK=off go test -race -count=1 ./...` — all green                                                                              |
-| 10  | All pushed to remote                     | —         | 8 commits pushed to `master`                                                                                                       |
+| #  | Item                                     | Commit    | Details                                                                                                                            |
+| -- | ---------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Extract `webStatus` from templates.templ | `f7c4464` | Moved Go struct to `web_types.go` — templates should only contain HTML                                                             |
+| 2  | Extract device probing to `probe.go`     | `a2d9222` | `probeVideo4linux`, `probeHidraw`, `hasPixyVendorProduct`, `Daemon.probeDevices`                                                   |
+| 3  | Extract state persistence to `state.go`  | `7892caa` | `loadState`, `saveState`, `ensureStateDir`, `stateSetter` type                                                                     |
+| 4  | Extract auto-manage to `auto.go`         | `4cb1168` | `handleCallStart`, `handleCallEnd`, `autoManage` with debounce                                                                     |
+| 5  | Fix CI with GOWORK=off                   | `7ca3a43` | Tests were broken locally due to parent `go.work` not including this project                                                       |
+| 6  | Normalize `new()` → `ptr()` in tests     | `a6d8c94` | Consistent pointer literal creation in `integration_test.go`                                                                       |
+| 7  | Consolidate test daemon builders         | `17c23ab` | Fixed **missing `streamSema` bug** in `testDaemonBase`/`testDaemonWithState`; unified into `newTestDaemon` with functional options |
+| 8  | Update AGENTS.md                         | `b0a428d` | Documented refactored file structure, GOWORK gotcha, test patterns                                                                 |
+| 9  | All tests pass                           | —         | `GOWORK=off go test -race -count=1 ./...` — all green                                                                              |
+| 10 | All pushed to remote                     | —         | 8 commits pushed to `master`                                                                                                       |
 
 ---
 
 ## B) PARTIALLY DONE
 
-| #   | Item              | Status              | What's Left                                                                                                                                                |
-| --- | ----------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Linter compliance | 68 issues remain    | Most are gosec false-positives (G304/G204 for a hardware daemon), revive doc comments, and test-only errcheck. Real production issues: ~15. See section E. |
-| 2   | AGENTS.md         | Created and updated | Could still add more gotchas as we discover them during lint fixes                                                                                         |
+| # | Item              | Status              | What's Left                                                                                                                                                |
+| - | ----------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Linter compliance | 68 issues remain    | Most are gosec false-positives (G304/G204 for a hardware daemon), revive doc comments, and test-only errcheck. Real production issues: ~15. See section E. |
+| 2 | AGENTS.md         | Created and updated | Could still add more gotchas as we discover them during lint fixes                                                                                         |
 
 ---
 
 ## C) NOT STARTED
 
-| #   | Item                                            | Effort | Impact | Notes                                                                                                                                                                                                                            |
-| --- | ----------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Fix linter issues (production code)             | 1hr    | High   | ~15 real issues: goconst, staticcheck, perfsprint, unused param, revive docs                                                                                                                                                     |
-| 2   | Fix linter issues (test code)                   | 30min  | Medium | ~53 issues: errcheck on Close/Write, paralleltest, exhaustruct                                                                                                                                                                   |
-| 3   | Reduce cyclomatic complexity                    | 2hr    | Medium | 9 functions exceed cyclop threshold (10): `handleCommand`(20), `Run`(16), `syncState`(15), `handleStream`(17), `parseHIDResponse`(14), `autoManage`(12), `extractJPEGFrame`(12), `isCameraInUse`(12), `assertWebStatusField`(21) |
-| 4   | Move HID constants to `internal/pixy`           | 30min  | Medium | Protocol bytes (`hidByteTracking`, etc.) live in `hid.go` main package — should be shared                                                                                                                                        |
-| 5   | Replace `v4l2-ctl` subprocess with native ioctl | 2hr    | High   | Eliminates PATH dependency, faster, already have `golang.org/x/sys/unix` imported                                                                                                                                                |
-| 6   | Replace `wpctl`/`notify-send` subprocess calls  | 1hr    | Medium | PipeWire API via D-Bus, libnotify via D-Bus                                                                                                                                                                                      |
-| 7   | Add `golangci-lint` to CI                       | 5min   | High   | `.golangci.yml` exists but CI only runs `go vet`                                                                                                                                                                                 |
-| 8   | Add `goreleaser` for releases                   | 30min  | Medium | Automate versioned GitHub releases                                                                                                                                                                                               |
-| 9   | Add `/healthz` endpoint                         | 5min   | Medium | Trivial addition, useful for monitoring                                                                                                                                                                                          |
-| 10  | JSON structured logging                         | 15min  | Medium | Already uses `slog`, just needs JSON handler config option                                                                                                                                                                       |
-| 11  | Config from env/flags                           | 30min  | Low    | `koanf` or simple env parsing                                                                                                                                                                                                    |
-| 12  | Metrics registration refactor                   | 15min  | Low    | Move `init()` Prometheus registration to explicit setup                                                                                                                                                                          |
+| #  | Item                                            | Effort | Impact | Notes                                                                                                                                                                                                                            |
+| -- | ----------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Fix linter issues (production code)             | 1hr    | High   | ~15 real issues: goconst, staticcheck, perfsprint, unused param, revive docs                                                                                                                                                     |
+| 2  | Fix linter issues (test code)                   | 30min  | Medium | ~53 issues: errcheck on Close/Write, paralleltest, exhaustruct                                                                                                                                                                   |
+| 3  | Reduce cyclomatic complexity                    | 2hr    | Medium | 9 functions exceed cyclop threshold (10): `handleCommand`(20), `Run`(16), `syncState`(15), `handleStream`(17), `parseHIDResponse`(14), `autoManage`(12), `extractJPEGFrame`(12), `isCameraInUse`(12), `assertWebStatusField`(21) |
+| 4  | Move HID constants to `internal/pixy`           | 30min  | Medium | Protocol bytes (`hidByteTracking`, etc.) live in `hid.go` main package — should be shared                                                                                                                                        |
+| 5  | Replace `v4l2-ctl` subprocess with native ioctl | 2hr    | High   | Eliminates PATH dependency, faster, already have `golang.org/x/sys/unix` imported                                                                                                                                                |
+| 6  | Replace `wpctl`/`notify-send` subprocess calls  | 1hr    | Medium | PipeWire API via D-Bus, libnotify via D-Bus                                                                                                                                                                                      |
+| 7  | Add `golangci-lint` to CI                       | 5min   | High   | `.golangci.yml` exists but CI only runs `go vet`                                                                                                                                                                                 |
+| 8  | Add `goreleaser` for releases                   | 30min  | Medium | Automate versioned GitHub releases                                                                                                                                                                                               |
+| 9  | Add `/healthz` endpoint                         | 5min   | Medium | Trivial addition, useful for monitoring                                                                                                                                                                                          |
+| 10 | JSON structured logging                         | 15min  | Medium | Already uses `slog`, just needs JSON handler config option                                                                                                                                                                       |
+| 11 | Config from env/flags                           | 30min  | Low    | `koanf` or simple env parsing                                                                                                                                                                                                    |
+| 12 | Metrics registration refactor                   | 15min  | Low    | Move `init()` Prometheus registration to explicit setup                                                                                                                                                                          |
 
 ---
 
@@ -122,33 +122,33 @@ Session 1 (20:04) extracted emeet-pixyd from SystemNix into standalone project. 
 
 Sorted by **impact / effort** (highest ROI first):
 
-| #   | Task                                                                   | Effort | Impact | Why                                            |
-| --- | ---------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
-| 1   | Add `golangci-lint` to CI workflow                                     | 5min   | High   | `.golangci.yml` exists but isn't used in CI    |
-| 2   | Fix staticcheck ST1011: rename `ffmpegShutdownSecs` → `ffmpegShutdown` | 1min   | Low    | Trivial, linter clean                          |
-| 3   | Fix unused `request` param in `handleSnapshot`                         | 1min   | Low    | Trivial                                        |
-| 4   | Extract `"toggle-gesture"` / `"toggle-auto"` to constants              | 2min   | Medium | goconst, prevent typos                         |
-| 5   | Fix unchecked `fd.Close()` in uevent.go                                | 1min   | Low    | Defensive                                      |
-| 6   | Replace `fmt.Sprintf("/dev/%s", name)` with concatenation              | 1min   | Low    | perfsprint                                     |
-| 7   | Preallocate `v4l2.go` args slice                                       | 1min   | Low    | prealloc                                       |
-| 8   | Add doc comments to `internal/pixy` exported types                     | 10min  | Medium | Linter clean, godoc                            |
-| 9   | Add package comments to `auto.go`, `internal/pixy`                     | 2min   | Low    | Linter clean                                   |
-| 10  | Refactor `handleCommand` to dispatch table (reduce complexity 20→5)    | 30min  | High   | Most complex function in codebase              |
-| 11  | Extract `syncState` into parallel errgroup queries                     | 15min  | Medium | Faster sync, cleaner code                      |
-| 12  | Move Prometheus metrics registration out of `init()`                   | 15min  | Medium | Testable, no global state                      |
-| 13  | Add `handleStream` context propagation for `templ.Handler`             | 15min  | Medium | contextcheck: all 10 warnings are this pattern |
-| 14  | Refactor `extractJPEGFrame` nested ifs into helper funcs               | 15min  | Medium | Reduces nestif and cyclop                      |
-| 15  | Extract signal handling from `Run()` into `handleSignals()`            | 15min  | Medium | Reduces Run() complexity                       |
-| 16  | Move HID protocol constants to `internal/pixy/hid.go`                  | 30min  | Medium | Shared types for tests and main                |
-| 17  | Add `CommandError` type instead of `"error: "` string prefix           | 30min  | Medium | Type safety in command layer                   |
-| 18  | Replace `v4l2-ctl` subprocess with native ioctl                        | 2hr    | High   | Eliminates runtime PATH dependency             |
-| 19  | Add `/healthz` endpoint                                                | 5min   | Medium | Useful for systemd watchdog or monitoring      |
-| 20  | Add JSON structured logging option                                     | 15min  | Medium | Better production observability                |
-| 21  | Use `errgroup` for concurrent HID queries in `syncState`               | 15min  | Medium | Performance + clarity                          |
-| 22  | Consolidate `webStatus` with `pixy.State` (typed, not string)          | 30min  | Medium | Eliminate stringly-typed web layer             |
-| 23  | Add `goreleaser` for versioned GitHub releases                         | 30min  | Medium | Distribution                                   |
-| 24  | Replace `wpctl` subprocess with PipeWire D-Bus API                     | 1hr    | Medium | Eliminate another PATH dependency              |
-| 25  | Add snapshot endpoint tests with mock frame data                       | 15min  | Low    | Coverage gap                                   |
+| #  | Task                                                                   | Effort | Impact | Why                                            |
+| -- | ---------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------- |
+| 1  | Add `golangci-lint` to CI workflow                                     | 5min   | High   | `.golangci.yml` exists but isn't used in CI    |
+| 2  | Fix staticcheck ST1011: rename `ffmpegShutdownSecs` → `ffmpegShutdown` | 1min   | Low    | Trivial, linter clean                          |
+| 3  | Fix unused `request` param in `handleSnapshot`                         | 1min   | Low    | Trivial                                        |
+| 4  | Extract `"toggle-gesture"` / `"toggle-auto"` to constants              | 2min   | Medium | goconst, prevent typos                         |
+| 5  | Fix unchecked `fd.Close()` in uevent.go                                | 1min   | Low    | Defensive                                      |
+| 6  | Replace `fmt.Sprintf("/dev/%s", name)` with concatenation              | 1min   | Low    | perfsprint                                     |
+| 7  | Preallocate `v4l2.go` args slice                                       | 1min   | Low    | prealloc                                       |
+| 8  | Add doc comments to `internal/pixy` exported types                     | 10min  | Medium | Linter clean, godoc                            |
+| 9  | Add package comments to `auto.go`, `internal/pixy`                     | 2min   | Low    | Linter clean                                   |
+| 10 | Refactor `handleCommand` to dispatch table (reduce complexity 20→5)    | 30min  | High   | Most complex function in codebase              |
+| 11 | Extract `syncState` into parallel errgroup queries                     | 15min  | Medium | Faster sync, cleaner code                      |
+| 12 | Move Prometheus metrics registration out of `init()`                   | 15min  | Medium | Testable, no global state                      |
+| 13 | Add `handleStream` context propagation for `templ.Handler`             | 15min  | Medium | contextcheck: all 10 warnings are this pattern |
+| 14 | Refactor `extractJPEGFrame` nested ifs into helper funcs               | 15min  | Medium | Reduces nestif and cyclop                      |
+| 15 | Extract signal handling from `Run()` into `handleSignals()`            | 15min  | Medium | Reduces Run() complexity                       |
+| 16 | Move HID protocol constants to `internal/pixy/hid.go`                  | 30min  | Medium | Shared types for tests and main                |
+| 17 | Add `CommandError` type instead of `"error: "` string prefix           | 30min  | Medium | Type safety in command layer                   |
+| 18 | Replace `v4l2-ctl` subprocess with native ioctl                        | 2hr    | High   | Eliminates runtime PATH dependency             |
+| 19 | Add `/healthz` endpoint                                                | 5min   | Medium | Useful for systemd watchdog or monitoring      |
+| 20 | Add JSON structured logging option                                     | 15min  | Medium | Better production observability                |
+| 21 | Use `errgroup` for concurrent HID queries in `syncState`               | 15min  | Medium | Performance + clarity                          |
+| 22 | Consolidate `webStatus` with `pixy.State` (typed, not string)          | 30min  | Medium | Eliminate stringly-typed web layer             |
+| 23 | Add `goreleaser` for versioned GitHub releases                         | 30min  | Medium | Distribution                                   |
+| 24 | Replace `wpctl` subprocess with PipeWire D-Bus API                     | 1hr    | Medium | Eliminate another PATH dependency              |
+| 25 | Add snapshot endpoint tests with mock frame data                       | 15min  | Low    | Coverage gap                                   |
 
 ---
 

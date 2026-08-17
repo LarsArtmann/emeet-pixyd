@@ -132,33 +132,33 @@ From `docs/SUPERB_ROADMAP.md`:
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Item                                                     | Impact | Effort    | Status         |
-| --- | -------------------------------------------------------- | ------ | --------- | -------------- |
-| 1   | Update `SUPERB_ROADMAP.md` — mark completed items        | Medium | Small     | NOT STARTED    |
-| 2   | Update `AGENTS.md` — fix stale gotchas, add metrics.go   | Medium | Small     | NOT STARTED    |
-| 3   | Create `TODO_LIST.md`                                    | Medium | Small     | NOT STARTED    |
-| 4   | Create `FEATURES.md`                                     | Medium | Small     | NOT STARTED    |
-| 5   | Eliminate `init()` — accept OTel registry in constructor | Medium | Small     | NOT STARTED    |
-| 6   | Decompose `Run()` into 4 testable sub-functions          | Medium | Small     | NOT STARTED    |
-| 7   | Cache `wpctl`/`notify-send`/`v4l2-ctl` availability      | Medium | Small     | NOT STARTED    |
-| 8   | Audit and standardize log levels                         | Medium | Small     | PARTIALLY DONE |
-| 9   | Add command counter metrics                              | Medium | Small     | NOT STARTED    |
-| 10  | Add probe/uevent counter metrics                         | Medium | Small     | NOT STARTED    |
-| 11  | Extract `Commander` interface for shell commands         | High   | Medium    | NOT STARTED    |
-| 12  | Extract `HIDDevice` interface for HID I/O                | High   | Med-Large | NOT STARTED    |
-| 13  | Extract `ProcessInspector` interface for `/proc`         | Medium | Small     | NOT STARTED    |
-| 14  | Extract `UeventListener` interface for netlink           | Low    | Small     | NOT STARTED    |
-| 15  | Add circuit breaker for HID failures                     | Medium | Medium    | NOT STARTED    |
-| 16  | Add stream health monitoring (frame counter, duration)   | Low    | Small     | NOT STARTED    |
-| 17  | Add keyboard shortcuts to web UI                         | Low    | Small     | NOT STARTED    |
-| 18  | Make web UI mobile-responsive                            | Low    | Small     | NOT STARTED    |
-| 19  | Replace HTMX polling with WebSocket                      | Medium | Medium    | NOT STARTED    |
-| 20  | Add benchmark suite for hot paths                        | Low    | Small     | NOT STARTED    |
-| 21  | Add CI fuzz automation                                   | Medium | Small     | NOT STARTED    |
-| 22  | Build integration test harness with fake devices         | High   | Large     | NOT STARTED    |
-| 23  | Add `emeet_pixyd_command_errors_total` metric            | Medium | Small     | NOT STARTED    |
-| 24  | Structured error enrichment — add device path to errors  | Low    | Small     | PARTIALLY DONE |
-| 25  | Verify nix build still passes (`nix build`)              | Medium | Small     | NOT VERIFIED   |
+| #  | Item                                                     | Impact | Effort    | Status         |
+| -- | -------------------------------------------------------- | ------ | --------- | -------------- |
+| 1  | Update `SUPERB_ROADMAP.md` — mark completed items        | Medium | Small     | NOT STARTED    |
+| 2  | Update `AGENTS.md` — fix stale gotchas, add metrics.go   | Medium | Small     | NOT STARTED    |
+| 3  | Create `TODO_LIST.md`                                    | Medium | Small     | NOT STARTED    |
+| 4  | Create `FEATURES.md`                                     | Medium | Small     | NOT STARTED    |
+| 5  | Eliminate `init()` — accept OTel registry in constructor | Medium | Small     | NOT STARTED    |
+| 6  | Decompose `Run()` into 4 testable sub-functions          | Medium | Small     | NOT STARTED    |
+| 7  | Cache `wpctl`/`notify-send`/`v4l2-ctl` availability      | Medium | Small     | NOT STARTED    |
+| 8  | Audit and standardize log levels                         | Medium | Small     | PARTIALLY DONE |
+| 9  | Add command counter metrics                              | Medium | Small     | NOT STARTED    |
+| 10 | Add probe/uevent counter metrics                         | Medium | Small     | NOT STARTED    |
+| 11 | Extract `Commander` interface for shell commands         | High   | Medium    | NOT STARTED    |
+| 12 | Extract `HIDDevice` interface for HID I/O                | High   | Med-Large | NOT STARTED    |
+| 13 | Extract `ProcessInspector` interface for `/proc`         | Medium | Small     | NOT STARTED    |
+| 14 | Extract `UeventListener` interface for netlink           | Low    | Small     | NOT STARTED    |
+| 15 | Add circuit breaker for HID failures                     | Medium | Medium    | NOT STARTED    |
+| 16 | Add stream health monitoring (frame counter, duration)   | Low    | Small     | NOT STARTED    |
+| 17 | Add keyboard shortcuts to web UI                         | Low    | Small     | NOT STARTED    |
+| 18 | Make web UI mobile-responsive                            | Low    | Small     | NOT STARTED    |
+| 19 | Replace HTMX polling with WebSocket                      | Medium | Medium    | NOT STARTED    |
+| 20 | Add benchmark suite for hot paths                        | Low    | Small     | NOT STARTED    |
+| 21 | Add CI fuzz automation                                   | Medium | Small     | NOT STARTED    |
+| 22 | Build integration test harness with fake devices         | High   | Large     | NOT STARTED    |
+| 23 | Add `emeet_pixyd_command_errors_total` metric            | Medium | Small     | NOT STARTED    |
+| 24 | Structured error enrichment — add device path to errors  | Low    | Small     | PARTIALLY DONE |
+| 25 | Verify nix build still passes (`nix build`)              | Medium | Small     | NOT VERIFIED   |
 
 ---
 

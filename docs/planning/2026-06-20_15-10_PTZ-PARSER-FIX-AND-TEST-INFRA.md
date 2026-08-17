@@ -43,13 +43,13 @@ Additionally, test infrastructure has gaps: hardcoded PTZ literals instead of co
 
 ## Comprehensive Task List (30-100 min tasks)
 
-| #   | Task                                           | Impact   | Effort | Files                                  |
-| --- | ---------------------------------------------- | -------- | ------ | -------------------------------------- |
-| C1  | Fix `parsePTZValue` + update direct tests      | Critical | 30m    | ptz.go, ptz_cmd_test.go                |
-| C2  | Replace hardcoded test literals with constants | High     | 30m    | ptz_unit_test.go, behavior_ptz_test.go |
-| C3  | Update docs (--help, README, AGENTS.md)        | Medium   | 30m    | main.go, README.md, AGENTS.md          |
-| C4  | Add fuzz test for parsePTZValue                | Medium   | 30m    | ptz_fuzz_test.go                       |
-| C5  | Consolidate V4L2 assertion helpers             | Low      | 30m    | \*\_test.go                            |
+| #  | Task                                           | Impact   | Effort | Files                                  |
+| -- | ---------------------------------------------- | -------- | ------ | -------------------------------------- |
+| C1 | Fix `parsePTZValue` + update direct tests      | Critical | 30m    | ptz.go, ptz_cmd_test.go                |
+| C2 | Replace hardcoded test literals with constants | High     | 30m    | ptz_unit_test.go, behavior_ptz_test.go |
+| C3 | Update docs (--help, README, AGENTS.md)        | Medium   | 30m    | main.go, README.md, AGENTS.md          |
+| C4 | Add fuzz test for parsePTZValue                | Medium   | 30m    | ptz_fuzz_test.go                       |
+| C5 | Consolidate V4L2 assertion helpers             | Low      | 30m    | \*\_test.go                            |
 
 ---
 

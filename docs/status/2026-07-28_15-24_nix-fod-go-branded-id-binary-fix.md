@@ -16,26 +16,26 @@ I fixed it two ways: (1) stopped tracking the binary in the `go-branded-id` repo
 
 ## a) FULLY DONE ✅
 
-| #   | Item                                         | Evidence                                                                                                                                                                                                                                                     |
-| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **Root-caused the FOD failure**              | Manually reproduced the FOD build steps; `grep -rl "go-1.26"` pinpointed the `namer` binary inside `go-branded-id@v0.5.0.zip`.                                                                                                                               |
-| 2   | **Stopped tracking the binary upstream**     | `go-branded-id` commit `c29a034`: `git rm --cached namer` + `/namer` added to `.gitignore`.                                                                                                                                                                  |
-| 3   | **Verified removing the binary is harmless** | `go vet ./...` + `go test ./...` pass in `go-branded-id` (the binary is regenerable from `cmd/namer/`).                                                                                                                                                      |
-| 4   | **Designed a CI-safe workaround**            | In-sandbox `go mod edit -replace=...=fetchFromGitHub(v0.5.0, postFetch rm namer)`. Committed `go.mod`/`go.sum` stay canonical → `go test` against the real proxy is untouched. Verified `go mod download` skips the module entirely under a local `replace`. |
-| 5   | **Landed the workaround in `emeet-pixyd`**   | `flake.nix` (`goBrandedSrc` + `replaceBrandedId` let-binding, passed to package + lint `preBuild`) and `package.nix` (new params + `preBuild` block).                                                                                                        |
-| 6   | **Recomputed `vendorHash`**                  | `sha256-zawNYoJyvw9fGGBSLlIIltvij6gQ2si0MvJ1OgEEH70=` in both `package.nix` and the lint derivation.                                                                                                                                                         |
-| 7   | **Verified all nix outputs**                 | `nix build .#emeet-pixyd`, `.#checks.x86_64-linux.lint`, `.#checks.x86_64-linux.test` all green; `nix flake check --no-build` passes; binary runs (`emeet-pixyd --version`).                                                                                 |
-| 8   | **Documented the issue + follow-up**         | New "go-branded-id committed-binary workaround (TEMPORARY)" gotcha in `AGENTS.md`.                                                                                                                                                                           |
+| # | Item                                         | Evidence                                                                                                                                                                                                                                                     |
+| - | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **Root-caused the FOD failure**              | Manually reproduced the FOD build steps; `grep -rl "go-1.26"` pinpointed the `namer` binary inside `go-branded-id@v0.5.0.zip`.                                                                                                                               |
+| 2 | **Stopped tracking the binary upstream**     | `go-branded-id` commit `c29a034`: `git rm --cached namer` + `/namer` added to `.gitignore`.                                                                                                                                                                  |
+| 3 | **Verified removing the binary is harmless** | `go vet ./...` + `go test ./...` pass in `go-branded-id` (the binary is regenerable from `cmd/namer/`).                                                                                                                                                      |
+| 4 | **Designed a CI-safe workaround**            | In-sandbox `go mod edit -replace=...=fetchFromGitHub(v0.5.0, postFetch rm namer)`. Committed `go.mod`/`go.sum` stay canonical → `go test` against the real proxy is untouched. Verified `go mod download` skips the module entirely under a local `replace`. |
+| 5 | **Landed the workaround in `emeet-pixyd`**   | `flake.nix` (`goBrandedSrc` + `replaceBrandedId` let-binding, passed to package + lint `preBuild`) and `package.nix` (new params + `preBuild` block).                                                                                                        |
+| 6 | **Recomputed `vendorHash`**                  | `sha256-zawNYoJyvw9fGGBSLlIIltvij6gQ2si0MvJ1OgEEH70=` in both `package.nix` and the lint derivation.                                                                                                                                                         |
+| 7 | **Verified all nix outputs**                 | `nix build .#emeet-pixyd`, `.#checks.x86_64-linux.lint`, `.#checks.x86_64-linux.test` all green; `nix flake check --no-build` passes; binary runs (`emeet-pixyd --version`).                                                                                 |
+| 8 | **Documented the issue + follow-up**         | New "go-branded-id committed-binary workaround (TEMPORARY)" gotcha in `AGENTS.md`.                                                                                                                                                                           |
 
 ---
 
 ## b) PARTIALLY DONE 🟡
 
-| #   | Item                               | What's missing                                                                                                                                                                                             |
-| --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Permanent upstream fix**         | Binary is untracked in `go-branded-id`, but **no new version tagged/published**. The proxy still serves v0.5.0 with the binary. The `emeet-pixyd` workaround is explicitly TEMPORARY until v0.5.1+ exists. |
-| 2   | **Regression prevention**          | No CI guard exists that would catch a _future_ committed-binary-in-dependency regression (e.g., a new dep shipping a stray ELF). The fix is reactive, not preventive.                                      |
-| 3   | **go-branded-id repo cleanliness** | `namer` is untracked but the stale binary still sits on disk (3.3 MB). Not harmful, just untidy.                                                                                                           |
+| # | Item                               | What's missing                                                                                                                                                                                             |
+| - | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Permanent upstream fix**         | Binary is untracked in `go-branded-id`, but **no new version tagged/published**. The proxy still serves v0.5.0 with the binary. The `emeet-pixyd` workaround is explicitly TEMPORARY until v0.5.1+ exists. |
+| 2 | **Regression prevention**          | No CI guard exists that would catch a _future_ committed-binary-in-dependency regression (e.g., a new dep shipping a stray ELF). The fix is reactive, not preventive.                                      |
+| 3 | **go-branded-id repo cleanliness** | `namer` is untracked but the stale binary still sits on disk (3.3 MB). Not harmful, just untidy.                                                                                                           |
 
 ---
 
@@ -72,33 +72,33 @@ I fixed it two ways: (1) stopped tracking the binary in the `go-branded-id` repo
 
 ## f) Top Next Tasks (impact-ordered)
 
-| #   | Task                                                                                                                                                    | Impact                                | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------ |
-| 1   | **Tag & publish `go-branded-id` v0.5.1** (binary-free), bump `emeet-pixyd` go.mod, remove `goBrandedSrc`/`replaceBrandedId` shims, recompute vendorHash | 🔴 Critical — kills the debt          | S      |
-| 2   | Add CI guard: fail if `git ls-files` contains ELF binaries (in `go-branded-id` and optionally here)                                                     | 🔴 Prevents recurrence                | S      |
-| 3   | Confirm `nix flake check` (full build) actually runs in GitHub Actions `go-test.yml`                                                                    | 🔴 Catches this class of bug upstream | S      |
-| 4   | Audit all transitive deps for committed binaries (generalize the `grep -rl nix/store` scan)                                                             | 🟠 Defensive                          | M      |
-| 5   | Replace `postFetch rm namer` with "strip all root-level ELF files" (more robust)                                                                        | 🟠 Hardening                          | S      |
-| 6   | Add a nix check that asserts the go-modules FOD references no store paths (regression test)                                                             | 🟠 Preventive                         | M      |
-| 7   | Build a NixOS VM test for `nixosModules.default` (currently only unit-checked)                                                                          | 🟡 Confidence                         | L      |
-| 8   | Document the "buildflow reverts edits" operational pattern in AGENTS.md Gotchas                                                                         | 🟡 Future-self aid                    | S      |
-| 9   | Delete the stale `namer` binary from `go-branded-id` working tree (disk cleanup)                                                                        | 🟢 Tidy                               | S      |
-| 10  | Standardize on `lib.fakeHash` for all FOD hash placeholders                                                                                             | 🟢 Consistency                        | S      |
-| 11  | Add a `just`-free `nix run .#test` / `nix run .#lint` app (if not present) for ergonomic local checks                                                   | 🟢 DX                                 | S      |
-| 12  | Sweep AGENTS.md for other "TEMPORARY" / "follow-up" markers and convert to tracked TODOs                                                                | 🟢 Hygiene                            | S      |
-| 13  | Add a `vendorHash` mismatch CI annotation that prints the `got:` hash in the failure summary                                                            | 🟢 DX                                 | S      |
-| 14  | Consider `nix-update`/`nvfetcher` automation for `goBrandedSrc` so it tracks upstream tags                                                              | 🟢 Maintenance                        | M      |
-| 15  | Verify the website build (`website/flake.nix`) is unaffected by the go-modules change                                                                   | 🟡 Confirm no collateral              | S      |
-| 16  | Run `GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...` locally to confirm green post-fix                                                     | 🟡 Confirm parity with CI             | S      |
-| 17  | Add a top-level `Makefile`-equivalent note in AGENTS.md: the single command to reproduce the FOD scan                                                   | 🟢 Onboarding                         | S      |
-| 18  | Check whether `go-error-family` (same author) has the same committed-binary anti-pattern                                                                | 🟠 Defensive                          | S      |
-| 19  | Pin the `fetchFromGitHub` rev via a comment linking to the upstream commit that removed the binary                                                      | 🟢 Traceability                       | S      |
-| 20  | Review whether `proxyVendor = true` is still strictly needed now that the binary issue is gone                                                          | 🟡 Simplification                     | M      |
-| 21  | Add `nix flake update` cadence / automation                                                                                                             | 🟢 Maintenance                        | M      |
-| 22  | Surface the `buildVersion` ldflag injection in a `--version` smoke test in CI                                                                           | 🟢 Confidence                         | S      |
-| 23  | Document the FOD invariant ("must not reference store paths") in AGENTS.md for future nix work                                                          | 🟢 Knowledge                          | S      |
-| 24  | Consider switching `goBrandedSrc` to `builtins.fetchGit` with `shallow = true` for smaller fetches                                                      | 🟢 Perf                               | S      |
-| 25  | Once v0.5.1 ships: remove this entire §d/§e burden by doing task #1                                                                                     | 🔴 Debt clearance                     | S      |
+| #  | Task                                                                                                                                                    | Impact                                | Effort |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------ |
+| 1  | **Tag & publish `go-branded-id` v0.5.1** (binary-free), bump `emeet-pixyd` go.mod, remove `goBrandedSrc`/`replaceBrandedId` shims, recompute vendorHash | 🔴 Critical — kills the debt          | S      |
+| 2  | Add CI guard: fail if `git ls-files` contains ELF binaries (in `go-branded-id` and optionally here)                                                     | 🔴 Prevents recurrence                | S      |
+| 3  | Confirm `nix flake check` (full build) actually runs in GitHub Actions `go-test.yml`                                                                    | 🔴 Catches this class of bug upstream | S      |
+| 4  | Audit all transitive deps for committed binaries (generalize the `grep -rl nix/store` scan)                                                             | 🟠 Defensive                          | M      |
+| 5  | Replace `postFetch rm namer` with "strip all root-level ELF files" (more robust)                                                                        | 🟠 Hardening                          | S      |
+| 6  | Add a nix check that asserts the go-modules FOD references no store paths (regression test)                                                             | 🟠 Preventive                         | M      |
+| 7  | Build a NixOS VM test for `nixosModules.default` (currently only unit-checked)                                                                          | 🟡 Confidence                         | L      |
+| 8  | Document the "buildflow reverts edits" operational pattern in AGENTS.md Gotchas                                                                         | 🟡 Future-self aid                    | S      |
+| 9  | Delete the stale `namer` binary from `go-branded-id` working tree (disk cleanup)                                                                        | 🟢 Tidy                               | S      |
+| 10 | Standardize on `lib.fakeHash` for all FOD hash placeholders                                                                                             | 🟢 Consistency                        | S      |
+| 11 | Add a `just`-free `nix run .#test` / `nix run .#lint` app (if not present) for ergonomic local checks                                                   | 🟢 DX                                 | S      |
+| 12 | Sweep AGENTS.md for other "TEMPORARY" / "follow-up" markers and convert to tracked TODOs                                                                | 🟢 Hygiene                            | S      |
+| 13 | Add a `vendorHash` mismatch CI annotation that prints the `got:` hash in the failure summary                                                            | 🟢 DX                                 | S      |
+| 14 | Consider `nix-update`/`nvfetcher` automation for `goBrandedSrc` so it tracks upstream tags                                                              | 🟢 Maintenance                        | M      |
+| 15 | Verify the website build (`website/flake.nix`) is unaffected by the go-modules change                                                                   | 🟡 Confirm no collateral              | S      |
+| 16 | Run `GOEXPERIMENT=jsonv2 GOWORK=off go test -race -count=1 ./...` locally to confirm green post-fix                                                     | 🟡 Confirm parity with CI             | S      |
+| 17 | Add a top-level `Makefile`-equivalent note in AGENTS.md: the single command to reproduce the FOD scan                                                   | 🟢 Onboarding                         | S      |
+| 18 | Check whether `go-error-family` (same author) has the same committed-binary anti-pattern                                                                | 🟠 Defensive                          | S      |
+| 19 | Pin the `fetchFromGitHub` rev via a comment linking to the upstream commit that removed the binary                                                      | 🟢 Traceability                       | S      |
+| 20 | Review whether `proxyVendor = true` is still strictly needed now that the binary issue is gone                                                          | 🟡 Simplification                     | M      |
+| 21 | Add `nix flake update` cadence / automation                                                                                                             | 🟢 Maintenance                        | M      |
+| 22 | Surface the `buildVersion` ldflag injection in a `--version` smoke test in CI                                                                           | 🟢 Confidence                         | S      |
+| 23 | Document the FOD invariant ("must not reference store paths") in AGENTS.md for future nix work                                                          | 🟢 Knowledge                          | S      |
+| 24 | Consider switching `goBrandedSrc` to `builtins.fetchGit` with `shallow = true` for smaller fetches                                                      | 🟢 Perf                               | S      |
+| 25 | Once v0.5.1 ships: remove this entire §d/§e burden by doing task #1                                                                                     | 🔴 Debt clearance                     | S      |
 
 ---
 
