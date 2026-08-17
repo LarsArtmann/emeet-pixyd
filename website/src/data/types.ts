@@ -45,7 +45,7 @@ export interface ComparisonMatrix {
   rows: MatrixRow[];
 }
 
-export const useCaseIconKeys = ["video", "chat", "stream", "mic", "shield"] as const;
+export const useCaseIconKeys = ["video", "chat", "stream", "mic", "shield", "camera"] as const;
 export type UseCaseIcon = (typeof useCaseIconKeys)[number];
 
 export interface UseCase {

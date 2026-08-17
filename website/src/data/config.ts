@@ -1,8 +1,8 @@
 export const siteConfig = {
   name: "emeet-pixyd",
-  title: "emeet-pixyd — Smart Auto-Activation for the EMEET PIXY Webcam",
+  title: "emeet-pixyd — Linux Support for the EMEET PIXY Webcam",
   description:
-    "Linux daemon that auto-activates face tracking, noise cancellation, and audio switching on call start, then enters privacy mode when the call ends. Works with Zoom, Teams, Google Meet, and any app that opens the camera.",
+    "The EMEET PIXY ships its face tracking, privacy shutter, and noise cancellation only in a Windows/macOS app. emeet-pixyd reverse-engineers the camera's HID protocol and gives Linux every feature — automatically, on any app that opens the camera.",
   siteUrl: "https://emeet-pixyd.lars.software",
   github: "https://github.com/LarsArtmann/emeet-pixyd",
   author: {

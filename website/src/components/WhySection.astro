@@ -1,0 +1,44 @@
+---
+import Icon from './Icon.astro';
+import SectionHeader from './SectionHeader.astro';
+
+const story = [
+  {
+    icon: 'camera',
+    label: 'The hardware',
+    text: 'The EMEET PIXY is a dual-camera AI webcam: face tracking, a motorized pan/tilt/zoom head, a physical privacy shutter, and a noise-cancelling microphone.',
+  },
+  {
+    icon: 'terminal',
+    label: 'The problem',
+    text: 'Every one of those features is locked behind the vendor\u2019s Windows and macOS app. Plug it into Linux and you get a dumb fixed camera \u2014 no tracking, no privacy mode, no audio switching.',
+  },
+  {
+    icon: 'bolt',
+    label: 'The fix',
+    text: 'emeet-pixyd reverse-engineers the camera\u2019s HID wire protocol \u2014 every 9-byte config report, the commit handshake, the 200ms timing \u2014 and drives the hardware directly. No vendor software required, ever.',
+  },
+] as const;
+---
+
+<SectionHeader eyebrow="Why this exists" title="Great hardware. No Linux software." subtitle="So I built the Linux software myself." />
+
+<div class="grid gap-3 md:grid-cols-3 mb-8">
+  {story.map((chapter) => (
+    <div class="p-6 rounded-xl border border-border bg-bg-card backdrop-blur-sm hover:border-border-hover transition-all duration-200 hover:-translate-y-0.5">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="text-accent w-9 h-9 rounded-lg bg-accent-dim border border-border-accent flex items-center justify-center shrink-0">
+          <Icon name={chapter.icon} size={18} />
+        </div>
+        <span class="text-xs font-mono uppercase tracking-[0.15em] text-text-muted">{chapter.label}</span>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed">{chapter.text}</p>
+    </div>
+  ))}
+</div>
+
+<div class="p-5 rounded-xl border border-border-accent bg-accent-dim/50 backdrop-blur-sm text-center">
+  <p class="text-sm text-text-secondary leading-relaxed max-w-2xl mx-auto">
+    <span class="text-text-primary font-semibold">The result:</span> Linux gets <span class="text-accent font-medium">everything the vendor reserves for their app</span> — plus what they never shipped: call detection, auto modes, USB hotplug handling, PTZ presets, Waybar integration, and a live web UI.
+  </p>
+</div>

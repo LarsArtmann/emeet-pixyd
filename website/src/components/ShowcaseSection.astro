@@ -1,0 +1,44 @@
+---
+import SectionHeader from './SectionHeader.astro';
+
+const screenshots = [
+  {
+    src: '/screenshots/webui-panel.png',
+    alt: 'emeet-pixyd web control panel with camera mode cards, audio segments and PTZ controls',
+    caption: 'Web control panel — mode cards, audio control, PTZ radar',
+  },
+  {
+    src: '/screenshots/webui-viewport.png',
+    alt: 'emeet-pixyd web UI overview with camera preview area',
+    caption: 'Live view at 127.0.0.1:8090 — camera offline state shown',
+  },
+];
+---
+
+<SectionHeader eyebrow="See it in action" title="Screenshots" subtitle="The real control panel, served by the daemon itself." />
+
+<div class="max-w-3xl mx-auto mb-10">
+  <div class="relative rounded-xl border border-border bg-bg-card-solid shadow-2xl overflow-hidden">
+    <div class="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-bg-card-solid/50">
+      {Array(3).fill(null).map(() => (
+        <span class="w-2.5 h-2.5 rounded-full bg-code-dot"></span>
+      ))}
+      <span class="ml-3 text-xs text-text-muted font-mono">demo.mp4 — 25s product tour</span>
+    </div>
+    <video controls preload="metadata" poster="/screenshots/webui-viewport.png" class="w-full block">
+      <source src="/demo.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</div>
+
+<div class="grid gap-4 md:grid-cols-2">
+  {screenshots.map((shot) => (
+    <figure class="group">
+      <div class="rounded-xl border border-border bg-bg-card overflow-hidden transition-all duration-200 group-hover:border-border-hover">
+        <img src={shot.src} alt={shot.alt} width="1440" height="1800" loading="lazy" class="w-full h-auto block" />
+      </div>
+      <figcaption class="mt-2 text-xs text-text-muted text-center">{shot.caption}</figcaption>
+    </figure>
+  ))}
+</div>

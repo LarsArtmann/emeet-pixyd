@@ -2,6 +2,7 @@
 import LandingLayout from '../layouts/LandingLayout.astro';
 import FeatureGrid from '../components/FeatureGrid.astro';
 import HeroSection from '../components/HeroSection.astro';
+import ShowcaseSection from '../components/ShowcaseSection.astro';
 import Sections from '../components/Sections.astro';
 import Section from '../components/Section.astro';
 import { siteConfig } from '../data/config';
@@ -9,6 +10,10 @@ import { siteConfig } from '../data/config';
 
 <LandingLayout title={siteConfig.title}>
   <HeroSection />
+
+  <Section width="wide">
+    <ShowcaseSection />
+  </Section>
 
   <Section width="wide">
     <FeatureGrid />
