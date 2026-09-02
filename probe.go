@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -15,7 +16,18 @@ import (
 const (
 	pixyVendorIDInt  = 0x328f
 	pixyProductIDInt = 0x00c0
+
+	// ueventWarnInterval bounds how often the absent-uevent probe WARN is
+	// repeated per path. One hour: the condition is stable while the device
+	// topology is unchanged, so per-probe logging only floods the journal
+	// (~160 identical lines/day while the PIXY is absent, 2026-09-02).
+	ueventWarnInterval = time.Hour
 )
+
+// ueventWarnLimiter rate-limits the video4linux uevent-read warning; see
+// warnLimiter for the rationale. Package-level because probes are plain
+// functions on sysfs state.
+var ueventWarnLimiter = newWarnLimiter(ueventWarnInterval)
 
 func isPixyName(name string) bool {
 	return strings.Contains(name, "EMEET") ||
@@ -74,7 +86,9 @@ func probeVideo4linux(sysfsPath string) string {
 
 		ueventData, uErr := os.ReadFile(ueventFile)
 		if uErr != nil {
-			slog.Warn("video4linux probe: failed to read uevent", "path", ueventFile, "error", uErr)
+			if ueventWarnLimiter.allow(ueventFile) {
+				slog.Warn("video4linux probe: failed to read uevent", "path", ueventFile, "error", uErr)
+			}
 
 			continue
 		}
