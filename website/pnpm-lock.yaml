@@ -23,6 +23,9 @@ importers:
       astro-og-canvas:
         specifier: ^0.13.0
         version: 0.13.0(astro@7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@7.2.0))(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(jiti@2.7.0)(yaml@2.9.0))
+      canvaskit-wasm:
+        specifier: 0.41.1
+        version: 0.41.1
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
