@@ -14,6 +14,9 @@
   <a href="https://emeet-pixyd.lars.software">
     <img alt="Documentation" src="https://img.shields.io/badge/docs-emeet--pixyd.lars.software-8b5cf6?logo=astro">
   </a>
+  <a href="https://emeet-pixyd.lars.software/#demo">
+    <img alt="Watch the 25s demo" src="https://img.shields.io/badge/watch_the_25s_demo-emeet--pixyd.lars.software-red?logo=youtube">
+  </a>
   <br>
   <a href="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/go-test.yml">
     <img alt="Go tests" src="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/go-test.yml/badge.svg">
