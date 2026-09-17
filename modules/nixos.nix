@@ -33,9 +33,12 @@ in
       description = ''
         Automatic camera management strategy:
           off            — manual control: no /proc monitoring, camera keeps whatever mode you set
+                            (re-applied automatically after reboots, replugs, and power cycles)
           full           — tracking + noise cancellation + PipeWire source on call start, privacy on call end
           tracking-only  — face tracking on call start, privacy on call end (no audio/source switching)
           privacy-only   — privacy mode on call end (no call-start activation)
+
+        See https://emeet-pixyd.lars.software/guides/auto-modes/ for the full reference.
       '';
     };
 

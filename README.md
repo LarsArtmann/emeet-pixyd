@@ -156,7 +156,8 @@ emeet-pixy waybar           # Output Waybar JSON
 
 ## Auto Modes
 
-The daemon supports four auto-management strategies:
+The daemon supports four auto-management strategies (full reference:
+[emeet-pixyd.lars.software/guides/auto-modes](https://emeet-pixyd.lars.software/guides/auto-modes/)):
 
 | Mode             | On call start                                               | On call end  |
 | ---------------- | ----------------------------------------------------------- | ------------ |
