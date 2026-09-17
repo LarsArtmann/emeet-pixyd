@@ -211,8 +211,8 @@ func TestDeviceCommandIncludesModel(t *testing.T) {
 		t.Fatalf("device command failed: %v", result.Err)
 	}
 
-	if want := "/dev/video0 /dev/hidraw0 PIXY 2K"; result.Op != want {
-		t.Errorf("device output = %q, want %q", result.Op, want)
+	if want := "/dev/video0 /dev/hidraw0 PIXY 2K"; result.Message != want {
+		t.Errorf("device output = %q, want %q", result.Message, want)
 	}
 }
 

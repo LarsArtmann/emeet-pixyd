@@ -121,17 +121,17 @@ func probeHidraw(sysfsPath string) (string, pixy.Model) {
 		}
 
 		for line := range strings.SplitSeq(string(ueventData), "\n") {
-				if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-					if model, isPixy := pixyModelFromUevent(ueventData, "HID_ID=", ":", 1, 2); isPixy &&
-						isPixyName(hidName) {
-						return hidrawPath, model
-					}
+			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
+				if model, isPixy := pixyModelFromUevent(ueventData, "HID_ID=", ":", 1, 2); isPixy &&
+					isPixyName(hidName) {
+					return hidrawPath, model
 				}
 			}
 		}
-
-		return "", ""
 	}
+
+	return "", ""
+}
 
 type probeResult struct {
 	VideoDev  string

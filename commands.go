@@ -185,6 +185,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 			if hid != "" {
 				parts = append(parts, hid)
 			}
+
 			if model != "" {
 				parts = append(parts, string(model))
 			}
