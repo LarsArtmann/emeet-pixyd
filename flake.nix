@@ -156,6 +156,56 @@
             test = config.packages.default.overrideAttrs (_: {
               doCheck = true;
             });
+
+            # Boots a VM with the NixOS module enabled and asserts the
+            # module's rendered system state (udev rules for BOTH PIXY
+            # product IDs, tmpfiles entry, hardened user unit). The daemon
+            # itself cannot run headless (no camera, no graphical session).
+            vmTest = pkgs.testers.nixosTest {
+              name = "emeet-pixy-module";
+
+              nodes.machine =
+                { pkgs, ... }:
+                {
+                  imports = [ self.nixosModules.default ];
+
+                  users.users.pixy = {
+                    isNormalUser = true;
+                    extraGroups = [ "video" ];
+                  };
+
+                  hardware.emeet-pixy = {
+                    enable = true;
+                    package = self.packages.${pkgs.system}.emeet-pixyd;
+                    user = "pixy";
+                    auto = "off";
+                  };
+                };
+
+              testScript = ''
+                machine.start()
+
+                with subtest("udev rules cover both PIXY product IDs"):
+                    rules = machine.succeed("cat /etc/udev/rules.d/*.rules")
+                    assert 'ATTRS{idProduct}=="00c0|0118"' in rules, \
+                        "udev rules missing the 00c0|0118 alternation (issue #6)"
+                    assert rules.count('ATTRS{idProduct}=="00c0|0118"') == 2, \
+                        "expected one hidraw and one video4linux rule"
+
+                with subtest("state dir tmpfiles rule present"):
+                    machine.succeed("grep -q '^d /run/emeet-pixyd' /etc/tmpfiles.d/*.conf")
+
+                with subtest("user service unit rendered with config and hardening"):
+                    unit = machine.succeed(
+                        "cat $(find /etc/systemd/user -name 'emeet-pixyd.service')"
+                    )
+                    assert "ProtectSystem=strict" in unit
+                    assert "EMEET_PIXYD_AUTO=off" in unit
+                    assert "EMEET_PIXYD_DEFAULT_AUDIO=nc" in unit
+
+                machine.shutdown()
+              '';
+            };
           };
 
           devShells.default = pkgs.mkShellNoCC {
