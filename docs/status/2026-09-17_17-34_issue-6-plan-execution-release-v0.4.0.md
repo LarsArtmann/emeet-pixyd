@@ -1,0 +1,132 @@
+# Status Report: Issue #6 Plan Execution — v0.4.0 Released, CI Trust Restored
+
+- **Date**: 2026-09-17 17:34 CEST
+- **Session scope**: Execute the full Pareto plan (`docs/planning/2026-09-17_13-52_ship-2k-and-restore-repo-trust.md`, T2–T22) for LarsArtmann/emeet-pixyd, triggered by "GET SHIT DONE! THE WHOLE TODO LIST!"
+- **Repo**: `master` == `origin/master` + 1 local unpushed commit (the VM-test flake change; deliberately held back, see §b)
+- **Release**: **v0.4.0 tagged** (at `02f769c`, all-CI-green), pushed, GitHub Release published, `nix run github:LarsArtmann/emeet-pixyd/v0.4.0 -- --version` verified working
+- **CI**: all three workflows GREEN on the pushed master tip (`Go tests` ✓ `Nix` ✓ `Website build` ✓) — first fully green state including the new website job
+
+---
+
+## Headline results
+
+| Deliverable | State | Evidence |
+| --- | --- | --- |
+| **Second red-master repaired** (parallel writer's ungated go-1.27.1 bump) | ✅ | all workflows green on `b192685` |
+| **v0.4.0 released** (T2) | ✅ | tag at green commit, flake ref runs, GitHub Release `--prerelease` (0.x convention) |
+| **Device-reappear reconcile** (T5+T7+T8, TODO #137) | ✅ | `reconcileOnDeviceAppear` + 4 tests + docs; privacy survives power cycles now |
+| **auto=off persistence pinned** (T12) | ✅ | 3-tick test + state.json round-trip test |
+| **Pre-commit lint gate** (T6) | ✅ | `scripts/pre-commit` via devShell shellHook; proven blocking + passing; devShell-fallback for wrong host toolchain |
+| **Website deployed + verified live** (T3) | ✅ | 2K on installation page, persistence guarantee on auto-modes page (after one stale-deploy mistake, §d1) |
+| **#6 follow-up comment** (T4) | ✅ | voice-checked, posted; closure deliberately waits for zutto's 2K confirmation |
+| **Model-aware probing/output** (T14+T16) | ✅ | `pixy.Model` through probe → logs → `device` cmd → `webStatus.Model` |
+| **exhaustruct_v5 migration** (T13) | ✅ | 0 lint issues; `ignore-patterns` full-path regex list for zero-value-first types |
+| **Website CI build job** (T11) | ✅ | `website.yml` green; frozen-lockfile doubles as drift guard |
+| **7 dependabot vulns patched** | ✅ | pnpm overrides in `pnpm-workspace.yaml`; lockfile pinned js-yaml 4.3.2 / svgo 4.1.0 / fast-uri 3.1.6 |
+| **LSP toolchain pins** (T10) | ⚠️ partial | project `.crushrc` written; only effective for FUTURE crush sessions (config loads at startup) |
+| **NixOS VM test** (T18) | ⚠️ partial | added to flake checks, eval-passes, **run fails** (my test-script bug, §d2); NOT pushed |
+| Startup permission warning (T21) | ✅ | `warnInaccessibleDevices` + test; shipped post-tag under Unreleased |
+| Backlog triage (T22) | ✅ | #124 closed as done, #131 + #132 done, #133 annotated (build half landed) |
+| T9 power-cycle caveat docs | — superseded | T8's guarantee paragraph replaces the caveat |
+| T19 buildcache investigation | ✅ diagnosed | §b below |
+
+---
+
+## a) FULLY DONE
+
+| # | Item | Evidence |
+| --- | --- | --- |
+| a1 | **Red-master root-caused and fixed**: parallel session's `go.mod` → 1.27.1 bumped without gates — CI `Lint` (19 findings) and `Nix` (go-modules FOD ran go 1.26.7) both red | local reproduction + fix pushed; CI green |
+| a2 | **Nix go pin done correctly**: this nixpkgs revision reads the toolchain from the buildGoModule MODULE parameter — `pkgs.buildGoModule.override { go = pkgs.go_1_27; }` (a derivation-level `go = go_1_27;` attr is silently ignored; both the FOD and main build use the overridden toolchain) | `nix build` + `nix flake check` + CI Nix green |
+| a3 | **vendorHash refreshed in BOTH files** (`flake.nix` lint check + `package.nix`): `sha256-nlvVGP+WdGs381l3vJ1+rXjAqKor8SXXnWhvFA+Bxl8=` | `nix build` green |
+| a4 | **go-branded-id workaround REMOVED** (TODO #124): v0.6.0 ships no committed binary (verified against the module zip); `goBrandedSrc`/`replaceBrandedId` deleted from flake + package | proxy zip listing; `nix build` green |
+| a5 | **`GOEXPERIMENT=jsonv2` dropped everywhere** (CI env, package.nix, flake devShell/lint): json/v2 is stable in go 1.27; verified empirically that the flag is unnecessary | build without flag green |
+| a6 | **18 lint findings fixed properly** (not by weakening config): 16 stale `//nolint` directives removed (test-file exclusions already cover errcheck/gosec/wrapcheck), `extractJPEGFrame` refactored via `scanForSOI` extraction (gocognit 26 → below 25), `modernize` embedlit rewrite applied (Go 1.27 promoted-field literals) | `golangci-lint run` → 0 issues |
+| a7 | **exhaustruct → exhaustruct_v5** (T13): Gaijin-fork settings; suppression via `ignore-patterns` FULL-STRING regexes against `packagePath.TypeName`; all zero-value-first types listed (config-level, not per-site nolint — per-site rots) | 0 issues |
+| a8 | **`reconcileOnDeviceAppear`** (T5+T7+T8 + decision): fresh install adopts hardware (belief = truth about the lens on first run); with persisted state the camera mode is re-asserted when hardware differs (power cycles/replugs reset the camera), audio/gesture adopt; failure-tolerant (log + keep belief). Wired into daemon startup (goroutine under `hidMu`) AND the uevent-appear path | `device.go`, `main.go`; `reconcile_test.go` 4 tests green |
+| a9 | **auto=off end-to-end tests** (T12): manual `track` survives 3 autoManage ticks with the /proc monitor asserted never invoked; state.json round-trip preserves camera mode + auto=off across restart | `reconcile_test.go` |
+| a10 | **Pre-commit lint gate** (T6): `scripts/pre-commit` (whole-module golangci on staged .go/.templ; devShell-prefixed run so the host's go1.26-built binary can't reject the config), installed by devShell `shellHook` into `git rev-parse --git-path hooks/pre-commit` (repo uses `core.hooksPath=.githooks`; hook mkdirs it). Verified: blocks an intentional violation, passes clean tree | live-blocked my own bad commit, then passed |
+| a11 | **v0.4.0 released** (T2): CHANGELOG section cut + 0.3.0/0.3.1 backfilled from git history (drift fixed: tags predated changelog discipline); annotated tag at the all-green commit `02f769c`; tag pushed; `nix run github:LarsArtmann/emeet-pixyd/v0.4.0 -- --version` → prints the tag rev (flake ref verified); GitHub Release with curated notes, `--prerelease` per 0.x skill convention | tag, release, run output |
+| a12 | **Website deployed and live-verified** (T3): rebuilt after doc edits, deployed to Firebase, fetched live pages — installation page shows "or PIXY 2K (328f:0118)", auto-modes page shows the survives-reboots paragraph | live fetches |
+| a13 | **#6 follow-up posted** (T4.1–4.2): terse status-pointer + question to @zutto ("does it pick up your 2K? then I close"), voice-checker 0 FAIL 0 WARN, disclosure line per thread precedent. Issue intentionally OPEN pending zutto (4.3) | `issues/6#issuecomment-5716075020` |
+| a14 | **Model-aware probing** (T14+T16): `pixy.Model` type (`ModelOriginal` "PIXY" / `Model2K` "PIXY 2K") via `ModelFromProductID`; `matchesPixyID` → `pixyModelFromUevent` returning the model; `probeResult.Model` → `Daemon.model` → probe logs, `device` command (`/dev/video0 /dev/hidraw7 PIXY 2K`), `webStatus.Model` | `internal/pixy/model.go`, tests |
+| a15 | **T15 partial**: uppercase-hex 2K case added to `TestHasPixyProduct`; stale local `FuzzWriteSSEEvent` corpus removed (target deleted long ago). NOTE: the plan's "0118 uevent fuzz seeds" matched NO existing fuzz target — dropped honestly instead of inventing one (candidate follow-up f28) | `probe_hidraw_test.go` |
+| a16 | **Website CI workflow** (T11 + drift guard): `website.yml` — corepack pnpm (version via `packageManager`), `pnpm install --frozen-lockfile` (doubles as the lockfile-consistency guard the 14:26 report wanted), astro build + CSP patch, ≥19 HTML files asserted. Green after one fix (§d3) | workflow run 35233004615 |
+| a17 | **Auto-mode copy single-sourced by reference** (T17): website auto-modes page is canonical; README and the NixOS option description now link it; option description states the persistence guarantee | `modules/nixos.nix`, `README.md` |
+| a18 | **Startup permission warning** (T21): `warnInaccessibleDevices` — probed nodes that exist but return EACCES get an actionable WARN naming the udev fix; wired into `NewDaemon`; test with slog capture (skips as root) | `probe.go`, `probe_warn_ratelimit_test.go` |
+| a19 | **Backlog triage** (T22): #124 ✅ (resolved by v0.6.0 + workaround removal); #131 ✅ README tagline aligned to the origin story + both models; #132 ✅ repo description fixed (still said "HTMX web UI"!) via `gh repo edit`; #133 build-half annotated; #129/#130/#134–#136 remain as filed | `TODO_LIST.md`, repo metadata |
+| a20 | **AGENTS.md memory refreshed**: go 1.27 toolchain + `GOWORK`/no-GOEXPERIMENT commands, buildGoModule.override gotcha, vendorHash dual-file + workaround removal, `.crushrc` LSP pins, pre-commit gate, exhaustruct_v5 mechanics, reconcile + model-probing semantics, website.yml in the CI section | `AGENTS.md` |
+| a21 | **T19 buildcache diagnosed**: `/mnt/buildcache` is a LOCAL ext3 disk (not network), writable, healthy bucket layout; the fact-persist warnings come from CONCURRENT access (LSP langserver + CLI/hook share one cache dir) — a known benign golangci-lint concurrency artifact; the host wrapper already falls back to `~/tmp/go-lint` on write failure. No repo-side action warranted (wrapper is host-managed) | `stat -f`, dir listing |
+
+## b) PARTIALLY DONE
+
+| # | Item | What works | What remains | Effort |
+| --- | --- | --- | --- | --- |
+| b1 | **T10 LSP fix** | Project `.crushrc` pins gopls PATH (nixpkgs `go_1_27`) and routes `golangci_lint_ls` through the host cache wrapper with the nixpkgs langserver binary on PATH | Effective only for NEW crush sessions (config loads at startup; mid-session `lsp_restart` does not re-read it) — this session's diagnostics stayed broken, next session's will be clean | none (verify next session) |
+| b2 | **T18 NixOS VM test** | `vmTest` in flake checks (`testers.nixosTest`): boots a VM with the module enabled, asserts udev rules contain `00c0|0118` twice (hidraw + video4linux), tmpfiles entry, user-unit env + hardening. Evaluates clean (`nix flake check --no-build` passes) | **Run fails**: subtest 3 hung to the 15-min timeout with `[Errno 9] Bad file descriptor` — my `cat $(find /etc/systemd/user -name emeet-pixyd.service)` cats STDIN when find returns nothing. The local commit is HELD BACK (unpushed) until fixed | S |
+| b3 | **Master tip state** | Pushed tip `b192685` fully green (Go tests + Nix + Website) | One local commit (`4e79b53`, the vmTest flake.nix via daemon) unpushed pending b2 | S |
+
+## c) NOT STARTED
+
+| # | Item | Why | Wanted? |
+| --- | --- | --- | --- |
+| c1 | **T4.3 — close #6** | Gated on zutto confirming on real 2K hardware (the issue's whole premise) | yes, on his reply |
+| c2 | **v0.4.1 cut** | T14/T16/T21 landed on master AFTER the tag; CHANGELOG `Unreleased` already carries the permission warning | Lars's call (see g2) |
+| c3 | **Website changelog page refresh** | The site's `/changelog` still ends before 0.4.0 (needs rebuild+deploy after release) | yes |
+| c4 | **Website auto-deploy (#133 deploy half)** | Needs `FIREBASE_SERVICE_ACCOUNT` secret only Lars can add | yes |
+
+## d) TOTALLY FUCKED UP
+
+Radical honesty, worst first:
+
+1. **First website deploy shipped STALE CONTENT.** I deployed the `dist/` built BEFORE editing auto-modes.mdx/README — the live page lacked the new persistence paragraph until I noticed, rebuilt, redeployed. Root cause: deploy-without-rebuild sequencing; I verified the manifest instead of the content first. Mitigation for the future: always `grep <new-content> dist/**` before `firebase deploy` (and the new website.yml would have caught a broken build, not stale content).
+2. **The VM test's third subtest hangs on empty `$(find ...)`.** `cat $(find ...)` with no match waits on stdin → `Bad file descriptor` at the 15-min timeout. First two subtests passed (it got that far). Should have guarded the find output — classic shell-in-test-script trap, same class as the pipeline-masking lesson.
+3. **Pipeline exit-code masking AGAIN — twice.** `nix build 2>&1 | grep ... ; echo EXIT $?` printed "EXIT: 0" on a FAILED build (grep's exit), and a commit-test verdict read `tail`'s exit code. Both caught within one step by cross-checking actual state, but I generated the exact anti-pattern my own memory warns about. Fix in my process: never echo a verdict after a pipe; check the artifact (`ls result`, `git log`) instead.
+4. **Guessing the embedlit rewrite produced invalid Go** (`PTZValues: {Pan: ...}` — elided literals are not valid in struct-field position; the real modernize fix is the Go 1.27 promoted-field form `webStatus{Pan: ...}`). Burned a compile cycle and briefly blamed HEAD confusion. Should have run `--fix` on a scratch copy FIRST to read the intended rewrite.
+5. **My own pre-commit hook blocked my own commit** — the hook ran the HOST golangci-lint (built with go1.26, rejects the config). Design assumed "golangci-lint on PATH" = right binary. Fixed by running lint via `nix develop -c` when nix+flake exist; also learned the store-path symlink only refreshes on devShell entry (had to re-run the shellHook linker).
+6. **exhaustruct_v5 suppression took three config iterations** (old `exclude` key → short type names → full-path regexes, discovered by reading the embedded JSON schema in the binary). Cost ~3 lint runs; knowledge now in AGENTS.md.
+7. **Several edit-tool round trips from unread/raced files** (daemon auto-commits changed files under me mid-session; `cat >>` appends bypass the read-tracking). Annoying, not dangerous.
+
+## e) WHAT WE SHOULD IMPROVE (process, from this session)
+
+1. **Content→build→deploy is one transaction.** Verify the built artifact contains the change (grep dist) before deploying; stale deploys are silent.
+2. **Guard command substitution in test scripts**: `cat "$(find ...)"` needs an existence check; `find` returning nothing is a test bug, not a pass.
+3. **Verdicts never follow pipes.** Check artifacts (exit codes lie through pipes; `PIPESTATUS` is footgun-y in this shell).
+4. **When a linter's suggested fix is ambiguous, harvest it** (`--fix` on scratch) instead of guessing syntax.
+5. **devShell-provided hooks should link the working-tree script or refresh aggressively** — store-path symlinks freeze the script version until the next devShell entry.
+6. **auto-tag.yml is dead code** (no literal `version = "..."` exists in flake/package.nix) — either feed it a version or delete it; it ran 6s "success" on every push doing nothing.
+
+## f) Next tasks (ranked)
+
+| # | Task | Impact | Effort |
+| --- | --- | --- | --- |
+| 1 | Fix vmTest subtest 3 (guard find; rerun `nix build .#checks.x86_64-linux.vmTest` to green) then push the held-back commit | HIGH | S |
+| 2 | Close #6 on zutto's confirmation (T4.3, closing formula + release ref) | HIGH | S |
+| 3 | Website: rebuild + deploy so `/changelog` shows 0.4.0 | MED | S |
+| 4 | Cut v0.4.1 (model-aware output + permission warning + vmTest) when Lars wants | MED | S |
+| 5 | Add `FIREBASE_SERVICE_ACCOUNT` secret + deploy-on-master job (#133 remainder) — needs Lars | MED | S |
+| 6 | Add a `FuzzParseUevent`-style target so the "0118 uevent seeds" idea has a real home | LOW | S |
+| 7 | Surface `webStatus.Model` in the web UI template + waybar tooltip (data is there, UI isn't) | LOW | S |
+| 8 | Decide auto-tag.yml fate (feed version vs delete) | LOW | S |
+| 9 | Remove stale `minimumReleaseAgeExclude: html-validate@11.7.0`; add expiry note to astro@7.3.3 | LOW | S |
+| 10 | Pin golangci-lint version in the CI action (currently `latest` — today's green depended on upstream being go1.27-built) | MED | S |
+| 11 | CI: assert the fuzz-target list actually exists (stale list previously referenced deleted targets) | LOW | S |
+| 12 | Extend vmTest later: fake sysfs + actually start the daemon | LOW | M |
+| 13 | Reconcile on device DISAPPEAR semantics (clean state reset?) — currently only appear is handled | MED | M |
+| 14 | Product decision: re-assert AUDIO after power cycles too (currently camera-only, documented boundary) | MED | S |
+| 15 | Startup permission warning also on uevent-appear (not just boot) | LOW | S |
+| 16 | Branch protection requiring the three workflows | MED | S |
+| 17 | Backlog as filed: #129 (needs camera), #130, #134 (TS pin), #135 (hero dedupe), #136 (landing polish) | as filed | M |
+| 18 | golangci cache split for LSP vs CLI (T19 follow-up, host wrapper) | LOW | S |
+| 19 | Push cadence per task (14:26 report e4) — today again accumulated a held-back commit | MED | process |
+| 20 | Post-release: confirm dependabot alerts auto-close for js-yaml/svgo/fast-uri | LOW | S |
+
+## g) Questions I cannot answer myself
+
+1. **#6 closure policy**: wait for @zutto's confirmation on real 2K hardware (current state), or close now on shipped-code evidence with a "reopen if the 2K misbehaves" note?
+2. **Release cadence**: cut v0.4.1 now-ish with the post-tag work (model output in `device`/webStatus, permission warning, VM test), or accumulate toward a meatier v0.5?
+3. **Website auto-deploy**: may I ask you to add `FIREBASE_SERVICE_ACCOUNT` (and pick trigger scope — every master vs tags only), after which I wire the deploy job?
+
+---
+
+_Point-in-time snapshot — will go stale. §f feeds `TODO_LIST.md` via docs-health HARVEST when resuming._
