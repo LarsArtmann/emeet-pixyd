@@ -4,7 +4,6 @@
   src,
   version,
   templ,
-  go_1_27,
   ...
 }:
 buildGoModule {
@@ -12,8 +11,6 @@ buildGoModule {
   inherit version;
 
   inherit src;
-
-  go = go_1_27;
 
   vendorHash = "sha256-Her301HadgDLXpZld8pX9VS1w8S2xsDpBtYr07oJfOM=";
   proxyVendor = true;

@@ -92,6 +92,7 @@
                 version
                 ;
               inherit (pkgs) templ;
+              buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_27; };
             };
             default = config.packages.emeet-pixyd;
           };
@@ -119,14 +120,13 @@
           checks = {
             build = config.packages.default;
 
-            lint = pkgs.buildGoModule {
+            lint = (pkgs.buildGoModule.override { go = pkgs.go_1_27; }) {
               pname = "emeet-pixyd-lint";
               inherit version;
               src = checkSrc;
               vendorHash = "sha256-Her301HadgDLXpZld8pX9VS1w8S2xsDpBtYr07oJfOM=";
               proxyVendor = true;
               doCheck = false;
-              go = pkgs.go_1_27;
 
               nativeBuildInputs = [
                 pkgs.templ
