@@ -1,0 +1,49 @@
+name: Website build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - website/**
+      - .github/workflows/website.yml
+  pull_request:
+    branches: [master]
+    paths:
+      - website/**
+      - .github/workflows/website.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm (version pinned via packageManager in package.json)
+        run: corepack enable
+
+      - name: Cache pnpm store
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('website/pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      # Frozen install doubles as the lockfile-drift guard: any manifest
+      # change without a regenerated lockfile fails here, not at deploy time.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (astro + CSP hash patch)
+        run: pnpm run build
+
+      - name: Verify output
+        run: |
+          pages=$(find dist -name index.html | wc -l)
+          echo "Built $pages pages"
+          if [ "$pages" -lt 19 ]; then
+            echo "ERROR: expected at least 19 pages, got $pages"
+            exit 1
+          fi
