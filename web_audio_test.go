@@ -22,7 +22,7 @@ func TestWeb_AudioWithValidModes(t *testing.T) {
 
 			resp := post(t, server.URL+"/api/audio/"+mode, "application/json", strings.NewReader("{}"))
 
-			defer resp.Body.Close() //nolint:errcheck
+			defer resp.Body.Close()
 
 			assertStatusCode(t, resp, http.StatusOK)
 		})
@@ -35,7 +35,7 @@ func TestWeb_AudioInvalidMode(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/audio/blorp", "application/json", strings.NewReader("{}"))
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	assertResponseContains(t, resp, "status-panel", "still returns panel even on invalid mode")
@@ -67,7 +67,7 @@ func TestWeb_SnapshotNoDevice(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/api/snapshot")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	assertResponseContains(t, resp, "no frame available", "503 body")
@@ -120,7 +120,7 @@ func TestWeb_UnknownRouteReturns404(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/api/nonexistent")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusNotFound)
 }
@@ -131,7 +131,7 @@ func TestWeb_HealthEndpoint(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/api/health")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	body := getBody(t, resp)
@@ -145,7 +145,7 @@ func TestWeb_HealthEndpointOnline(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/api/health")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	body := getBody(t, resp)

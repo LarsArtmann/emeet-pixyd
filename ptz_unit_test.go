@@ -60,7 +60,7 @@ func TestPTZAxisUnit(t *testing.T) {
 func TestPTZAxisValue(t *testing.T) {
 	t.Parallel()
 
-	status := webStatus{PTZValues: {Pan: -10, Tilt: 5, Zoom: 200}}
+	status := webStatus{Pan: -10, Tilt: 5, Zoom: 200}
 	if got, ok := status.Get(pixy.AxisPan); got != -10 || !ok {
 		t.Errorf("pan value = (%d, %v), want (-10, true)", got, ok)
 	}

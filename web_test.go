@@ -28,7 +28,7 @@ func TestWeb_IndexReturnsHTML(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	body := getBody(t, resp)
@@ -43,7 +43,7 @@ func TestWeb_IndexShowsOfflineWhenNoDevice(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 	assertContains(t, body, "Offline", "offline badge")
@@ -56,7 +56,7 @@ func TestWeb_IndexShowsOnlineWithDevice(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 	assertContains(t, body, "Online", "online badge")
@@ -69,7 +69,7 @@ func TestWeb_PanelReturnsHTMLFragment(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 	assertContains(t, body, "status-panel", "panel has status-panel div")
@@ -84,7 +84,7 @@ func TestWeb_PanelReflectsDaemonState(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 	assertContains(t, body, "privacy", "panel shows privacy state")
@@ -97,7 +97,7 @@ func TestWeb_AutoToggleOff(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/auto", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	daemon.mu.Lock()
@@ -116,7 +116,7 @@ func TestWeb_AutoToggleOn(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/auto", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	daemon.mu.Lock()
@@ -134,7 +134,7 @@ func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/auto", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	daemon.mu.Lock()
 	if !daemon.state.AutoMode.IsOff() {
@@ -143,7 +143,7 @@ func TestWeb_AutoToggleRoundTrip(t *testing.T) {
 	daemon.mu.Unlock()
 
 	resp2 := post(t, server.URL+"/api/auto", "", nil)
-	defer resp2.Body.Close() //nolint:errcheck
+	defer resp2.Body.Close()
 
 	daemon.mu.Lock()
 	if daemon.state.AutoMode.IsOff() {
@@ -158,7 +158,7 @@ func TestWeb_GestureToggleEndpoint(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/gesture", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 }
@@ -169,7 +169,7 @@ func TestWeb_GestureToggleReturnsPanel(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/gesture", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertResponseContains(t, resp, "status-panel", "gesture response is panel fragment")
 }
@@ -205,7 +205,7 @@ func TestWeb_ProbeEndpoint(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/probe", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 	assertResponseContains(t, resp, "status-panel", "probe returns panel")
@@ -217,7 +217,7 @@ func TestWeb_SyncEndpointNoDevice(t *testing.T) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+"/api/sync", "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 }
@@ -229,7 +229,7 @@ func TestWeb_IndexContainsCameraButtons(t *testing.T) {
 	srv := newTestWebServer(t, daemon)
 
 	resp := get(t, srv.URL+"/")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 	html := body
@@ -273,7 +273,7 @@ func TestWeb_PanelEndpointReturnsStatusPanel(t *testing.T) {
 	srv := newTestWebServer(t, daemon)
 
 	resp := get(t, srv.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertHTTPStatusOK(t, resp)
 
@@ -308,7 +308,7 @@ func TestWeb_PanelShowsPresetsWhenOnline(t *testing.T) {
 	srv := newTestWebServer(t, daemon)
 
 	resp := get(t, srv.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 
@@ -327,7 +327,7 @@ func TestWeb_PanelHidesPresetsWhenOffline(t *testing.T) {
 	srv := newTestWebServer(t, daemon)
 
 	resp := get(t, srv.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	body := getBody(t, resp)
 
@@ -345,7 +345,7 @@ func TestWeb_PresetSaveRejectsInvalidName(t *testing.T) {
 	longName := strings.Repeat("a", pixy.MaxPresetNameLength+1)
 
 	resp := post(t, srv.URL+"/api/preset/save/"+longName, "application/json", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusBadRequest)
 }
@@ -366,7 +366,7 @@ func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 
 	// Save
 	resp := post(t, srv.URL+"/api/preset/save/testpreset", "application/json", strings.NewReader("{}"))
-	resp.Body.Close() //nolint:errcheck
+	resp.Body.Close()
 	assertStatusCode(t, resp, http.StatusOK)
 
 	d.mu.RLock()
@@ -379,12 +379,12 @@ func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 
 	// Load
 	resp = post(t, srv.URL+"/api/preset/load/testpreset", "application/json", strings.NewReader("{}"))
-	resp.Body.Close() //nolint:errcheck
+	resp.Body.Close()
 	assertStatusCode(t, resp, http.StatusOK)
 
 	// Delete
 	resp = post(t, srv.URL+"/api/preset/delete/testpreset", "application/json", strings.NewReader("{}"))
-	resp.Body.Close() //nolint:errcheck
+	resp.Body.Close()
 	assertStatusCode(t, resp, http.StatusOK)
 
 	d.mu.RLock()

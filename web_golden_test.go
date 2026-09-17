@@ -210,7 +210,7 @@ func getPanelBody(t *testing.T, server *httptest.Server) string {
 	t.Helper()
 
 	resp := get(t, server.URL+"/panel")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("expected 200, got %d", resp.StatusCode)
