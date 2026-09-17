@@ -217,9 +217,36 @@ PTZ is controlled via V4L2 `v4l2-ctl`, not HID:
 
 ---
 
+## Official Implementation Cross-Check (2026-09-17)
+
+The official EMEET STUDIO 2.0.3 app's HID stack (symbols extracted from the
+macOS binary — see **`hid-protocol-official-map.md`** for the full command map)
+validates our findings and adds context:
+
+- The official app wraps the same 0x09-prefixed report family in two framing
+  headers (`EMHidCmdV1Head`/`EMHidCmdV2Head`) with dedicated receive FSMs
+  (`EMHidCmdV1/V2RecvFsm`). Our config/commit reports correspond to the
+  V1-era framing.
+- Camera mode = `CMD_SET_DEVICE_MODE` with a `DeviceMode` enum — matches our
+  iface `0x01` mode bytes (idle 0 / tracking 1 / privacy 2).
+- Gesture is richer officially: `CMD_SET/GET_GESTURE_RECOG_STA` is keyed by a
+  `GestureType`; our single toggle is iface `0x04` with an on/off byte.
+- The official app drives PTZ motors **over HID** (`CMD_SET/GET_MOTOR_POS`,
+  `CMD_SET_MOTOR_SPEED`, preset slots, power-on default) in parallel to V4L2 —
+  our V4L2-only PTZ is one of two valid paths.
+- They run a persistent HID read thread and pause it before writes during
+  firmware upgrades (`[HID_RACE_FIX]` log strings) — the read/write
+  interleaving hazard our open-per-operation `SendRecv` avoids by design.
+- The daemon's 9-byte reports and 64-byte reads sit well inside their
+  report-size expectations (their parse entry points are
+  `(const u8* data, u8 len, ...)`).
+
+---
+
 ## References
 
 - `hid.go` — HID constants, buffer construction, response parsing
 - `device.go` — High-level state-change functions (`setTracking`, `setAudio`, `setGesture`)
 - `probe.go` — Device identification and sysfs walking
 - `ptz.go` — V4L2 PTZ control (separate from HID)
+- `hid-protocol-official-map.md` — official app command surface ↔ ours (full classification)

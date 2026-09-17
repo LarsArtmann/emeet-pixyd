@@ -123,3 +123,57 @@ func TestIntegration_AudioCycle(t *testing.T) {
 		}
 	}
 }
+
+// TestIntegration_BatteryProbe explores whether the wired PIXY answers a HID
+// battery query (official app: CMD_GET_BATTERY_LEVEL → u8 level, only the macOS
+// build carries the HID form — see docs/hid-protocol-official-map.md §4/#139).
+// The exact query framing is unknown, so this sweeps the known 4-byte query
+// dialect ([0x09, iface, X, Y] — the shape of the tracking/audio queries) over
+// all interfaces and logs every well-formed response. It never sends the
+// 9-byte config + commit form, so it cannot change device state; privacy is
+// re-asserted afterwards as a belt-and-suspenders restore.
+//
+// Verdict table: any response with 0x09 prefix from a non-{0x01,0x04,0x05}
+// interface is a candidate battery/info surface → feed findings into TODO #144.
+func TestIntegration_BatteryProbe(t *testing.T) {
+	probeResult := probeDevices()
+
+	if probeResult.HidrawDev == "" {
+		t.Skip("no PIXY hidraw device found — connect hardware to run this test")
+	}
+
+	d := newTestDaemon(t, pixy.StatePrivacy, probeResult.VideoDev, probeResult.HidrawDev)
+	dev := newHIDRawDevice(probeResult.HidrawDev)
+
+	knownIfaces := map[byte]bool{
+		hidInterfaceTracking: true,
+		hidInterfaceGesture:  true,
+		hidInterfaceAudio:    true,
+	}
+
+	for iface := byte(0x00); iface <= 0x07; iface++ {
+		for _, tail := range [][2]byte{{0x01, 0x01}, {0x00, 0x04}, {0x02, 0x01}} {
+			resp, err := dev.SendRecv(t.Context(), []byte{cameraConfigPrefix, iface, tail[0], tail[1]})
+			if err != nil {
+				t.Logf("iface %#02x tail %v: error: %v", iface, tail, err)
+				continue
+			}
+
+			if len(resp) == 0 {
+				continue
+			}
+
+			status := "UNKNOWN-IFACE"
+			if knownIfaces[iface] {
+				status = "known-iface"
+			}
+
+			t.Logf("iface %#02x tail %v: %s resp=%x", iface, tail, status, resp)
+		}
+	}
+
+	// Restore a known camera state regardless of what the probe stirred up.
+	if result := d.handleCommand(t.Context(), "privacy"); result.IsError() {
+		t.Logf("privacy restore failed: %v", result)
+	}
+}
