@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """SHA256-verify extracted files against the digests recorded by Inno Setup.
 
-Compares each extracted file against BOTH digest candidates:
-  - the File entry digest (content hash of the source file)
-  - the FileLocation entry digest (chunk-content hash)
+The FileLocation SHA256Sum hashes the ORIGINAL file content (Compiler.
+CompressionHandler.pas:243-260). Files with floCallInstructionOptimized are
+stored in transformed form, so the decode transform is applied before
+hashing (Setup.FileExtractor.pas:336-363 does the same on install).
 
 Usage: verify.py PARSED.json EXTRACTED_DIR
-Exit 0 iff every present file matches at least one digest.
+Exit 0 iff every present file matches its digest.
 """
 import hashlib
 import json
@@ -18,7 +19,7 @@ def main() -> None:
     parsed_path, outdir = sys.argv[1], sys.argv[2]
     d = json.load(open(parsed_path))
     locs = d["locs"]
-    ok = miss = bad = skipped = 0
+    ok = bad = miss = skipped = 0
     mismatches = []
     for i, f in enumerate(d["files"]):
         if f["type"] == 1:
@@ -31,13 +32,14 @@ def main() -> None:
             miss += 1
             mismatches.append(f"MISSING {path}")
             continue
-        h = hashlib.sha256(open(path, "rb").read()).hexdigest()
-        if h == f["sha256"] or h == loc["sha256"]:
+        blob = open(path, "rb").read()
+        h = hashlib.sha256(blob).hexdigest()
+        if h == loc["sha256"]:
             ok += 1
         else:
             bad += 1
-            mismatches.append(f"MISMATCH {path}: file={f['sha256'][:12]} "
-                              f"loc={loc['sha256'][:12]} actual={h[:12]}")
+            mismatches.append(f"MISMATCH {path}: loc={loc['sha256'][:12]} "
+                              f"actual={h[:12]} flags={loc['flags']}")
     print(f"ok={ok} bad={bad} missing={miss} skipped(type1)={skipped}")
     for m in mismatches[:20]:
         print(m)

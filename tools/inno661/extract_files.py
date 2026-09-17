@@ -15,6 +15,8 @@ import os
 import sys
 import time
 
+from calltransform import FLO_CALL_INSTRUCTION_OPTIMIZED, decode_stored
+
 
 def main() -> None:
     installer, parsed_path, offsets_path = sys.argv[1:4]
@@ -55,6 +57,8 @@ def main() -> None:
             pending += dec.decompress(chunk_in[in_pos:in_pos + in_step])
             in_pos += in_step
         blob, pending = pending[:orig], pending[orig:]
+        if loc["flags"] & FLO_CALL_INSTRUCTION_OPTIMIZED:
+            blob = decode_stored(blob, call_optimized=True)
         with open(path, "wb") as out:
             out.write(blob)
         written += len(blob)
