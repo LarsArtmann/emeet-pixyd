@@ -39,7 +39,7 @@ func postPTZSignals(
 	if respErr != nil {
 		t.Fatalf("POST %s: %v", path, respErr)
 	}
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
 
@@ -184,7 +184,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 
 	// When user sets pan to 50 via the web interface
 	resp, body := postPTZSignals(t, server, "/api/ptz/pan", "50")
-	resp.Body.Close() //nolint:errcheck
+	resp.Body.Close()
 
 	// Then the response contains a signal patch (not full panel HTML)
 	assertCommandContains(t, body, "datastar-patch-signals", "signal patch response")
@@ -212,7 +212,7 @@ func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 
 	// When user tries to set pan
 	resp, html := postPTZSignals(t, server, "/api/ptz/pan", "50")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertHTTPStatusOK(t, resp)
 
@@ -259,7 +259,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 
 			// When user sets the axis value via the web slider
 			resp, html := postPTZSignals(t, server, "/api/ptz/"+tc.axis, tc.value)
-			resp.Body.Close() //nolint:errcheck
+			resp.Body.Close()
 
 			// Then the HTTP response is OK and contains the signal patch
 			assertHTTPStatusOK(t, resp)

@@ -82,7 +82,7 @@ func TestProperty_RangeClamp_IdentityInBounds(t *testing.T) {
 func TestProperty_ValidatePresetName_ValidNamesAccepted(t *testing.T) {
 	t.Parallel()
 
-	r := rand.New(rand.NewSource(42)) //nolint:gosec // test-only deterministic seed
+	r := rand.New(rand.NewSource(42))
 
 	for range 5000 {
 		name := generateValidPresetName(r)
@@ -96,7 +96,7 @@ func TestProperty_ValidatePresetName_ValidNamesAccepted(t *testing.T) {
 func TestProperty_ValidatePresetName_LongNamesRejected(t *testing.T) {
 	t.Parallel()
 
-	r := rand.New(rand.NewSource(99)) //nolint:gosec // test-only deterministic seed
+	r := rand.New(rand.NewSource(99))
 
 	for range 500 {
 		base := generateValidPresetName(r)
@@ -112,7 +112,7 @@ func TestProperty_ValidatePresetName_LongNamesRejected(t *testing.T) {
 func TestProperty_ValidatePresetName_PathSeparatorsRejected(t *testing.T) {
 	t.Parallel()
 
-	r := rand.New(rand.NewSource(7)) //nolint:gosec // test-only deterministic seed
+	r := rand.New(rand.NewSource(7))
 
 	for range 500 {
 		base := generateValidPresetName(r)
@@ -130,7 +130,7 @@ func TestProperty_ValidatePresetName_PathSeparatorsRejected(t *testing.T) {
 func TestProperty_ValidatePresetName_ControlCharsRejected(t *testing.T) {
 	t.Parallel()
 
-	r := rand.New(rand.NewSource(13)) //nolint:gosec // test-only deterministic seed
+	r := rand.New(rand.NewSource(13))
 
 	controlChars := []rune{'\n', '\t', '\r', 0, 0x1F, 0x7F}
 

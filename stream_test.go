@@ -43,7 +43,7 @@ func TestHandleStream_SemaphoreFull(t *testing.T) {
 	defer func() { <-d.streamSema }()
 
 	resp := getStream(t, server.URL+"/api/stream")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
@@ -58,7 +58,7 @@ func TestHandleStream_NoDevice(t *testing.T) {
 	t.Cleanup(server.Close)
 
 	resp := getStream(t, server.URL+"/api/stream")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
@@ -76,7 +76,7 @@ func TestHandleStream_NoFFmpeg(t *testing.T) {
 	// This test passes if ffmpeg is not found (503) or if it is found
 	// but the stream fails for another reason (we can't control that in CI)
 	resp := getStream(t, server.URL+"/api/stream")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	// Either 503 (no ffmpeg) or 200 (ffmpeg available) is acceptable
 	// We're mainly testing that the handler doesn't panic
@@ -95,7 +95,7 @@ func TestHandleSnapshot_NoFrame(t *testing.T) {
 	t.Cleanup(server.Close)
 
 	resp := getStream(t, server.URL+"/api/snapshot")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 }
@@ -111,7 +111,7 @@ func TestHandleSnapshot_WithFrame(t *testing.T) {
 	t.Cleanup(server.Close)
 
 	resp := getStream(t, server.URL+"/api/snapshot")
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected 200, got %d", resp.StatusCode)

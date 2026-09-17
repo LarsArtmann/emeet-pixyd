@@ -169,7 +169,7 @@ func assertEndpointsReturnNonOK(t *testing.T, serverURL, method string, endpoint
 				t.Fatalf("%s %s: %v", method, ep, err)
 			}
 
-			resp.Body.Close() //nolint:errcheck
+			resp.Body.Close()
 
 			if resp.StatusCode == http.StatusOK {
 				t.Errorf("%s %s should not be 200, got %d", method, ep, resp.StatusCode)
@@ -288,7 +288,7 @@ func testPTZEndpoint(t *testing.T, path, body string, expectedStatus int) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+path, "application/json", strings.NewReader(body))
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, expectedStatus)
 }
@@ -299,7 +299,7 @@ func testWebEndpointReturnsOK(t *testing.T, endpoint string) {
 	server := newTestWebServer(t, daemon)
 
 	resp := post(t, server.URL+endpoint, "", nil)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusOK)
 }
@@ -310,7 +310,7 @@ func testGETEndpoint503(t *testing.T, path string) {
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+path)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close()
 
 	assertStatusCode(t, resp, http.StatusServiceUnavailable)
 	assertResponseContains(t, resp, "no camera device", "503 body")

@@ -65,7 +65,7 @@ func (r *statusRecorder) Push(target string, opts *http.PushOptions) error {
 		return http.ErrNotSupported
 	}
 
-	return pusher.Push(target, opts) //nolint:wrapcheck // delegate to underlying Pusher
+	return pusher.Push(target, opts)
 }
 
 func (r *statusRecorder) Flush() {

@@ -114,7 +114,7 @@ func TestSSEEndpoint_PTZReturnsPatchSignals(t *testing.T) {
 		t.Fatalf("POST /api/ptz/pan: %v", err)
 	}
 
-	defer resp.Body.Close() //nolint:errcheck // test cleanup
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)

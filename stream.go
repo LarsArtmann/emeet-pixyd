@@ -268,6 +268,37 @@ func (s *webServer) writeFrames(
 	}
 }
 
+// scanForSOI consumes bytes until a JPEG Start-of-Image marker pair is found.
+// On success the SOI bytes are written to buf (reset first) and true is
+// returned. A lone marker byte is unread so the caller can re-examine it.
+func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
+	b, err := br.ReadByte()
+	if err != nil {
+		return false, fmt.Errorf("read byte: %w", err)
+	}
+
+	if b != jpegMarker {
+		return false, nil
+	}
+
+	next, nextErr := br.ReadByte()
+	if nextErr != nil {
+		return false, fmt.Errorf("read soi next: %w", nextErr)
+	}
+
+	switch next {
+	case jpegSOI:
+		buf.Reset()
+		buf.Write([]byte{jpegMarker, jpegSOI})
+
+		return true, nil
+	case jpegMarker:
+		_ = br.UnreadByte()
+	}
+
+	return false, nil
+}
+
 func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 	const maxIterations = 10 * 1024 * 1024
 
@@ -285,30 +316,20 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 			soiFound = false
 		}
 
+		if !soiFound {
+			found, err := scanForSOI(br, buf)
+			if err != nil {
+				return nil, err
+			}
+
+			soiFound = found
+
+			continue
+		}
+
 		b, err := br.ReadByte()
 		if err != nil {
 			return nil, fmt.Errorf("read byte: %w", err)
-		}
-
-		if !soiFound {
-			if b == jpegMarker {
-				next, nextErr := br.ReadByte()
-				if nextErr != nil {
-					return nil, fmt.Errorf("read soi next: %w", nextErr)
-				}
-
-				switch next {
-				case jpegSOI:
-					buf.Reset()
-					buf.Write([]byte{jpegMarker, jpegSOI})
-
-					soiFound = true
-				case jpegMarker:
-					_ = br.UnreadByte()
-				}
-			}
-
-			continue
 		}
 
 		buf.WriteByte(b)
