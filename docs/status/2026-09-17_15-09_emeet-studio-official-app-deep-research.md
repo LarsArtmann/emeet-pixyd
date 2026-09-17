@@ -1,5 +1,13 @@
 # EMEET Studio Official-App Deep Research — Status
 
+> **✅ RESOLVED (2026-09-17, later session):** Windows extraction **completed** — the
+> patched-innoextract path was abandoned in favor of a pure-Python parser built from the
+> authoritative Inno Setup 6.6.1 sources (format fully decoded; all 2,211 payload files
+> extracted from the solid LZMA chunk at `Offset1`). The comparison report — the actual
+> deliverable — is **written: `docs/emeet-studio-official-app-comparison.md`**, and the
+> top gaps are triaged as TODO_LIST #138–#141. The notes below are the historical
+> mid-research snapshot (open questions at the end are all answered there).
+
 **2026-09-17 15:09 CEST** — requested by user. All times CEST.
 
 ## Executive summary
