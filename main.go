@@ -45,6 +45,12 @@ type Daemon struct {
 	autoError     error
 	lastSyncedAt  time.Time
 
+	// hadPersistedState records whether a valid state file existed at
+	// startup. It distinguishes "the user has expressed intent" (persisted
+	// camera mode wins over hardware on device re-appear) from "fresh
+	// install" (hardware is the source of truth).
+	hadPersistedState bool
+
 	lastFrame lastFrameCache
 
 	ptzCache ptzCache
@@ -102,7 +108,8 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	// Persisted state wins on subsequent restarts; env-configured defaults apply
 	// only on first run (no valid state file present). This way EMEET_PIXYD_AUTO
 	// and EMEET_PIXYD_DEFAULT_AUDIO seed initial state, then the daemon takes over.
-	if !d.loadState() {
+	d.hadPersistedState = d.loadState()
+	if !d.hadPersistedState {
 		d.state.AutoMode = cfg.AutoMode
 		d.state.Audio = cfg.DefaultAudio
 	}
@@ -193,6 +200,19 @@ func (d *Daemon) Run() {
 	)
 	d.mu.Unlock()
 
+	// The camera may have been power-cycled while the daemon was down (or
+	// boots with the daemon): reconcile belief and hardware without blocking
+	// startup. hidMu serializes this against commands and autoManage.
+	if d.videoDevice() != "" {
+		go func() {
+			d.hidMu.Lock()
+			defer d.hidMu.Unlock()
+
+			slog.Info("device present at startup, reconciling state with hardware")
+			d.reconcileOnDeviceAppear(ctx)
+		}()
+	}
+
 	d.eventLoop(ctx, cancel, sigs, httpSrv)
 }
 
@@ -279,9 +299,9 @@ func (d *Daemon) eventLoop(
 			d.broadcastStateChanged()
 
 			if oldVideo == "" && newVideo != "" {
-				slog.Info("device appeared, syncing state")
+				slog.Info("device appeared, reconciling state")
 
-				_ = d.syncState(ctx)
+				d.reconcileOnDeviceAppear(ctx)
 			}
 			d.v4l2Mu.Unlock()
 			d.hidMu.Unlock()

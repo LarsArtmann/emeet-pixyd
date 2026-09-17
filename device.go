@@ -200,6 +200,35 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 		log.Warn("tracking query failed", "error", trackingErr)
 	}
 
+	changed = d.adoptSecondaryStateLocked(audio, audioErr, gesture, gestureErr) || changed
+
+	d.lastSyncedAt = time.Now()
+
+	if changed {
+		d.saveStateOrLog("failed to save synced state")
+		d.mu.Unlock()
+		d.broadcastStateChanged()
+
+		return okResult("synced (state updated from camera)")
+	}
+
+	d.mu.Unlock()
+
+	return okResult("synced (no changes)")
+}
+
+// adoptSecondaryStateLocked applies queried audio and gesture values to
+// daemon state, logging (but not propagating) query failures. It reports
+// whether any value changed. Caller must hold d.mu.
+func (d *Daemon) adoptSecondaryStateLocked(
+	audio pixy.AudioMode,
+	audioErr error,
+	gesture bool,
+	gestureErr error,
+) bool {
+	log := slog.With("device", d.hidrawDev)
+	changed := false
+
 	if audioErr == nil && audio.Valid() {
 		if d.state.Audio != audio {
 			log.Info("state sync: audio changed", "believed", d.state.Audio, "actual", audio)
@@ -220,19 +249,71 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 		log.Warn("gesture query failed", "error", gestureErr)
 	}
 
-	d.lastSyncedAt = time.Now()
+	return changed
+}
 
-	if changed {
-		d.saveStateOrLog("failed to save synced state")
-		d.mu.Unlock()
-		d.broadcastStateChanged()
-
-		return okResult("synced (state updated from camera)")
+// reconcileOnDeviceAppear aligns daemon belief and hardware when the device
+// becomes reachable (daemon startup or hotplug re-appear).
+//
+// Fresh install (no persisted state existed at startup): hardware is the
+// source of truth, belief is adopted from it, so a fresh daemon tells the
+// truth about the lens instead of assuming privacy while the camera is on.
+//
+// Otherwise the persisted camera mode is the user's intent: a hardware mode
+// that differs (power cycles and replugs reset the camera to its boot
+// default) is re-asserted, so privacy and manual choices survive reboots.
+// Audio and gesture always adopt from hardware; the boot defaults are
+// acceptable and carry no privacy dimension.
+//
+// Every failure path logs and keeps the current belief; nothing here is
+// fatal. Callers hold d.hidMu (HID access is serialized).
+func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
+	if d.videoDevice() == "" {
+		return
 	}
 
+	d.mu.RLock()
+	hadPersistedState := d.hadPersistedState
+	believed := d.state.Camera
+	d.mu.RUnlock()
+
+	if !hadPersistedState {
+		_ = d.syncState(ctx)
+
+		return
+	}
+
+	actual, queryErr := d.queryTracking(ctx)
+	if queryErr != nil {
+		slog.Warn("reconcile: camera query failed, keeping persisted mode", "error", queryErr)
+
+		return
+	}
+
+	if !actual.Valid() || actual == pixy.StateOffline {
+		slog.Warn("reconcile: hardware reported unusable camera mode, keeping persisted mode", "actual", actual)
+
+		return
+	}
+
+	if actual != believed {
+		slog.Info("reconcile: hardware differs from persisted camera mode, re-asserting", "persisted", believed, "hardware", actual)
+
+		if setErr := d.setTracking(ctx, believed); setErr != nil {
+			slog.Error("reconcile: failed to re-assert persisted camera mode", "mode", believed, "error", setErr)
+		}
+	}
+
+	audio, audioErr := d.queryAudio(ctx)
+	gesture, gestureErr := d.queryGesture(ctx)
+
+	d.mu.Lock()
+	if d.adoptSecondaryStateLocked(audio, audioErr, gesture, gestureErr) {
+		d.saveStateOrLog("failed to save reconciled state")
+	}
 	d.mu.Unlock()
 
-	return okResult("synced (no changes)")
+	d.broadcastStateChanged()
 }
 
 func (d *Daemon) getStatus(ctx context.Context) string {
