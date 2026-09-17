@@ -202,15 +202,15 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 
 All config is via environment variables (no CLI flags — `os.Args` is reserved for socket commands):
 
-| Variable                     | Default            | Description                                                                 |
-| ---------------------------- | ------------------ | --------------------------------------------------------------------------- |
-| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)                               |
-| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)                                      |
-| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)                               |
-| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change                                       |
-| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`                                   |
+| Variable                     | Default            | Description                                                                                               |
+| ---------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------- |
+| `EMEET_PIXYD_STATE_DIR`      | `/run/emeet-pixyd` | Runtime state directory (socket + state.json)                                                             |
+| `EMEET_PIXYD_WEB_ADDR`       | `127.0.0.1:8090`   | Web UI listen address (localhost only)                                                                    |
+| `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)                                                             |
+| `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change                                                                     |
+| `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`                                                                 |
 | `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off (manual, no /proc monitoring), full, tracking-only, privacy-only (legacy: true/1, false/0) |
-| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                           |
+| `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                                                         |
 
 ### NixOS Module Options
 
@@ -285,15 +285,15 @@ static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 
 ## Troubleshooting
 
-| Problem                           | Solution                                                                                     |
-| --------------------------------- | -------------------------------------------------------------------------------------------- |
-| `PIXY not connected`              | Check USB connection, run `lsusb \| grep 328f`. Ensure udev rules are loaded.                |
+| Problem                           | Solution                                                                                                                |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `PIXY not connected`              | Check USB connection, run `lsusb \| grep 328f`. Ensure udev rules are loaded.                                           |
 | `Permission denied` on hidraw     | Verify udev rules match vendor `328f`, product `00c0` (PIXY) or `0118` (PIXY 2K). Run `udevadm control --reload-rules`. |
-| `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                              |
-| No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                           |
-| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                    |
-| Web UI shows "Camera in use"      | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open.              |
-| Debounce too slow                 | Reduce `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) or `EMEET_PIXYD_POLL_INTERVAL` (default 2s). |
+| `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                                                         |
+| No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                                                      |
+| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                                               |
+| Web UI shows "Camera in use"      | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open.                                         |
+| Debounce too slow                 | Reduce `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) or `EMEET_PIXYD_POLL_INTERVAL` (default 2s).                            |
 
 ## Development
 

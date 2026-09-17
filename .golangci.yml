@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.26.4
+  go: 1.26.7
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -132,9 +132,17 @@ linters:
     ginkgolinter:
       forbid-focus-container: true
       forbid-spec-pollution: true
+    gocognit:
+      min-complexity: 25
+    goconst:
+      ignore-tests: true
+      min-len: 4
+      min-occurrences: 5
     gocritic:
       disabled-checks:
         - ifElseChain
+    gocyclo:
+      min-complexity: 20
     gomoddirectives:
       replace-local: true
     gosec:
@@ -162,12 +170,25 @@ linters:
     mnd:
       ignored-numbers:
         - "2"
+    nestif:
+      min-complexity: 6
     revive:
       rules:
         - disabled: true
           name: exported
         - disabled: true
           name: package-comments
+    tagalign:
+      align: false
+      order:
+        - binding
+        - json
+        - yaml
+        - xml
+        - toml
+        - validate
+        - mapstructure
+      sort: true
     testifylint:
       disable:
         - go-require
@@ -202,6 +223,34 @@ linters:
         - c
         - id
       ignore-type-assert-ok: true
+    wrapcheck:
+      ignore-sig-regexps:
+        - encoding/json
+        - fmt\.
+        - errors\.
+        - slices\.
+        - maps\.
+        - sort\.
+        - time\.
+        - net/http
+        - os\.
+        - io\.
+        - strings\.
+        - strconv\.
+        - path\.
+        - filepath\.
+        - compress/gzip
+        - \(context\.Context\)\.Err
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
   exclusions:
     generated: lax
     rules:
@@ -215,18 +264,27 @@ linters:
           - goconst
           - err113
           - noinlineerr
+          - forcetypeassert
+          - gosec
+          - errcheck
+          - wrapcheck
+          - ireturn
+          - recvcheck
+          - contextcheck
+          - exhaustive
       - path: _test\.go
         text: unused
         linters:
           - unused
       - path: ^main\.go$
-        text: "package has more than one godoc"
+        text: package has more than one godoc
         linters:
           - godoclint
     paths:
       - \./
       - \.gen\.go$
       - _templ\.go$
+      - fake_.*\.go$
       - vendor/
 formatters:
   enable:
@@ -242,6 +300,7 @@ formatters:
     paths:
       - \./
       - _templ\.go$
+      - fake_.*\.go$
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
