@@ -4,7 +4,7 @@
   src,
   version,
   templ,
-  replaceBrandedId,
+  go_1_27,
   ...
 }:
 buildGoModule {
@@ -13,10 +13,10 @@ buildGoModule {
 
   inherit src;
 
+  go = go_1_27;
+
   vendorHash = "sha256-Her301HadgDLXpZld8pX9VS1w8S2xsDpBtYr07oJfOM=";
   proxyVendor = true;
-
-  GOEXPERIMENT = "jsonv2";
 
   doCheck = false;
 
@@ -24,7 +24,6 @@ buildGoModule {
 
   preBuild = ''
     templ generate
-    ${replaceBrandedId}
   '';
 
   ldflags = [
