@@ -163,9 +163,19 @@
               pkgs.go_1_27
               pkgs.golangci-lint
               pkgs.templ
+              pkgs.git
             ];
 
             GOWORK = "off";
+
+            shellHook = ''
+              # Install the pre-commit lint gate (idempotent, store-linked so
+              # it always tracks the committed script). Works with both the
+              # default .git/hooks and a configured core.hooksPath.
+              hook_path="$(git rev-parse --git-path hooks/pre-commit)"
+              mkdir -p "$(dirname "$hook_path")"
+              ln -sfn "${./scripts/pre-commit}" "$hook_path"
+            '';
           };
         };
 
