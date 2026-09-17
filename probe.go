@@ -15,11 +15,6 @@ import (
 
 const (
 	pixyVendorIDInt = 0x328f
-	// PIXY USB product IDs: 0x00c0 is the original PIXY, 0x0118 is the
-	// PIXY 2K variant. Both expose the same HID control interface and V4L2
-	// controls (issue #6).
-	pixyProductIDOriginalInt = 0x00c0
-	pixyProductID2KInt       = 0x0118
 
 	// ueventWarnInterval bounds how often the absent-uevent probe WARN is
 	// repeated per path. One hour: the condition is stable while the device
@@ -41,18 +36,12 @@ func isPixyName(name string) bool {
 		strings.Contains(name, "PIXY")
 }
 
-// isPixyProductID reports whether a parsed USB product ID belongs to a
-// supported EMEET PIXY model (original or 2K).
-func isPixyProductID(product int64) bool {
-	return product == pixyProductIDOriginalInt || product == pixyProductID2KInt
-}
-
-// matchesPixyID reports whether ueventData contains a "prefix=v/p/..." line
-// (separated by sep) where vendor and product (at the given indices) match
-// the PIXY USB IDs. It scans all lines with that prefix; a match anywhere
+// pixyModelFromUevent reports which PIXY model a "prefix=v/p/..." line
+// (separated by sep) in ueventData identifies, where vendor and product sit
+// at the given indices. It scans all lines with that prefix; a match anywhere
 // counts, but lines that don't have enough parts are skipped (not treated
 // as a mismatch — uevent files can have spurious continuation lines).
-func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx int) bool {
+func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int) (pixy.Model, bool) {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
 		value, ok := strings.CutPrefix(line, prefix)
 		if !ok {
@@ -67,19 +56,19 @@ func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx 
 		vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
 		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
 
-		if vErr == nil && pErr == nil &&
-			vendor == int64(pixyVendorIDInt) && isPixyProductID(product) {
-			return true
+		if model, isPixy := pixy.ModelFromProductID(product); vErr == nil && pErr == nil &&
+			vendor == int64(pixyVendorIDInt) && isPixy {
+			return model, true
 		}
 	}
 
-	return false
+	return "", false
 }
 
-func probeVideo4linux(sysfsPath string) string {
+func probeVideo4linux(sysfsPath string) (string, pixy.Model) {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
-		return ""
+		return "", ""
 	}
 
 	for _, entry := range entries {
@@ -105,18 +94,18 @@ func probeVideo4linux(sysfsPath string) string {
 			continue
 		}
 
-		if matchesPixyID(ueventData, "PRODUCT=", "/", 0, 1) {
-			return videoPath
+		if model, isPixy := pixyModelFromUevent(ueventData, "PRODUCT=", "/", 0, 1); isPixy {
+			return videoPath, model
 		}
 	}
 
-	return ""
+	return "", ""
 }
 
-func probeHidraw(sysfsPath string) string {
+func probeHidraw(sysfsPath string) (string, pixy.Model) {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
-		return ""
+		return "", ""
 	}
 
 	for _, entry := range entries {
@@ -132,36 +121,46 @@ func probeHidraw(sysfsPath string) string {
 		}
 
 		for line := range strings.SplitSeq(string(ueventData), "\n") {
-			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-				if isPixyName(hidName) && matchesPixyID(ueventData, "HID_ID=", ":", 1, 2) {
-					return hidrawPath
+				if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
+					if model, isPixy := pixyModelFromUevent(ueventData, "HID_ID=", ":", 1, 2); isPixy &&
+						isPixyName(hidName) {
+						return hidrawPath, model
+					}
 				}
 			}
 		}
-	}
 
-	return ""
-}
+		return "", ""
+	}
 
 type probeResult struct {
 	VideoDev  string
 	HidrawDev string
+	Model     pixy.Model
 }
 
 func probeDevices() probeResult {
 	recordProbe()
 
+	videoDev, videoModel := probeVideo4linux("/sys/class/video4linux")
+	hidrawDev, hidrawModel := probeHidraw("/sys/class/hidraw")
+
 	result := probeResult{
-		VideoDev:  probeVideo4linux("/sys/class/video4linux"),
-		HidrawDev: probeHidraw("/sys/class/hidraw"),
+		VideoDev:  videoDev,
+		HidrawDev: hidrawDev,
+		Model:     hidrawModel,
 	}
+	if result.Model == "" {
+		result.Model = videoModel
+	}
+
 	switch {
 	case result.VideoDev != "" && result.HidrawDev != "":
-		slog.Info("found PIXY device", "video", result.VideoDev, "hidraw", result.HidrawDev)
+		slog.Info("found PIXY device", "model", result.Model, "video", result.VideoDev, "hidraw", result.HidrawDev)
 	case result.VideoDev != "" && result.HidrawDev == "":
-		slog.Warn("partial PIXY device: video found but no hidraw", "video", result.VideoDev)
+		slog.Warn("partial PIXY device: video found but no hidraw", "model", result.Model, "video", result.VideoDev)
 	case result.VideoDev == "" && result.HidrawDev != "":
-		slog.Warn("partial PIXY device: hidraw found but no video", "hidraw", result.HidrawDev)
+		slog.Warn("partial PIXY device: hidraw found but no video", "model", result.Model, "hidraw", result.HidrawDev)
 	}
 
 	return result
@@ -174,6 +173,7 @@ func probeDevices() probeResult {
 func (d *Daemon) applyProbeResultLocked(r probeResult) {
 	d.videoDev = r.VideoDev
 	d.hidrawDev = r.HidrawDev
+	d.model = r.Model
 
 	if r.HidrawDev != "" {
 		d.hidDev = newHIDRawDevice(r.HidrawDev)

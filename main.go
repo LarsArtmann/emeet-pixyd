@@ -34,6 +34,7 @@ type Daemon struct {
 	config    pixy.Config
 	videoDev  string
 	hidrawDev string
+	model     pixy.Model
 	hidDev    HIDDevice
 
 	// Debounce counters: number of consecutive polls observing a stable

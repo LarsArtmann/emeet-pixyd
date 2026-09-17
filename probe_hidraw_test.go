@@ -24,11 +24,15 @@ func TestProbeHidraw_PIXYFound(t *testing.T) {
 	})
 
 	// When probing
-	result := probeHidraw(root)
+	result, model := probeHidraw(root)
 
 	// Then the PIXY hidraw is found
 	if result != testHIDDev {
 		t.Errorf("expected /dev/hidraw7, got %s", result)
+	}
+
+	if model != pixy.ModelOriginal {
+		t.Errorf("model = %q, want %q", model, pixy.ModelOriginal)
 	}
 }
 
@@ -46,10 +50,14 @@ func TestProbeHidraw_PIXY2KFound(t *testing.T) {
 		},
 	})
 
-	result := probeHidraw(root)
+	result, model := probeHidraw(root)
 
 	if result != "/dev/hidraw8" {
 		t.Errorf("expected /dev/hidraw8, got %s", result)
+	}
+
+	if model != pixy.Model2K {
+		t.Errorf("model = %q, want %q", model, pixy.Model2K)
 	}
 }
 
@@ -72,7 +80,7 @@ func TestProbeHidraw_NoPIXY(t *testing.T) {
 	})
 
 	// When probing
-	result := probeHidraw(root)
+	result, _ := probeHidraw(root)
 
 	// Then nothing is found
 	if result != "" {
@@ -87,7 +95,7 @@ func TestProbeHidraw_EmptyDir(t *testing.T) {
 	root := t.TempDir()
 
 	// When probing
-	result := probeHidraw(root)
+	result, _ := probeHidraw(root)
 
 	// Then nothing is found
 	if result != "" {
@@ -99,7 +107,7 @@ func TestProbeHidraw_NonexistentDir(t *testing.T) {
 	t.Parallel()
 
 	// Given a nonexistent sysfs path
-	result := probeHidraw("/nonexistent/path/hidraw")
+	result, _ := probeHidraw("/nonexistent/path/hidraw")
 
 	// Then nothing is found
 	if result != "" {
@@ -136,7 +144,7 @@ func TestProbeHidraw_MixedDevices(t *testing.T) {
 	})
 
 	// When probing
-	result := probeHidraw(root)
+	result, _ := probeHidraw(root)
 
 	// Then the PIXY is found
 	if result != testHIDDev {
@@ -156,7 +164,7 @@ func TestProbeHidraw_NoUeventFile(t *testing.T) {
 	}
 
 	// When probing
-	result := probeHidraw(root)
+	result, _ := probeHidraw(root)
 
 	// Then nothing is found (graceful skip)
 	if result != "" {

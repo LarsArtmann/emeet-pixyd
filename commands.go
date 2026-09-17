@@ -177,14 +177,19 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 		d.mu.RLock()
 		dev := d.videoDev
 		hid := d.hidrawDev
+		model := d.model
 		d.mu.RUnlock()
 
 		if dev != "" {
+			parts := []string{dev}
 			if hid != "" {
-				return okResult(dev + " " + hid)
+				parts = append(parts, hid)
+			}
+			if model != "" {
+				parts = append(parts, string(model))
 			}
 
-			return okResult(dev)
+			return okResult(strings.Join(parts, " "))
 		}
 
 		return okResult(respDeviceNotFound)

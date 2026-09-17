@@ -14,6 +14,7 @@ type webStatus struct {
 	Auto        pixy.AutoMode
 	Online      bool
 	Device      string
+	Model       string
 	Error       string
 	LastSynced  string
 	Toast       string
