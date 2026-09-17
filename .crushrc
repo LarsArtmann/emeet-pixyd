@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Project-local Crush config.
+#
+# go.mod requires go >= 1.27.1, but the host (NixOS) still ships go 1.26.5
+# and a golangci-lint built with 1.26 — both LSPs fail with
+# "go.mod requires go >= 1.27.1" / "can't load config". Until the host
+# catches up, run the LSPs on current nixpkgs toolchains (nix-cached after
+# the first build). Drop this file when the host go reaches 1.27.
+
+GO_1_27="$(nix build nixpkgs#go_1_27 --print-out-paths --no-link)"
+GOLANGCI_LS="$(nix build nixpkgs#golangci-lint-langserver --print-out-paths --no-link)"
+
+lsp add gopls \
+	--command gopls \
+	--env PATH "$GO_1_27/bin:$PATH" \
+	--timeout 60 \
+	--init-options '{"analyses":{"stdversion":false}}' \
+	--options '{"analyses":{"stdversion":false}}'
+
+lsp add golangci_lint_ls \
+	--command "$HOME/.local/bin/golangci-lint-lsp-wrapper" \
+	--env PATH "$GOLANGCI_LS/bin:$GO_1_27/bin:$PATH"
