@@ -297,7 +297,11 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 	}
 
 	if actual != believed {
-		slog.Info("reconcile: hardware differs from persisted camera mode, re-asserting", "persisted", believed, "hardware", actual)
+		slog.Info(
+			"reconcile: hardware differs from persisted camera mode, re-asserting",
+			"persisted", believed,
+			"hardware", actual,
+		)
 
 		if setErr := d.setTracking(ctx, believed); setErr != nil {
 			slog.Error("reconcile: failed to re-assert persisted camera mode", "mode", believed, "error", setErr)
