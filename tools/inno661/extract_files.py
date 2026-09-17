@@ -38,11 +38,10 @@ def main() -> None:
         loc = locs[f["loc"]]
         dest = f["dest"].replace("{app}", "").replace("{tmp}", "_tmp")
         path = os.path.join(outdir, dest.lstrip("\\"))
-        targets.append((loc["sub"], loc["orig"], path, i))
+        targets.append((loc["sub"], loc["orig"], loc["flags"], path, i))
     targets.sort()
     print(f"{len(targets)} files, total {sum(t[1] for t in targets) / 1e6:.1f} MB",
           flush=True)
-
     dec = lzma.LZMADecompressor(
         format=lzma.FORMAT_RAW,
         filters=[{"id": lzma.FILTER_LZMA1, "dict_size": 0x800000}])
@@ -51,13 +50,13 @@ def main() -> None:
     pending = b""
     t0 = time.time()
     written = 0
-    for sub, orig, path, idx in targets:
+    for sub, orig, flags, path, idx in targets:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         while (len(pending) < orig and not dec.eof and in_pos < len(chunk_in)):
             pending += dec.decompress(chunk_in[in_pos:in_pos + in_step])
             in_pos += in_step
         blob, pending = pending[:orig], pending[orig:]
-        if loc["flags"] & FLO_CALL_INSTRUCTION_OPTIMIZED:
+        if flags & FLO_CALL_INSTRUCTION_OPTIMIZED:
             blob = decode_stored(blob, call_optimized=True)
         with open(path, "wb") as out:
             out.write(blob)
