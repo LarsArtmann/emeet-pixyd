@@ -4,6 +4,10 @@
 # Blocks any commit that touches Go or templ sources until golangci-lint
 # is clean. This ends the "ungated auto-commit turns master red" failure
 # class (ratelimit.go 2026-09-17 morning, the go-1.27 bump the same day).
+#
+# Prefers the nix devShell's golangci-lint: the system binary may be built
+# with an older Go than go.mod requires (go.mod >= 1.27.1 vs host 1.26.5
+# made the host binary reject the config on 2026-09-17).
 set -euo pipefail
 
 staged="$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(go|templ)$' || true)"
@@ -12,13 +16,18 @@ if [ -z "$staged" ]; then
 	exit 0
 fi
 
-if ! command -v golangci-lint >/dev/null 2>&1; then
-	echo "pre-commit: golangci-lint not found — enter the nix devShell first (nix develop)" >&2
-	exit 1
-fi
-
-# Whole-module run: single files fail typecheck without package context.
-export GOWORK=off
+run_lint() {
+	if command -v nix >/dev/null 2>&1 && [ -f flake.nix ]; then
+		nix develop -c bash -c 'export GOWORK=off; golangci-lint run --timeout 2m ./...'
+	else
+		command -v golangci-lint >/dev/null 2>&1 || {
+			echo "pre-commit: golangci-lint not found — enter the nix devShell first (nix develop)" >&2
+			exit 1
+		}
+		export GOWORK=off
+		golangci-lint run --timeout 2m ./...
+	fi
+}
 
 echo "pre-commit: golangci-lint (staged: $(echo "$staged" | tr '\n' ' '))"
-golangci-lint run --timeout 2m ./...
+run_lint

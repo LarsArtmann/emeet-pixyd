@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -164,6 +165,39 @@ func probeDevices() probeResult {
 	}
 
 	return result
+}
+
+// warnInaccessibleDevices checks that the probed device nodes are actually
+// openable. A device present in sysfs but denied in /dev (missing udev
+// rules, wrong group) otherwise only surfaces later as cryptic
+// "Permission denied" errors on the first HID command or stream start.
+func warnInaccessibleDevices(r probeResult) {
+	check := func(path, kind string) {
+		file, err := os.OpenFile(path, os.O_RDWR, 0)
+		if err == nil {
+			_ = file.Close()
+
+			return
+		}
+
+		if errors.Is(err, os.ErrPermission) {
+			slog.Warn(
+				kind+" device present but not accessible — install the udev rules (NixOS module) or add your user to the required group",
+				"device",
+				path,
+				"error",
+				err,
+			)
+		}
+	}
+
+	if r.HidrawDev != "" {
+		check(r.HidrawDev, "hidraw")
+	}
+
+	if r.VideoDev != "" {
+		check(r.VideoDev, "video")
+	}
 }
 
 // applyProbeResultLocked updates the daemon's view of the PIXY device from a

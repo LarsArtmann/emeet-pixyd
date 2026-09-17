@@ -54,3 +54,35 @@ func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //nolint:paralle
 		t.Fatalf("expected exactly 1 rate-limited warn across 3 probes, got %d (buffer: %q)", got, buf.String())
 	}
 }
+
+// TestWarnInaccessibleDevices_HintsOnPermissionDenied proves a device node
+// that exists but cannot be opened produces an actionable warning naming the
+// udev fix, instead of a later cryptic "Permission denied" HID error.
+func TestWarnInaccessibleDevices_HintsOnPermissionDenied(t *testing.T) { //nolint:paralleltest // mutates global slog
+	if os.Geteuid() == 0 {
+		t.Skip("running as root — permission bits do not block opens")
+	}
+
+	var buf bytes.Buffer
+
+	prev := slog.Default()
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+	t.Cleanup(func() { slog.SetDefault(prev) })
+
+	locked := filepath.Join(t.TempDir(), "hidraw9")
+	if err := os.WriteFile(locked, nil, 0o000); err != nil {
+		t.Fatal(err)
+	}
+
+	warnInaccessibleDevices(probeResult{HidrawDev: locked})
+
+	out := buf.String()
+	if !strings.Contains(out, "not accessible") {
+		t.Errorf("expected accessibility warning, got %q", out)
+	}
+
+	if !strings.Contains(out, "udev") {
+		t.Errorf("warning lacks the udev fix hint: %q", out)
+	}
+}

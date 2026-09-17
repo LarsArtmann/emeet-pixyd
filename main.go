@@ -119,7 +119,9 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	registerErrorFamilies()
 	// NewDaemon runs before any goroutines exist, so we can call the
 	// _Locked variant directly without taking d.mu.
-	d.applyProbeResultLocked(probeDevices())
+	probe := probeDevices()
+	d.applyProbeResultLocked(probe)
+	warnInaccessibleDevices(probe)
 	checkExternalDeps(d.deps.commander)
 
 	return d, nil
