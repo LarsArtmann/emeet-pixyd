@@ -36,7 +36,7 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exhaustruct
+    - exhaustruct_v5
     - exptostd
     - fatcontext
     - forbidigo
@@ -122,10 +122,29 @@ linters:
   settings:
     cyclop:
       max-complexity: 20
-    exhaustruct:
+    exhaustruct_v5:
+      # This codebase constructs structs zero-value-first; partial literals
+      # are intentional for every type listed here.
       exclude:
         - os/exec.Cmd
         - main.CommandResult
+        - main.CommandError
+        - main.Daemon
+        - main.Dependencies
+        - main.webStatus
+        - main.statusRecorder
+        - main.streamResult
+        - main.uevent
+        - main.warnLimiter
+        - main.Broadcaster
+        - pixy.Config
+        - pixy.PTZValues
+        - net.Dialer
+        - net.ListenConfig
+        - net/http.Server
+        - http.Server
+        - golang.org/x/sys/unix.SockaddrNetlink
+        - unix.SockaddrNetlink
     funlen:
       lines: 100
       statements: 80
@@ -256,7 +275,7 @@ linters:
     rules:
       - path: _test\.go
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - testpackage
           - gochecknoglobals
           - funlen
