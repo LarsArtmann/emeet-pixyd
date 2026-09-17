@@ -1,6 +1,6 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-08-18 (website relaunch deployed + cert active — see `CHANGELOG.md` for details)
+**Updated:** 2026-09-17 (issue #6: PIXY 2K support + manual-mode docs — see `CHANGELOG.md` for details)
 
 > Completed work lives in `CHANGELOG.md` — it does NOT live here. Long-term ideas, design-heavy items, "decided won't-do" decisions, and open questions live in `ROADMAP.md`. This file is **open work only**.
 
@@ -36,6 +36,7 @@
 | 134 | ⬜ TODO | **Pin `typescript@6.x` in website `package.json`** until `astro check` supports TS7 (typescript@7.0.2 from dep refresh f398829 dropped the programmatic API `astro check` needs — it crashes repo-wide)                                                                   | LOW    | S      | `2026-08-17_18-53` §d; workaround was standalone `tsc --strict`                                                            |
 | 135 | ⬜ TODO | **Unify hero terminal code** — `website/src/data/hero-code.ts` (copy-button source) and the hardcoded `highlightedCode` string in `HeroSection.astro` duplicate the same terminal content; they drift silently (survived one near-miss: "Zoom to 120x" fix needed both)   | LOW    | S      | `HeroSection.astro:24-39` + `hero-code.ts`; found while fixing the zoom copy                                               |
 | 136 | ⬜ TODO | **Landing polish**: `VideoObject` JSON-LD for `demo.mp4` (SEO), PNG→webp screenshot compression, mobile + dark/light QA of ShowcaseSection, dedicated poster frame from t=2 instead of reusing the viewport screenshot                                                    | LOW    | M      | `2026-08-17_18-53` §f (15, 12, 16-17, 30)                                                                                  |
+| 137 | ⬜ TODO | **Decide device-reappear semantics: re-assert persisted camera state vs adopt hardware state.** Today a hotplug/uevent device-appear calls `syncState` (adopt), so after a reboot or USB replug the persisted `privacy`/`tracking` belief is silently replaced by the hardware default (lens re-opens) — weakening the privacy guarantee and the manual-mode persistence promised in issue #6. Options: re-assert believed state on appear (stronger privacy), or keep adopt + document. Needs a design decision first | MED     | S/M    | `main.go` eventLoop `case <-ueventCh:` → `syncState(ctx)`; surfaced by issue #6 review 2026-09-17 |
 
 ---
 
