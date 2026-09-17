@@ -135,6 +135,17 @@ hid_write`** shows they hit (and patched) the same hidapi concurrent read/write 
 the _Linux automation_ side (right mode at the right time, zero interaction). The PIXY's
 headline motor/auto-tracking tricks are accessible from both.
 
+**Zoom (and call apps) specifically:** the official app has **zero call-app awareness** —
+no `zoom.us`/`Zoom.exe`/`InMeeting`/process-detection strings on either platform; every
+"zoom" hit is camera zoom (`softZoom`/`hardwareZoom`, UVC zoom params, `PreviewZoom.qml`,
+`remote status:ZoomState` = wireless camera zoom state; Teams/Skype/Discord: 0 hits).
+Their model: you manually pick "EMEET STUDIO Virtual Camera" inside Zoom; the app never
+knows a call is happening. emeet-pixyd detects Zoom generically — `isCameraInUse`
+(`process.go:95`) flags *any* non-self process holding `/dev/videoX`: native Zoom opens
+the device directly; Flatpak Zoom routes via xdg-desktop-portal/PipeWire, where the
+PipeWire daemon holds the fd while streaming, so it is detected too (attribution differs,
+detection does not). Same mechanism covers Teams-web, browsers, and everything else.
+
 ---
 
 ## 4. Actionable Intelligence for emeet-pixyd
