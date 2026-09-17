@@ -194,8 +194,9 @@ parsing (no C++ needed in the end):
   stream start (`Compression.LZMA1SmallDecompressor.pas` — no size field → Python
   `lzma.FORMAT_RAW` with matching dict).
 - TSetupHeader 6.6.1: 34 strings + 4 ansi + 17 counts (ISSigKey count between Dir and
-  File) + 2×10 version + 63 bytes of tail ints/enums + 6-byte options set (46 flags).
-  Strings are u32-length + UTF-16LE.
+  File) + 2×10 version + **56 bytes** of tail ints/enums + 6-byte options set (46 flags).
+  Strings are u32-length + UTF-16LE. (Erratum: an earlier revision said 63 tail bytes;
+  the per-field record in `Shared.Struct.pas:120-137` sums to 56.)
 - Entry order stream 1: Language(4str+4ansi+19B) → CustomMessage(2str+4B) → Permission →
   Type/Component/Task → Dir(7str+27B) → ISSigKey(3str) → **File**(15str+1ansi+77B incl.
   SHA256+verification enum) → **Icon**(13str+48B) → Ini → Registry → Deletes →
@@ -205,9 +206,21 @@ parsing (no C++ needed in the end):
   assumption).
 - All 2,211 files live in **one solid LZMA chunk** (347.8 MB original → 136.2 MB stored)
   at `Offset1+9`; `ChunkSuboffset`/`OriginalSize` locate each file inside it.
-- Working Python toolchain in `/tmp/emeet/`: `extract_setup0.py`, `setup0_parse.py`,
-  `finish_parse.py`, `extract_files.py`, outputs `parsed.json` / `locations.json` /
-  `win/` (full payload).
+- **Call-instruction optimization**: PE files flagged `floCallInstructionOptimized`
+  (flags bit 2) are stored with CALL/JMP ($E8/$E9) rel32s transformed
+  (`Compression.Base.pas` `TransformCallInstructions`, processed in 64 KB blocks with
+  a cumulative wrapping AddrOffset). The FileLocation SHA256 hashes the *decoded*
+  original — extraction must apply the inverse transform to reproduce installed files
+  (as `Setup.FileExtractor.pas:336-363` does on install).
+- **Cryptographic verification (2026-09-17)**: the toolchain in `tools/inno661/`
+  (supersedes the `/tmp/emeet/` originals) decodes the transform and verifies **all
+  2,211 payload files SHA256-match the digests Inno itself recorded** (`verify.py`
+  exit 0). The extraction is proven byte-perfect; the earlier `/tmp/emeet/win` tree
+  was stored-form (strings-equivalent, not installed-form) and is superseded.
+- Working Python toolchain preserved in **`tools/inno661/`** (README with full format
+  notes; `data/parsed.json` + `data/setup0_offsets.json` committed so the format
+  knowledge survives without the installer). The innoextract C++ patch approach was
+  abandoned one bug short — the Python path won.
 
 ### 5.2 Windows driver install flow (their own bats, heavily commented)
 

@@ -381,3 +381,13 @@ The `website/` directory contains an Astro + Starlight documentation site deploy
 - **Node 24** (`.node-version`); **TypeScript strict** — but `astro check` crashes on typescript@7.0.2, use standalone `tsc --strict` until pinned (TODO #134)
 
 ---
+
+## Research Artifacts (official EMEET STUDIO 2.0.3 reverse engineering, 2026-09-17)
+
+- **`docs/emeet-studio-official-app-comparison.md`** — the deliverable: official Windows EXE + macOS PKG vs emeet-pixyd (architecture, device matrix, HID surface, gap recommendations, Inno 6.6.1 RE notes §5, quirks §5.3, Zoom-call-detection section in §3).
+- **`tools/inno661/`** — pure-Python Inno Setup 6.6.1 extractor (README = full format spec; `data/parsed.json` + `data/setup0_offsets.json` committed). **All 2,211 payload files SHA256-verified against Inno's own digests** (`verify.py` exit 0). Includes `calltransform.py` — the CALL/JMP rel32 transform port (stored-form ≠ installed-form for PE files).
+- **`docs/hid-protocol-official-map.md`** — official `CMD_*` surface ↔ our `hid.go` mapping (unlocks TODO #138–#141).
+- **Ephemeral, dies with reboot (`/tmp/emeet/`)**: both installers (EXE 132 MB + PKG 307 MB), extracted payloads (`win/` stored-form, `win_verify/` decoded+verified, `mac/` 870 MB), `main_strings.txt`/`win_strings.txt` (37/17 MB strings dumps — the raw source for HID-command greps), `issrc-full/` (Inno 6.6.1 Pascal sources), `win_cmds.txt`/`mac_cmds.txt` (condensed CMD lists). Re-obtainable: installers from emeet.ai, payload via `tools/inno661`, sources from GitHub tag `is-6_6_1`. Archiving the payload is Lars's open decision (asked 2026-09-17 18:43).
+- **Failed approaches (do NOT retry)**: wine/wineWow installer runs (GUI crash at FPreparingMemo), C++ innoextract patch (abandoned one bug short — Python won), zlib block decompression (blocks are LZMA1), `lzma.FORMAT_ALONE` (stream has no size field — use FORMAT_RAW after stripping 5 props bytes).
+
+---
