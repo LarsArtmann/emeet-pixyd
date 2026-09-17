@@ -33,7 +33,7 @@ emeet-pixyd --help                  # show CLI usage
 
 ### CI
 
-GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out`, `nix flake check`, and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`, `FuzzHandleConfigAndCommit`) on ubuntu-latest. All Go steps use `GOWORK: off` and `GOEXPERIMENT: jsonv2`. Generated `_templ.go` files are gitignored — CI runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
+GitHub Actions (`go-test.yml`): `go vet`, `templ generate`, `golangci-lint run --timeout 2m`, `govulncheck`, then `go test -race -count=1 -coverprofile=coverage.out` and fuzz targets (`FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`, `FuzzHandleConfigAndCommit`) on ubuntu-latest. The nix gate lives in the separate `nix.yml` workflow (installs nix via DeterminateSystems, runs `nix flake check --no-build` + `nix build`) — do NOT duplicate `nix flake check` into `go-test.yml`; a copy without the nix installer silently failed every master push from 2026-08-03 to 2026-09-17 (`nix: command not found`). All Go steps use `GOWORK: off` and `GOEXPERIMENT: jsonv2`. Generated `_templ.go` files are committed (Nix build compatibility) — CI still runs `templ generate` before lint/test. All dependencies are on the public Go module proxy — no `GOPRIVATE` needed.
 
 ---
 

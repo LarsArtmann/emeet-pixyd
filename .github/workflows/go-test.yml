@@ -65,13 +65,6 @@ jobs:
             exit 1
           fi
 
-      - name: Nix flake check
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: nix --extra-experimental-features 'nix-command flakes' flake check
-
       - name: Cache fuzz corpus
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -81,7 +74,7 @@ jobs:
 
       - name: Fuzz
         run: |
-          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue FuzzWriteSSEEvent; do
+          for target in FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue FuzzReadSignals FuzzHandleConfigAndCommit; do
             echo "Fuzzing $target for 60s ..."
             go test -fuzz=$target -fuzztime=60s .
           done
