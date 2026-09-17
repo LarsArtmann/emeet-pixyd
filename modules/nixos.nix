@@ -32,7 +32,7 @@ in
       default = "full";
       description = ''
         Automatic camera management strategy:
-          off            — no automatic actions
+          off            — manual control: no /proc monitoring, camera keeps whatever mode you set
           full           — tracking + noise cancellation + PipeWire source on call start, privacy on call end
           tracking-only  — face tracking on call start, privacy on call end (no audio/source switching)
           privacy-only   — privacy mode on call end (no call-start activation)
@@ -58,10 +58,11 @@ in
 
   config = lib.mkIf cfg.enable {
     services.udev.extraRules = ''
-      # EMEET PIXY HID access for camera control (tracking, audio, gesture, privacy)
-      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="328f", ATTRS{idProduct}=="00c0", GROUP="video", MODE="0660", TAG+="uaccess"
+      # EMEET PIXY HID access for camera control (tracking, audio, gesture, privacy).
+      # 00c0 = PIXY, 0118 = PIXY 2K (issue #6).
+      KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="328f", ATTRS{idProduct}=="00c0|0118", GROUP="video", MODE="0660", TAG+="uaccess"
       # EMEET PIXY video device access
-      SUBSYSTEM=="video4linux", ATTRS{idVendor}=="328f", ATTRS{idProduct}=="00c0", GROUP="video", MODE="0660", TAG+="uaccess"
+      SUBSYSTEM=="video4linux", ATTRS{idVendor}=="328f", ATTRS{idProduct}=="00c0|0118", GROUP="video", MODE="0660", TAG+="uaccess"
     '';
 
     systemd.tmpfiles.rules = [

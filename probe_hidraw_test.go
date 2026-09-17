@@ -32,6 +32,27 @@ func TestProbeHidraw_PIXYFound(t *testing.T) {
 	}
 }
 
+func TestProbeHidraw_PIXY2KFound(t *testing.T) {
+	t.Parallel()
+
+	// PIXY 2K (328f:0118) reports the same HID layout as the original
+	// (issue #6); only the product ID differs.
+	root := t.TempDir()
+	createFakeHidraw(t, root, []fakeHidrawDev{
+		{
+			name:    "hidraw8",
+			hidID:   "0003:0000328F:00000118",
+			hidName: "EMEET EMEET PIXY 2K",
+		},
+	})
+
+	result := probeHidraw(root)
+
+	if result != "/dev/hidraw8" {
+		t.Errorf("expected /dev/hidraw8, got %s", result)
+	}
+}
+
 func TestProbeHidraw_NoPIXY(t *testing.T) {
 	t.Parallel()
 
@@ -154,6 +175,16 @@ func TestHasPixyProduct(t *testing.T) {
 		{
 			"compact hex (kernel format)",
 			"DEVTYPE=usb_interface\nPRODUCT=328f/c0/2004\n",
+			true,
+		},
+		{
+			"PIXY 2K compact hex",
+			"DEVTYPE=usb_interface\nPRODUCT=328f/118/2004\n",
+			true,
+		},
+		{
+			"PIXY 2K leading zeros",
+			"DEVTYPE=usb_interface\nPRODUCT=328f/0118/2004\n",
 			true,
 		},
 		{

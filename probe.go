@@ -14,8 +14,12 @@ import (
 )
 
 const (
-	pixyVendorIDInt  = 0x328f
-	pixyProductIDInt = 0x00c0
+	pixyVendorIDInt = 0x328f
+	// PIXY USB product IDs: 0x00c0 is the original PIXY, 0x0118 is the
+	// PIXY 2K variant. Both expose the same HID control interface and V4L2
+	// controls (issue #6).
+	pixyProductIDOriginalInt = 0x00c0
+	pixyProductID2KInt       = 0x0118
 
 	// ueventWarnInterval bounds how often the absent-uevent probe WARN is
 	// repeated per path. One hour: the condition is stable while the device
@@ -33,6 +37,12 @@ func isPixyName(name string) bool {
 	return strings.Contains(name, "EMEET") ||
 		strings.Contains(name, "Pixy") ||
 		strings.Contains(name, "PIXY")
+}
+
+// isPixyProductID reports whether a parsed USB product ID belongs to a
+// supported EMEET PIXY model (original or 2K).
+func isPixyProductID(product int64) bool {
+	return product == pixyProductIDOriginalInt || product == pixyProductID2KInt
 }
 
 // matchesPixyID reports whether ueventData contains a "prefix=v/p/..." line
@@ -56,7 +66,7 @@ func matchesPixyID(ueventData []byte, prefix, sep string, vendorIdx, productIdx 
 		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
 
 		if vErr == nil && pErr == nil &&
-			vendor == int64(pixyVendorIDInt) && product == int64(pixyProductIDInt) {
+			vendor == int64(pixyVendorIDInt) && isPixyProductID(product) {
 			return true
 		}
 	}

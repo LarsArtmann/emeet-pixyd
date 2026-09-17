@@ -67,9 +67,25 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withAutoOff())
+	// auto=off is the manual mode: the /proc usage monitor must not even
+	// run (issue #6) — camera modes set via CLI/socket/web just persist.
+	monitorCalled := false
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev,
+		withAutoOff(),
+		func(d *Daemon) {
+			d.deps.isCameraInUse = func(_ string) bool {
+				monitorCalled = true
+
+				return true
+			}
+		},
+	)
 
 	d.autoManage(context.Background())
+
+	if monitorCalled {
+		t.Error("auto=off must not scan /proc for camera usage")
+	}
 
 	assertInCall(t, d, false)
 	camera := readCameraState(d)

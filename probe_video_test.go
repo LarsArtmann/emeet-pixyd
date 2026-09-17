@@ -20,6 +20,15 @@ func TestProbeVideo4linux_PIXYFound(t *testing.T) {
 	})
 }
 
+func TestProbeVideo4linux_PIXY2KFound(t *testing.T) {
+	t.Parallel()
+
+	// PIXY 2K (328f:0118) — kernel compact hex product form (issue #6).
+	testV4L2ProbesPIXY(t, []fakeVideoDev{
+		{name: testVideoDev0, product: "328f/118/0100", index: "0"},
+	})
+}
+
 func TestProbeVideo4linux_PIXYOnlyCaptureNode(t *testing.T) {
 	t.Parallel()
 
