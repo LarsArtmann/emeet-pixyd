@@ -104,7 +104,9 @@ def parse_prefix(r: Reader):
     for n in COUNT_NAMES:
         counts[n] = r.i32()
     r.raw(20)   # MinVersion + OnlyBelowVersion
-    r.raw(63)   # tail ints/enums (wizard size/styles/colors/space/disk/log/dir/priv/lang/compress/pages/size)
+    r.raw(56)   # tail: WizardSize(8)+DarkStyle(1)+AlphaFormat(1)+BackColors(8)
+                # +DynDark(8)+Opacity(1)+ExtraDiskSpace(8)+SlicesPerDisk(4)
+                # +7 enums(7)+DisableDir/GroupPage(2)+UninstallDisplaySize(8)
     hdr["Options"] = int.from_bytes(r.raw(6), "little")
     langs = []
     for _ in range(counts["Language"]):
@@ -168,12 +170,17 @@ def parse_files(r: Reader, count: int):
 
 
 def parse_rest(r: Reader, counts):
-    for _ in range(counts["Icon"]):
-        r.rdentry(13, 48)
-    for _ in range(counts["Run"]):
-        r.rdentry(13, 27)
-    for _ in range(counts["UninstallRun"]):
-        r.rdentry(13, 27)
+    icons = [r.rdentry(13, 48) for _ in range(counts["Icon"])]
+    for _ in range(counts["Ini"]):
+        r.rdentry(10, 21)   # 20B versions + Options(1)
+    for _ in range(counts["Registry"]):
+        r.rdentry(9, 29)    # 20B versions + RootKey(4) + Permissions(2) + Typ(1) + Options(2)
+    for _ in range(counts["InstallDelete"]):
+        r.rdentry(7, 21)    # 20B versions + DeleteType(1)
+    for _ in range(counts["UninstallDelete"]):
+        r.rdentry(7, 21)
+    runs = [r.rdentry(13, 27) for _ in range(counts["Run"])]
+    uruns = [r.rdentry(13, 27) for _ in range(counts["UninstallRun"])]
     imgs = []
     for g in range(4):
         cnt = r.i32()
@@ -186,7 +193,7 @@ def parse_rest(r: Reader, counts):
             r.raw(max(n, 0))
             sizes.append(n)
         imgs.append({"group": g, "count": cnt, "sizes": sizes})
-    return imgs
+    return icons, runs, uruns, imgs
 
 
 def parse_locations(r: Reader, count: int):

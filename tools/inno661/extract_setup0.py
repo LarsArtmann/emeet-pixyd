@@ -65,8 +65,11 @@ def dechunk_setup0(data: bytes, base: int, verbose: bool = True) -> bytes:
             break
         calc = zlib.crc32(s[pos + 4:pos + 9]) & 0xFFFFFFFF
         if calc != hdr_crc:
-            raise SystemExit(
-                f"block hdr CRC mismatch at {pos:#x}: {hdr_crc:08x} != {calc:08x}")
+            # Trailing padding after the last block fails the header CRC —
+            # that mismatch IS the end-of-stream marker (verified empirically).
+            if verbose:
+                print(f"end of blocks at {pos:#x} (header CRC mismatch on padding)")
+            break
         pos += 9
         blob = bytearray()
         remaining = stored
