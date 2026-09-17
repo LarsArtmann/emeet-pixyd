@@ -128,7 +128,6 @@ func TestAutoOff_ManualCameraModeSurvivesTicks(t *testing.T) {
 		withAutoOff(),
 		withNoopTracking(),
 		withNoopAudio(),
-		withCameraInUse(),
 	)
 
 	d.deps.isCameraInUse = func(string) bool {
@@ -178,7 +177,8 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 	second := newTestDaemon(t, pixy.StateOffline, "", "")
 	second.config.StateDir = stateDir
 
-	if !second.loadState() {
+	second.hadPersistedState = second.loadState()
+	if !second.hadPersistedState {
 		t.Fatal("loadState = false, want true (state file was just written)")
 	}
 

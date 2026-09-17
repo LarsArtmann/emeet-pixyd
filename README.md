@@ -172,6 +172,12 @@ never scans for processes using the camera, so whatever mode you set —
 tracking, idle, or privacy — persists until you change it. No app needs to
 hold the camera open for tracking to stay active.
 
+Your mode even survives reboots, replugs, and camera power cycles: the camera
+resets itself to its boot default when it loses power, and the daemon detects
+this on startup or hotplug and re-applies your persisted mode (so privacy
+mode physically re-blocks the lens after a power cut). Audio and gesture
+settings are adopted from the hardware on replug instead.
+
 This is the right mode for headless or on-demand setups, e.g. a
 [Home Assistant](https://www.home-assistant.io/) voice/vision assistant that
 switches tracking/privacy on demand and grabs focused snapshots via FFmpeg:
