@@ -10,7 +10,7 @@ code (`internal/pixy/`) is the source of truth for these definitions.
 
 | Term            | Definition                                                                               | Context / Where used              |
 | --------------- | ---------------------------------------------------------------------------------------- | --------------------------------- |
-| PIXY            | The EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). The hardware this daemon drives. | Product name, udev rules, probing |
+| PIXY            | The EMEET PIXY dual-camera AI webcam family (original USB `328f:00c0`, PIXY 2K `328f:0118`). The hardware this daemon drives. | Product name, udev rules, probing |
 | Daemon          | The long-running `emeet-pixyd` background service.                                       | systemd unit, lifecycle           |
 | Call            | A video call or camera session. Detected when any process opens `/dev/video*`.           | Auto-management, call detection   |
 | In-Call         | State where the camera device is open by a non-daemon process.                           | `State.InCall`, auto.go           |
@@ -24,6 +24,7 @@ code (`internal/pixy/`) is the source of truth for these definitions.
 | Debounce        | N consecutive polling cycles required before a state transition is committed.            | `DebounceCount`, auto.go          |
 | Probe           | Scan sysfs (`/sys/class/video4linux`, `/sys/class/hidraw`) to find the PIXY.             | `probeDevices()`, probe.go        |
 | Hotplug         | USB plug/unplug event detected via netlink uevent, triggering a re-probe.                | uevent.go                         |
+| Reconcile       | Aligning belief and hardware when the device (re)appears: fresh installs adopt hardware; otherwise the persisted camera mode is re-asserted. | `reconcileOnDeviceAppear`, device.go |
 | HID             | Human Interface Device protocol over `/dev/hidraw*` used for camera control.             | hid.go                            |
 | Config + Commit | The two-phase HID write: a 9-byte config report followed by a 4-byte commit report.      | hid.go, 200ms inter-report delay  |
 | Circuit Breaker | HID failure tracker: 3 consecutive failures trigger a device re-probe.                   | device.go                         |
