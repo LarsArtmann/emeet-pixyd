@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  <strong>Linux-native daemon that makes your PIXY webcam smart:</strong>
+  <strong>A great AI webcam, dumb on Linux — until now. Works with the PIXY and PIXY 2K:</strong>
   <br>
   face tracking on call start · privacy mode on call end · audio switching · DataStar web UI
 </p>
