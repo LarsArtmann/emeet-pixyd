@@ -1,6 +1,6 @@
 # emeet-pixyd
 
-## Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`). Linux-only, x86_64.
+## Auto-activation daemon for the EMEET PIXY dual-camera AI webcam (USB `328f:00c0`; PIXY 2K variant `328f:0118`, issue #6). Linux-only, x86_64.
 
 ## Commands
 
@@ -117,7 +117,7 @@ main() → NewDaemon() → Run()
 - **HID protocol**: Commands are 9-byte config reports followed by a commit report, with a 200ms sleep between them. Responses are 64-byte reads parsed by byte position.
 - **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. State dir defaults to `/run/emeet-pixyd`. State carries a `SchemaVersion` field (`"v"` in JSON) — `loadState` logs a warning when the on-disk version differs from `pixy.CurrentSchemaVersion`, but still loads the data (best-effort backward compatibility). Old state files missing `"v"` load as version 0.
 - **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles).
-- **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` product `00c0`. Device name matching uses shared `isPixyName()` helper in `probe.go`.
+- **Device probing**: Walks `/sys/class/video4linux` and `/sys/class/hidraw` matching vendor `328f` with product `00c0` (PIXY) or `0118` (PIXY 2K) via `isPixyProductID()`. Device name matching uses shared `isPixyName()` helper in `probe.go`.
 - **Uevent listener**: `UeventListener` interface (`uevent.go`) abstracts netlink. Production impl `netlinkUeventListener`; test impl `noopUeventListener`. Context-cancellable; a goroutine closes the netlink fd on cancellation.
 - **Camera presets**: PTZ positions can be saved/recalled by name (CLI: `preset save home`, web: `/api/preset/save/{name}`). Max `pixy.MaxPresets` (16) presets, persisted in `state.json` under `Presets` (`pixy.PresetMap`). Names are validated by `pixy.ValidatePresetName` (non-empty, ≤32 runes, no path separators, no control chars) at both CLI and HTTP save boundaries. `PresetMap.SortedNames()` centralizes the sort-iterate pattern.
 - **PTZ readback**: After each PTZ set, `schedulePTZReadback(ctx, videoDev)` runs a delayed (500ms) hardware readback via `context.WithoutCancel` to correct the cache with the actual motor position.

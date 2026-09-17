@@ -60,7 +60,7 @@ No setup per app. No browser extension. Works with anything that opens `/dev/vid
 
 Skip this daemon if:
 
-- You don't own an EMEET PIXY (`328f:00c0`) — this is hardware-specific, not a generic webcam tool. Reach for [webcamoid](https://webcamoid.github.io/) instead.
+- You don't own an EMEET PIXY (`328f:00c0`) or PIXY 2K (`328f:0118`) — this is hardware-specific, not a generic webcam tool. Reach for [webcamoid](https://webcamoid.github.io/) instead.
 - You're on **macOS or Windows** — this is Linux-only by design (HID hidraw, V4L2, `/proc`, netlink uevents).
 - The camera's own tracking toggle is enough for you — if you never forget to enable it, you don't need a daemon.
 - You want **cloud or AI features** — this is fully local, no network calls, no telemetry.
@@ -163,7 +163,24 @@ The daemon supports four auto-management strategies:
 | `full` (default) | Face tracking + noise cancellation + PipeWire source switch | Privacy mode |
 | `tracking-only`  | Face tracking                                               | Privacy mode |
 | `privacy-only`   | Nothing                                                     | Privacy mode |
-| `off`            | Nothing                                                     | Nothing      |
+| `off`            | — (manual mode, see [Manual Control](#manual-control))      | —            |
+
+### Manual Control
+
+`auto = off` disables the `/proc` call-detection monitor entirely: the daemon
+never scans for processes using the camera, so whatever mode you set —
+tracking, idle, or privacy — persists until you change it. No app needs to
+hold the camera open for tracking to stay active.
+
+This is the right mode for headless or on-demand setups, e.g. a
+[Home Assistant](https://www.home-assistant.io/) voice/vision assistant that
+switches tracking/privacy on demand and grabs focused snapshots via FFmpeg:
+
+```bash
+emeet-pixy auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
+emeet-pixy track            # tracking stays on, no capture required
+emeet-pixy privacy          # physically block the lens when the assistant is idle
+```
 
 ## Web UI
 
@@ -192,7 +209,7 @@ All config is via environment variables (no CLI flags — `os.Args` is reserved 
 | `EMEET_PIXYD_POLL_INTERVAL`  | `2s`               | Call detection polling interval (Go duration)                               |
 | `EMEET_PIXYD_DEBOUNCE_COUNT` | `3`                | Consecutive polls before state change                                       |
 | `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`                                   |
-| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only (legacy: true/1, false/0) |
+| `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off (manual, no /proc monitoring), full, tracking-only, privacy-only (legacy: true/1, false/0) |
 | `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                           |
 
 ### NixOS Module Options
@@ -271,7 +288,7 @@ static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 | Problem                           | Solution                                                                                     |
 | --------------------------------- | -------------------------------------------------------------------------------------------- |
 | `PIXY not connected`              | Check USB connection, run `lsusb \| grep 328f`. Ensure udev rules are loaded.                |
-| `Permission denied` on hidraw     | Verify udev rules match vendor `328f` product `00c0`. Run `udevadm control --reload-rules`.  |
+| `Permission denied` on hidraw     | Verify udev rules match vendor `328f`, product `00c0` (PIXY) or `0118` (PIXY 2K). Run `udevadm control --reload-rules`. |
 | `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                              |
 | No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                           |
 | Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                    |

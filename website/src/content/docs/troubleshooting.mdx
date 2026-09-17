@@ -9,14 +9,14 @@ description: Common problems and solutions
 
 ```bash
 lsusb | grep 328f
-# Should show: Bus 001 Device 004: ID 328f:00c0 ...
+# Should show: Bus 001 Device 004: ID 328f:00c0 ... (or 328f:0118 on the PIXY 2K)
 ```
 
 If not listed, check your USB connection. Try a different cable or port.
 
 ### Permission denied on hidraw
 
-Verify udev rules match vendor `328f` product `00c0`:
+Verify udev rules match vendor `328f` and product `00c0` (PIXY) or `0118` (PIXY 2K):
 
 ```bash
 # Check if the rules are loaded

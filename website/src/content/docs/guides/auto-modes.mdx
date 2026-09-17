@@ -12,7 +12,7 @@ emeet-pixyd supports four auto-management strategies, configured via `EMEET_PIXY
 | `full` (default) | Face tracking + noise cancellation + PipeWire source switch | Privacy mode |
 | `tracking-only`  | Face tracking                                               | Privacy mode |
 | `privacy-only`   | Nothing                                                     | Privacy mode |
-| `off`            | Nothing                                                     | Nothing      |
+| `off`            | — (manual mode, see below)                                  | —            |
 
 ## Changing Modes
 
@@ -71,9 +71,26 @@ With defaults, a call start is detected within ~6 seconds and a call end within 
 2. PipeWire default source restored to previous
 3. Desktop notification sent
 
-## When Auto Mode is Off
+## Manual Mode (`off`)
 
-You can still control everything manually via CLI or web UI. Auto mode only affects the automatic call-start/call-end behavior.
+`off` is the manual mode: the `/proc` call-detection monitor is disabled
+entirely — the daemon never scans for processes using the camera, so whatever
+mode you set (tracking, idle, privacy) persists until you change it. No app
+needs to hold the camera open for tracking to stay active.
+
+This fits headless or on-demand setups, e.g. a
+[Home Assistant](https://www.home-assistant.io/) voice/vision assistant that
+toggles tracking/privacy on demand and grabs focused snapshots via FFmpeg
+without the daemon reacting to each capture:
+
+```bash
+emeet-pixy auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
+emeet-pixy track            # tracking stays on, no capture required
+emeet-pixy privacy          # physically block the lens when idle
+```
+
+You can still control everything manually via CLI, web UI, or HTTP API — auto
+mode only affects the automatic call-start/call-end behavior.
 
 ## Toggle Behavior
 

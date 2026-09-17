@@ -104,7 +104,7 @@
 
 | Feature           | Status                | Notes                                                                              |
 | ----------------- | --------------------- | ---------------------------------------------------------------------------------- |
-| Device Probing    | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0`; `matchesPixyID` unified helper. |
+| Device Probing    | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0` (PIXY) or `0118` (PIXY 2K); `matchesPixyID` unified helper. |
 | Hotplug Detection | 🟢 `FULLY_FUNCTIONAL` | Netlink uevent listener; context-cancellable; retries transient read errors.       |
 
 ## State Persistence

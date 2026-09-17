@@ -7,7 +7,7 @@ The EMEET PIXY exposes a HID interface over `/dev/hidraw*`. The daemon uses this
 
 ## Device Identification
 
-The PIXY presents as USB vendor `328f` product `00c0`. The daemon probes `/sys/class/hidraw` matching this vendor/product pair.
+The PIXY presents as USB vendor `328f` with product `00c0` (original PIXY) or `0118` (PIXY 2K) — both expose the same HID control interface. The daemon probes `/sys/class/hidraw` matching this vendor/product pair.
 
 ## Command Structure
 
