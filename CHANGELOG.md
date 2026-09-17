@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Official-app research deliverable** (`docs/emeet-studio-official-app-comparison.md`): full reverse-engineering comparison of EMEET STUDIO 2.0.3 (Windows EXE + macOS PKG) against emeet-pixyd — architecture table, supported-device matrix, HID command surface overlap, parity/official-only/pixyd-only tables, ranked gap recommendations (PTZ speed, battery status, tracking variants, motor presets → TODO #138–#141), and reusable Inno Setup 6.6.1 format notes. Includes a Zoom-specific section: the official app has zero call-app awareness; our `/proc/*/fd` detection is genuine differentiation.
+- **Inno Setup 6.6.1 extractor** (`tools/inno661/`): pure-Python toolchain (extract, parse, extract-payload, verify) reverse-engineered from `jrsoftware/issrc@is-6_6_1` because innoextract 1.10-dev lacks 6.6.1 support. Discovers the loader table, de-chunks setup-0, parses all entry streams, extracts the solid LZMA chunk, and decodes Inno's CALL/JMP rel32 call-instruction optimization so output equals installed files. **All 2,211 payload files SHA256-verified against Inno's own recorded digests** — extraction proven byte-perfect. Format spec + committed parse data survive without the installer (TODO #142 done).
+- **HID protocol official map** (`docs/hid-protocol-official-map.md`): official `CMD_*` surface ↔ our `hid.go`/`commands.go` implementation mapping with implemented/mappable/needs-bytes/unknown classification and official-implementation notes — the groundwork that gates feature TODOs #138–#141 (TODO #143 done).
 - **Startup permission warning**: a PIXY present in sysfs but denied in `/dev` (missing udev rules, wrong group) now produces an actionable warning naming the udev fix at daemon startup, instead of a cryptic "Permission denied" on the first HID command (`warnInaccessibleDevices` in `probe.go`).
 
 ### Fixed
