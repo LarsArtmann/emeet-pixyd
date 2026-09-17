@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### 1. Site Not Found — diagnosed and fixed
+
 - **Symptom:** `https://emeet-pixyd.lars.software/` served Firebase "Site Not Found".
 - **Diagnosis chain:** DNS CNAME was correct (`emeet-pixyd.lars.software` → `emeet-pixyd.web.app`, resolving) but the Firebase hosting **site did not exist** (`firebase hosting:sites:list` had no `emeet-pixyd`). A prior session staged the DNS record but never created the site or deployed.
 - **Fix executed:**
@@ -19,11 +20,13 @@
   - Verified `https://emeet-pixyd.web.app` returns 200 with full landing content.
 
 ### 2. Custom domain attached
+
 - Added via Firebase REST API (`customDomains` endpoint, `x-goog-user-project` header, `{}` body, domain in query param — per skill reference script `/tmp/firebase-create-domain.js`).
 - Status reached: `HOST_ACTIVE` / `OWNERSHIP_ACTIVE` / `CERT_VALIDATING`.
 - User confirmed: site loads at the custom domain (with browser security warning — see §c).
 
 ### 3. Pitch rewrite (copywriting skill loaded and followed)
+
 - **Hero:** badge "Auto-activation daemon for Linux" → **"Reverse-engineered for Linux"**; H1 → **"A great AI webcam, dumb on Linux. Until now."**; subhead tells the vendor-app origin story.
 - **Metrics row:** "2s Poll interval / Linux Platform" → **"±150° Pan range / MIT License"** (more concrete, user-relevant).
 - **New `WhySection.astro`** ("Why this exists — Great hardware. No Linux software. So I built the Linux software myself."): 3 story cards (The hardware / The problem / The fix, mentioning the 9-byte HID reports, commit handshake, 200ms timing) + accent result callout. Wired as the first section in `Sections.astro`.
@@ -31,6 +34,7 @@
 - **Meta copy:** `config.ts` title/description rewritten to match the origin story.
 
 ### 4. Real screenshots captured
+
 - PIXY hardware was **disconnected** (`camera=offline` from running daemon) → screenshots show the offline UI state.
 - Headless Chromium against live daemon `http://127.0.0.1:8090`:
   - `webui-full.png` (1440×2600 full page)
@@ -39,6 +43,7 @@
 - Verified programmatically: DOM dump contains `#status-panel`, `#preview`, mode labels; color sampling shows dark theme with 60 unique colors (not blank). Note: current model cannot view images — verification was code-level only.
 
 ### 5. HyperFrames demo video — researched, built, rendered, verified
+
 - Researched `heygen-com/hyperframes` (real: HTML/CSS/GSAP → deterministic MP4; agent-friendly CLI) + full CLI docs + llms.txt.
 - Scaffolded `/tmp/pixy-video/pixy-demo` (`init --example blank`).
 - Authored 25s 1920×1080 composition, 4 scenes:
@@ -53,6 +58,7 @@
 - **Verification:** ffmpeg frame extraction at t=2/6/12/17/22 + histogram: violet title `#885AF3` at t=2, green tracking card `#44B893` at t=12 — scenes and state transitions render correctly.
 
 ### 6. Showcase section + website rebuild
+
 - New `ShowcaseSection.astro`: framed video player (`/demo.mp4`, poster `webui-viewport.png`) + 2 screenshot figures; wired into `index.astro` above FeatureGrid.
 - `pnpm run build` clean: 19 pages, CSP patched 19/19.
 - Built HTML verified via grep + fetch of preview server: all new content present (hero, Why section, video element, screenshots).
@@ -62,6 +68,7 @@
 ## b) PARTIALLY DONE
 
 ### SSL certificate for custom domain — externally blocked
+
 - Firebase serves placeholder `CN=firebaseapp.com` cert → browser shows "unsecure". Needs one DNS record:
   - `_acme-challenge.emeet-pixyd` TXT = `13skp2wu2edNpS6KZUvy7rMsk9F0ZJu6IMIxroIBbZM`
 - **Staged** in `~/projects/domains/lars.software.tf` next to the existing CNAME; `terraform fmt` + `validate` pass.
@@ -69,9 +76,11 @@
 - **Manual user step required** (see questions).
 
 ### Deploy of the NEW build — not done
+
 - The new pitch/screenshots/video build exists locally (`website/dist/`) but was **not deployed** — session hit the shell failure right after visual QA started.
 
 ### Visual QA — incomplete
+
 - Preview server + landing fetch verified content; screenshot color-sampling showed flat gray rows below the fold — suspected scroll-reveal animations (`animations.js` IntersectionObserver) hiding off-screen content in the headless capture. Never confirmed before the shell broke.
 
 ---
@@ -111,6 +120,7 @@
 ## f) NEXT — up to 50 things
 
 **Finish this launch**
+
 1. Deploy the verified build (`firebase deploy --only hosting:emeet-pixyd`)
 2. User: refresh Namecheap API key + whitelist IP `89.65.239.240`
 3. Apply Terraform (`-target=namecheap_domain_records.lars_software`, with `NAMECHEAP_CLIENT_IP`)
@@ -182,4 +192,4 @@
 
 ---
 
-*Report written under degraded tooling (no shell). All claims verified by tool output captured during the session.*
+_Report written under degraded tooling (no shell). All claims verified by tool output captured during the session._
