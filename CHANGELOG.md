@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.4.0] - 2026-09-17
+
 ### Changed
 
 - **BREAKING**: Replaced HTMX v2.0.9 with DataStar v1.0.2 (`datastar-go` SDK v1.2.2). All `hx-*` attributes converted to `data-*` attributes. Action handlers now return SSE patches (`PatchElementTempl`) instead of HTML fragments — DataStar morphs elements by ID automatically. Eliminated ~275 lines of custom JS (SSE bridge, HTMX lifecycle, focus preservation, PTZ helpers, toast rendering) from `app.js` (510→235 lines). Deleted 82 KB `htmx.js`, added 34 KB `datastar.js`. PTZ radar is now reactive via DataStar signals (`data-style` CSS custom properties). CSP updated to include `'unsafe-eval'` for DataStar expression evaluation. Audio endpoint changed from `POST /api/audio` (form value) to `POST /api/audio/{mode}` (path value).
@@ -95,6 +105,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `FuzzWriteSSEEvent` fuzz test for SSE event serialization robustness.
 - `BenchmarkWriteSSEEvent` and `BenchmarkBroadcasterBroadcast` for SSE performance baselines.
 - 9 unit tests for SSE internals: `writeSSEEvent` (5 cases), `Broadcaster` (3 cases), `splitSSELines` (6 cases).
+
+## [0.3.1] - 2026-06-12
+
+Backfilled 2026-09-17 (the tag predates the changelog discipline for tags; reconstructed from `git log v0.3.0..v0.3.1`).
+
+### Fixed
+
+- `nix build` vendorHash refreshed for changed dependencies (`flake.nix` + `package.nix`).
+- Version plumbing switched from git shortRev to semver `0.3.1` for stable `--version` output.
+- `checks.test` added so `nix flake check` verifies tests; docs table alignment and YAML indentation normalized.
+
+## [0.3.0] - 2026-05-21
+
+Backfilled 2026-09-17 (reconstructed from `git log v0.3.0`).
+
+### Added
+
+- `Name()` methods on the branded ID types (`PID`, `SourceID`) for debug-visible IDs, plus `docs/DOMAIN_LANGUAGE.md`.
+- Auto-tag GitHub workflow (`auto-tag.yml`) tagging from the nix version string.
+
+### Fixed
+
+- Improved error context for invalid audio-mode arguments and in the tracking/audio command handlers; multi-line argument formatting normalized across the codebase.
 
 ## [0.2.0] - 2026-06-07
 
