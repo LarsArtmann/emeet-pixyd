@@ -41,9 +41,9 @@ jobs:
 
       - name: Verify output
         run: |
-          pages=$(find dist -name index.html | wc -l)
-          echo "Built $pages pages"
+          pages=$(find dist -name '*.html' | wc -l)
+          echo "Built $pages HTML files"
           if [ "$pages" -lt 19 ]; then
-            echo "ERROR: expected at least 19 pages, got $pages"
+            echo "ERROR: expected at least 19 HTML files (18 pages + 404), got $pages"
             exit 1
           fi
