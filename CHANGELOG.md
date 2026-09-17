@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Startup permission warning**: a PIXY present in sysfs but denied in `/dev` (missing udev rules, wrong group) now produces an actionable warning naming the udev fix at daemon startup, instead of a cryptic "Permission denied" on the first HID command (`warnInaccessibleDevices` in `probe.go`).
 
 ### Fixed
 
