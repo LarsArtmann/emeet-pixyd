@@ -53,8 +53,24 @@ real commercial beauty pipeline, not a toy.
 
 ### 2.2 Device support matrix (from `fw.emeet.ai` model strings)
 
-- **Both platforms:** EmeetPixy, EmeetPixy2K, EmeetPixyDual, EmeetPiko, EmeetPikoDual (+ Piko+ on Mac), PIXY-Wireless
-- **Windows-only:** EmeetNova4K, EmeetC960Ultra, EmeetC63E4KDual, EmeetC60E4K, EmeetS600Light, E3164/E3165/E7002… — the Windows app is also the control suite for EMEET's _budget UVC webcam_ lineup (no motor, no HID protocol of PIXY's class).
+**Full class list** (complete `Emeet*` enumeration from both binaries — no further
+classes exist): `EmeetPixy`, `EmeetPixy2K`, `EmeetPixyDual`, `EmeetPiko`,
+`EmeetPikoDual` (+ `piko_plus` upgrade model on Mac), `EmeetNova4K`,
+`EmeetC960Ultra`, `EmeetC63E4KDual`, `EmeetC60E4K`, `EmeetS600Light`,
+`EmeetStudio`/`EmeetStudioEv` (app self-names), plus **PIXY-Wireless**.
+
+- **Both platforms:** the Pixy/Piko families + PIXY-Wireless.
+- **Windows-only:** the budget UVC lineup (Nova4K, C960Ultra, C63E4KDual, C60E4K,
+  S600Light) — no motor, no HID protocol of PIXY's class. The Windows app is
+  also the control suite and firmware updater for those.
+- **Internal firmware model IDs** (`fw.emeet.ai/api/v3/firmware/models/{id}` +
+  `device_upgrade_*.json` references, 21 upgrade models total incl.
+  `pixy`, `pixy_2k`, `pixy_dual`, `piko`, `piko_dual`, `piko_plus`,
+  `EMEETSTUDIO_2`, `S630`, `S600_*`, `C960_*`, `Nova_*`, `c60e4k*`,
+  `c63e4k_dual`, `c960_ultra`, `nova4k_dual`): **exactly three** E-series IDs —
+  `E3164`, `E3165`, and `E7002` (an `E7002UpgradeController` class, grouped with
+  "E7002/E3165/C960 UltraX" in comments → C960-UltraX-class firmware platform).
+  No hidden fourth model.
 
 ### 2.3 Their device-control surface (the part that overlaps with us)
 
@@ -242,6 +258,9 @@ parsing (no C++ needed in the end):
 - `KDFIterations = 220000` (Argon2-ish KDF params in the unused encryption header) even
   for unencrypted installs.
 - App self-update config: `https://emeet.ai/software/eMeetLink/software_upgrade_config.json`.
+- Installer wizard branding extracted (2026-09-17): a 240×459 RGBA PNG banner +
+  147×147 RGBA icon (`/tmp/emeet/wizard_large.png`, `wizard_small.png`) — standard
+  EMEET logo style, nothing protocol-relevant.
 
 ---
 
