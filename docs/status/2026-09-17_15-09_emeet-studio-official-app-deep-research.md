@@ -28,14 +28,14 @@ Extracted via `xar` → gzip-cpio payload → `EMEET STUDIO.app` (581 MB uncompr
 that **embeds OBS Studio 31.1.2** — it is a virtual-camera studio suite, not a
 control daemon. Key bundled components:
 
-| Component | Purpose |
-| --- | --- |
-| `libobs.framework` + obs-transitions/image-source/perspective plugins | OBS-based scene composition |
-| `obs-volcengine-beauty.plugin` | ByteDance Volcengine Effect SDK (`bef_effect_ai_*`) beauty/gesture filters |
-| `EMVideoInput.plugin` | OBS pipe source "EMEET STUDIO video source" |
-| `Library/SystemExtensions/…mac-camera-extension` (DriverKit CMIO, v0.3) | macOS 12.3+ virtual camera |
-| `VirtualAudioPlugin2.driver` (CoreAudio HAL, `/Library/Audio/Plug-Ins/HAL`) | virtual audio device |
-| FFmpeg/mbedtls/librist/libsrt/libhidapi/libusb-1.0 | streaming, TLS, wireless transport, HID |
+| Component                                                                   | Purpose                                                                    |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `libobs.framework` + obs-transitions/image-source/perspective plugins       | OBS-based scene composition                                                |
+| `obs-volcengine-beauty.plugin`                                              | ByteDance Volcengine Effect SDK (`bef_effect_ai_*`) beauty/gesture filters |
+| `EMVideoInput.plugin`                                                       | OBS pipe source "EMEET STUDIO video source"                                |
+| `Library/SystemExtensions/…mac-camera-extension` (DriverKit CMIO, v0.3)     | macOS 12.3+ virtual camera                                                 |
+| `VirtualAudioPlugin2.driver` (CoreAudio HAL, `/Library/Audio/Plug-Ins/HAL`) | virtual audio device                                                       |
+| FFmpeg/mbedtls/librist/libsrt/libhidapi/libusb-1.0                          | streaming, TLS, wireless transport, HID                                    |
 
 **HID command surface** (from strings, ~150 `CMD_GET/SET_*`): tracking modes
 (Face/Half/Full-body + manual ObjectTrack with x,y,w,h), audio (AGC, input gain,
