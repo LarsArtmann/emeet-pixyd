@@ -125,26 +125,24 @@ linters:
     exhaustruct_v5:
       # This codebase constructs structs zero-value-first; partial literals
       # are intentional for every type listed here.
-      exclude:
-        - os/exec.Cmd
-        - main.CommandResult
-        - main.CommandError
-        - main.Daemon
-        - main.Dependencies
-        - main.webStatus
-        - main.statusRecorder
-        - main.streamResult
-        - main.uevent
-        - main.warnLimiter
-        - main.Broadcaster
-        - pixy.Config
-        - pixy.PTZValues
-        - net.Dialer
-        - net.ListenConfig
-        - net/http.Server
-        - http.Server
-        - golang.org/x/sys/unix.SockaddrNetlink
-        - unix.SockaddrNetlink
+      ignore-patterns:
+        - os/exec\.Cmd
+        - github.com/LarsArtmann/emeet-pixyd\.CommandResult
+        - github.com/LarsArtmann/emeet-pixyd\.CommandError
+        - github.com/LarsArtmann/emeet-pixyd\.Daemon
+        - github.com/LarsArtmann/emeet-pixyd\.Dependencies
+        - github.com/LarsArtmann/emeet-pixyd\.webStatus
+        - github.com/LarsArtmann/emeet-pixyd\.statusRecorder
+        - github.com/LarsArtmann/emeet-pixyd\.streamResult
+        - github.com/LarsArtmann/emeet-pixyd\.uevent
+        - github.com/LarsArtmann/emeet-pixyd\.warnLimiter
+        - github.com/LarsArtmann/emeet-pixyd\.Broadcaster
+        - github.com/LarsArtmann/emeet-pixyd/internal/pixy\.Config
+        - github.com/LarsArtmann/emeet-pixyd/internal/pixy\.PTZValues
+        - net\.Dialer
+        - net\.ListenConfig
+        - net/http\.Server
+        - golang.org/x/sys/unix\.SockaddrNetlink
     funlen:
       lines: 100
       statements: 80
