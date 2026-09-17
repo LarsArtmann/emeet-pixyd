@@ -220,7 +220,9 @@ parsing (no C++ needed in the end):
 - Working Python toolchain preserved in **`tools/inno661/`** (README with full format
   notes; `data/parsed.json` + `data/setup0_offsets.json` committed so the format
   knowledge survives without the installer). The innoextract C++ patch approach was
-  abandoned one bug short — the Python path won.
+  abandoned one bug short — the Python path won. Wine (32/64/wow/Xvfb) installer runs were
+  also abandoned after the GUI died at `FPreparingMemo` ("Invalid window handle", 17 ms in) —
+  the format decode needs no GUI at all.
 
 ### 5.2 Windows driver install flow (their own bats, heavily commented)
 
