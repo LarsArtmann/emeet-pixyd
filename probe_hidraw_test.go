@@ -42,7 +42,7 @@ func TestProbeHidraw_PIXY2KFound(t *testing.T) {
 		{
 			name:    "hidraw8",
 			hidID:   "0003:0000328F:00000118",
-			hidName: "EMEET EMEET PIXY 2K",
+			hidName: "EMEET EMEET PIXY 2K", //nolint:dupword // literal hardware-reported HID_NAME
 		},
 	})
 

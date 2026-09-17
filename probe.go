@@ -31,6 +31,8 @@ const (
 // ueventWarnLimiter rate-limits the video4linux uevent-read warning; see
 // warnLimiter for the rationale. Package-level because probes are plain
 // functions on sysfs state.
+//
+//nolint:gochecknoglobals // package-level by design: probes are plain functions
 var ueventWarnLimiter = newWarnLimiter(ueventWarnInterval)
 
 func isPixyName(name string) bool {

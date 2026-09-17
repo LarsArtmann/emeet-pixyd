@@ -16,16 +16,19 @@ import (
 // WARN fires exactly once per path across repeated probes: while the PIXY is
 // absent, autoManage re-probes every PollInterval and previously re-logged
 // the same ENOENT line on every tick (~160/day in production, 2026-09-02).
-func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) {
+func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //nolint:paralleltest // mutates global slog + limiter
 	var buf bytes.Buffer
 
 	prev := slog.Default()
 	prevLimiter := ueventWarnLimiter
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+
 	ueventWarnLimiter = newWarnLimiter(time.Hour)
 
 	t.Cleanup(func() {
 		slog.SetDefault(prev)
+
 		ueventWarnLimiter = prevLimiter
 	})
 
