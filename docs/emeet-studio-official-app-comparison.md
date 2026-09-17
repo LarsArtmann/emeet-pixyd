@@ -2,19 +2,20 @@
 
 > **Research date:** 2026-09-17 · **Analyst:** Crush (for Lars)
 > **Sources:** Official EMEET STUDIO 2.0.3 installers, fully unpacked and analyzed:
+>
 > - Windows: `EMEET_STUDIO_V2.0.3_hotfix_intl_Win.exe` (Inno Setup 6.6.1 — format reverse-engineered, all 2,211 payload files extracted)
 > - macOS: `EMEET_STUDIO_V2.0.3_intl_mac_20260903_110248.pkg` (xar → PKG → app bundle, strings-analyzed)
 > - Our side: `FEATURES.md` (code-verified inventory)
-> **Artifacts:** `/tmp/emeet/` (extracted Windows payload in `win/`, Mac bundle in `mac/`, strings dumps, parsers)
+>   **Artifacts:** `/tmp/emeet/` (extracted Windows payload in `win/`, Mac bundle in `mac/`, strings dumps, parsers)
 
 ---
 
 ## 1. TL;DR
 
 **The official app and emeet-pixyd are complementary, not competing.** EMEET STUDIO is a
-~350 MB cross-platform *virtual-camera studio suite* (an OBS fork with beauty filters,
+~350 MB cross-platform _virtual-camera studio suite_ (an OBS fork with beauty filters,
 virtual camera + virtual microphone outputs) that also happens to be the device-control
-app. emeet-pixyd is a 15 MB headless daemon that automates the *device control* subset —
+app. emeet-pixyd is a 15 MB headless daemon that automates the _device control_ subset —
 and does several things the official app **never does** (call detection, auto mode
 transitions, Waybar, socket CLI, remote web UI).
 
@@ -31,20 +32,20 @@ mutex design addresses.
 
 Both binaries are the same project — `NPI2024_Audio_Video_App` — built per platform:
 
-| | Windows | macOS |
-| --- | --- | --- |
-| Build path (from embedded PDB/log strings) | `C:\Users\cheny\jenkins\workspace\_EMEET_STUDIO_2.0-Windows_master\NPI2024_Audio_Video_App\src\...` | `op-EMEET_STUDIO_2.0_macOS_master/NPI2024_Audio_Video_App` |
-| Main binary | `EMEET STUDIO.exe` — 122 MB PE32+ | `EMEET STUDIO` — 241 MB Mach-O |
-| UI framework | Qt 6.8.3 / QML (Quick Controls, FluentWinUI3 style) | Qt 6.8.3 / QML |
-| Embedded OBS | `obs.dll`, `libobs-d3d11/opengl/winrt.dll`, `obs-frontend-api.dll`, `obs-scripting.dll` (Lua) | libobs 31.1.2 + plugins |
-| OBS plugins shipped | EMVideoInput, image-source, obs-transitions, **obs-volcengine-beauty** (+ full model resource tree) | same + obs-perspective |
-| Beauty/gesture AI | `effect.dll` 63.6 MB (ByteDance Volcengine Effect SDK, `bef_effect_ai_*`) | obs-volcengine-beauty.plugin |
-| Media stack | FFmpeg 7.x DLLs (avcodec-61…), libx264-164, **librist** (RIST streaming), datachannel (WebRTC) | FFmpeg, librist, libsrt, mbedtls |
-| Device I/O | `hidapi.dll`/`libhidapi-0.dll`, `libusb-1.0.dll` | libhidapi, libusb |
-| Extras | `Fic760xUsbUpgradeDll.dll` (WiFi-chip firmware flasher), `emeet_virtual_camera_x64.dll` | DriverKit CMIO camera extension, CoreAudio HAL virtual audio driver |
-| Virtual camera | **User-mode DirectShow filter** (`emeet_virtual_camera_x86/x64.dll`, CLSID `{4A197D07-74F1-4730-AA47-3267604D0857}`, registered via `regsvr32`) | SystemExtension `com.emeet.studio.next.mac-camera-extension` (CMIO) |
-| Virtual microphone | **Kernel driver** `EmeetAudioDriver.sys` (WDM wave/mixer, signed `.cat`, installed via bundled `devcon.exe`, hardware id `ROOT\EmeetVirtualAudio`, RefCount-protected shared install) | CoreAudio HAL plugin (`VirtualAudioPlugin2.driver` → `/Library/Audio/Plug-Ins/HAL`) |
-| Installer | Inno Setup 6.6.1, x64-only, 9 languages, 2,212 file entries, 347.8 MB payload | pkg with 3 sub-packages (app + virtual audio + uninstaller) |
+|                                            | Windows                                                                                                                                                                               | macOS                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Build path (from embedded PDB/log strings) | `C:\Users\cheny\jenkins\workspace\_EMEET_STUDIO_2.0-Windows_master\NPI2024_Audio_Video_App\src\...`                                                                                   | `op-EMEET_STUDIO_2.0_macOS_master/NPI2024_Audio_Video_App`                          |
+| Main binary                                | `EMEET STUDIO.exe` — 122 MB PE32+                                                                                                                                                     | `EMEET STUDIO` — 241 MB Mach-O                                                      |
+| UI framework                               | Qt 6.8.3 / QML (Quick Controls, FluentWinUI3 style)                                                                                                                                   | Qt 6.8.3 / QML                                                                      |
+| Embedded OBS                               | `obs.dll`, `libobs-d3d11/opengl/winrt.dll`, `obs-frontend-api.dll`, `obs-scripting.dll` (Lua)                                                                                         | libobs 31.1.2 + plugins                                                             |
+| OBS plugins shipped                        | EMVideoInput, image-source, obs-transitions, **obs-volcengine-beauty** (+ full model resource tree)                                                                                   | same + obs-perspective                                                              |
+| Beauty/gesture AI                          | `effect.dll` 63.6 MB (ByteDance Volcengine Effect SDK, `bef_effect_ai_*`)                                                                                                             | obs-volcengine-beauty.plugin                                                        |
+| Media stack                                | FFmpeg 7.x DLLs (avcodec-61…), libx264-164, **librist** (RIST streaming), datachannel (WebRTC)                                                                                        | FFmpeg, librist, libsrt, mbedtls                                                    |
+| Device I/O                                 | `hidapi.dll`/`libhidapi-0.dll`, `libusb-1.0.dll`                                                                                                                                      | libhidapi, libusb                                                                   |
+| Extras                                     | `Fic760xUsbUpgradeDll.dll` (WiFi-chip firmware flasher), `emeet_virtual_camera_x64.dll`                                                                                               | DriverKit CMIO camera extension, CoreAudio HAL virtual audio driver                 |
+| Virtual camera                             | **User-mode DirectShow filter** (`emeet_virtual_camera_x86/x64.dll`, CLSID `{4A197D07-74F1-4730-AA47-3267604D0857}`, registered via `regsvr32`)                                       | SystemExtension `com.emeet.studio.next.mac-camera-extension` (CMIO)                 |
+| Virtual microphone                         | **Kernel driver** `EmeetAudioDriver.sys` (WDM wave/mixer, signed `.cat`, installed via bundled `devcon.exe`, hardware id `ROOT\EmeetVirtualAudio`, RefCount-protected shared install) | CoreAudio HAL plugin (`VirtualAudioPlugin2.driver` → `/Library/Audio/Plug-Ins/HAL`) |
+| Installer                                  | Inno Setup 6.6.1, x64-only, 9 languages, 2,212 file entries, 347.8 MB payload                                                                                                         | pkg with 3 sub-packages (app + virtual audio + uninstaller)                         |
 
 The Windows app's OBS beauty plugin ships ByteDance model assets (face meshes,
 reshape/whiten "ComposeMakeup" trees, shaders, `ttfacemodel` algo models) — this is a
@@ -53,7 +54,7 @@ real commercial beauty pipeline, not a toy.
 ### 2.2 Device support matrix (from `fw.emeet.ai` model strings)
 
 - **Both platforms:** EmeetPixy, EmeetPixy2K, EmeetPixyDual, EmeetPiko, EmeetPikoDual (+ Piko+ on Mac), PIXY-Wireless
-- **Windows-only:** EmeetNova4K, EmeetC960Ultra, EmeetC63E4KDual, EmeetC60E4K, EmeetS600Light, E3164/E3165/E7002… — the Windows app is also the control suite for EMEET's *budget UVC webcam* lineup (no motor, no HID protocol of PIXY's class).
+- **Windows-only:** EmeetNova4K, EmeetC960Ultra, EmeetC63E4KDual, EmeetC60E4K, EmeetS600Light, E3164/E3165/E7002… — the Windows app is also the control suite for EMEET's _budget UVC webcam_ lineup (no motor, no HID protocol of PIXY's class).
 
 ### 2.3 Their device-control surface (the part that overlaps with us)
 
@@ -90,19 +91,19 @@ hid_write`** shows they hit (and patched) the same hidapi concurrent read/write 
 
 ### 3.1 Core device control — parity table
 
-| Capability | Official app | emeet-pixyd | Verdict |
-| --- | --- | --- | --- |
-| Tracking / Idle / Privacy modes | ✅ full UI | ✅ (`cmdTrack/Idle/Privacy`) | **Parity** |
-| Audio modes NC/Live/Original | ✅ | ✅ (`AudioMode`, CLI shorthand `org`) | **Parity** |
-| Gesture toggle | ✅ per-gesture-type config | ✅ single toggle | Official ahead (granularity) |
-| PTZ absolute/relative | ✅ + **speed control** | ✅ absolute+relative (`rel±n`) | Official ahead (speed); our relative UX is first-class |
-| PTZ presets | ✅ motor presets + power-on default | ✅ named presets (16), web chips + CLI, persisted | **We win on UX** (naming/management); they store presets *on the motor* (survives host swaps) |
-| PTZ limits | hardware | hardware-verified `Range.Clamp` (±150°/±90°/100–150×) | Parity |
-| PTZ readback | ✅ | ✅ delayed readback correcting cache | Parity |
-| Center camera | ✅ | ✅ | Parity |
-| HID protocol | EMHidCmdV2 config+commit | config+commit (200 ms), hidraw | **Same wire behavior** |
-| Hotplug detection | (app UI event) | ✅ netlink uevents → re-probe, circuit breaker | We win (automatic, headless) |
-| State persistence | app config | `state.json` w/ schema versioning | Parity |
+| Capability                      | Official app                        | emeet-pixyd                                           | Verdict                                                                                       |
+| ------------------------------- | ----------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Tracking / Idle / Privacy modes | ✅ full UI                          | ✅ (`cmdTrack/Idle/Privacy`)                          | **Parity**                                                                                    |
+| Audio modes NC/Live/Original    | ✅                                  | ✅ (`AudioMode`, CLI shorthand `org`)                 | **Parity**                                                                                    |
+| Gesture toggle                  | ✅ per-gesture-type config          | ✅ single toggle                                      | Official ahead (granularity)                                                                  |
+| PTZ absolute/relative           | ✅ + **speed control**              | ✅ absolute+relative (`rel±n`)                        | Official ahead (speed); our relative UX is first-class                                        |
+| PTZ presets                     | ✅ motor presets + power-on default | ✅ named presets (16), web chips + CLI, persisted     | **We win on UX** (naming/management); they store presets _on the motor_ (survives host swaps) |
+| PTZ limits                      | hardware                            | hardware-verified `Range.Clamp` (±150°/±90°/100–150×) | Parity                                                                                        |
+| PTZ readback                    | ✅                                  | ✅ delayed readback correcting cache                  | Parity                                                                                        |
+| Center camera                   | ✅                                  | ✅                                                    | Parity                                                                                        |
+| HID protocol                    | EMHidCmdV2 config+commit            | config+commit (200 ms), hidraw                        | **Same wire behavior**                                                                        |
+| Hotplug detection               | (app UI event)                      | ✅ netlink uevents → re-probe, circuit breaker        | We win (automatic, headless)                                                                  |
+| State persistence               | app config                          | `state.json` w/ schema versioning                     | Parity                                                                                        |
 
 ### 3.2 Official-only (out of scope for a daemon — mostly)
 
@@ -116,22 +117,22 @@ hid_write`** shows they hit (and patched) the same hidapi concurrent read/write 
 - **Firmware upgrade UI** (MCU + WiFi IC), **accounts/login**, **multi-device support** (incl. budget UVC cams)
 - Auto power-on/shutdown, RTC/NTP, key remapping, privacy-trigger time
 
-### 3.3 emeet-pixyd-only (the official app has *none* of this)
+### 3.3 emeet-pixyd-only (the official app has _none_ of this)
 
-| Capability | Why the official app can't | Ours |
-| --- | --- | --- |
-| **Call detection** (`/proc/*/fd` scan + debounce) | It's a foreground studio app; no automation concept | ✅ core design |
-| **Auto mode transitions** (call start → tracking+NC+PipeWire source; end → privacy) | ditto | ✅ 4 modes (`full/tracking-only/privacy-only/off`) |
-| **PipeWire default-source switching** (`wpctl`) | Windows/macOS app; no Linux audio story at all | ✅ |
-| **Headless daemon** (systemd, sd_notify watchdog, socket CLI) | GUI app | ✅ |
-| **Web UI** (DataStar, live SSE state, reactive PTZ radar) | Qt desktop UI only | ✅ remote-controllable |
-| **Waybar integration** | n/a | ✅ |
-| **Snapshot capture** to JPEG download | in-app only | ✅ web |
-| Desktop notifications on call start/end | — | ✅ `notify-send` |
-| Metrics (OTel/Prometheus `/metrics`) | — | ✅ |
+| Capability                                                                          | Why the official app can't                          | Ours                                               |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| **Call detection** (`/proc/*/fd` scan + debounce)                                   | It's a foreground studio app; no automation concept | ✅ core design                                     |
+| **Auto mode transitions** (call start → tracking+NC+PipeWire source; end → privacy) | ditto                                               | ✅ 4 modes (`full/tracking-only/privacy-only/off`) |
+| **PipeWire default-source switching** (`wpctl`)                                     | Windows/macOS app; no Linux audio story at all      | ✅                                                 |
+| **Headless daemon** (systemd, sd_notify watchdog, socket CLI)                       | GUI app                                             | ✅                                                 |
+| **Web UI** (DataStar, live SSE state, reactive PTZ radar)                           | Qt desktop UI only                                  | ✅ remote-controllable                             |
+| **Waybar integration**                                                              | n/a                                                 | ✅                                                 |
+| **Snapshot capture** to JPEG download                                               | in-app only                                         | ✅ web                                             |
+| Desktop notifications on call start/end                                             | —                                                   | ✅ `notify-send`                                   |
+| Metrics (OTel/Prometheus `/metrics`)                                                | —                                                   | ✅                                                 |
 
-**Positioning:** they own the *content-creation* side (look good in calls/streams); we own
-the *Linux automation* side (right mode at the right time, zero interaction). The PIXY's
+**Positioning:** they own the _content-creation_ side (look good in calls/streams); we own
+the _Linux automation_ side (right mode at the right time, zero interaction). The PIXY's
 headline motor/auto-tracking tricks are accessible from both.
 
 ---
@@ -172,8 +173,8 @@ parsing (no C++ needed in the end):
   u32 ver=2 + i64 TotalSize + i64 OffsetEXE + u32 UncSizeEXE + i32 CRCEXE + i64 Offset0 +
   i64 **Offset1** + u32 pad + i32 tableCRC.
 - **Offset1 = start of the file-data chunk** (`FSourceF.Seek(SetupLdrOffset1 + FL.StartOffset)`
-  in `Setup.FileExtractor.pas:249`) — this is where the payload LZMA stream lives, *no
-  `idskb32` slice marker exists anymore*.
+  in `Setup.FileExtractor.pas:249`) — this is where the payload LZMA stream lives, _no
+  `idskb32` slice marker exists anymore_.
 - Setup-0 at Offset0: SetupID[64] → u32 CRC (= CRC of the 49-byte encryption header, not
   the decompressed header) → TSetupEncryptionHeader[49] → compressed blocks.
 - Block framing: `[u32 hdrCRC][u32 StoredSize][u8 Compressed]` (hdrCRC = CRC32 of the
@@ -189,7 +190,7 @@ parsing (no C++ needed in the end):
   SHA256+verification enum) → **Icon**(13str+48B) → Ini → Registry → Deletes →
   Run(13str+27B) → 4× wizard-image groups (i32 count, −1 = reuse) → optional DLLs.
   Stream 2: **FileLocation only** (89B: slice ints, 4×i64 offsets/sizes, SHA256, FILETIME,
-  file version, 5-flag set) — *not* interleaved with Icons (this corrected an earlier
+  file version, 5-flag set) — _not_ interleaved with Icons (this corrected an earlier
   assumption).
 - All 2,211 files live in **one solid LZMA chunk** (347.8 MB original → 136.2 MB stored)
   at `Offset1+9`; `ChunkSuboffset`/`OriginalSize` locate each file inside it.
@@ -199,13 +200,13 @@ parsing (no C++ needed in the end):
 
 ### 5.2 Windows driver install flow (their own bats, heavily commented)
 
-- vcam: `regsvr32` of a DirectShow filter; they verify *both* the CLSID key and the
+- vcam: `regsvr32` of a DirectShow filter; they verify _both_ the CLSID key and the
   DirectShow video-input category instance key (security software wipes the latter,
   making the camera invisible while "registered").
 - Virtual mic: `devcon install` of a root-enumerated kernel driver; a registry RefCount
   (`HKLM\SOFTWARE\EMEET\VirtualAudio`) shared across app versions decides real removal.
 - Their `.bat` files are ASCII-only by policy (CJK comments break on GBK/CP932/UTF-8
-  consoles and *execute as commands*) — a war story worth remembering.
+  consoles and _execute as commands_) — a war story worth remembering.
 
 ### 5.3 Quirks found
 
@@ -221,7 +222,7 @@ parsing (no C++ needed in the end):
 ## 6. Conclusion
 
 The official EMEET STUDIO app validates emeet-pixyd's core thesis: on Linux, the
-device-control half of the PIXY experience deserves a first-class *automation* citizen,
+device-control half of the PIXY experience deserves a first-class _automation_ citizen,
 not a 350 MB OBS fork. Our HID implementation matches their wire protocol; our automation
 layer (call detection, auto modes, PipeWire, Waybar, web UI) is genuine differentiation
 they don't attempt on any platform. The highest-value gaps worth closing are small HID
