@@ -375,7 +375,7 @@ func testV4L2ProbesPIXY(t *testing.T, devices []fakeVideoDev) {
 	root := t.TempDir()
 	createFakeVideo4linux(t, root, devices)
 
-	result := probeVideo4linux(root)
+	result, _ := probeVideo4linux(root)
 	if result != testVideoDev {
 		t.Errorf("expected /dev/video0, got %s", result)
 	}

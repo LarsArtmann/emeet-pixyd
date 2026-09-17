@@ -206,6 +206,11 @@ func TestHasPixyProduct(t *testing.T) {
 			true,
 		},
 		{
+			"PIXY 2K uppercase hex",
+			"DEVTYPE=usb_interface\nPRODUCT=328F/118/2004\n",
+			true,
+		},
+		{
 			"wrong vendor",
 			"DEVTYPE=usb_interface\nPRODUCT=1234/c0/2004\n",
 			false,
@@ -251,9 +256,9 @@ func TestHasPixyProduct(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := matchesPixyID([]byte(tc.uevent), "PRODUCT=", "/", 0, 1)
-			if got != tc.matches {
-				t.Errorf("matchesPixyID(%q) = %v, want %v", tc.uevent, got, tc.matches)
+			got, ok := pixyModelFromUevent([]byte(tc.uevent), "PRODUCT=", "/", 0, 1)
+			if ok != tc.matches {
+				t.Errorf("pixyModelFromUevent(%q) = (%q, %v), want match %v", tc.uevent, got, ok, tc.matches)
 			}
 		})
 	}

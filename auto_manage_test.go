@@ -52,7 +52,7 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 func TestAutoManage_NoDevice_Returns(t *testing.T) {
 	t.Parallel()
 
-	if probeVideo4linux("/sys/class/video4linux") != "" {
+	if dev, _ := probeVideo4linux("/sys/class/video4linux"); dev != "" {
 		t.Skip("PIXY device physically connected — test requires no device")
 	}
 

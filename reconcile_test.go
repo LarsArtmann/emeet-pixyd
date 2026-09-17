@@ -194,3 +194,40 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 		t.Error("loadState did not report persisted state")
 	}
 }
+
+// TestDeviceCommandIncludesModel pins the `device` command surfacing the
+// detected model next to the device paths (issue #6 support debugging).
+func TestDeviceCommandIncludesModel(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0")
+	d.mu.Lock()
+	d.model = pixy.Model2K
+	d.mu.Unlock()
+
+	result := d.handleCommand(context.Background(), "device")
+
+	if result.Err != nil {
+		t.Fatalf("device command failed: %v", result.Err)
+	}
+
+	if want := "/dev/video0 /dev/hidraw0 PIXY 2K"; result.Op != want {
+		t.Errorf("device output = %q, want %q", result.Op, want)
+	}
+}
+
+// TestWebStatusCarriesModel pins the model surfacing in the web status.
+func TestWebStatusCarriesModel(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "")
+	d.mu.Lock()
+	d.model = pixy.Model2K
+	d.mu.Unlock()
+
+	status := (&webServer{daemon: d}).getWebStatus()
+
+	if status.Model != string(pixy.Model2K) {
+		t.Errorf("webStatus.Model = %q, want %q", status.Model, pixy.Model2K)
+	}
+}

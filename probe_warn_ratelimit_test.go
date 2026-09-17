@@ -45,7 +45,7 @@ func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //nolint:paralle
 	}
 
 	for range 3 {
-		if got := probeVideo4linux(root); got != "" {
+		if got, _ := probeVideo4linux(root); got != "" {
 			t.Fatalf("expected empty probe result, got %q", got)
 		}
 	}
