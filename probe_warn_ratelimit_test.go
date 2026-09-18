@@ -86,3 +86,48 @@ func TestWarnInaccessibleDevices_HintsOnPermissionDenied(t *testing.T) { //nolin
 		t.Errorf("warning lacks the udev fix hint: %q", out)
 	}
 }
+
+// TestWarnInaccessibleDevicesLimited_RateLimitsHotplug proves the
+// uevent-appear path warns once per node per interval: a flapping USB
+// connection re-triggers the appear branch, and an un-limited warning would
+// flood the journal on replug storms.
+func TestWarnInaccessibleDevicesLimited_RateLimitsHotplug(t *testing.T) { //nolint:paralleltest // mutates global slog
+	if os.Geteuid() == 0 {
+		t.Skip("running as root — permission bits do not block opens")
+	}
+
+	var buf bytes.Buffer
+
+	prev := slog.Default()
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+
+	t.Cleanup(func() { slog.SetDefault(prev) })
+
+	locked := filepath.Join(t.TempDir(), "hidraw9")
+
+	if err := os.WriteFile(locked, nil, 0o000); err != nil {
+		t.Fatal(err)
+	}
+
+	limiter := newWarnLimiter(time.Hour)
+	now := time.Unix(0, 0)
+	limiter.now = func() time.Time { return now }
+
+	probe := probeResult{HidrawDev: locked}
+
+	warnInaccessibleDevicesLimited(probe, limiter) // first appear: warns
+
+	now = now.Add(time.Minute)
+
+	warnInaccessibleDevicesLimited(probe, limiter) // replug within interval: silent
+
+	now = now.Add(2 * time.Hour)
+
+	warnInaccessibleDevicesLimited(probe, limiter) // much later: warns again
+
+	got := strings.Count(buf.String(), "not accessible")
+	if got != 2 {
+		t.Fatalf("expected exactly 2 warns (initial + post-interval), got %d (buffer: %q)", got, buf.String())
+	}
+}

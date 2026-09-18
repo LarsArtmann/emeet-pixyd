@@ -172,7 +172,27 @@ func probeDevices() probeResult {
 // rules, wrong group) otherwise only surfaces later as cryptic
 // "Permission denied" errors on the first HID command or stream start.
 func warnInaccessibleDevices(r probeResult) {
+	warnInaccessibleDevicesLimited(r, nil)
+}
+
+// deviceAccessWarnInterval bounds repeat accessibility warnings per node on
+// the hotplug path: a flapping USB connection re-triggers the uevent-appear
+// branch, and the condition persists until the user installs the udev rules.
+const deviceAccessWarnInterval = time.Hour
+
+// deviceAccessWarnLimiter rate-limits the hotplug-path accessibility warning.
+//
+//nolint:gochecknoglobals // package-level by design: probes are plain functions
+var deviceAccessWarnLimiter = newWarnLimiter(deviceAccessWarnInterval)
+
+// warnInaccessibleDevicesLimited is warnInaccessibleDevices with an optional
+// rate limiter keyed by device node; a nil limiter warns unconditionally.
+func warnInaccessibleDevicesLimited(r probeResult, limiter *warnLimiter) {
 	check := func(path, kind string) {
+		if limiter != nil && !limiter.allow(path) {
+			return
+		}
+
 		file, err := os.OpenFile(path, os.O_RDWR, 0)
 		if err == nil {
 			_ = file.Close()

@@ -296,13 +296,19 @@ func (d *Daemon) eventLoop(
 			d.v4l2Mu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+			probe := probeDevices() //nolint:contextcheck // probe is plain sysfs I/O, ctx not threaded
+			d.applyProbeResultLocked(probe)
 			newVideo := d.videoDev
 			d.mu.Unlock()
 			d.broadcastStateChanged()
 
 			if oldVideo == "" && newVideo != "" {
 				slog.Info("device appeared, reconciling state")
+
+				// The node may exist but be inaccessible (broken udev):
+				// surface the fix hint when the device appears, not only at
+				// daemon startup. Rate-limited against replug storms.
+				warnInaccessibleDevicesLimited(probe, deviceAccessWarnLimiter)
 
 				d.reconcileOnDeviceAppear(ctx)
 			}
