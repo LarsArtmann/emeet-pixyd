@@ -33,6 +33,7 @@ const (
 	toastStateSynced     = "State synced"
 	toastProbedDevices   = "Probed devices"
 	toastAudioChanged    = "Audio mode changed"
+	toastSpeedChanged    = "Motor speed updated"
 	toastGestureToggled  = "Gesture toggled"
 	toastAutoToggled     = "Auto mode toggled"
 )
@@ -387,6 +388,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/preset/load/{name}", server.handlePresetLoad)
 	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
+	mux.HandleFunc("POST /api/speed/{axis}", server.handleSpeed)
 	mux.HandleFunc("POST /api/ptz/", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "missing axis", http.StatusBadRequest)
 	})
@@ -403,4 +405,58 @@ func newWebMux(server *webServer) *http.ServeMux {
 	}
 
 	return mux
+}
+
+// speedSignals mirrors the client-side speed slider signals
+// ($speedPan/$speedTilt/$speedZoom) sent by DataStar in the POST body.
+type speedSignals struct {
+	SpeedPan  float64 `json:"speedPan"`
+	SpeedTilt float64 `json:"speedTilt"`
+	SpeedZoom float64 `json:"speedZoom"`
+}
+
+func (s speedSignals) get(axis pixy.Axis) float64 {
+	switch axis {
+	case pixy.AxisPan:
+		return s.SpeedPan
+	case pixy.AxisTilt:
+		return s.SpeedTilt
+	case pixy.AxisZoom:
+		return s.SpeedZoom
+	default:
+		return 0
+	}
+}
+
+// handleSpeed implements POST /api/speed/{axis} — the web surface for the
+// HID motor-speed command. Values arrive as DataStar signals and are
+// dispatched through the same `speed` command path as the CLI, so validation
+// and device behavior have a single definition.
+func (s *webServer) handleSpeed(responseWriter http.ResponseWriter, request *http.Request) {
+	axis := pixy.Axis(request.PathValue("axis"))
+
+	if string(axis) == "" || !ptzAxisValid(axis) {
+		http.Error(responseWriter, "invalid axis", http.StatusBadRequest)
+
+		return
+	}
+
+	var signals speedSignals
+	if err := datastar.ReadSignals(request, &signals); err != nil {
+		http.Error(responseWriter, "invalid signals", http.StatusBadRequest)
+
+		return
+	}
+
+	speed := signals.get(axis)
+	result := s.daemon.handleCommand(request.Context(), cmdSpeed+" "+string(axis)+" "+strconv.FormatFloat(speed, 'f', -1, 64))
+
+	slog.Debug("web speed", "axis", axis, "speed", speed, "response", result.String())
+
+	status := s.getWebStatusWithPTZ(request.Context())
+
+	applyResultToStatus(result, &status, toastSpeedChanged, toastTypeSuccess)
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }

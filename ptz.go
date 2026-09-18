@@ -261,7 +261,7 @@ func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) Command
 
 	speed, err := strconv.ParseFloat(parts[2], 32)
 	if err != nil || speed < 0 || speed > maxMotorSpeedSanity {
-		return errResultMsg(fmt.Sprintf("invalid speed %q (want 0..%g)", parts[2], maxMotorSpeedSanity))
+		return errResultMsg(fmt.Sprintf("invalid speed %q (want 0..%d)", parts[2], maxMotorSpeedSanity))
 	}
 
 	if err := d.setMotorSpeed(ctx, motor, float32(speed)); err != nil {

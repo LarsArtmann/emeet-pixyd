@@ -211,6 +211,9 @@ templ statusPanel(s webStatus) {
 						data-signals:pan={ fmt.Sprintf("%d", s.Pan) }
 						data-signals:tilt={ fmt.Sprintf("%d", s.Tilt) }
 						data-signals:zoom={ fmt.Sprintf("%d", s.Zoom) }
+						data-signals:speedPan="0"
+						data-signals:speedTilt="0"
+						data-signals:speedZoom="0"
 					>
 						<div class="card-title">Position</div>
 						<div class="ptz-layout">
@@ -219,6 +222,15 @@ templ statusPanel(s webStatus) {
 								@ptzSlider("Pan", "pan", pixy.PanRange.Min, pixy.PanRange.Max, s.Pan, "°")
 								@ptzSlider("Tilt", "tilt", pixy.TiltRange.Min, pixy.TiltRange.Max, s.Tilt, "°")
 								@ptzSlider("Zoom", "zoom", pixy.ZoomRange.Min, pixy.ZoomRange.Max, s.Zoom, "x")
+							</div>
+						</div>
+						<div class="spacer"></div>
+						<div class="speed-block">
+							<div class="card-title">Speed <span class="badge-mini">HID</span></div>
+							<div class="ptz-controls">
+								@speedSlider("Pan", "pan", "speedPan", 0)
+								@speedSlider("Tilt", "tilt", "speedTilt", 0)
+								@speedSlider("Zoom", "zoom", "speedZoom", 0)
 							</div>
 						</div>
 						<div class="spacer"></div>
@@ -433,4 +445,31 @@ templ shortcutLegend() {
 			<div class="legend-row"><kbd>?</kbd><span>This help</span></div>
 		</div>
 	</aside>
+}
+
+// ---------------------------------------------------------------------------
+// Motor Speed Sliders
+// ---------------------------------------------------------------------------
+
+// speedSlider renders one motor-speed row (0..100 sanity scale, transmitted
+// verbatim to the official V2 SetMotorSpeed command). Initial values are
+// unknown until the hardware session pins the GetMotorSpeed response framing,
+// so sliders start at 0 and the value display carries no unit claim.
+templ speedSlider(label, axis, signal string, value int) {
+	<div class="slider-row" id={ "speed-" + axis }>
+		<span class="slider-label">{ label }</span>
+		<input
+			type="range"
+			class="ptz-slider speed-slider"
+			id={ "speed-slider-" + axis }
+			min="0"
+			max="100"
+			step="1"
+			value={ fmt.Sprintf("%d", value) }
+			data-bind={ fmt.Sprintf("$%s", signal) }
+			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", signal) }
+			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/speed/%s')", axis) }
+		/>
+		<span class="slider-value" id={ "speed-val-" + axis } data-text={ fmt.Sprintf("$%s", signal) }>{ fmt.Sprintf("%d", value) }</span>
+	</div>
 }
