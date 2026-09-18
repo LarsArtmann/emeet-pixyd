@@ -11,7 +11,7 @@ import (
 
 // Identity read surface (TODO #151): serial number, versions, and the
 // capability bitfield, via the official GET heads extracted from the EMEET
-// STUDIO binary. Every query is best-effort — an unanswered head simply
+// STUDIO binary. Every query is best-effort - an unanswered head simply
 // omits its line, because response framing is still an assumption pinned at
 // the hardware session (plan M27).
 
@@ -27,22 +27,22 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 	info := identityInfo{}
 	ok := make([]bool, 4)
 
-	if sn, err := d.queryIdentityString(pixy.V2GetSN); err == nil {
+	if sn, err := d.queryIdentityString(ctx, pixy.V2GetSN); err == nil {
 		info.Serial = sn
 		ok[0] = true
 	}
 
-	if ver, err := d.queryIdentityU16(pixy.V2GetVer); err == nil {
+	if ver, err := d.queryIdentityU16(ctx, pixy.V2GetVer); err == nil {
 		info.Version = ver
 		ok[1] = true
 	}
 
-	if ver, err := d.queryIdentityU16(pixy.V2GetDeviceVer); err == nil {
+	if ver, err := d.queryIdentityU16(ctx, pixy.V2GetDeviceVer); err == nil {
 		info.DeviceVer = ver
 		ok[2] = true
 	}
 
-	if sta, err := d.queryIdentityU32(pixy.V2GetFuncSta); err == nil {
+	if sta, err := d.queryIdentityU32(ctx, pixy.V2GetFuncSta); err == nil {
 		info.FuncStatus = sta
 		ok[3] = true
 	}
@@ -50,8 +50,8 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 	return info, ok
 }
 
-func (d *Daemon) queryIdentityString(head pixy.V2Head) (string, error) {
-	resp, err := d.v2Read(ctxOrBackground(nil), head)
+func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) {
+	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return "", fmt.Errorf("identity string %x: %w", head, err)
 	}
@@ -59,8 +59,8 @@ func (d *Daemon) queryIdentityString(head pixy.V2Head) (string, error) {
 	return pixy.ParseString(resp)
 }
 
-func (d *Daemon) queryIdentityU16(head pixy.V2Head) (uint16, error) {
-	resp, err := d.v2Read(ctxOrBackground(nil), head)
+func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) {
+	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return 0, fmt.Errorf("identity u16 %x: %w", head, err)
 	}
@@ -68,8 +68,8 @@ func (d *Daemon) queryIdentityU16(head pixy.V2Head) (uint16, error) {
 	return pixy.ParseU16(resp)
 }
 
-func (d *Daemon) queryIdentityU32(head pixy.V2Head) (uint32, error) {
-	resp, err := d.v2Read(ctxOrBackground(nil), head)
+func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) {
+	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return 0, fmt.Errorf("identity u32 %x: %w", head, err)
 	}
@@ -77,12 +77,28 @@ func (d *Daemon) queryIdentityU32(head pixy.V2Head) (uint32, error) {
 	return pixy.ParseU32(resp)
 }
 
-// ctxOrBackground is a compile-time guard used by identity queries that
-// receive an explicit context from identityStatus.
-func ctxOrBackground(ctx context.Context) context.Context {
-	if ctx != nil {
-		return ctx
+// formatIdentity renders the answered identity fields as additional
+// key=value tokens for the `device` command output. Fields that did not
+// answer are omitted entirely - output stays stable on devices that ignore
+// these heads.
+func formatIdentity(info identityInfo, ok []bool) []string {
+	tokens := make([]string, 0, 4)
+
+	if ok[0] {
+		tokens = append(tokens, "sn="+info.Serial)
 	}
 
-	return context.Background()
+	if ok[1] {
+		tokens = append(tokens, fmt.Sprintf("ver=0x%04x", info.Version))
+	}
+
+	if ok[2] {
+		tokens = append(tokens, fmt.Sprintf("devver=0x%04x", info.DeviceVer))
+	}
+
+	if ok[3] {
+		tokens = append(tokens, fmt.Sprintf("func=0x%08x", info.FuncStatus))
+	}
+
+	return tokens
 }
