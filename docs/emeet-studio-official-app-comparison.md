@@ -157,7 +157,7 @@ no `zoom.us`/`Zoom.exe`/`InMeeting`/process-detection strings on either platform
 `remote status:ZoomState` = wireless camera zoom state; Teams/Skype/Discord: 0 hits).
 Their model: you manually pick "EMEET STUDIO Virtual Camera" inside Zoom; the app never
 knows a call is happening. emeet-pixyd detects Zoom generically — `isCameraInUse`
-(`process.go:95`) flags *any* non-self process holding `/dev/videoX`: native Zoom opens
+(`process.go:95`) flags _any_ non-self process holding `/dev/videoX`: native Zoom opens
 the device directly; Flatpak Zoom routes via xdg-desktop-portal/PipeWire, where the
 PipeWire daemon holds the fd while streaming, so it is detected too (attribution differs,
 detection does not). Same mechanism covers Teams-web, browsers, and everything else.
@@ -225,7 +225,7 @@ parsing (no C++ needed in the end):
 - **Call-instruction optimization**: PE files flagged `floCallInstructionOptimized`
   (flags bit 2) are stored with CALL/JMP ($E8/$E9) rel32s transformed
   (`Compression.Base.pas` `TransformCallInstructions`, processed in 64 KB blocks with
-  a cumulative wrapping AddrOffset). The FileLocation SHA256 hashes the *decoded*
+  a cumulative wrapping AddrOffset). The FileLocation SHA256 hashes the _decoded_
   original — extraction must apply the inverse transform to reproduce installed files
   (as `Setup.FileExtractor.pas:336-363` does on install).
 - **Cryptographic verification (2026-09-17)**: the toolchain in `tools/inno661/`

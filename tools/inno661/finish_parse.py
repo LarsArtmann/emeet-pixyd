@@ -4,6 +4,7 @@ SHA256 digests, icons, runs, uninstall runs, header facts).
 
 Usage: finish_parse.py SETUP0.bin [parsed.json]
 """
+
 import json
 import sys
 
@@ -24,14 +25,26 @@ def main() -> None:
     for kind, lst in [("run", runs), ("uninstallrun", uruns)]:
         for i, (s, _t) in enumerate(lst):
             print(f"{kind}[{i}]: {s[0]!r} params={s[1]!r} verb={s[5]!r}")
-    json.dump({
-        "header": {"AppName": hdr["AppName"], "AppId": hdr["AppId"],
-                   "AppVersion": hdr["AppVersion"], "DefaultDirName": hdr["DefaultDirName"],
-                   "counts": counts, "languages": langs},
-        "files": files, "locs": locs,
-        "icons": [s for s, _t in icons], "runs": [s for s, _t in runs],
-        "uruns": [s for s, _t in uruns], "wizard_images": imgs,
-    }, open(out_path, "w"), indent=1)
+    json.dump(
+        {
+            "header": {
+                "AppName": hdr["AppName"],
+                "AppId": hdr["AppId"],
+                "AppVersion": hdr["AppVersion"],
+                "DefaultDirName": hdr["DefaultDirName"],
+                "counts": counts,
+                "languages": langs,
+            },
+            "files": files,
+            "locs": locs,
+            "icons": [s for s, _t in icons],
+            "runs": [s for s, _t in runs],
+            "uruns": [s for s, _t in uruns],
+            "wizard_images": imgs,
+        },
+        open(out_path, "w"),
+        indent=1,
+    )
     print(f"saved {out_path}")
 
 

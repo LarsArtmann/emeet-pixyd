@@ -19,25 +19,63 @@ FileLocation entry (89 bytes):
   first[4] + last[4] + start[8] + suboff[8] + orig[8] + comp[8]
   + SHA256[32] + FILETIME[8] + verms[4] + verls[4] + flags[1]
 """
+
 import struct
 
 STR_NAMES = [
-    "AppName", "AppVerName", "AppId", "AppCopyright", "AppPublisher",
-    "AppPublisherURL", "AppSupportPhone", "AppSupportURL", "AppUpdatesURL",
-    "AppVersion", "DefaultDirName", "DefaultGroupName", "BaseFilename",
-    "UninstallFilesDir", "UninstallDisplayName", "UninstallDisplayIcon",
-    "AppMutex", "DefaultUserInfoName", "DefaultUserInfoOrg",
-    "DefaultUserInfoSerial", "AppReadmeFile", "AppContact", "AppComments",
-    "AppModifyPath", "CreateUninstallRegKey", "Uninstallable",
-    "CloseApplicationsFilter", "SetupMutex", "ChangesEnvironment",
-    "ChangesAssociations", "ArchitecturesAllowed",
-    "ArchitecturesInstallIn64BitMode", "CloseApplicationsFilterExcludes",
+    "AppName",
+    "AppVerName",
+    "AppId",
+    "AppCopyright",
+    "AppPublisher",
+    "AppPublisherURL",
+    "AppSupportPhone",
+    "AppSupportURL",
+    "AppUpdatesURL",
+    "AppVersion",
+    "DefaultDirName",
+    "DefaultGroupName",
+    "BaseFilename",
+    "UninstallFilesDir",
+    "UninstallDisplayName",
+    "UninstallDisplayIcon",
+    "AppMutex",
+    "DefaultUserInfoName",
+    "DefaultUserInfoOrg",
+    "DefaultUserInfoSerial",
+    "AppReadmeFile",
+    "AppContact",
+    "AppComments",
+    "AppModifyPath",
+    "CreateUninstallRegKey",
+    "Uninstallable",
+    "CloseApplicationsFilter",
+    "SetupMutex",
+    "ChangesEnvironment",
+    "ChangesAssociations",
+    "ArchitecturesAllowed",
+    "ArchitecturesInstallIn64BitMode",
+    "CloseApplicationsFilterExcludes",
     "SevenZipLibraryName",
 ]
 COUNT_NAMES = [
-    "Language", "CustomMessage", "Permission", "Type", "Component", "Task",
-    "Dir", "ISSigKey", "File", "FileLocation", "Icon", "Ini", "Registry",
-    "InstallDelete", "UninstallDelete", "Run", "UninstallRun",
+    "Language",
+    "CustomMessage",
+    "Permission",
+    "Type",
+    "Component",
+    "Task",
+    "Dir",
+    "ISSigKey",
+    "File",
+    "FileLocation",
+    "Icon",
+    "Ini",
+    "Registry",
+    "InstallDelete",
+    "UninstallDelete",
+    "Run",
+    "UninstallRun",
 ]
 
 
@@ -52,40 +90,40 @@ class Reader:
         return v
 
     def u16(self) -> int:
-        v, = struct.unpack_from("<H", self.blob, self.pos)
+        (v,) = struct.unpack_from("<H", self.blob, self.pos)
         self.pos += 2
         return v
 
     def i32(self) -> int:
-        v, = struct.unpack_from("<i", self.blob, self.pos)
+        (v,) = struct.unpack_from("<i", self.blob, self.pos)
         self.pos += 4
         return v
 
     def i64(self) -> int:
-        v, = struct.unpack_from("<q", self.blob, self.pos)
+        (v,) = struct.unpack_from("<q", self.blob, self.pos)
         self.pos += 8
         return v
 
     def rdstr(self):
-        n, = struct.unpack_from("<I", self.blob, self.pos)
+        (n,) = struct.unpack_from("<I", self.blob, self.pos)
         self.pos += 4
         if n >= 0xFFFFFFF0:
             return None
-        raw = self.blob[self.pos:self.pos + n]
+        raw = self.blob[self.pos : self.pos + n]
         self.pos += n
         return raw.decode("utf-16le", "replace")
 
     def rdansi(self):
-        n, = struct.unpack_from("<I", self.blob, self.pos)
+        (n,) = struct.unpack_from("<I", self.blob, self.pos)
         self.pos += 4
         if n >= 0xFFFFFFF0:
             return None
-        raw = self.blob[self.pos:self.pos + n]
+        raw = self.blob[self.pos : self.pos + n]
         self.pos += n
         return raw
 
     def raw(self, n: int) -> bytes:
-        b = self.blob[self.pos:self.pos + n]
+        b = self.blob[self.pos : self.pos + n]
         self.pos += n
         return b
 
@@ -103,10 +141,10 @@ def parse_prefix(r: Reader):
     counts = {}
     for n in COUNT_NAMES:
         counts[n] = r.i32()
-    r.raw(20)   # MinVersion + OnlyBelowVersion
-    r.raw(56)   # tail: WizardSize(8)+DarkStyle(1)+AlphaFormat(1)+BackColors(8)
-                # +DynDark(8)+Opacity(1)+ExtraDiskSpace(8)+SlicesPerDisk(4)
-                # +7 enums(7)+DisableDir/GroupPage(2)+UninstallDisplaySize(8)
+    r.raw(20)  # MinVersion + OnlyBelowVersion
+    r.raw(56)  # tail: WizardSize(8)+DarkStyle(1)+AlphaFormat(1)+BackColors(8)
+    # +DynDark(8)+Opacity(1)+ExtraDiskSpace(8)+SlicesPerDisk(4)
+    # +7 enums(7)+DisableDir/GroupPage(2)+UninstallDisplaySize(8)
     hdr["Options"] = int.from_bytes(r.raw(6), "little")
     langs = []
     for _ in range(counts["Language"]):
@@ -152,31 +190,38 @@ def parse_files(r: Reader, count: int):
         strs = [r.rdstr() for _ in range(15)]
         allowed = r.rdansi()
         digest = r.raw(32)
-        r.u8()          # version typ
-        r.raw(20)       # versions
+        r.u8()  # version typ
+        r.raw(20)  # versions
         loc = r.i32()
         attribs = r.i32()
         extsize = r.i64()
-        r.u16()         # perms
+        r.u16()  # perms
         opts = r.raw(5)
         ftype = r.u8()
-        files.append({
-            "src": strs[0], "dest": strs[1], "loc": loc,
-            "sha256": digest.hex(),
-            "opts": int.from_bytes(opts, "little"),
-            "type": ftype, "extsize": extsize,
-        })
+        files.append(
+            {
+                "src": strs[0],
+                "dest": strs[1],
+                "loc": loc,
+                "sha256": digest.hex(),
+                "opts": int.from_bytes(opts, "little"),
+                "type": ftype,
+                "extsize": extsize,
+            }
+        )
     return files
 
 
 def parse_rest(r: Reader, counts):
     icons = [r.rdentry(13, 48) for _ in range(counts["Icon"])]
     for _ in range(counts["Ini"]):
-        r.rdentry(10, 21)   # 20B versions + Options(1)
+        r.rdentry(10, 21)  # 20B versions + Options(1)
     for _ in range(counts["Registry"]):
-        r.rdentry(9, 29)    # 20B versions + RootKey(4) + Permissions(2) + Typ(1) + Options(2)
+        r.rdentry(
+            9, 29
+        )  # 20B versions + RootKey(4) + Permissions(2) + Typ(1) + Options(2)
     for _ in range(counts["InstallDelete"]):
-        r.rdentry(7, 21)    # 20B versions + DeleteType(1)
+        r.rdentry(7, 21)  # 20B versions + DeleteType(1)
     for _ in range(counts["UninstallDelete"]):
         r.rdentry(7, 21)
     runs = [r.rdentry(13, 27) for _ in range(counts["Run"])]
@@ -202,11 +247,19 @@ def parse_locations(r: Reader, count: int):
         first, last = r.i32(), r.i32()
         start, suboff, orig, comp = r.i64(), r.i64(), r.i64(), r.i64()
         sha = r.raw(32)
-        r.raw(8)   # FILETIME
-        r.raw(8)   # verms + verls
+        r.raw(8)  # FILETIME
+        r.raw(8)  # verms + verls
         flags = r.u8()
-        locs.append({
-            "first": first, "last": last, "start": start, "sub": suboff,
-            "orig": orig, "comp": comp, "sha256": sha.hex(), "flags": flags,
-        })
+        locs.append(
+            {
+                "first": first,
+                "last": last,
+                "start": start,
+                "sub": suboff,
+                "orig": orig,
+                "comp": comp,
+                "sha256": sha.hex(),
+                "flags": flags,
+            }
+        )
     return locs

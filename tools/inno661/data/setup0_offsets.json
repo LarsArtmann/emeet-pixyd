@@ -1,10 +1,10 @@
 {
- "table_offset": 912456,
- "version": 2,
- "total_size": 138348691,
- "offset_exe": 137277485,
- "unc_size_exe": 3768832,
- "crc_exe": -953307343,
- "offset0": 137141744,
- "offset1": 915968
+  "table_offset": 912456,
+  "version": 2,
+  "total_size": 138348691,
+  "offset_exe": 137277485,
+  "unc_size_exe": 3768832,
+  "crc_exe": -953307343,
+  "offset0": 137141744,
+  "offset1": 915968
 }

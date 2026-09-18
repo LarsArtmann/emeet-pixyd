@@ -9,6 +9,7 @@ hashing (Setup.FileExtractor.pas:336-363 does the same on install).
 Usage: verify.py PARSED.json EXTRACTED_DIR
 Exit 0 iff every present file matches its digest.
 """
+
 import hashlib
 import json
 import os
@@ -38,8 +39,10 @@ def main() -> None:
             ok += 1
         else:
             bad += 1
-            mismatches.append(f"MISMATCH {path}: loc={loc['sha256'][:12]} "
-                              f"actual={h[:12]} flags={loc['flags']}")
+            mismatches.append(
+                f"MISMATCH {path}: loc={loc['sha256'][:12]} "
+                f"actual={h[:12]} flags={loc['flags']}"
+            )
     print(f"ok={ok} bad={bad} missing={miss} skipped(type1)={skipped}")
     for m in mismatches[:20]:
         print(m)

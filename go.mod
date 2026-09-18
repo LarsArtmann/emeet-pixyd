@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/coreos/go-systemd/v22 v22.7.0
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/go-branded-id v0.6.0
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/prometheus/client_golang v1.24.1

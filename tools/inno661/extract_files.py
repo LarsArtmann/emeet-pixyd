@@ -9,6 +9,7 @@ stream (8 MB dict). Files are located by their FileLocation ChunkSuboffset
 
 Usage: extract_files.py INSTALLER.exe PARSED.json OFFSETS.json [OUTDIR]
 """
+
 import json
 import lzma
 import os
@@ -22,8 +23,8 @@ def main() -> None:
     installer, parsed_path, offsets_path = sys.argv[1:4]
     outdir = sys.argv[4] if len(sys.argv) > 4 else "extracted"
     offs = json.load(open(offsets_path))
-    chunk_start = offs["offset1"] + 9      # skip 'zlb\x1a' + 5 props bytes
-    chunk_end = offs["offset0"]            # data ends where setup-0 begins
+    chunk_start = offs["offset1"] + 9  # skip 'zlb\x1a' + 5 props bytes
+    chunk_end = offs["offset0"]  # data ends where setup-0 begins
 
     data = open(installer, "rb").read()
     chunk_in = data[chunk_start:chunk_end]
@@ -40,11 +41,14 @@ def main() -> None:
         path = os.path.join(outdir, dest.lstrip("\\"))
         targets.append((loc["sub"], loc["orig"], loc["flags"], path, i))
     targets.sort()
-    print(f"{len(targets)} files, total {sum(t[1] for t in targets) / 1e6:.1f} MB",
-          flush=True)
+    print(
+        f"{len(targets)} files, total {sum(t[1] for t in targets) / 1e6:.1f} MB",
+        flush=True,
+    )
     dec = lzma.LZMADecompressor(
         format=lzma.FORMAT_RAW,
-        filters=[{"id": lzma.FILTER_LZMA1, "dict_size": 0x800000}])
+        filters=[{"id": lzma.FILTER_LZMA1, "dict_size": 0x800000}],
+    )
     in_pos = 0
     in_step = 8 * 1024 * 1024
     pending = b""
@@ -52,8 +56,8 @@ def main() -> None:
     written = 0
     for sub, orig, flags, path, idx in targets:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        while (len(pending) < orig and not dec.eof and in_pos < len(chunk_in)):
-            pending += dec.decompress(chunk_in[in_pos:in_pos + in_step])
+        while len(pending) < orig and not dec.eof and in_pos < len(chunk_in):
+            pending += dec.decompress(chunk_in[in_pos : in_pos + in_step])
             in_pos += in_step
         blob, pending = pending[:orig], pending[orig:]
         if flags & FLO_CALL_INSTRUCTION_OPTIMIZED:
@@ -65,8 +69,10 @@ def main() -> None:
             print(f"TRUNCATED file {idx}: got {len(blob)} of {orig}")
             sys.exit(1)
         if idx % 200 == 0:
-            print(f"  file {idx}: {written / 1e6:.1f} MB, {time.time() - t0:.0f}s",
-                  flush=True)
+            print(
+                f"  file {idx}: {written / 1e6:.1f} MB, {time.time() - t0:.0f}s",
+                flush=True,
+            )
     print(f"DONE: {written / 1e6:.1f} MB in {time.time() - t0:.0f}s -> {outdir}")
 
 

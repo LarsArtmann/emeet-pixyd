@@ -2,7 +2,7 @@
 
 **2026-09-17 19:35 CEST** · Input: `TODO_LIST.md` (#129–#141), `ROADMAP.md` design-penders (#116/#123), research follow-ups from `2026-09-17_18-43` self-review §f · Snapshot; living source of truth stays `TODO_LIST.md`.
 
-**Prime directive: no VERSCHLIMMBESSERN.** Every task is additive/surgical — no refactors of working code, no format wars, no speculative rewrites. Blocked/pending-decision items are marked and *not* executed blind.
+**Prime directive: no VERSCHLIMMBESSERN.** Every task is additive/surgical — no refactors of working code, no format wars, no speculative rewrites. Blocked/pending-decision items are marked and _not_ executed blind.
 
 ---
 
@@ -47,33 +47,33 @@ with zero risk to the daemon.
 
 Sorted: tier → impact ↓ → effort ↑. **B** = blocked/pending external.
 
-| #    | Task (rolls up to)                                                                                                      | Tier | Impact | Effort | Est min | Deps | Customer value / why |
-| ---- | ----------------------------------------------------------------------------------------------------------------------- | ---- | ------ | ------ | ------- | ---- | -------------------- |
-| M1   | Preserve Inno 6.6.1 toolchain in repo: copy 4 parser scripts + `parsed.json`/`locations.json` to `tools/inno661/`, usage README, re-run verification | 1%   | HIGH (irreplaceable) | S | 45 | — | Protects session output from `/tmp` loss; reproducibility |
-| M2   | SHA256-verify all 2,211 extracted files (re-parse keeping digests, checksum script, report)                              | 1%   | HIGH | S      | 40    | — | Cryptographic proof the extraction is byte-perfect |
-| M3   | Docs integration: AGENTS.md pointer block (comparison doc + tooling + `/tmp` inventory), CHANGELOG entry                   | 1%   | MED-HIGH | S | 30 | M1 | Future sessions find everything; memory protocol |
-| M4   | `/tmp` cleanup: remove 4 wine prefixes + dead `innoextract-src`, record abandonment note in comparison doc §5              | 1%   | MED | S      | 30    | M1, M2 | No GB of dead prefixes; decision documented |
-| M5   | CMD↔HID mapping: their `CMD_GET_/SET_` surface ↔ `hid.go`/`commands.go`/`hid-protocol.md`; gap table + official-implementation notes (EMHidCmdV2Head, `_OLD`, RecvFsm, `[HID_RACE_FIX]`) → `docs/hid-protocol-official-map.md` | 4%   | **VERY HIGH** (unlocks 4 TODOs) | M | 100 | M1 | Single key that gates #138–#141 |
-| M6   | Enumerate protocol specifics from strings: MOTOR speed/preset/power-on-default, battery/charge, TargetTrack/ObjectTrack values, privacy-trigger-time → feeds M5 doc | 4%   | **VERY HIGH** | M | 60 | — | Raw material for the mapping + feature designs |
-| M7   | Battery de-risk: HID query test sketch from known framing; run if camera attached; verdict into TODO #139 (wired PIXY vs Wireless-only?) | 4%   | HIGH | S | 45 | M6 | Kills the unverified "PIXY has a battery" claim before it ships |
-| M8   | Device-matrix cleanup + misc intel: final `Emeet*` class list (classes vs fw-models), fix comparison-doc ellipsis/errata, extract 2 wizard images, probe `fw.emeet.ai` | 4%   | MED | S | 40 | — | Accuracy of the public-facing research doc |
-| M9   | README pitch alignment (#131): origin-story intro matching website hero; claims re-checked against FEATURES.md              | 20%  | HIGH | S      | 45    | — | First thing every visitor reads is true |
-| M10  | Repo credibility bundle (#132): `gh repo edit` description, homepage, topics; verify rendering                              | 20%  | MED | S      | 30    | — | Discoverability (topics/SEO) for ~15 min of work |
-| M11  | Pin `typescript@6.x` in website (#134); `astro check`/`tsc --strict` green again                                           | 20%  | MED | S      | 30    | — | Un-breaks website typechecking CI-adjacent path |
-| M12  | Unify hero terminal code (#135): `hero-code.ts` single source, `HeroSection.astro` consumes it; render-diff check           | 20%  | MED | S      | 40    | — | Kills a documented drift bug class |
-| M13  | Resolve Windows string anomalies: TargetTrack/ObjectTrack absence, `elink` 24-vs-1296 — explain or document as open         | 20%  | MED | S | 40 | M1 | Comparison-doc completeness; may reveal feature gating |
-| M14  | Implement PTZ speed (#138) — design from M5/M6 bytes → `hid.go` + commands + web + tests (hardware verify last)            | 100% | HIGH | M      | 90    | M5, M6 | Most visible PTZ UX win since presets |
-| M15  | Implement battery/charge status (#139) — `queryHIDState` + status/Waybar/web + tests                                       | 100% | MED-HIGH | S | 50 | M7 | New read-only status surface (if hardware answers) |
-| M16  | Implement tracking-mode variants (#140) — selector design → implement → CLI/web wiring                                     | 100% | MED-HIGH | M | 80 | M5, M6, hw | Face/HalfBody/FullBody selection |
-| M17  | Implement motor-preset mirroring (#141) — sync named presets to hardware slots                                             | 100% | MED | M      | 80    | M5, M6, hw | Presets survive host swaps/power cycles |
-| M18  | Website deploy CI completion (#133): secret checklist for Lars, workflow final review (deploy run itself blocked)          | 100% | MED | S      | 30    | Lars | Ends manual `firebase deploy` dependency |
-| M19  | Landing polish (#136): VideoObject JSON-LD, webp screenshots, poster frame, dark/mobile QA                                 | 100% | MED | M      | 80    | — | SEO + polish |
-| M20  | Demo video composition rebuild (#130) — scaffold `website/video/`, port storyboard, render check                           | 100% | MED | M      | 90    | — | Re-renderability (lost-source insurance) |
-| M21  | elink protocol documentation — extract ~90 command families from Mac strings, shape doc                                    | 100% | LOW-MED | M | 90 | M1 | PIXY-Wireless intel; community value |
-| M22  | EMVideoInput.dll inspection — their OBS↔app pipe vs our MJPEG stream; notes                                                | 100% | LOW-MED | S | 50 | M1 | Architecture comparison depth |
-| M23  | ADR proposals for #116 (structured commands) + #123 (multi-word presets) — decision options for Lars, no code               | 100% | HIGH (unblocks design) | M | 80 | — | Two HIGH/HIGH TODOs stuck on a decision |
-| M24  | innoextract upstream PR prep: condense 6.6.1 format spec + draft issue/PR text (**B**: Lars's go)                          | 100% | MED (OSS value) | S | 40 | M1 | Real upstream contribution ready to fire |
-| M25  | Screenshot retake (#129) shot-list + capture/crop when camera attached (**B**: hardware)                                   | 100% | MED | S      | 30    | hw | Website shows the online UI |
+| #   | Task (rolls up to)                                                                                                                                                                                                             | Tier | Impact                          | Effort | Est min | Deps       | Customer value / why                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------- | ------ | ------- | ---------- | --------------------------------------------------------------- |
+| M1  | Preserve Inno 6.6.1 toolchain in repo: copy 4 parser scripts + `parsed.json`/`locations.json` to `tools/inno661/`, usage README, re-run verification                                                                           | 1%   | HIGH (irreplaceable)            | S      | 45      | —          | Protects session output from `/tmp` loss; reproducibility       |
+| M2  | SHA256-verify all 2,211 extracted files (re-parse keeping digests, checksum script, report)                                                                                                                                    | 1%   | HIGH                            | S      | 40      | —          | Cryptographic proof the extraction is byte-perfect              |
+| M3  | Docs integration: AGENTS.md pointer block (comparison doc + tooling + `/tmp` inventory), CHANGELOG entry                                                                                                                       | 1%   | MED-HIGH                        | S      | 30      | M1         | Future sessions find everything; memory protocol                |
+| M4  | `/tmp` cleanup: remove 4 wine prefixes + dead `innoextract-src`, record abandonment note in comparison doc §5                                                                                                                  | 1%   | MED                             | S      | 30      | M1, M2     | No GB of dead prefixes; decision documented                     |
+| M5  | CMD↔HID mapping: their `CMD_GET_/SET_` surface ↔ `hid.go`/`commands.go`/`hid-protocol.md`; gap table + official-implementation notes (EMHidCmdV2Head, `_OLD`, RecvFsm, `[HID_RACE_FIX]`) → `docs/hid-protocol-official-map.md` | 4%   | **VERY HIGH** (unlocks 4 TODOs) | M      | 100     | M1         | Single key that gates #138–#141                                 |
+| M6  | Enumerate protocol specifics from strings: MOTOR speed/preset/power-on-default, battery/charge, TargetTrack/ObjectTrack values, privacy-trigger-time → feeds M5 doc                                                            | 4%   | **VERY HIGH**                   | M      | 60      | —          | Raw material for the mapping + feature designs                  |
+| M7  | Battery de-risk: HID query test sketch from known framing; run if camera attached; verdict into TODO #139 (wired PIXY vs Wireless-only?)                                                                                       | 4%   | HIGH                            | S      | 45      | M6         | Kills the unverified "PIXY has a battery" claim before it ships |
+| M8  | Device-matrix cleanup + misc intel: final `Emeet*` class list (classes vs fw-models), fix comparison-doc ellipsis/errata, extract 2 wizard images, probe `fw.emeet.ai`                                                         | 4%   | MED                             | S      | 40      | —          | Accuracy of the public-facing research doc                      |
+| M9  | README pitch alignment (#131): origin-story intro matching website hero; claims re-checked against FEATURES.md                                                                                                                 | 20%  | HIGH                            | S      | 45      | —          | First thing every visitor reads is true                         |
+| M10 | Repo credibility bundle (#132): `gh repo edit` description, homepage, topics; verify rendering                                                                                                                                 | 20%  | MED                             | S      | 30      | —          | Discoverability (topics/SEO) for ~15 min of work                |
+| M11 | Pin `typescript@6.x` in website (#134); `astro check`/`tsc --strict` green again                                                                                                                                               | 20%  | MED                             | S      | 30      | —          | Un-breaks website typechecking CI-adjacent path                 |
+| M12 | Unify hero terminal code (#135): `hero-code.ts` single source, `HeroSection.astro` consumes it; render-diff check                                                                                                              | 20%  | MED                             | S      | 40      | —          | Kills a documented drift bug class                              |
+| M13 | Resolve Windows string anomalies: TargetTrack/ObjectTrack absence, `elink` 24-vs-1296 — explain or document as open                                                                                                            | 20%  | MED                             | S      | 40      | M1         | Comparison-doc completeness; may reveal feature gating          |
+| M14 | Implement PTZ speed (#138) — design from M5/M6 bytes → `hid.go` + commands + web + tests (hardware verify last)                                                                                                                | 100% | HIGH                            | M      | 90      | M5, M6     | Most visible PTZ UX win since presets                           |
+| M15 | Implement battery/charge status (#139) — `queryHIDState` + status/Waybar/web + tests                                                                                                                                           | 100% | MED-HIGH                        | S      | 50      | M7         | New read-only status surface (if hardware answers)              |
+| M16 | Implement tracking-mode variants (#140) — selector design → implement → CLI/web wiring                                                                                                                                         | 100% | MED-HIGH                        | M      | 80      | M5, M6, hw | Face/HalfBody/FullBody selection                                |
+| M17 | Implement motor-preset mirroring (#141) — sync named presets to hardware slots                                                                                                                                                 | 100% | MED                             | M      | 80      | M5, M6, hw | Presets survive host swaps/power cycles                         |
+| M18 | Website deploy CI completion (#133): secret checklist for Lars, workflow final review (deploy run itself blocked)                                                                                                              | 100% | MED                             | S      | 30      | Lars       | Ends manual `firebase deploy` dependency                        |
+| M19 | Landing polish (#136): VideoObject JSON-LD, webp screenshots, poster frame, dark/mobile QA                                                                                                                                     | 100% | MED                             | M      | 80      | —          | SEO + polish                                                    |
+| M20 | Demo video composition rebuild (#130) — scaffold `website/video/`, port storyboard, render check                                                                                                                               | 100% | MED                             | M      | 90      | —          | Re-renderability (lost-source insurance)                        |
+| M21 | elink protocol documentation — extract ~90 command families from Mac strings, shape doc                                                                                                                                        | 100% | LOW-MED                         | M      | 90      | M1         | PIXY-Wireless intel; community value                            |
+| M22 | EMVideoInput.dll inspection — their OBS↔app pipe vs our MJPEG stream; notes                                                                                                                                                    | 100% | LOW-MED                         | S      | 50      | M1         | Architecture comparison depth                                   |
+| M23 | ADR proposals for #116 (structured commands) + #123 (multi-word presets) — decision options for Lars, no code                                                                                                                  | 100% | HIGH (unblocks design)          | M      | 80      | —          | Two HIGH/HIGH TODOs stuck on a decision                         |
+| M24 | innoextract upstream PR prep: condense 6.6.1 format spec + draft issue/PR text (**B**: Lars's go)                                                                                                                              | 100% | MED (OSS value)                 | S      | 40      | M1         | Real upstream contribution ready to fire                        |
+| M25 | Screenshot retake (#129) shot-list + capture/crop when camera attached (**B**: hardware)                                                                                                                                       | 100% | MED                             | S      | 30      | hw         | Website shows the online UI                                     |
 
 **Blocked, tracked here (not scheduled):** public comparison page on website (Lars's call — legal/positioning), 348 MB payload archiving (Lars's call), `FIREBASE_SERVICE_ACCOUNT` (Lars).
 
@@ -81,92 +81,92 @@ Sorted: tier → impact ↓ → effort ↑. **B** = blocked/pending external.
 
 ## 3. Fine Plan — 88 tasks, ≤12 min each (all todos covered)
 
-| ID | Task (≤12 min) | → M | Est | Impact |
-| -- | -------------- | -- | --- | ------ |
-| F1.1 | Create `tools/inno661/`, copy `extract_setup0.py`, `setup0_parse.py`, `finish_parse.py`, `extract_files.py` | M1 | 10 | HIGH |
-| F1.2 | Write `tools/inno661/README.md`: usage, format summary, pointers to comparison doc §5 | M1 | 12 | HIGH |
-| F1.3 | Snapshot `parsed.json` + `locations.json` into `tools/inno661/data/` | M1 | 8 | HIGH |
-| F1.4 | Verify: re-run extract end-to-end from new location against installer | M1 | 12 | HIGH |
-| F2.1 | Re-parse file locations keeping SHA256 digests; emit `verify.py` | M2 | 12 | HIGH |
-| F2.2 | Run checksum over all 2,211 extracted files; write report | M2 | 10 | HIGH |
-| F2.3 | Record verification result in comparison doc (errata/proof section) | M2 | 5 | MED |
-| F3.1 | AGENTS.md: add research-artifacts pointer block (docs + tools + strings locations) | M3 | 10 | HIGH |
-| F3.2 | CHANGELOG.md: research-deliverable entry | M3 | 10 | MED |
-| F3.3 | Cross-link check: status reports ↔ comparison doc ↔ TODO #138–#141 | M3 | 5 | LOW |
-| F4.1 | Delete `/tmp/emeet/wineprefix*` (4 prefixes) | M4 | 5 | LOW |
-| F4.2 | Record innoextract-tree abandonment + wine-postmortem note in comparison doc §5 | M4 | 10 | MED |
-| F4.3 | Inventory remaining `/tmp/emeet` contents (what dies with reboot) into AGENTS block | M4 | 10 | MED |
-| F5.1 | Extract our implemented HID ops from `hid.go`, `commands.go`, `docs/hid-protocol.md` | M5 | 12 | HIGH |
-| F5.2 | Extract their full `CMD_*` list with context lines (win + mac) | M5 | 12 | HIGH |
-| F5.3 | Build mapping table (implemented / mappable / needs-bytes / unknown) in `docs/hid-protocol-official-map.md` | M5 | 12 | VERY HIGH |
-| F5.4 | Cross-check audio/mode/zoom ops for byte-level hints (both use config+commit) | M5 | 12 | VERY HIGH |
-| F5.5 | Add "Official implementation" validation section to `docs/hid-protocol.md` | M5 | 12 | MED |
-| F5.6 | Review pass + commit of mapping doc | M5 | 8 | MED |
-| F6.1 | Grep MOTOR context lines from Mac strings; classify speed/position/relative ops | M6 | 12 | VERY HIGH |
-| F6.2 | Enumerate preset + power-on-default position commands | M6 | 12 | VERY HIGH |
-| F6.3 | Extract battery/charge context (which models reference it) | M6 | 10 | HIGH |
-| F6.4 | Extract TargetTrack/ObjectTrack mode-value strings | M6 | 12 | HIGH |
-| F6.5 | Extract privacy-trigger-time context | M6 | 10 | MED |
-| F6.6 | Fold all findings into `hid-protocol-official-map.md` | M6 | 12 | VERY HIGH |
-| F7.1 | Write HID battery-query test sketch using existing framing | M7 | 12 | HIGH |
-| F7.2 | Run query against hardware if PIXY attached; capture result | M7 | 12 | HIGH |
-| F7.3 | Update TODO #139 with wired-vs-wireless verdict | M7 | 5 | HIGH |
-| F8.1 | Produce final device-class list both platforms (classes ≠ fw-models) | M8 | 10 | MED |
-| F8.2 | Probe `fw.emeet.ai/api/v3/firmware/models/*` once; record status | M8 | 8 | LOW |
-| F8.3 | Fix comparison-doc ellipsis/errata (device line, battery caveat) | M8 | 10 | MED |
-| F8.4 | Extract 2 wizard images; eyeball branding | M8 | 8 | LOW |
-| F9.1 | Draft README intro from website-hero origin story | M9 | 12 | HIGH |
-| F9.2 | Edit README pitch section | M9 | 12 | HIGH |
-| F9.3 | Verify every README claim against FEATURES.md | M9 | 10 | HIGH |
-| F10.1 | `gh repo edit`: description + homepage | M10 | 6 | MED |
-| F10.2 | Set topics (linux, webcam, hid, nixos, go, daemon) | M10 | 4 | MED |
-| F10.3 | Verify metadata rendering on GitHub | M10 | 4 | LOW |
-| F11.1 | Pin `typescript@6.x` in website `package.json`, refresh lockfile | M11 | 10 | MED |
-| F11.2 | Verify `tsc --strict` + document `astro check` status | M11 | 12 | MED |
-| F12.1 | Make `hero-code.ts` the single source; export structured lines | M12 | 12 | MED |
-| F12.2 | `HeroSection.astro` consumes it for `highlightedCode` | M12 | 12 | MED |
-| F12.3 | Render-diff check (build + compare hero) | M12 | 10 | MED |
-| F13.1 | Investigate TargetTrack/ObjectTrack absence in Windows exe | M13 | 12 | MED |
-| F13.2 | Locate Windows `elink` references (24 hits) — what are they? | M13 | 12 | MED |
-| F13.3 | Document findings/open-questions in comparison doc | M13 | 8 | MED |
-| F14.1 | Design PTZ-speed command from M5/M6 evidence | M14 | 12 | HIGH |
-| F14.2 | Implement in `hid.go` (config+commit report) | M14 | 12 | HIGH |
-| F14.3 | Wire `ptz-speed` command + web slider/env default | M14 | 12 | HIGH |
-| F14.4 | Tests (unit + pixy simulator round-trip) | M14 | 12 | HIGH |
-| F14.5 | Hardware verify; clamp validation | M14 | 12 | HIGH |
-| F15.1 | Add battery/charge `queryHIDState[T]` | M15 | 12 | HIGH |
-| F15.2 | Surface in `status`, Waybar JSON, web panel | M15 | 12 | HIGH |
-| F15.3 | Tests + graceful absence handling | M15 | 12 | MED |
-| F16.1 | Design tracking-mode selector (enum mapping) | M16 | 12 | HIGH |
-| F16.2 | Implement HID mode set + `tracking <mode>` command | M16 | 12 | HIGH |
-| F16.3 | Web UI mode picker + keyboard | M16 | 12 | HIGH |
-| F16.4 | Tests + hardware verify | M16 | 12 | HIGH |
-| F17.1 | Design motor-preset slot API (slots, sync rules) | M17 | 12 | MED |
-| F17.2 | Implement save/recall sync logic | M17 | 12 | MED |
-| F17.3 | Tests + hardware verify | M17 | 12 | MED |
-| F18.1 | Write FIREBASE secret checklist for Lars (exact steps) | M18 | 8 | MED |
-| F18.2 | Final review of `website.yml` deploy job | M18 | 12 | MED |
-| F19.1 | Add `VideoObject` JSON-LD for demo.mp4 | M19 | 12 | MED |
-| F19.2 | PNG→webp screenshot conversion + references | M19 | 12 | MED |
-| F19.3 | Dedicated poster frame (t=2) | M19 | 10 | LOW |
-| F19.4 | Dark/light + mobile QA of Showcase | M19 | 12 | LOW |
-| F20.1 | Scaffold `website/video/` HyperFrames composition | M20 | 12 | MED |
-| F20.2 | Port storyboard/copy from rendered demo.mp4 | M20 | 12 | MED |
-| F20.3 | Render + compare vs committed mp4; commit source | M20 | 12 | MED |
-| F21.1 | Extract elink command families from Mac strings | M21 | 12 | LOW-MED |
-| F21.2 | Document protocol shape (transport, framing) | M21 | 12 | LOW-MED |
-| F21.3 | Examples table + link from comparison doc | M21 | 12 | LOW-MED |
-| F22.1 | Strings-inspect `EMVideoInput.dll` (pipe/shared-mem?) | M22 | 12 | LOW-MED |
-| F22.2 | Notes: their pipe vs our MJPEG approach | M22 | 12 | LOW-MED |
-| F23.1 | ADR draft: structured command types (#116) — options + recommendation | M23 | 12 | HIGH |
-| F23.2 | ADR draft: multi-word preset names (#123) — options + recommendation | M23 | 12 | HIGH |
-| F23.3 | Condense both into decision memo for Lars | M23 | 12 | HIGH |
-| F24.1 | Condense Inno 6.6.1 spec from comparison doc §5 (upstream-ready) | M24 | 12 | MED |
-| F24.2 | Draft upstream issue/PR text with Python reference pointer | M24 | 12 | MED |
-| F25.1 | Screenshot shot-list (angles, states, crops) | M25 | 8 | MED |
-| F25.2 | Capture + crop + replace when camera attached | M25 | 12 | MED |
-| F26.1 | Distill internal comparison → public page draft (**B**: Lars) | — | 12 | MED |
-| F26.2 | Archive-or-delete decision executed for 348 MB payload (**B**: Lars) | — | 6 | LOW |
+| ID    | Task (≤12 min)                                                                                              | → M | Est | Impact    |
+| ----- | ----------------------------------------------------------------------------------------------------------- | --- | --- | --------- |
+| F1.1  | Create `tools/inno661/`, copy `extract_setup0.py`, `setup0_parse.py`, `finish_parse.py`, `extract_files.py` | M1  | 10  | HIGH      |
+| F1.2  | Write `tools/inno661/README.md`: usage, format summary, pointers to comparison doc §5                       | M1  | 12  | HIGH      |
+| F1.3  | Snapshot `parsed.json` + `locations.json` into `tools/inno661/data/`                                        | M1  | 8   | HIGH      |
+| F1.4  | Verify: re-run extract end-to-end from new location against installer                                       | M1  | 12  | HIGH      |
+| F2.1  | Re-parse file locations keeping SHA256 digests; emit `verify.py`                                            | M2  | 12  | HIGH      |
+| F2.2  | Run checksum over all 2,211 extracted files; write report                                                   | M2  | 10  | HIGH      |
+| F2.3  | Record verification result in comparison doc (errata/proof section)                                         | M2  | 5   | MED       |
+| F3.1  | AGENTS.md: add research-artifacts pointer block (docs + tools + strings locations)                          | M3  | 10  | HIGH      |
+| F3.2  | CHANGELOG.md: research-deliverable entry                                                                    | M3  | 10  | MED       |
+| F3.3  | Cross-link check: status reports ↔ comparison doc ↔ TODO #138–#141                                          | M3  | 5   | LOW       |
+| F4.1  | Delete `/tmp/emeet/wineprefix*` (4 prefixes)                                                                | M4  | 5   | LOW       |
+| F4.2  | Record innoextract-tree abandonment + wine-postmortem note in comparison doc §5                             | M4  | 10  | MED       |
+| F4.3  | Inventory remaining `/tmp/emeet` contents (what dies with reboot) into AGENTS block                         | M4  | 10  | MED       |
+| F5.1  | Extract our implemented HID ops from `hid.go`, `commands.go`, `docs/hid-protocol.md`                        | M5  | 12  | HIGH      |
+| F5.2  | Extract their full `CMD_*` list with context lines (win + mac)                                              | M5  | 12  | HIGH      |
+| F5.3  | Build mapping table (implemented / mappable / needs-bytes / unknown) in `docs/hid-protocol-official-map.md` | M5  | 12  | VERY HIGH |
+| F5.4  | Cross-check audio/mode/zoom ops for byte-level hints (both use config+commit)                               | M5  | 12  | VERY HIGH |
+| F5.5  | Add "Official implementation" validation section to `docs/hid-protocol.md`                                  | M5  | 12  | MED       |
+| F5.6  | Review pass + commit of mapping doc                                                                         | M5  | 8   | MED       |
+| F6.1  | Grep MOTOR context lines from Mac strings; classify speed/position/relative ops                             | M6  | 12  | VERY HIGH |
+| F6.2  | Enumerate preset + power-on-default position commands                                                       | M6  | 12  | VERY HIGH |
+| F6.3  | Extract battery/charge context (which models reference it)                                                  | M6  | 10  | HIGH      |
+| F6.4  | Extract TargetTrack/ObjectTrack mode-value strings                                                          | M6  | 12  | HIGH      |
+| F6.5  | Extract privacy-trigger-time context                                                                        | M6  | 10  | MED       |
+| F6.6  | Fold all findings into `hid-protocol-official-map.md`                                                       | M6  | 12  | VERY HIGH |
+| F7.1  | Write HID battery-query test sketch using existing framing                                                  | M7  | 12  | HIGH      |
+| F7.2  | Run query against hardware if PIXY attached; capture result                                                 | M7  | 12  | HIGH      |
+| F7.3  | Update TODO #139 with wired-vs-wireless verdict                                                             | M7  | 5   | HIGH      |
+| F8.1  | Produce final device-class list both platforms (classes ≠ fw-models)                                        | M8  | 10  | MED       |
+| F8.2  | Probe `fw.emeet.ai/api/v3/firmware/models/*` once; record status                                            | M8  | 8   | LOW       |
+| F8.3  | Fix comparison-doc ellipsis/errata (device line, battery caveat)                                            | M8  | 10  | MED       |
+| F8.4  | Extract 2 wizard images; eyeball branding                                                                   | M8  | 8   | LOW       |
+| F9.1  | Draft README intro from website-hero origin story                                                           | M9  | 12  | HIGH      |
+| F9.2  | Edit README pitch section                                                                                   | M9  | 12  | HIGH      |
+| F9.3  | Verify every README claim against FEATURES.md                                                               | M9  | 10  | HIGH      |
+| F10.1 | `gh repo edit`: description + homepage                                                                      | M10 | 6   | MED       |
+| F10.2 | Set topics (linux, webcam, hid, nixos, go, daemon)                                                          | M10 | 4   | MED       |
+| F10.3 | Verify metadata rendering on GitHub                                                                         | M10 | 4   | LOW       |
+| F11.1 | Pin `typescript@6.x` in website `package.json`, refresh lockfile                                            | M11 | 10  | MED       |
+| F11.2 | Verify `tsc --strict` + document `astro check` status                                                       | M11 | 12  | MED       |
+| F12.1 | Make `hero-code.ts` the single source; export structured lines                                              | M12 | 12  | MED       |
+| F12.2 | `HeroSection.astro` consumes it for `highlightedCode`                                                       | M12 | 12  | MED       |
+| F12.3 | Render-diff check (build + compare hero)                                                                    | M12 | 10  | MED       |
+| F13.1 | Investigate TargetTrack/ObjectTrack absence in Windows exe                                                  | M13 | 12  | MED       |
+| F13.2 | Locate Windows `elink` references (24 hits) — what are they?                                                | M13 | 12  | MED       |
+| F13.3 | Document findings/open-questions in comparison doc                                                          | M13 | 8   | MED       |
+| F14.1 | Design PTZ-speed command from M5/M6 evidence                                                                | M14 | 12  | HIGH      |
+| F14.2 | Implement in `hid.go` (config+commit report)                                                                | M14 | 12  | HIGH      |
+| F14.3 | Wire `ptz-speed` command + web slider/env default                                                           | M14 | 12  | HIGH      |
+| F14.4 | Tests (unit + pixy simulator round-trip)                                                                    | M14 | 12  | HIGH      |
+| F14.5 | Hardware verify; clamp validation                                                                           | M14 | 12  | HIGH      |
+| F15.1 | Add battery/charge `queryHIDState[T]`                                                                       | M15 | 12  | HIGH      |
+| F15.2 | Surface in `status`, Waybar JSON, web panel                                                                 | M15 | 12  | HIGH      |
+| F15.3 | Tests + graceful absence handling                                                                           | M15 | 12  | MED       |
+| F16.1 | Design tracking-mode selector (enum mapping)                                                                | M16 | 12  | HIGH      |
+| F16.2 | Implement HID mode set + `tracking <mode>` command                                                          | M16 | 12  | HIGH      |
+| F16.3 | Web UI mode picker + keyboard                                                                               | M16 | 12  | HIGH      |
+| F16.4 | Tests + hardware verify                                                                                     | M16 | 12  | HIGH      |
+| F17.1 | Design motor-preset slot API (slots, sync rules)                                                            | M17 | 12  | MED       |
+| F17.2 | Implement save/recall sync logic                                                                            | M17 | 12  | MED       |
+| F17.3 | Tests + hardware verify                                                                                     | M17 | 12  | MED       |
+| F18.1 | Write FIREBASE secret checklist for Lars (exact steps)                                                      | M18 | 8   | MED       |
+| F18.2 | Final review of `website.yml` deploy job                                                                    | M18 | 12  | MED       |
+| F19.1 | Add `VideoObject` JSON-LD for demo.mp4                                                                      | M19 | 12  | MED       |
+| F19.2 | PNG→webp screenshot conversion + references                                                                 | M19 | 12  | MED       |
+| F19.3 | Dedicated poster frame (t=2)                                                                                | M19 | 10  | LOW       |
+| F19.4 | Dark/light + mobile QA of Showcase                                                                          | M19 | 12  | LOW       |
+| F20.1 | Scaffold `website/video/` HyperFrames composition                                                           | M20 | 12  | MED       |
+| F20.2 | Port storyboard/copy from rendered demo.mp4                                                                 | M20 | 12  | MED       |
+| F20.3 | Render + compare vs committed mp4; commit source                                                            | M20 | 12  | MED       |
+| F21.1 | Extract elink command families from Mac strings                                                             | M21 | 12  | LOW-MED   |
+| F21.2 | Document protocol shape (transport, framing)                                                                | M21 | 12  | LOW-MED   |
+| F21.3 | Examples table + link from comparison doc                                                                   | M21 | 12  | LOW-MED   |
+| F22.1 | Strings-inspect `EMVideoInput.dll` (pipe/shared-mem?)                                                       | M22 | 12  | LOW-MED   |
+| F22.2 | Notes: their pipe vs our MJPEG approach                                                                     | M22 | 12  | LOW-MED   |
+| F23.1 | ADR draft: structured command types (#116) — options + recommendation                                       | M23 | 12  | HIGH      |
+| F23.2 | ADR draft: multi-word preset names (#123) — options + recommendation                                        | M23 | 12  | HIGH      |
+| F23.3 | Condense both into decision memo for Lars                                                                   | M23 | 12  | HIGH      |
+| F24.1 | Condense Inno 6.6.1 spec from comparison doc §5 (upstream-ready)                                            | M24 | 12  | MED       |
+| F24.2 | Draft upstream issue/PR text with Python reference pointer                                                  | M24 | 12  | MED       |
+| F25.1 | Screenshot shot-list (angles, states, crops)                                                                | M25 | 8   | MED       |
+| F25.2 | Capture + crop + replace when camera attached                                                               | M25 | 12  | MED       |
+| F26.1 | Distill internal comparison → public page draft (**B**: Lars)                                               | —   | 12  | MED       |
+| F26.2 | Archive-or-delete decision executed for 348 MB payload (**B**: Lars)                                        | —   | 6   | LOW       |
 
 ---
 

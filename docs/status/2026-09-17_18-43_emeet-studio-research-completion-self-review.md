@@ -24,7 +24,7 @@ comparison report, and an honest look at what I did badly.
    - **All entries parsed**: 9 languages, 123 custom messages, 11 dirs, 2,212 file
      entries, 4 icons, 1 Run (launch app), 3 UninstallRun (taskkill, vcam unregister,
      VirtualAudio uninstall), 4 wizard-image groups, 2,211 file locations.
-   - **Corrected a wrong handoff assumption**: stream 2 contains *only* FileLocation
+   - **Corrected a wrong handoff assumption**: stream 2 contains _only_ FileLocation
      entries (89 bytes each, ends exactly at block-2 boundary); Icons/Run live in
      stream 1 right after File entries.
    - **Payload location found**: one solid LZMA chunk at **Offset1 + 9**
@@ -43,7 +43,7 @@ comparison report, and an honest look at what I did badly.
    - Qt 6.8.3 on Windows = identical to Mac → one codebase, two Jenkins branches
      (`_EMEET_STUDIO_2.0-Windows_master` / `op-EMEET_STUDIO_2.0_macOS_master`, both
      `NPI2024_Audio_Video_App`).
-   - Windows supports *more* devices (Nova4K, C960Ultra, C63E4KDual, C60E4K, S600Light,
+   - Windows supports _more_ devices (Nova4K, C960Ultra, C63E4KDual, C60E4K, S600Light,
      E3164/E3165/E7002…); Windows HID command names ⊂ Mac's (96 vs ~150, zero win-only).
    - `Fic760xUsbUpgradeDll.dll` (WiFi-chip firmware flasher), fw API
      `fw.emeet.ai/api/v3/firmware/models/{model}`, eMeetLink self-update JSON, Kuaishou
@@ -83,14 +83,14 @@ comparison report, and an honest look at what I did badly.
 ## d) TOTALLY FUCKED UP (honest list)
 
 1. **Wine/Xvfb retry was a waste**: launched it before checking that `nix shell
-   nixpkgs#wineWowPackages.stable` wasn't cached — it tried to *build wine-wow from
-   source* and died (exit 2). No harm, but it was blind optimism; the Python path made
+   nixpkgs#wineWowPackages.stable` wasn't cached — it tried to _build wine-wow from
+   source_ and died (exit 2). No harm, but it was blind optimism; the Python path made
    it redundant within minutes.
 2. **Sloppy offset arithmetic burned ~5 debug loops**: (i) a botched `cat >>` draft
    append with broken digest handling had to be trimmed out; (ii) a 40-vs-20-byte
    version-field skip bug in the refactored parser; (iii) a Python one-liner with
    unterminated string quoting; (iv) misread FILETIME anchors (j−79 vs j−76) that
-   briefly made me distrust the *correct* 89-byte location grid; (v) several minutes
+   briefly made me distrust the _correct_ 89-byte location grid; (v) several minutes
    flip-flopping on field orders by eyeballing hexdumps instead of reading the Pascal
    record. The lesson I keep re-learning: compute offsets in code; hexdump-eyeballing
    is where errors breed.
@@ -110,7 +110,7 @@ comparison report, and an honest look at what I did badly.
 ## e) WHAT WE SHOULD IMPROVE (process, from this run)
 
 - **Preserve ephemeral research tooling**: anything valuable in `/tmp` (parsers,
-  parsed.json, strings dumps) should be committed or archived *at the moment it works*,
+  parsed.json, strings dumps) should be committed or archived _at the moment it works_,
   not left for a reboot to eat. Same class of loss as TODO #130 (HyperFrames sources).
 - **Verify with the data you already have**: when a format hands you checksums, use
   them — cheap cryptographic proof beats spot-checks.
@@ -120,11 +120,12 @@ comparison report, and an honest look at what I did badly.
   discoveries (Inno 6.6.1 spec location, comparison doc, artifact paths) should have
   landed there same-session.
 - **Kill speculative side-quests faster**: the wine retry cost little, but it was
-   launched on hope rather than a 10-second feasibility check (`nix path-info`).
+  launched on hope rather than a 10-second feasibility check (`nix path-info`).
 
 ## f) NEXT — up to 50, ranked (this session's scope only)
 
 **Verification & preservation (do first, cheap):**
+
 1. Re-run location parse keeping SHA256s; checksum all 2,211 extracted files (S).
 2. Copy the Inno 6.6.1 toolchain (`extract_setup0.py`, `setup0_parse.py`,
    `finish_parse.py`, `extract_files.py`, `parsed.json`) into `tools/inno661/` or
@@ -138,9 +139,9 @@ comparison report, and an honest look at what I did badly.
 6. Build the official-CMD ↔ our-HID mapping table against `hid-protocol.md` + `hid.go` (M).
 7. Hardware test: does the wired PIXY answer `CMD_GET_BATTERY_LEVEL`? De-risk #139 (S).
 8. Enumerate the exact MOTOR preset/speed command names from Mac strings; design the
-   sniff plan for #138/#141 (S).
+sniff plan for #138/#141 (S).
 9. Resolve the Windows `TargetTrack`/`ObjectTrack` string absence (feature-gated?
-   stripped? different naming?) (S/M).
+stripped? different naming?) (S/M).
 10. Investigate `privacy trigger time` semantics from Mac strings (S).
 
 **Deeper intel (optional):**
@@ -152,18 +153,18 @@ comparison report, and an honest look at what I did badly.
 
 **Upstream / public (needs Lars's call — see questions):**
 16. Port Inno 6.6.1 support to innoextract upstream (I hold a verified format spec +
-    Python reference; innoextract is THE tool and currently blind to 6.6.1) (M/L).
+Python reference; innoextract is THE tool and currently blind to 6.6.1) (M/L).
 17. Publish a distilled comparison (or roadmap deltas) on the website (S/M).
 18. `hid-protocol.md`: add the official framing names (`EMHidCmdV2Head`, `_OLD`
-    variants, `EMHidCmdRecvFsm`, `[HID_RACE_FIX]`) as external validation notes (S).
+variants, `EMHidCmdRecvFsm`, `[HID_RACE_FIX]`) as external validation notes (S).
 
-*(Deliberately stopping at 18 — padding to 50 with unrelated work would violate the
-"only this session" rule.)*
+_(Deliberately stopping at 18 — padding to 50 with unrelated work would violate the
+"only this session" rule.)_
 
 ## g) Questions for Lars (cannot be answered from here)
 
 1. **Preservation scope:** the full 348 MB extracted Windows payload and the ~1.27M-line
-   strings dumps live only in `/tmp/emeet/`. Commit the *tooling + parsed JSON* to the
+   strings dumps live only in `/tmp/emeet/`. Commit the _tooling + parsed JSON_ to the
    repo and let the payload itself die with `/tmp` — or archive the payload somewhere
    durable too (it's their copyrighted binaries; repo-fitting 348 MB is questionable)?
 2. **innoextract upstream PR:** want me to turn the Inno 6.6.1 findings into an

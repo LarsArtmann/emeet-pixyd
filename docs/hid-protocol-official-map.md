@@ -28,7 +28,7 @@ QML UI (EMBatteryLevel, PtzDeviceOptVM, ...)
 - Two command headers exist: `EMHidCmdV1Head` and `EMHidCmdV2Head`, each with its
   receive FSM. Our 9-byte `0x09`-prefixed config/commit reports (hid-protocol.md)
   are one dialect of this family — likely V1-era.
-- **`[HID_RACE_FIX]`**: the official app keeps a persistent HID *read thread* and
+- **`[HID_RACE_FIX]`**: the official app keeps a persistent HID _read thread_ and
   pauses it (`setPause(true)`) before `hid_write` during firmware IC upgrades —
   they hit the same read/write interleaving hazard our single-shot `SendRecv`
   sidesteps by opening per operation.
@@ -41,13 +41,13 @@ QML UI (EMBatteryLevel, PtzDeviceOptVM, ...)
 
 ## 2. Our implementation surface (today)
 
-| Ours | Wire (hid-protocol.md) | Their equivalent |
-| ---- | ---------------------- | ---------------- |
-| Camera mode set (track/idle/privacy) | `0x09,0x01,0x01,0,0,1,0,1,mode` + commit `0x09,0x01,0x01,0x01` | `hidCmdSendSetDeviceMode(UsbHidCtrl*, DeviceMode, ...)` → `CMD_SET_DEVICE_MODE` |
-| Audio mode set (nc/live/original) | iface `0x05`, mode 1/2/3 | `CMD_SET_AUDIO_INPUT_GAIN`-adjacent family (audio chain: AGC, input gain, denoise, music mode) — our 3-mode audio maps onto their denoise/music/AGC toggles, not one enum |
-| Gesture toggle | iface `0x04`, on=1 | `hidCmdSendSetGestureRecogSta(UsbHidCtrl*, GestureType, u8, ...)` → `CMD_SET_GESTURE_RECOG_STA` (theirs is per-gesture-type) |
-| Mode queries | `0x09,iface,...` reads | `hidCmdSendGetDeviceMode/GetGestureRecogSta(+/GestureType)/...` |
-| PTZ | V4L2 (`v4l2-ctl`), not HID | **HID motor commands** (§3 MOTOR) + V4L2 UVC (`GetUvcSupportZoomParam`) |
+| Ours                                 | Wire (hid-protocol.md)                                         | Their equivalent                                                                                                                                                          |
+| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Camera mode set (track/idle/privacy) | `0x09,0x01,0x01,0,0,1,0,1,mode` + commit `0x09,0x01,0x01,0x01` | `hidCmdSendSetDeviceMode(UsbHidCtrl*, DeviceMode, ...)` → `CMD_SET_DEVICE_MODE`                                                                                           |
+| Audio mode set (nc/live/original)    | iface `0x05`, mode 1/2/3                                       | `CMD_SET_AUDIO_INPUT_GAIN`-adjacent family (audio chain: AGC, input gain, denoise, music mode) — our 3-mode audio maps onto their denoise/music/AGC toggles, not one enum |
+| Gesture toggle                       | iface `0x04`, on=1                                             | `hidCmdSendSetGestureRecogSta(UsbHidCtrl*, GestureType, u8, ...)` → `CMD_SET_GESTURE_RECOG_STA` (theirs is per-gesture-type)                                              |
+| Mode queries                         | `0x09,iface,...` reads                                         | `hidCmdSendGetDeviceMode/GetGestureRecogSta(+/GestureType)/...`                                                                                                           |
+| PTZ                                  | V4L2 (`v4l2-ctl`), not HID                                     | **HID motor commands** (§3 MOTOR) + V4L2 UVC (`GetUvcSupportZoomParam`)                                                                                                   |
 
 ## 3. Full command classification
 
@@ -56,47 +56,47 @@ Legend: ✅ implemented by us · 🔷 same semantic exists officially, our bytes
 
 ### Camera / modes
 
-| Command (official) | Signature (send / parse-out) | Class |
-| ------------------ | ---------------------------- | ----- |
-| `CMD_SET/GET_DEVICE_MODE` | `DeviceMode` / `DeviceMode&` | ✅ (our iface 0x01) |
-| `CMD_SET/GET_GESTURE_RECOG_STA` | `(GestureType, u8)` / `(GestureType&, u8&)` | ✅ (ours: single toggle) |
-| `CMD_SET/GET_PRIVACY_TRIGGER_TIME` | `(i32)` / `u32&` — auto-privacy delay | 🟨 (PIXY-specific options, `initPrivacyTimeOptionsForPixyDevices`) |
-| `CMD_SET/GET_REVERSE_STA` | `(ReverseType, u8)` — image flip | 🟨 |
-| `CMD_SET/GET_HDR_STA` | `(u8)` | 🟨 |
-| `CMD_GET_FUNC_STA` | `u32&` (bitfield of capabilities) | 🟨 — useful capability probe |
-| `CMD_SET_FACTORY_RESET` / `CMD_SET_REBOOT` | — | 🟨 |
+| Command (official)                         | Signature (send / parse-out)                | Class                                                              |
+| ------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------ |
+| `CMD_SET/GET_DEVICE_MODE`                  | `DeviceMode` / `DeviceMode&`                | ✅ (our iface 0x01)                                                |
+| `CMD_SET/GET_GESTURE_RECOG_STA`            | `(GestureType, u8)` / `(GestureType&, u8&)` | ✅ (ours: single toggle)                                           |
+| `CMD_SET/GET_PRIVACY_TRIGGER_TIME`         | `(i32)` / `u32&` — auto-privacy delay       | 🟨 (PIXY-specific options, `initPrivacyTimeOptionsForPixyDevices`) |
+| `CMD_SET/GET_REVERSE_STA`                  | `(ReverseType, u8)` — image flip            | 🟨                                                                 |
+| `CMD_SET/GET_HDR_STA`                      | `(u8)`                                      | 🟨                                                                 |
+| `CMD_GET_FUNC_STA`                         | `u32&` (bitfield of capabilities)           | 🟨 — useful capability probe                                       |
+| `CMD_SET_FACTORY_RESET` / `CMD_SET_REBOOT` | —                                           | 🟨                                                                 |
 
 ### Motor / PTZ (TODO #138, #141)
 
-| Command | Signature | Class |
-| ------- | --------- | ----- |
-| `CMD_SET/GET_MOTOR_POS` | `(MotorType, f32)` / `(MotorType&, f32&, f32&)` | 🟨 — HID alternative to our V4L2 PTZ |
-| `CMD_SET_MOTOR_RELATIVE_POS` | `(MotorType, f32)` | 🟨 — our `rel±` over V4L2 |
-| `CMD_SET_MOTOR_RUNNING` | `(f32, f32, f32)` — one-key move pan/tilt/zoom ("yawPos" in logs) | 🟨 |
-| `CMD_SET/GET_MOTOR_SPEED` | `(MotorType, f32)` / `(MotorType&, f32&, f32&)` | 🟨 — **#138**; speed is a float (likely °/s), per-axis |
-| `CMD_SET_MOTOR_PRESET_POS` | `(u8 slot)` — save current to slot | 🟨 — **#141** |
-| `CMD_SET/GET_MOTOR_PRESET_POS_MODE` | `(u8 slot, DefaultPosMode)` / `(u8&, DefaultPosMode&, f32&, f32&, f32&)` | 🟨 — **#141** (slot + mode + pan/tilt/zoom readback) |
-| `CMD_SET/GET_MOTOR_POWER_ON_DEFAULT_POS_MODE` | `(DefaultPosMode)` / `(DefaultPosMode&, f32×3)` | 🟨 — **#141** (power-on default = last/custom preset) |
-| `CMD_SET_MOTOR_DEFAULT_POS` | `(bool)` — save current as default | 🟨 |
-| `CMD_GET_MOTOR_POS` (query) | `(MotorType&, f32&, f32&)` | 🟨 — hardware PTZ readback (our 500ms V4L2 readback equivalent) |
+| Command                                       | Signature                                                                | Class                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `CMD_SET/GET_MOTOR_POS`                       | `(MotorType, f32)` / `(MotorType&, f32&, f32&)`                          | 🟨 — HID alternative to our V4L2 PTZ                            |
+| `CMD_SET_MOTOR_RELATIVE_POS`                  | `(MotorType, f32)`                                                       | 🟨 — our `rel±` over V4L2                                       |
+| `CMD_SET_MOTOR_RUNNING`                       | `(f32, f32, f32)` — one-key move pan/tilt/zoom ("yawPos" in logs)        | 🟨                                                              |
+| `CMD_SET/GET_MOTOR_SPEED`                     | `(MotorType, f32)` / `(MotorType&, f32&, f32&)`                          | 🟨 — **#138**; speed is a float (likely °/s), per-axis          |
+| `CMD_SET_MOTOR_PRESET_POS`                    | `(u8 slot)` — save current to slot                                       | 🟨 — **#141**                                                   |
+| `CMD_SET/GET_MOTOR_PRESET_POS_MODE`           | `(u8 slot, DefaultPosMode)` / `(u8&, DefaultPosMode&, f32&, f32&, f32&)` | 🟨 — **#141** (slot + mode + pan/tilt/zoom readback)            |
+| `CMD_SET/GET_MOTOR_POWER_ON_DEFAULT_POS_MODE` | `(DefaultPosMode)` / `(DefaultPosMode&, f32×3)`                          | 🟨 — **#141** (power-on default = last/custom preset)           |
+| `CMD_SET_MOTOR_DEFAULT_POS`                   | `(bool)` — save current as default                                       | 🟨                                                              |
+| `CMD_GET_MOTOR_POS` (query)                   | `(MotorType&, f32&, f32&)`                                               | 🟨 — hardware PTZ readback (our 500ms V4L2 readback equivalent) |
 
 ### Tracking (TODO #140)
 
-| Command | Signature | Class |
-| ------- | --------- | ----- |
-| `CMD_SET/GET_TARGET_TRACK` | `(TargetTrackMode, f32, f32, f32)` / `(TargetTrackMode&, f32×3)` | 🟨 — face tracking; UI strings confirm **Face / HalfBody / FullBody** variants ("HalfBodyTracking", "FullBodyTracking", "Half Body Tracking") |
-| `CMD_SET/GET_OBJECT_TRACK` | `(ObjectTrackMode, i8, f32×4)` / `(ObjectTrackMode&, i8&, f32×4)` | 🟨 — object tracking with target rect (4 floats) |
-| `CMD_SET/GET_OBJECT_TRACK_REPORT` | `(u8)` | 🟨 |
+| Command                           | Signature                                                         | Class                                                                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CMD_SET/GET_TARGET_TRACK`        | `(TargetTrackMode, f32, f32, f32)` / `(TargetTrackMode&, f32×3)`  | 🟨 — face tracking; UI strings confirm **Face / HalfBody / FullBody** variants ("HalfBodyTracking", "FullBodyTracking", "Half Body Tracking") |
+| `CMD_SET/GET_OBJECT_TRACK`        | `(ObjectTrackMode, i8, f32×4)` / `(ObjectTrackMode&, i8&, f32×4)` | 🟨 — object tracking with target rect (4 floats)                                                                                              |
+| `CMD_SET/GET_OBJECT_TRACK_REPORT` | `(u8)`                                                            | 🟨                                                                                                                                            |
 
 ### Power / battery (TODO #139, #144)
 
-| Command | Signature | Class |
-| ------- | --------- | ----- |
-| `CMD_GET_BATTERY_LEVEL` | parse → `u8&` ("CMD_GET_BATTERY_LEVEL_VAL success.level") | 🟨 — **#139/#144**; HID form present in **Mac binary only** (Windows reaches battery via elink/`EMNetCmdHelper::getBatteryLevel` — see §5) |
-| `CMD_GET_CHARGE_STA` | parse → `ChargeSta&` | 🟨 — companion to battery |
-| `CMD_SET/GET_AUTO_POWER_ON` | `(u8)` | 🟨 |
-| `CMD_SET/GET_AUTO_SHUTDOWN_TIME` | `(u8, i16)` / `(bool&, i16&)` | 🟨 |
-| `CMD_SET/GET_POWER_MNG_MODE` | `(PowerMngMode)` | 🟨 |
+| Command                          | Signature                                                 | Class                                                                                                                                      |
+| -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CMD_GET_BATTERY_LEVEL`          | parse → `u8&` ("CMD_GET_BATTERY_LEVEL_VAL success.level") | 🟨 — **#139/#144**; HID form present in **Mac binary only** (Windows reaches battery via elink/`EMNetCmdHelper::getBatteryLevel` — see §5) |
+| `CMD_GET_CHARGE_STA`             | parse → `ChargeSta&`                                      | 🟨 — companion to battery                                                                                                                  |
+| `CMD_SET/GET_AUTO_POWER_ON`      | `(u8)`                                                    | 🟨                                                                                                                                         |
+| `CMD_SET/GET_AUTO_SHUTDOWN_TIME` | `(u8, i16)` / `(bool&, i16&)`                             | 🟨                                                                                                                                         |
+| `CMD_SET/GET_POWER_MNG_MODE`     | `(PowerMngMode)`                                          | 🟨                                                                                                                                         |
 
 ### Audio (deeper than ours)
 
@@ -121,6 +121,7 @@ upgrade via `Fic760xUsbUpgradeDll` on Windows).
 ## 4. The four feature TODOs — design inputs
 
 ### #138 PTZ speed
+
 `SetMotorSpeed(MotorType, f32)` per axis + `GetMotorSpeed` returning **two**
 floats (value + limit). Motor has 3 axes (`MotorType` ∈ {pan, tilt, zoom} —
 `SetMotorRunning(f32,f32,f32)` takes all three). V4L2 has no speed control, so
@@ -128,6 +129,7 @@ this must go over HID — the first genuinely new HID surface we would add.
 Byte-level need: V2Head command ID + payload layout (f32 LE? scaled int?).
 
 ### #139/#144 Battery + charge
+
 Read-only: level `u8` (percent), `ChargeSta` enum (strings show `Charging`,
 `charge_status`). HID command exists in Mac build only — Windows uses
 elink. De-risk (M7): send a candidate GET framing against the wired PIXY;
@@ -136,12 +138,14 @@ The official UI has a dedicated `EMBatteryLevel` QML component and a
 `batteryLight` LED behavior.
 
 ### #140 Tracking variants
+
 `TargetTrackMode` enum with ≥3 values (Face/HalfBody/FullBody confirmed in UI
 strings + settings keys `HalfBodyTracking`/`FullBodyTracking`). Set takes
 `(mode, f32×3)` (sensitivity/box?). Current `CMD_SET_DEVICE_MODE` tracking
 byte (0x01) is mode-less — the variants live one level deeper.
 
 ### #141 Motor presets
+
 Hardware slots: `SetMotorPresetPos(u8 slot)` saves current position;
 `GetMotorPresetPosMode(slot)` reads `(mode, pan, tilt, zoom)` back;
 `SetMotorPowerOnDefaultPosMode(DefaultPosMode)` sets which slot (or

@@ -45,8 +45,8 @@ def decode_stored(blob: bytes, call_optimized: bool) -> bytes:
     out = bytearray(blob)
     addr_offset = 0
     for off in range(0, len(out), BLOCK):
-        block = out[off:off + BLOCK]
+        block = out[off : off + BLOCK]
         transform_block(block, encode=False, addr_offset=addr_offset)
-        out[off:off + BLOCK] = block
+        out[off : off + BLOCK] = block
         addr_offset = (addr_offset + len(block)) & 0xFFFFFFFF
     return bytes(out)

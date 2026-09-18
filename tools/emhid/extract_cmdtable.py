@@ -15,12 +15,12 @@ Output: cmdtable.json = { "CMD_...": [b0, b1, b2, b3] }.
 Usage (NixOS): nix shell nixpkgs#llvm --command python3 extract_cmdtable.py <PATH-TO-MAC-BINARY>
 Requires ~500 MB scratch and a few minutes.
 """
+
 import json
 import re
 import struct
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 ARM64_CPUTYPE = 0x0100000C
@@ -31,11 +31,13 @@ def carve_arm64(binary: str, out: Path) -> None:
     with open(binary, "rb") as f:
         head = f.read(4096)
     magic, nfat = struct.unpack(">II", head[:8])
-    if magic != 0xCAFEBAbe & 0xFFFFFFFF:  # noqa: PLR0124 - readability
+    if magic != 0xCAFEBABE & 0xFFFFFFFF:
         raise SystemExit("not a fat Mach-O; expected 0xcafebabe")
     off = 8
     for _ in range(nfat):
-        cputype, _sub, offset, size, _align = struct.unpack(">IIIII", head[off:off + 20])
+        cputype, _sub, offset, size, _align = struct.unpack(
+            ">IIIII", head[off : off + 20]
+        )
         if cputype == ARM64_CPUTYPE:
             with open(binary, "rb") as f:
                 f.seek(offset)
@@ -56,17 +58,21 @@ def main() -> None:
     carve_arm64(binary, arm64)
 
     nm = run(["llvm-nm", str(arm64)])
-    m = re.search(r"^([0-9a-f]+) T __ZN14EMHidCmdV2HeadC1Ehhhh$", nm, re.M)
+    m = re.search(r"^([0-9a-f]+) T __ZN14EMHidCmdV2HeadC1Ehhhh$", nm, re.MULTILINE)
     if not m:
         raise SystemExit("EMHidCmdV2Head ctor symbol not found - binary layout changed")
     ctor = m.group(1)
 
-    fixups = run(["llvm-objdump", "--macho", "--chained-fixups", "--dyld-info", str(arm64)])
+    fixups = run(
+        ["llvm-objdump", "--macho", "--chained-fixups", "--dyld-info", str(arm64)]
+    )
     slot2sym = {}
     for line in fixups.splitlines():
         if "__got" not in line or "bind" not in line:
             continue
-        mm = re.match(r"__DATA_CONST __got\s+(0x[0-9A-Fa-f]+)\s+\S+\s+bind.*?(__Z\S+)", line)
+        mm = re.match(
+            r"__DATA_CONST __got\s+(0x[0-9A-Fa-f]+)\s+\S+\s+bind.*?(__Z\S+)", line
+        )
         if mm:
             slot2sym[int(mm.group(1), 16)] = mm.group(2)
 
@@ -89,13 +95,13 @@ def main() -> None:
                 movs[int(mm.group(1))] = int(mm.group(2), 16)
         if ldr_slot is None or not all(k in movs for k in (1, 2, 3, 4)):
             continue
-        sym = slot2sym.get(0x106a9c000 + ldr_slot)  # __DATA_CONST __got base
+        sym = slot2sym.get(0x106A9C000 + ldr_slot)  # __DATA_CONST __got base
         if sym is None:
             continue
         if sym.startswith("__ZGVN"):  # guard slot -> object symbol
-            sym = "__ZN" + sym[len("__ZGVN"):]
+            sym = "__ZN" + sym[len("__ZGVN") :]
         name = re.sub(r"^__ZN14EMHidCmdHelper\d+", "", sym)
-        name = name[:-1] if name.endswith("E") else name
+        name = name.removesuffix("E")
         out[name] = [movs[k] for k in (1, 2, 3, 4)]
 
     table = {k: v for k, v in sorted(out.items())}

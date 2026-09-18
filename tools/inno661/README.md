@@ -27,10 +27,10 @@ even if the installer itself is lost.
 ## Format summary (Inno Setup 6.6.1)
 
 - **Loader offset table** at the `rDlPtS` magic (near EOF): ID[12] + u32 ver=2
-  + i64 TotalSize + i64 OffsetEXE + u32 UncSizeEXE + i32 CRCEXE
-  + i64 **Offset0** (setup-0 header stream) + i64 **Offset1** (file data)
-  + u32 pad + i32 CRC. For this installer: Offset0=`0x82c9df0`,
-  Offset1=`0xdfa00`.
+  - i64 TotalSize + i64 OffsetEXE + u32 UncSizeEXE + i32 CRCEXE
+  - i64 **Offset0** (setup-0 header stream) + i64 **Offset1** (file data)
+  - u32 pad + i32 CRC. For this installer: Offset0=`0x82c9df0`,
+    Offset1=`0xdfa00`.
 - **Setup-0** (at Offset0): SetupID[64] + u32 CRC (covers the 49-byte
   encryption header that follows) + TSetupEncryptionHeader{u8 EncryptionUse=0,
   KDFSalt[16], u32 KDFIterations=220000, BaseNonce[12], PasswordTest[4]},
@@ -68,21 +68,21 @@ even if the installer itself is lost.
 
 ## Files
 
-| File                | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `extract_setup0.py` | Locate loader table, de-chunk + decompress setup-0   |
-| `setup0_parse.py`   | Parser module: header, all entry types, locations    |
-| `finish_parse.py`   | Drive full parse → `parsed.json`                     |
-| `extract_files.py`  | Extract + call-decode all payload files              |
-| `calltransform.py`  | TransformCallInstructions port                       |
-| `verify.py`         | SHA256-verify extracted tree against Inno digests    |
-| `data/parsed.json`  | Pre-parsed entries for this installer (with digests) |
-| `data/setup0_offsets.json` | Loader offsets for this installer             |
+| File                       | Purpose                                              |
+| -------------------------- | ---------------------------------------------------- |
+| `extract_setup0.py`        | Locate loader table, de-chunk + decompress setup-0   |
+| `setup0_parse.py`          | Parser module: header, all entry types, locations    |
+| `finish_parse.py`          | Drive full parse → `parsed.json`                     |
+| `extract_files.py`         | Extract + call-decode all payload files              |
+| `calltransform.py`         | TransformCallInstructions port                       |
+| `verify.py`                | SHA256-verify extracted tree against Inno digests    |
+| `data/parsed.json`         | Pre-parsed entries for this installer (with digests) |
+| `data/setup0_offsets.json` | Loader offsets for this installer                    |
 
 ## Notes
 
 - The extraction that informed `docs/emeet-studio-official-app-comparison.md`
-  (in `/tmp/emeet/win`, now superseded) was in *stored* (encoded) form; for
+  (in `/tmp/emeet/win`, now superseded) was in _stored_ (encoded) form; for
   strings analysis both forms are equivalent — the transform only rewrites
   rel32 operands of CALL/JMP instructions.
 - Installer facts: AppId `{{C32F7F8G-973B-5G0B-B472-22F5633048CB}`, 9
