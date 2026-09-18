@@ -3,6 +3,8 @@
 **Date:** 2026-05-03 03:01\
 **Session:** Full project audit — Features, Architecture, Quality, BDD, Docs
 
+**Resolution:** ~~deferred items~~ — CHANGELOG version bump done (0.2.0 section, `49eb933`); `docs/SUPERB_ROADMAP.md` superseded by root `ROADMAP.md` (2026-07-28); HID byte-map dispatch `08a0fe5`; CallDetector state machine deliberately NOT done (kept `InCall` bool — see `2026-06-07_18-19` §skipped).
+
 ---
 
 ## Summary
@@ -133,3 +135,9 @@ Fixed stale documentation in 4 files:
 - HID protocol module extraction (architecture deepening)
 - Command router map-based dispatch (architecture deepening)
 - CallDetector state machine extraction (architecture deepening)
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

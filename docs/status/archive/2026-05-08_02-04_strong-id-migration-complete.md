@@ -3,7 +3,9 @@
 **Date:** 2026-05-08 02:04
 **Author:** Crush (GLM-5.1)
 **Branch:** master @ `050b893`
-**Status:** ALL DONE — lint 0 issues, all tests green, nix build passes
+**Status:** ~~ALL DONE — lint 0 issues, all tests green, nix build passes~~ resolved — see Resolution below.
+
+**Resolution:** ~~remaining migration work~~ complete as stated (`050b893`); superseded by later status reports.
 
 ---
 
@@ -145,3 +147,9 @@
 | Session 2 | `3a2f8dc`, `1b63a7f`, `f07e196`, `050b893` | Polish: lint 0 issues, test coverage, nix fix, docs        |
 
 **Final state:** Lint 0 issues. All tests green. Nix build passes. Working tree clean. All pushed.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

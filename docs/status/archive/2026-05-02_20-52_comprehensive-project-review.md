@@ -5,6 +5,8 @@
 **Branch:** master (up to date with origin)
 **Codebase:** 8,017 lines Go across 26 files | 75 commits since inception (2026-04-19)
 
+**Resolution:** ~~open review items~~ executed `88cad01`/`223451b` (false-positive linter removal), `12970c9` (broken assertions), `6356f70` (README rewrite).
+
 ---
 
 ## Current Health
@@ -261,3 +263,9 @@ This needs verification: check the GitHub Actions run for commit `976a20f` (the 
 ---
 
 _Generated: 2026-05-02 20:52_
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

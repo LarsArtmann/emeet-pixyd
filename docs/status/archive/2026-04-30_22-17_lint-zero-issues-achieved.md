@@ -4,6 +4,8 @@
 **Author:** Crush (AI Assistant)
 **Scope:** golangci-lint `run --fix` + `fmt` → manual cleanup → config restructure → zero issues
 
+**Resolution:** ~~"Top 25 next" open at time of writing~~ executed across 04-30→05-01 (OTel `6f22af7`, pprof/CommandError `b40c951`, Commander `aa07cbe`, env config `7bf130b`).
+
 ---
 
 ## a) FULLY DONE ✅
@@ -191,3 +193,9 @@ I need the golangci-lint maintainers to explain whether this is a known limitati
 | Build                | OK               | OK                             |
 | Tests                | Pass             | Pass                           |
 | Commits pushed       | —                | 2 (`0faf25d`, `6ce12b3`)       |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

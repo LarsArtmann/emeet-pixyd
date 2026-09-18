@@ -4,6 +4,8 @@
 **Branch:** master\
 **Commit:** 5b99f55
 
+**Resolution:** ~~remaining next-steps open~~ executed in the following sessions; superseded by the 2026-05-01+ reports.
+
 ---
 
 ## Executive Summary
@@ -178,3 +180,9 @@ I cannot probe `/dev/video*` or `/sys/class/video4linux` from this environment.
 ✅ go test -race -count=1 ./...       — all pass (2.2s + 1.0s)
 ✅ golangci-lint run --timeout 2m     — 0 issues
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -2,6 +2,8 @@
 
 **2026-09-18 05:43 CEST** · Session start ~20:30 2026-09-17 · Continuing `docs/planning/2026-09-17_19-35_SUPERB-pareto-execution-plan.md` (user directive: execute the whole list). This session: plan tasks M1–M8 + M13 fully landed, M7 probe committed (hardware-blocked), plus an **unplanned breakthrough that resolved the plan's central implementation gate** (M14–M17 are now byte-unblocked). Format note: `.md` per explicit user request (status-report skill default is HTML — overridden).
 
+**Resolution:** ~~b) partial items~~ — CHANGELOG entry for the breakthrough ADDED 2026-09-18; #149–#153 harvested into TODO_LIST (same day). STILL OPEN: map-doc fold-in (#149), probe rewrite with exact heads (#144/#149), emhid README (#149), M14–M17 features (#138–#141), and f-items 16/26/27/31/32 routed to TODO/ROADMAP. Questions g1–g3 (hardware, push, /tmp archival) unchanged.
+
 ---
 
 ## a) FULLY DONE (verified)
@@ -116,3 +118,9 @@
 **Session verdict:** the plan's 1%, 4%, and the docs half of the 20% tier are **done and verified**; the implementation gate the plan expected to block M14–M17 was **broken open ahead of schedule** (162 command IDs + payload layouts). The failure list is real but each item was caught by a verification step doing its job — which is the system working, not luck.
 
 _Awaiting instructions._
+
+---
+
+## Resolution (2026-09-18)
+
+f-item routing as of 2026-09-18: 1→#149, 2→#144, 3→#149, 4→#138, 5→#153, 6–9→#150, 10→#139, 11→#140, 12→#141, 13–15→#151, 17→#152, 19→#131 (done), 20→#132 (done, residue #164), 21→#134, 22→#135, 23→#133, 24→#136, 25→#130, 28→#146, 29→#148, 30→#129, 37–38→#149, 39→DONE (CHANGELOG), 40→AGENTS.md rewrite 2026-09-18, 41→.crushrc (done 2026-09-17), 46→this harvest. 26/27/31/32/43/44→ROADMAP research offshoots.

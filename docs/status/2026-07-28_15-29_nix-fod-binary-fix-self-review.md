@@ -5,6 +5,8 @@
 **Outcome:** ✅ `nix build`, `nix flake check` (build + lint + test + format + overlay + NixOS module) all green
 **Trigger:** User pasted buildflow CI failure output (`nix-build`, `nix-build-verify`, `nix-hash-fix` cascading failures)
 
+**Resolution:** ~~open follow-ups~~ — regression guard for future committed-binary deps still an open ROADMAP idea; overlay delegation documented in AGENTS.md; all nix outputs green through 2026-09-18.
+
 ---
 
 ## 1. What Happened (Narrative)
@@ -187,3 +189,9 @@ Commits `6fb419d` through `5d934d8` are buildflow's churn (re-adding/removing th
 ## Summary
 
 **The build is fixed and fully green** (`nix build` + `nix flake check` all pass). The root cause is a committed ELF binary in `go-branded-id@v0.5.0`. buildflow converged on a replace workaround; I root-caused the bug, fixed the overlay buildflow left broken, and documented it. The permanent fix (tag `v0.5.1` upstream) is pending. My session hygiene was poor — I fought buildflow for too long before identifying it as the user's own CI, and asked a question buildflow would override.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

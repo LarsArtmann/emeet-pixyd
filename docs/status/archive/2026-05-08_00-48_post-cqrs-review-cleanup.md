@@ -4,6 +4,8 @@
 **Author:** Crush (GLM-5.1)\
 **Trigger:** Post-session review after cqrs-htmx evaluation + codebase cleanup
 
+**Resolution:** ~~cleanup items open~~ executed; historical note: cqrs-htmx was subsequently ADOPTED (2026-06-20) and then fully REMOVED again (2026-06-21, `1c112a8`/`54007aa`) — see CHANGELOG 0.4.0.
+
 ---
 
 ## Executive Summary
@@ -193,3 +195,9 @@ d3fefa4 fix(tests): remove unused helpers, restore deleted test, fix broken togg
 - `behavior_test.go` — remove `assertCameraStateFromDaemon`/`assertPTZSuccess`, inline assertions
 
 **These have a lint failure** (`unparam: withAutoMode - mode always receives pixy.AutoOff`) and **incorrect indentation** in the inlined PTZ assertions. Must fix before committing.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -3,6 +3,8 @@
 **Generated:** 2026-05-07
 **Scope:** Full codebase review covering all 8 requested skills
 
+**Resolution:** ~~audit findings open~~ executed by the follow-up sessions (`cf0b64f`, then `2026-05-07_23-13`/`23-57` fix rounds).
+
 ---
 
 ## 1. Code Quality Scan
@@ -183,3 +185,9 @@ The main finding: **SUPERB_ROADMAP.md is stale** — 12 of its 22 items are alre
 2. Minor bugs (toast type, stream constants)
 3. Architecture extraction (PTZ module, state machine)
 4. Additional metrics and test coverage
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

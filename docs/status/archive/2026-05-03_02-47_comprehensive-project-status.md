@@ -6,6 +6,8 @@
 **Lint:** 0 issues\
 **Build:** Clean (with `GOWORK=off`)
 
+**Resolution:** ~~broken untracked `behavior_test.go`~~ fixed and committed in the following sessions (BDD suite green since; 14+ scenario tests in `behavior_test.go`).
+
 ---
 
 ## A) FULLY DONE
@@ -237,3 +239,9 @@ I recommend **Option 1 (fix it)** because BDD-style behavioral tests exercise mu
 | Architecture      | ⚠️ handlers.go extracted, main.go still monolithic (611 lines)          |
 | Documentation     | ✅ AGENTS.md and FEATURES.md current                                   |
 | Untracked files   | ⚠️ `behavior_test.go`, `docs/architecture-understanding/` (D2 diagrams) |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -1,7 +1,9 @@
 # PTZ parsePTZValue Fix + Test Infrastructure Improvement Plan
 
 **Date:** 2026-06-20 15:10
-**Status:** Planning → Execution
+**Status:** ~~Planning → Execution~~ resolved — see Resolution below.
+
+**Resolution:** ~~plan open~~ fully executed same day (`412ebd7`, `231a822`, `a011a43`, `a1392b5`; see `2026-06-20_15-22`).
 
 ---
 
@@ -111,3 +113,9 @@ graph TD
 **New behavior:** `tilt -90` = absolute -90°, `tilt rel-90` = relative
 
 Rationale: Pre-1.0 software, `--help` never documented relative mode, web UI always sends absolute. Breaking change is correct.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

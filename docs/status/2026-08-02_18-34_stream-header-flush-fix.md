@@ -14,6 +14,8 @@ Fixed `TestHandleStream_NoFFmpeg` which was timing out (2s `context deadline exc
 
 Commit: `b6fc96c fix(stream): explicitly send response headers and flush before streaming`
 
+**Resolution:** ~~no regression test for early status~~ — the fix (`b6fc96c`) shipped; a dedicated early-status regression test was never added (the golden/SSE tests partially cover it). SSE Broadcaster checked separately during the DataStar migration.
+
 ---
 
 ## a) FULLY DONE
@@ -128,3 +130,9 @@ Nothing.
 2. **Should the test environment have ffmpeg in PATH?** The test name says "NoFFmpeg" but the comment says "ffmpeg likely not in PATH during test." On the CI runner, ffmpeg _is_ available (Nix devShell includes it). Should we make the test deterministic by explicitly setting `PATH` to exclude ffmpeg, or by mocking `exec.LookPath`?
 
 3. **Is the `multipart/x-mixed-replace` content type correct for all clients?** Some browsers/proxies handle this poorly. Should we consider Server-Sent Events or WebSocket as an alternative for the live preview, or is MJPEG the right choice for camera preview?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

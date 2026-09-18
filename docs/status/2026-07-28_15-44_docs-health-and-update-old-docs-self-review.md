@@ -5,6 +5,8 @@
 **Skills loaded:** `update-old-docs/SKILL.md`, `docs-health/SKILL.md` (both read in full before any work)
 **Outcome:** 🟢 All 4 living docs rebuilt + 5 historical files annotated. Quality gate green. **Self-grade: B** — the core work is correct, but I cut verification corners that a "SUPERB" job required (see §d).
 
+**Resolution:** ~~open items~~ — README verified 2026-09-18 (this audit); DOMAIN_LANGUAGE.md USB IDs present; CONTRIBUTING/DESIGN fixed 2026-09-18; nix flake check green in CI; the dependabot-vuln claim was later corrected and the 7 vulns patched via pnpm overrides (CHANGELOG 0.4.0).
+
 ---
 
 ## a) FULLY DONE ✅
@@ -181,3 +183,9 @@ The user explicitly named TODO_LIST/ROADMAP/FEATURES/CHANGELOG as "must be super
 ---
 
 _Session scoped to this session's work. No unrelated research performed. All self-critique claims verified against the repo before writing._
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

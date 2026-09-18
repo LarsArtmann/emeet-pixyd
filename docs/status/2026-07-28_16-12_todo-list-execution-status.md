@@ -3,6 +3,8 @@
 > **Session goal:** Execute the entire `TODO_LIST.md` (17 actionable items, 2 blocked).
 > **Outcome:** All 17 items implemented, tests/lint/nix green. But several documentation and hygiene gaps remain.
 
+**Resolution:** ~~b) documentation gaps~~ — CHANGELOG entries landed via the 0.4.0 cut (`2aef6ba`); AGENTS/FEATURES updated since; #124 closed 2026-09-17 (#124 row deleted from TODO_LIST); #127 closed (deployed + cert active); #116/#123 remain design-penders in ROADMAP. Accessibility remains code-level only (FEATURES row).
+
 ---
 
 ## a) FULLY DONE — shipped and verified
@@ -240,3 +242,9 @@ The website retrofit is committed and build-green. The pnpm audit fix is also do
 ### 3. The auto-git daemon committed my work with misleading messages. Should I amend them?
 
 The commits from this session have messages like "feat(hid): add eMeet Pixy HID protocol support" for what was actually just documentation, and "chore(ci): add Nix flake support" for SHA pinning. These are already pushed to local HEAD (ahead of origin by 2 commits + several auto-commits). Should I leave them (git history is immutable in practice) or would you prefer I squash/amend before pushing?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

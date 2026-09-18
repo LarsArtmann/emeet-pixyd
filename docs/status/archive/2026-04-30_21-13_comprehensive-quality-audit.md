@@ -5,6 +5,8 @@
 **Commits since initial:** 22 (from `5ed956b` to `1afb15b`)
 **Working tree:** clean, pushed to origin
 
+**Resolution:** ~~open follow-ups at audit time~~ executed by the same-day lint/architecture sessions (`0faf25d`, `2c08cbd`, `53e244b`, `f9dd8f8`).
+
 ---
 
 ## A. FULLY DONE ✓
@@ -212,3 +214,9 @@ The complexity is real but contained — each function is a linear sequence of w
 | Test coverage (pixy)   | unknown      | 89.7%             | Baseline established               |
 | CI steps               | 2 (vet+test) | 3 (vet+lint+test) | +1                                 |
 | Commits                | 3            | 22                | +19                                |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

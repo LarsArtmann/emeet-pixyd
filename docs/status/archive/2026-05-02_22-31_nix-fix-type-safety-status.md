@@ -2,6 +2,8 @@
 
 **Session focus**: Nix flake repair, type-safety improvements, NixOS module fixes.
 
+**Resolution:** ~~"Top 25" open~~ shipped `caf740d` (aarch64), `f7ead30` (ffmpeg-headless), `042507c` (typed webStatus), `8a9473a` (go:generate).
+
 ---
 
 ## a) FULLY DONE
@@ -143,3 +145,9 @@ Unstaged:
 ## Build Status
 
 **All green** — `nix build`, `nix flake check --no-build --all-systems`, `nix develop` all pass.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

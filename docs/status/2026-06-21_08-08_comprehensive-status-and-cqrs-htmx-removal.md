@@ -2,6 +2,8 @@
 
 **Session focus:** PTZ type safety improvements + nix build fix (cqrs-htmx removal)
 
+**Resolution:** ~~vendorHash stale, AGENTS/CHANGELOG gaps open~~ fixed `e34be9c`/`37486b8`; the reimplemented SSE layer was itself replaced by DataStar in 0.4.0.
+
 ---
 
 ## a) FULLY DONE ✅
@@ -119,3 +121,9 @@ The original architecture decision (documented in AGENTS.md) was to NOT adopt cq
 | `nix build`      | ❌ **Blocked** — stale vendorHash |
 | `templ generate` | ✅ Pass                           |
 | `gofumpt`        | ✅ Pass                           |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -4,6 +4,8 @@
 
 Migrate from `prometheus/client_golang` direct usage to `go.opentelemetry.io/otel/exporters/prometheus` (unified OpenTelemetry observability).
 
+**Resolution:** ~~OTel migration follow-ups open~~ shipped (`6f22af7`, `9db2b3d`, `971240c`). Removing `prometheus/client_golang` (listed as future work) was later investigated and rejected — see ROADMAP "Decisions (won't-do)".
+
 ---
 
 ## A) FULLY DONE
@@ -174,3 +176,9 @@ modified:   integration_test.go      (test consolidation, daemonHasDevices extra
 modified:   internal/pixy/pixy_test.go (generic runValidTests[T])
 modified:   main_test.go             (merged probe tests into table-driven)
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

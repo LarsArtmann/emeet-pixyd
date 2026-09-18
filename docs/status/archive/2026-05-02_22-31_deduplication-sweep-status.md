@@ -4,6 +4,8 @@
 **Branch:** master
 **Commits since last status:** 7 (a9ab3c5..f863856)
 
+**Resolution:** ~~remaining dedup candidates open~~ shipped `9b73660` (test-helper + template-clone dedup).
+
 ---
 
 ## a) FULLY DONE
@@ -163,3 +165,9 @@ The current state compiles and tests pass, but the webStatus type system is inco
 | Lint issues (new)                  | 0      | 0     | 0                    |
 | Build                              | PASS   | PASS  | ✅                   |
 | Tests                              | PASS   | PASS  | ✅                   |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -7,6 +7,8 @@
 **Prior State:** 39 test functions (57 with subtests), `commitErr` + `sentTimestamps` added, pointer fixed
 **This Session:** 48 test functions (65 with subtests), all high-priority gaps closed
 
+**Resolution:** ~~lower-priority leftovers~~ — fuzz + benchmark shipped in round 3 (`3082afb`); `delayResponse` deliberately not built (tests the simulator, not production timeout). Already marked SUPERSEDED.
+
 ---
 
 ## Executive Summary
@@ -133,3 +135,9 @@ After deep analysis of `setDeviceState` in `device.go`, I discovered:
 
 - `TestSimulator_DaemonSetAudio_ProtocolBytesValid`
 - `TestSimulator_DaemonSetGesture_ProtocolBytesValid`
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

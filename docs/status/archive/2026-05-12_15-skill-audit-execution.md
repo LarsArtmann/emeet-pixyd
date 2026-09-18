@@ -3,6 +3,8 @@
 **Date:** 2026-05-12
 **Scope:** Full execution of audit findings, bug fixes, refactoring, test improvements, and docs updates
 
+**Resolution:** ~~execution follow-ups open~~ shipped same day; superseded by the 2026-05-24 round reports.
+
 ---
 
 ## Summary
@@ -64,3 +66,9 @@ See `TODO_LIST.md` for the full list. Top priorities:
 3. **#53** — Consolidate PTZ logic into single `ptz.go`
 4. **#13** — Eliminate `init()` for metrics
 5. **#57** — Suppress toast spam during PTZ slider drag
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

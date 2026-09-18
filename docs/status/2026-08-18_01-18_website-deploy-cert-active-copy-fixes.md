@@ -4,6 +4,8 @@
 **Session scope:** Resume after the prior session's shell death. Deploy the undeployed relaunch build, verify the custom domain, close out the ACME/cert blocker, fix flagged copy issues, update memory docs, commit.
 **Session result:** Site fully live with valid TLS (cert self-resolved — no Namecheap action needed anymore), two deploys, one commit (`a76d8f6`), memory docs refreshed. The HyperFrames video composition was confirmed **lost** (reboot wiped `/tmp`) and was **not rebuilt**.
 
+**Resolution:** ~~c) items~~ — #131 done (README tagline aligned, `448c002`); #132 done (gh repo edit; residual topic sweep → TODO #164); #133 build half done (`website.yml`), deploy half blocked on Lars; #130/#134/#135/#136 remain in TODO_LIST; HTML CDN caching FIXED (`firebase.json` catch-all max-age=0, verified 2026-09-18); terraform TXT staging still Lars's call; "2 Stars" metric still live (TODO #164).
+
 ---
 
 ## a) FULLY DONE
@@ -168,3 +170,9 @@ PIXY is **not on USB** (checked this session), `/dev/video1` exists but no `328f
 ---
 
 _All claims verified by tool output captured during this session. PIXY disconnected at time of writing; daemon running current Go source._
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

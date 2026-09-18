@@ -5,6 +5,8 @@
 **Prior State:** 48 test functions (74 with subtests), all high-priority gaps from Round 2 closed
 **This Session:** 50 test functions + 1 fuzz target + 1 benchmark (9th). 2 clean commits.
 
+**Resolution:** ~~f) 30 items~~ — genuine test gaps 1–5 never individually actioned (low value per the report's own analysis); simulator work declared complete here; consolidation question (g3) answered 2026-09-18 by this archive move; Layer 2/3 remain ROADMAP ideas (vmTest partial via TODO #157).
+
 ---
 
 ## Executive Summary
@@ -169,3 +171,9 @@ Layer 2 tests real file I/O paths (`hidrawDevice.Send`/`SendRecv`) against a use
 **3. Should the 4 simulator status reports be consolidated into one, or left as-is with SUPERSEDED annotations?**
 
 I annotated the 3 prior reports with SUPERSEDED headers (non-destructive). An alternative is to move them to `docs/status/archive/` and keep only the final self-review. The current approach preserves history but clutters `docs/status/` (which already has 38 files). Archiving would be cleaner but loses the narrative of how the simulator evolved. Which do you prefer?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

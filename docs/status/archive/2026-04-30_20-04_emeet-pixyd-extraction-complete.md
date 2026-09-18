@@ -1,7 +1,9 @@
 # emeet-pixyd → Standalone Project Extraction
 
 **Date:** 2026-04-30 20:04
-**Status:** COMPLETE
+**Status:** ~~COMPLETE~~ resolved — see Resolution below.
+
+**Resolution:** ~~project lived inside SystemNix~~ standalone repo shipped (`5ed956b`) and never rolled back; the flake/module/CI created here still stands (much evolved).
 
 ---
 
@@ -133,3 +135,9 @@ Sorted by **impact × effort** (high-to-low):
 - **Files deleted from SystemNix:** 34
 - **New files in emeet-pixyd:** 6 (flake.nix, package.nix, modules/nixos.nix, .envrc, .github/workflows/nix.yml, .gitignore)
 - **Build time impact:** None — same binary cache hits via `nixpkgs.follows`
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

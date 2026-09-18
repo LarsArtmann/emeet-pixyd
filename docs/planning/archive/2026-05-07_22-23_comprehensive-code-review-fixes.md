@@ -4,6 +4,8 @@
 **Scope:** Full code review + frontend design review + brutal self-review\
 **Source:** 28 source files (8185 LOC), all tests, all documentation
 
+**Resolution:** ~~fix plan open~~ executed by the same-evening sessions (`cf0b64f`, `bef4686`).
+
 ---
 
 ## Pareto Breakdown
@@ -128,3 +130,9 @@ graph TD
 All tasks are independently verifiable. No task depends on another within the same phase.
 Phase 1 must complete before Phase 2 (constant changes may affect toast fix).
 Phase 3+ are independent and can run in parallel.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

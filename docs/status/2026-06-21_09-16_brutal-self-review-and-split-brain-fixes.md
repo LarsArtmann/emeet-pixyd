@@ -2,6 +2,8 @@
 
 **Session focus:** Brutal self-review of post-cqrs-htmx-removal work + split brain fixes + Commander interface extension
 
+**Resolution:** ~~NOT STARTED items~~ — presets shipped 2026-07-04; mobile layout shipped (breakpoints, though device-testing gap remains in FEATURES); fake-device infra shipped (`fake_device_test.go`); hardware integration tests shipped (`integration_hardware_test.go`); SSEEvent/toastType move to internal/pixy rejected (ROADMAP won't-do).
+
 ---
 
 ## a) FULLY DONE ✅
@@ -140,3 +142,9 @@ Arguments AGAINST:
 | `nix flake check`                | ✅ Pass     |
 | `templ generate`                 | ✅ Pass     |
 | `gofumpt -l .`                   | ✅ Clean    |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

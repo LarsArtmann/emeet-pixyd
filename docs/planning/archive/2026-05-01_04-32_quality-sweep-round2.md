@@ -1,7 +1,7 @@
 # Quality Sweep — Round 2
 
 **Date:** 2026-05-01\
-**Status:** In Progress
+**Status:** ~~In Progress~~ resolved — see Resolution below.
 
 ## Honest Retrospective
 
@@ -86,3 +86,12 @@ Sorted by **impact × ease** (high impact + easy = do first).
 
 - `AutoMode` and `DefaultAudio` belong in `Config`, not `State`. `State` is runtime (camera/inCall), `Config` is startup policy.
 - No new types needed — reuse existing `bool` and `AudioMode`.
+
+
+**Resolution:** ~~round-2 items in progress~~ completed `e545544`/`ba2b8d6`/`871dbe9`; superseded by the 2026-05-02 sessions.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

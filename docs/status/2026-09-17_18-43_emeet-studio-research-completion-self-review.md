@@ -7,6 +7,8 @@ comparison report, and an honest look at what I did badly.
 **Deliverable:** `docs/emeet-studio-official-app-comparison.md` (committed in `61ce62b`).
 **Working artifacts:** `/tmp/emeet/` (ephemeral! see §d/§f).
 
+**Resolution:** ~~f) verification & preservation items 1–5~~ all done (#142 `tools/inno661/` + SHA256 proof, #147 /tmp cleanup + AGENTS block, CHANGELOG entry, AGENTS pointer); protocol follow-ups 6/9/13–15/18 done (#143/#145, map doc §5, `hid-protocol.md` cross-check). STILL OPEN: f7 hardware battery verdict (#144/#139), f10 privacy-trigger-time (ROADMAP), f11 elink doc (ROADMAP), f12 EMVideoInput (ROADMAP), f16 innoextract PR (#148), f17 public page (ROADMAP question). Questions g1 (payload archival) and g3 (public page) remain Lars's calls.
+
 ---
 
 ## a) FULLY DONE
@@ -181,3 +183,9 @@ _(Deliberately stopping at 18 — padding to 50 with unrelated work would violat
 analyzed, comparison written, gaps triaged. The failures this session were process, not
 outcome: wasted wine retry, sloppy offset arithmetic, dropped checksums, an
 unverified battery claim in a ticket, and everything valuable still living in `/tmp`.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

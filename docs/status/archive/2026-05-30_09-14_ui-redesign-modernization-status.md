@@ -4,6 +4,8 @@
 **Branch:** `master` at `db27a68` + uncommitted changes
 **Session:** Web UI redesign — modernized CSS, removed glassmorphism, added design context files
 
+**Resolution:** ~~"removed glassmorphism"~~ the removal itself was reversed by the 2026-07 UI overhaul, which re-introduced dark glassmorphism cards (see FEATURES.md); CSS-variable/typography work from this session persisted (`db27a68` era).
+
 ---
 
 ## Executive Summary
@@ -251,3 +253,9 @@ The `nix` `doCheck = false` workaround masks this in builds but the tests fail o
 | `templates.templ`  | 16 changes — inline styles replaced with CSS classes, inline margins removed                                                                          |
 | `PRODUCT.md`       | New file — product register, users, purpose, brand personality, design principles                                                                     |
 | `DESIGN.md`        | New file — color palette, typography, elevation, components, motion, layout                                                                           |
+
+---
+
+## Resolution (2026-09-18)
+
+Historical irony worth recording: this report's headline change ("removed glassmorphism") survived only ~5 weeks — the July overhaul brought glassmorphism back. DESIGN.md was corrected 2026-09-18 to match.

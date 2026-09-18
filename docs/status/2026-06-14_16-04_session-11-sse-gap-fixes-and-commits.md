@@ -5,6 +5,8 @@
 **HEAD:** `a818122`\
 **Session focus:** Self-review of Session 10 work, gap analysis, fix remaining issues, commit everything properly.
 
+**Resolution:** ~~uncommitted session-10 work~~ committed in 7 groups and pushed (see `2026-06-14_16-14` for the final state).
+
 ---
 
 ## Executive Summary
@@ -229,3 +231,9 @@ I lean toward **Option C** for now (the daemon works well as-is) unless real-wor
 - **2026-06-07 (Session 8):** CSS variables, daemonMetrics struct, slog.With logging, Run() decomposed, streamResult, CHANGELOG 0.2.0
 - **2026-06-06 (Session 7):** Lint cleanup (106→0), autoError refactor, device.go extraction
 - **2026-06-05 (Session 6):** CommandResult, Dependencies struct, HIDDevice interface, PTZ relative mode, circuit breaker, new files (waybar.go, socket.go, deps.go, ptz.go)
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

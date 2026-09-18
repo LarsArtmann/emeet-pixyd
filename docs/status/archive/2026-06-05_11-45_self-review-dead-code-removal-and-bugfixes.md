@@ -6,6 +6,8 @@
 **Source:** 9,875 lines across 33 Go files (20 production, 13 test/generated)
 **Commits since last report (49f4484):** 13 commits, 38 files changed, +1,671 / −653 lines
 
+**Resolution:** ~~13-commit round follow-ups~~ shipped and pushed; superseded by the session-8 deep reflection (`2026-06-07_17-08`).
+
 ---
 
 ## a) FULLY DONE
@@ -292,3 +294,9 @@ This matters because:
 | `commands_test.go`    | 785   |
 | `behavior_test.go`    | 657   |
 | `handlers_test.go`    | 616   |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

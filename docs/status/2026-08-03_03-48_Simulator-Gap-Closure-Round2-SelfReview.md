@@ -5,6 +5,8 @@
 **Prior State:** 39 test functions (57 with subtests), `commitErr` + `sentTimestamps` added, pointer fixed
 **This Session:** 48 test functions (74 with subtests), all high-priority gaps closed, 1 code fix
 
+**Resolution:** ~~high-priority gaps 1–5 + g) questions~~ — Layer 2 (/dev/uhid) and Layer 3 (NixOS VM) still unbuilt (ROADMAP-grade ideas; a flake vmTest now exists but hangs, TODO #157); report consolidation executed 2026-09-18 (this archive move); garbage auto-commits left in history (no rewrite, per policy).
+
 ---
 
 ## Executive Summary
@@ -200,3 +202,9 @@ Four reports for the same body of work is excessive. Each superseded the last as
 **3. Should `isCommitReport` move to production code (`hid.go`)?**
 
 It encodes protocol knowledge (commit reports have `report[3] == report[1]`) that currently lives only in `pixy_simulator_test.go`. If the commit format changes, the simulator silently breaks. But it's currently only used by the simulator — YAGNI says leave it. The function is pure and could be useful in production debugging. I can't decide this without knowing whether you envision the simulator ever being used outside of `_test.go` files (e.g., a `/dev/uhid` prototype in a `cmd/` binary).
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

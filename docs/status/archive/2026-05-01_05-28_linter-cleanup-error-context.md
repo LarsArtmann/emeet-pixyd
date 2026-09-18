@@ -4,6 +4,8 @@
 **Session:** golangci-lint cleanup + branching-flow context analysis
 **Branch:** master (clean, no uncommitted changes before this session)
 
+**Resolution:** ~~error-context improvements open~~ shipped `be0365a` (linter cleanup + device/path error context).
+
 ---
 
 ## Executive Summary
@@ -135,3 +137,9 @@ branching-flow context .                          # ✅ 84.0/100
 ---
 
 _Generated: 2026-05-01 05:28_
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

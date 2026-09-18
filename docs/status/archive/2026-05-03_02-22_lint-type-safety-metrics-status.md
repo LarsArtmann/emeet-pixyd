@@ -4,6 +4,8 @@
 **Branch:** master (up to date with origin/master)
 **Uncommitted changes:** Yes — lint cleanup + type-safety fixes + metrics extraction
 
+**Resolution:** ~~uncommitted work + next steps~~ committed and shipped `2e4ffa9` (metrics/middleware/stream extraction), `223451b` (linter fixes).
+
 ---
 
 ## Executive Summary
@@ -203,3 +205,9 @@ main package:   68.9%
 pixy package:   77.9%
 total:          69.4%
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

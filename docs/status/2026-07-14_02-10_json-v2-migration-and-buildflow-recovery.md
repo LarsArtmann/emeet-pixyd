@@ -4,6 +4,8 @@
 **Session scope:** Diagnosing buildflow failure, migrating to `encoding/json/v2`, wiring `GOEXPERIMENT=jsonv2` everywhere\
 **Commit:** `5c4b473` — `chore: migrate to encoding/json/v2 across all code and CI files`
 
+**Resolution:** ~~json/v2 follow-ups~~ — GOEXPERIMENT=jsonv2 flag dropped everywhere 2026-09-17 (json/v2 stable in go 1.27; CHANGELOG 0.4.0); state-file backward compatibility pinned by schema-versioning (`pixy.CurrentSchemaVersion`).
+
 ---
 
 ## What Happened This Session
@@ -191,3 +193,9 @@ The binary is compiled with `GOEXPERIMENT=jsonv2` in the nix build, so the exper
 The nix-based buildflow steps (`nix-build`, `nix-flake-check`) now work because they inherit `GOEXPERIMENT` from `package.nix`/`flake.nix`. But the direct Go steps (`go-fix`, `govalid-generate`, `go-auto-upgrade`, `test-race`) invoke `go` directly. I don't know if buildflow has a config file, env var passthrough, or `.buildflow.toml` equivalent. Without this knowledge, those steps will keep failing.
 
 **Why I can't figure this out:** The buildflow tool is not in this repo — it's an external CLI tool. I'd need to read its documentation or source code to find how to configure per-step environment variables.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

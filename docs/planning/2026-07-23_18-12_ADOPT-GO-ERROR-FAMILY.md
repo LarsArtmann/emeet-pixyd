@@ -4,6 +4,8 @@
 **Status**: ✅ DONE — fully implemented 2026-07-23 (`f91de17`); bumped to `go-error-family` v0.10.0 in `ca41926`. See [Resolution](#resolution-2026-07-28) below.
 **Author**: Crush + Lars
 
+**Resolution:** ~~plan in progress~~ DONE — adopted and verified (`f91de17` era; version now v0.10.1); remaining expansion ideas live in ROADMAP (checklist already marked [x] by the 2026-07-28 annotation pass).
+
 ---
 
 ## Context
@@ -282,3 +284,9 @@ This plan was **fully delivered**. Every task C1–C7 (and all 26 micro-tasks M1
 - Dependency has since advanced to `go-error-family` **v0.10.0** (`go.mod`; was v0.8.0 at adoption).
 
 **Nothing in this plan remains open.** The forward-looking expansion ideas (broader `LogError()` coverage, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints) live in the report's `§f` lists and have been routed to `TODO_LIST.md` / `ROADMAP.md` — they are enhancements, not part of this plan's scope.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

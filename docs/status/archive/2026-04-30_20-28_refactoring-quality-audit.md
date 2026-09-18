@@ -1,7 +1,9 @@
 # emeet-pixyd — Refactoring & Quality Status
 
 **Date:** 2026-04-30 20:28
-**Status:** IN PROGRESS — Phase 1 complete, Phase 2 actionable
+**Status:** ~~IN PROGRESS — Phase 1 complete, Phase 2 actionable~~ resolved — see Resolution below.
+
+**Resolution:** ~~IN PROGRESS — Phase 1 complete, Phase 2 actionable~~ executed same day: lint 154→0 (`0faf25d`), test-builder consolidation (`17c23ab`), main.go extraction (`a2d9222`/`7892caa`/`4cb1168`).
 
 ---
 
@@ -206,3 +208,9 @@ The daemon legitimately opens `/dev/hidraw*`, `/dev/video*`, and launches `ffmpe
 | Test builder duplication  | 5 constructors | 1 + options | **-80%**         |
 | Missing `streamSema` bugs | 2 constructors | 0           | **Fixed**        |
 | Linter issues addressed   | 0              | ~12         | Partial          |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

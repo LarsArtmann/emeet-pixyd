@@ -4,6 +4,8 @@
 **Session Focus:** Verifying and fixing the go-error-family adoption work from a previous session
 **Branch:** master (4 commits ahead of origin)
 
+**Resolution:** ~~internal/pixy adoption + wrapping audit open~~ — pixy-package adoption still open (tracked in ROADMAP error-handling theme); push done (`a2dce73..53007db`).
+
 ---
 
 ## a) FULLY DONE
@@ -213,3 +215,9 @@ The adoption this report verified is **shipped and stable**. The dependency has 
 **Forward-looking items:** the 50 ideas in §f are a brainstorm, not a commitment. The genuinely actionable, bounded subset (e.g. GitHub Actions SHA pinning, broader `LogError()` coverage) has been routed to `TODO_LIST.md`; the vaguer/longer-term ones to `ROADMAP.md`. This report's §f is the source of record for those ideas — do not re-list them here.
 
 **Key lesson:** Never trust session summaries. Verify everything from scratch using fresh caches and the full verification chain (`go build` → `go test -race` → `golangci-lint` → `nix flake check`).
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

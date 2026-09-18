@@ -3,6 +3,8 @@
 **Date:** 2026-07-14 02:33
 **Session goal:** Make emeet-pixyd's public presence superb — README, wiki website, GitHub metadata, domains/Firebase hosting
 
+**Resolution:** ~~site creation, custom domain, CI/CD open~~ — site created + deployed + custom domain CERT_ACTIVE (2026-08-18); README pitched; repo metadata done. Website deploy CI remains TODO #133 (deploy half).
+
 ---
 
 ## A) FULLY DONE
@@ -176,3 +178,9 @@ The `.firebaserc` I wrote references the `lars-software` Firebase project with h
 - The Firebase CLI is authenticated for the `lars-software` project on this machine
 
 **Should I attempt the Firebase deployment steps, or will you handle those manually?**
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

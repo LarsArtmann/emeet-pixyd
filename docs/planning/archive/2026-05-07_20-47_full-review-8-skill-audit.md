@@ -4,6 +4,8 @@
 **Reviewer:** Senior Staff+ Engineering Partner
 **Scope:** All 28 Go source files (8,185 LOC excl. generated), all test files, all docs
 
+**Resolution:** ~~8-skill review findings open~~ executed by the 2026-05-07 23:13/23:57 fix sessions (`cf0b64f`, `bef4686`).
+
 ---
 
 ## Code Quality Scan Results
@@ -146,3 +148,9 @@ P2_Polish: {
   "Docs sweep"
 }
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

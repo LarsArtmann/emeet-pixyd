@@ -4,6 +4,8 @@
 **Scope:** Full go-error-family adoption audit, test gap closure, and verification
 **Branch:** `master` (all 13 commits pushed to `origin/master`)
 
+**Resolution:** ~~remaining expansion ideas open~~ — tracked in ROADMAP (LogError expansion, HTTPHandler, MessageTemplates); version now v0.10.1; adoption is stable and pinned by `errorfamily_test.go`.
+
 ---
 
 ## a) FULLY DONE
@@ -267,3 +269,9 @@ This report is the authoritative record of the **completed** go-error-family ado
 **§b (scoped adoption) is unchanged by design** — HTMX handlers returning 200+HTML toast, the 6 hardcoded 400 guards, and the circuit breaker remain intentionally outside classification. These are documented decisions, not gaps.
 
 **§c / §f forward-looking items:** the 50 enhancement ideas (broader `LogError()`, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints, `errorfamilytest` helpers, fuzz/benchmark additions, ADR, CodeQL, etc.) are a brainstorm. The actionable, bounded subset has been routed to `TODO_LIST.md`; the rest to `ROADMAP.md`. This report remains the source of record — they are not re-listed here.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

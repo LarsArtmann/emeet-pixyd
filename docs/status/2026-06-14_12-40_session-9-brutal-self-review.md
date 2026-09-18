@@ -4,6 +4,8 @@
 **Branch:** master @ `3905583`
 **Commits this session:** 7 (95bc833 → 3905583)
 
+**Resolution:** ~~11 self-review issues open~~ fixed in sessions 10–11 (`95bc833` era); superseded by `2026-06-14_15-21`.
+
 ---
 
 ## Executive Summary
@@ -202,3 +204,9 @@ The `go-structure-linter` flags this as CRITICAL. The standard Go project layout
 - The `flake.nix` build derivation calls `go build` without a target path
 
 Moving `main.go` would require updating: `package.nix` (build target), `flake.nix` (if it references paths), CI workflows, the `templ generate` step, and potentially the NixOS module. That's **high churn for zero functional benefit** on a single-binary project. I lean strongly toward NOT moving it, but the linter disagrees and I can't resolve this tension without your input. Should I suppress the linter or move the file?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

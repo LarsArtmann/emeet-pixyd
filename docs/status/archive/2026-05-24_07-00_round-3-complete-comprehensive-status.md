@@ -5,6 +5,8 @@
 **Version:** v0.3.0 released; 26 commits post-release (Round 1+2+3)
 **Working tree:** Clean, pushed to origin
 
+**Resolution:** ~~round-3 leftovers~~ executed in rounds 4–5 (`d5408eb`, `e467c9d`).
+
 ---
 
 ## Executive Summary
@@ -347,3 +349,9 @@ Query path is **14.5x faster** than mutating path (357ns vs 5.2µs) — confirms
 ---
 
 _Report generated 2026-05-24 07:00 CEST_
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

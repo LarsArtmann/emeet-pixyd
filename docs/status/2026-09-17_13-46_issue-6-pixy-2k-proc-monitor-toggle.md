@@ -4,6 +4,8 @@
 
 **TL;DR:** Issue #6 is functionally fixed and verified locally (code, tests, docs, CHANGELOG, website build, issue reply posted). Master's CI lint breakage (pre-existing, 9 findings) was repaired. Three gaps from the first "done" claim were caught in re-audit and closed. Nothing is pushed or deployed — origin/master is still red until Lars pushes. Issue #6 stays open pending the reporter's confirmation on real 2K hardware.
 
+**Resolution:** mostly executed by the follow-up sessions — ~~nothing pushed/deployed~~ pushed + v0.4.0 tagged + site deployed (`02f769c` era, `a12` in `2026-09-17_17-34`); #137 decided+implemented (`140bc98`); startup sync shipped (part of reconcile); pre-commit gate shipped (`14fb43b`); exhaustruct_v5 done; model logging/output done (`9869a39`). STILL OPEN: #6 closure (awaits @zutto), vmTest (TODO #157), `0118` fuzz home (TODO #165), online screenshots (TODO #129).
+
 ---
 
 ## a) FULLY DONE
@@ -98,3 +100,9 @@
 ---
 
 _Report written by Crush (glm-5.3) at 2026-09-17 13:46, immediately after the re-audit round. Format: Markdown (`.md`) — explicit user override of the status-report skill's HTML default. The auto-commit daemon will pick up this file; no manual commit per harness contract. Section (f) is pending docs-health HARVEST routing on instruction — deliberately not harvested yet ("THEN WAIT FOR INSTRUCTIONS")._
+
+---
+
+## Resolution (2026-09-18)
+
+Open-item routing as of 2026-09-18: §c "startup sync" → shipped via `reconcileOnDeviceAppear`; §c "power-cycle caveat" → superseded by the persistence-guarantee paragraph (README §Manual Control); §f f18 product-ID env override → ROADMAP; f23 Waybar auto mode → ROADMAP Waybar bullet; everything else → TODO_LIST #154–#165 or CHANGELOG 0.4.0.

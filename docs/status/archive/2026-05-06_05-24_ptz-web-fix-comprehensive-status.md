@@ -8,6 +8,8 @@
 **Tests:** 90+ tests, all PASS (race detector enabled)
 **Total source:** 12,630 lines (Go + templ + JS + CSS)
 
+**Resolution:** ~~uncommitted session changes~~ committed; the PTZ handler/toast work shipped in the `cf0b64f`-era commits and was later refined by the 2026-06-20 PTZ sessions.
+
 ---
 
 ## A. FULLY DONE
@@ -175,3 +177,9 @@ These can only be verified with the physical device connected.
 | `behavior_test.go` | +109          | 2 BDD tests: PTZ web slider user-input + error-toast                         |
 
 **Total:** +174 / -12 across 3 files
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

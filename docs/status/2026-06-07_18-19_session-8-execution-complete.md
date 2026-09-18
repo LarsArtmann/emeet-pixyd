@@ -5,6 +5,8 @@
 **Commits this session:** 15 (da2eb50 → c877d47)
 **Branch:** master (13 ahead of origin)
 
+**Resolution:** ~~session-8 follow-ups open~~ superseded by sessions 9–11 and the July+ reports; all 15 commits shipped.
+
 ---
 
 ## A. Fully Done ✅
@@ -230,3 +232,9 @@ c7c9bbf refactor(lint): remove unused linters and invalid build tags
 9a32a91 fix(frontend): XSS, URL validation, PTZ helper extraction, retry reset
 c1fa2fa fix(cache): copy []byte in lastFrameCache.Get to prevent data race
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

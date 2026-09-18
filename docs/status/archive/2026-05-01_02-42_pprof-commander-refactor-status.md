@@ -4,6 +4,8 @@
 **Branch:** `master` (clean, up to date with `origin/master`)\
 **Latest commit:** `b40c951` feat: add pprof endpoints and CommandError type
 
+**Resolution:** ~~Commander interface + remaining exec call sites open~~ shipped: pprof/CommandError `b40c951`, Commander `aa07cbe`, extended with LookPath `7642147` (2026-06-21). ffmpeg streaming intentionally excluded (StdoutPipe+Start).
+
 ---
 
 ## Current Metrics
@@ -190,3 +192,9 @@ Arguments for `main`:
 | ~00:35 | Converted 5 error paths in `commands.go` to `CommandError`            | Build + tests + lint OK                           |
 | ~00:40 | Removed duplicate `ErrDeviceNotConnected` (already in `pixy` package) | Final state clean                                 |
 | ~00:45 | Committed as `b40c951`, pushed to `origin/master`                     | All clean, tree clean                             |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

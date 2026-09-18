@@ -5,6 +5,8 @@
 **Commit:** `06ff3cc` — fix: correct PTZ limits to match EMEET PIXY hardware reality
 **Scope:** Self-critique of the PTZ limit fix session + comprehensive improvement plan
 
+**Resolution:** ~~relative-mode parser bug + missing parser tests open~~ fixed `412ebd7`/`231a822` (same day, see `2026-06-20_15-22`); dead socket root-caused and permanently fixed via `ReadWritePaths` (CHANGELOG 0.4.0); planning HTML artifacts committed (still in `docs/planning/`).
+
 ---
 
 ## A) FULLY DONE
@@ -220,3 +222,9 @@ The current behavior (`-90` = relative) is **wrong** but **established**. Users 
 | Did we remove something useful? | No.                                                                                                                                                             |
 | Split brains?                   | Test literals (`-150, 150`) duplicate constants (`pixy.PanMin, pixy.PanMax`). Minor but real.                                                                   |
 | How are we doing on tests?      | 71.5% main / 91.3% pixy package. Good but `parsePTZValue` has zero direct tests. Flaky test was caught and fixed.                                               |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -4,6 +4,8 @@
 **Session:** Follow-up to `docs/status/2026-08-02_23-51_DataStar-Migration-Gap-Fixes.md` — addressing gaps from a brutal self-review.
 **Verdict:** 9 tasks completed, all tests pass with `-race`, lint clean, `nix flake check` passes, pushed to remote. **Still no browser testing** — the single biggest remaining risk.
 
+**Resolution:** ~~10 c-items~~ — all shipped in round 3 and the simulator sessions (`7b96e40`, `781ba91`, `bce7014`, `290824d`, `f5e9f10`); keyboard-shortcut conversion rejected (ROADMAP won't-do).
+
 ---
 
 ## What Was Done
@@ -213,3 +215,9 @@ Executed 9 improvements identified by brutal self-review of the previous session
 2. **Should I add `data-bind:pan` to the PTZ sliders?** This would make external state changes (e.g., CLI `emeet-pixyd pan 50`) reflect in the slider thumb position immediately, without waiting for a full panel re-render. But I'm not sure if `data-bind` (which writes the signal TO the element) conflicts with `data-on:input` (which writes the element TO the signal). I need to verify DataStar's two-way binding semantics.
 
 3. **Is SSE compression worth adding?** The DataStar SDK has built-in brotli/gzip/zstd support via `WithBrotli()` etc. The deps are already imported. For a localhost daemon, the bandwidth saving is negligible, but the CPU saving from smaller writes might matter. Should I add it, or is this premature optimization?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

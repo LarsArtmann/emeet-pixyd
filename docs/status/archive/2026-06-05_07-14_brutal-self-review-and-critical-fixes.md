@@ -5,6 +5,8 @@
 **Head:** `473bff9` style(middleware): fix gci formatting and nolint comments
 **Previous report:** 2026-05-30_11-27_nix-improvements-and-design-context-status.md
 
+**Resolution:** ~~critical fixes open~~ shipped `473bff9` + the same-day dead-code/bugfix round (`2026-06-05_11-45`).
+
 ---
 
 ## Executive Summary
@@ -303,3 +305,9 @@ c497b03 refactor: move PTZ axis constants to internal/pixy package
 ```
 
 Net reduction of 38 lines while fixing 3 critical bugs and eliminating a split brain.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

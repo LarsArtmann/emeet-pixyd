@@ -5,6 +5,8 @@
 **Latest commit:** `a1392b5`
 **Scope:** Self-review of the parsePTZValue fix + test infrastructure session
 
+**Resolution:** ~~relative-mode integration test, Range type, PTZ presets open~~ — Range type shipped `139f1bc`; presets shipped 2026-07-04 (web + CLI, `pixy.PresetMap`); browser verification of slider ranges later covered by golden tests (`TestWebPanelGolden_*`).
+
 ---
 
 ## A) FULLY DONE
@@ -154,3 +156,9 @@ But we don't import it directly in any source file — it's pulled in by `httput
 | Coverage                   | 71.4% main / 91.3% pixy     |
 | Lint                       | 0 issues                    |
 | Build                      | Clean                       |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

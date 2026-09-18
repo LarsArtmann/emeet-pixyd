@@ -3,6 +3,8 @@
 **Date:** 2026-05-12 07:48
 **Scope:** code-quality-scan, architecture-review, naming-review, how-to-golang, full-code-review, brutal-self-review, improve-codebase-architecture, go-modularize, frontend-design, nix-review, docs-freshness-check, features-audit, bdd-testing, todo-list-builder, pareto-planning
 
+**Resolution:** ~~15-skill findings open~~ executed by `2026-05-12_15-skill-audit-execution.md` (same day).
+
 ---
 
 ## A) FULLY DONE ✅
@@ -269,3 +271,9 @@ probe.go     |  2 -   (return false → continue on malformed HID_ID)
 
 new file: docs/planning/2026-05-12_07-42_15-skill-comprehensive-audit.md
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -6,6 +6,8 @@
 **Upstream:** in sync with `origin/master`\
 **Session focus:** Execute fixes discovered during the brutal self-review started in Session 9.
 
+**Resolution:** ~~six verified bugs open~~ all fixed and pushed (`69cee07`, `e5cc9c6`, `00f7538`, `7ad906b`, `d875c1d`); superseded by `2026-06-14_16-14`.
+
 ---
 
 ## Executive Summary
@@ -221,3 +223,9 @@ stream.go            |  7 +++++++
 ## Conclusion
 
 Session 10 closed the loop on the brutal self-review: six verified bugs are fixed, regression tests are in place, and the project is green across build/lint/test. The codebase is stable. The next most impactful work is architectural (lock splitting, fake device harness, `cmd/` layout) and observability (CI fuzz, structured logging, WebSocket updates). The top unresolved question is a product decision about the authority of env-configured defaults versus persisted state on restart.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

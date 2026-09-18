@@ -5,6 +5,8 @@
 **Head Commit:** `bef4686` chore: deduplicate AGENTS.md gotchas and modernize benchmarks to b.Loop()\
 **Branch:** master (pushed to origin)
 
+**Resolution:** ~~remaining fixes open~~ shipped `bef4686` (AGENTS dedup + b.Loop modernization); branch pushed.
+
 ---
 
 ## A) FULLY DONE ✅
@@ -271,3 +273,9 @@ The tradeoff: refactoring now gives a cleaner architecture for future work. Refa
 | `uevent.go`     | `parseUevent`, `isRelevantUevent`                | 100% but `listenUevents`/`unixSocketUevent` 0%          |          |
 | `v4l2.go`       | `parsePTZValues`                                 | 87.5% but `v4l2Set`/`v4l2SetMultiple` 0%                |          |
 | `internal/pixy` | Core types                                       | 77.9% but `AutoMode` methods 0%                         |          |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

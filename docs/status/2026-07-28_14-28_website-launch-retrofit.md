@@ -4,6 +4,8 @@
 **Session goal:** Run the `website-launch` skill against the existing emeet-pixyd website
 **Mode:** Maintenance (Phase 0.0 — site already exists at `emeet-pixyd.lars.software`)
 
+**Resolution:** ~~editorconfig root cause + deployment open~~ — `.editorconfig` fixed by #125 (2026-07-28 16:12 session); site deployed 2026-08-17/18 and live.
+
 ---
 
 ## Executive Summary
@@ -266,3 +268,9 @@ The skill recommends these as high-trust patterns. Currently they're only in the
 | §f.22 Reading time                                         | OPEN     | Not enabled in Starlight.                                                                                                             |
 
 The remaining §f items (more callouts, landing-page mirroring of "Who is this for?"/comparison, OG verification) are polish ideas now tracked in `ROADMAP.md`. This report's §f is the source of record — they are not re-listed here.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

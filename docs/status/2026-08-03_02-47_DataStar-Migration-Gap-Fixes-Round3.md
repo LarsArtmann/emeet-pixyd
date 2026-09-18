@@ -4,6 +4,8 @@
 **Session:** Follow-up to `docs/status/2026-08-03_00-29_DataStar-Migration-Gap-Fixes-Round2.md` — executing remaining improvement items identified in the brutal self-review.
 **Verdict:** 12 tasks completed. All tests pass with `-race`. Lint clean on all changed files. `gofmt` clean. Working tree clean (all committed). **Browser testing still not done — 4 sessions of accumulated UI debt.**
 
+**Resolution:** ~~browser-testing debt~~ — first real browser verification: headless-Chromium screenshots 2026-08-17 (offline state); online-state retake tracked as TODO #129.
+
 ---
 
 ## What Was Done
@@ -206,3 +208,9 @@ Executed 12 tasks from the Round 2 status report's "next steps" list. Each was a
 2. **Is the shared `$loading` signal actually the right UX?** I documented it as "intentional" because hardware operations are serialized. But a user clicking "Sync" and seeing "Track" go into loading state might be confused. Should I switch to per-button signals (`$loadingTrack`, `$loadingSync`, etc.)? This is a product/UX decision, not a technical one — I can't verify it without user feedback.
 
 3. **Should browser testing block the next session, or should we keep shipping server-side improvements?** The accumulated browser-testing debt is now 4 sessions deep. Every new DataStar attribute adds to the untested surface area. But browser testing requires a running PIXY device (or at least a running daemon with fake device paths). Is there a headless browser testing setup I should build, or should the user manually test?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

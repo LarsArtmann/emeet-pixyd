@@ -5,6 +5,8 @@
 **Branch:** master (clean, up to date with origin)
 **Commits this session:** 0 (report only)
 
+**Resolution:** ~~execution plan items open~~ executed by session 8 (`da2eb50`..`c877d47`, 15 commits — race fix, XSS fix, archive sweep, metrics struct, CHANGELOG 0.2.0).
+
 ---
 
 ## A. FULLY DONE
@@ -263,3 +265,9 @@ I'm not confident enough to pick between option 2 (remove redundant timeout) vs 
 | `uevent_linux.go:11` | `unixOpenNetlinkKobjectUevent` | Syscall-level                    |
 
 Most 0% functions are either external-dependency wrappers (untestable without mocking the system) or lifecycle functions (integration-tested indirectly). Only `handleFlag` and `sendCommand` could have targeted unit tests.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

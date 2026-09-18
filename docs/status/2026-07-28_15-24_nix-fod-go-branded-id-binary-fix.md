@@ -4,6 +4,8 @@
 **Session scope:** Resolve `nix build` failure: `fixed-output derivations must not reference store paths: ... references '/nix/store/.../go-1.26.5'`.
 **Outcome:** 🔴 → 🟢 Build green. Workaround landed. ~~Root cause fixed upstream.~~ **Upstream binary untracked (`c29a034`) but NO new version published — proxy still serves v0.5.0 with the binary, so the in-sandbox `replace` workaround is still active and TEMPORARY.** **Self-grade: B-** (see §d, §e).
 
+**Resolution:** ~~TEMPORARY workaround until v0.5.1+~~ fully resolved 2026-09-17: go-branded-id v0.6.0 ships no binary, `goBrandedSrc`/`replaceBrandedId` removed (`9d2eeee`, #124 closed).
+
 ---
 
 ## TL;DR
@@ -125,3 +127,9 @@ _Report scoped strictly to this session's work. No unrelated research performed.
 So §b.1 (permanent upstream fix), §c.1–c.5, and §f.1 (tag v0.5.1, bump go.mod, remove the shims) are **all still open**. This is the single highest-impact debt from this report and is tracked as the top item in `TODO_LIST.md` — it is **blocked on push permission** to the `go-branded-id` remote (§g.1).
 
 The build/lint/test gates remain green with the workaround in place; the debt is the workaround's continued existence, not a correctness regression.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

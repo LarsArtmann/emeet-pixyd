@@ -3,6 +3,8 @@
 **Date:** 2026-07-14 02:45
 **Session goal:** Fix all issues identified in the previous status report (license split brain, missing OG images, missing CSP, docs inaccuracy, broken icon, missing AGENTS.md website section)
 
+**Resolution:** ~~partial docs verification + deployment~~ — remaining pages verified in later sessions; deployment done 2026-08-17/18 (relaunch, cert active).
+
 ---
 
 ## A) FULLY DONE
@@ -217,3 +219,9 @@ The CSP header in `firebase.json` (`script-src 'self'`) would have blocked all i
 - Docs page (`dist/guides/metrics/index.html`): meta CSP present
 - `firebase.json`: 0 occurrences of `Content-Security-Policy`
 - Full build: 19 pages + 19 OG images, CSP patched 19/19 HTML files, 0 errors
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -8,6 +8,8 @@
 **Commit:** `69da92d` — `test(hid): add protocol-faithful PIXY HID simulator and test suite`
 **Update:** Follow-up session closed all critical gaps. 39 tests, lint clean, `-race` passing.
 
+**Resolution:** ~~simulator coverage gaps~~ closed by the three gap-closure rounds ending `2026-08-03_04-19` (50 tests, `FuzzHandleConfigAndCommit`, benchmark `3082afb`/`83d7b1e`).
+
 ---
 
 ## Executive Summary
@@ -195,3 +197,9 @@ Currently the simulator is test-only (`pixy_simulator_test.go`). If we build Lay
 ### 3. Do you want me to trim AGENTS.md now, or leave it?
 
 BuildFlow flagged AGENTS.md at 398 lines (max 377). My simulator additions pushed it over. I can trim the simulator docs to be more concise, or move detail to a separate `docs/testing.md`. Should I do this now or batch it with other improvements?
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -8,6 +8,8 @@
 **Prior Commit:** `69da92d` — initial simulator (31 tests)
 **This Session:** Uncommitted (auto-commit daemon will capture)
 
+**Resolution:** ~~remaining gaps~~ closed by rounds 2–3 (`45693ee`, `3082afb`); report already marked SUPERSEDED by `2026-08-03_03-48`.
+
 ---
 
 ## Executive Summary
@@ -206,3 +208,9 @@ Follow-up session that closed **6 of 8** high-value gaps from the prior status r
 2. **Should `isCommitReport` move to production code (`hid.go`)?** It encodes protocol knowledge (commit reports have `report[3] == report[1]`) that currently lives only in a `_test.go` file. If the commit format changes, the simulator silently breaks. Moving it to `hid.go` alongside `pixyConfig`/`pixyCommit` would make the invariant explicit and testable. But it's currently only used by the simulator — YAGNI says leave it.
 
 3. **Should I mock `probeDevices()` globally for all simulator tests, or only in circuit breaker tests?** Currently, circuit breaker tests with `sendErr` trigger `probeDevices()` on real sysfs. On CI (no hardware), this returns empty and the test passes. On a developer machine with a PIXY connected, it could find the device and overwrite `hidDev`, breaking the test. Options: (a) inject a noop prober in `withPixySimulator()`, (b) add `t.Skip()` when hardware detected, (c) document the assumption only.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

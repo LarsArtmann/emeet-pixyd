@@ -4,6 +4,8 @@
 **Session:** Single-shot migration execution following `docs/planning/2026-08-02_18-48_HTMX-TO-DATASTAR-MIGRATION.html`
 **Verdict:** Functional and verified, but **5 known gaps remain** that need follow-up.
 
+**Resolution:** ~~5 gaps + NEXT TASKS~~ closed by the same-evening/next-day rounds: radar FOUC `9eca006`/`f5e9f10`, SSE indicator + offline banner `7cf70b7`, docs sweep `db0d866`/`7ffad7f`/`6a0209e`, dead CSS removed `2026-08-02_23-51`, `FuzzReadSignals` `bce7014`, `PatchSignals` `7b96e40`, `data-indicator` `781ba91`. Keyboard shortcuts deliberately stayed in `app.js` (won't-do in ROADMAP).
+
 ---
 
 ## What Was Done
@@ -227,3 +229,9 @@ Executed a full-stack migration from HTMX v2.0.9 to DataStar v1.0.2 (`datastar-g
 | Manual browser testing                 | ❌ NOT DONE  |
 | `nix flake check`                      | ❌ NOT RUN   |
 | Website deploy                         | ❌ NOT DONE  |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

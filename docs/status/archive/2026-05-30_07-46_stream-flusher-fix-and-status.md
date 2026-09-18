@@ -4,6 +4,8 @@
 **Branch:** `master` at `f8b5be4`\
 **Session:** Stream `http.Flusher` fix + comprehensive status update
 
+**Resolution:** ~~stream Flusher fix + follow-ups~~ fix shipped `f8b5be4`; later hardened by the write-deadline work (`2026-07-14_06-37`) and the explicit WriteHeader+Flush fix (`b6fc96c`, 2026-08-02).
+
 ---
 
 ## Executive Summary
@@ -252,3 +254,9 @@ The `nix` `doCheck = false` workaround masks this in builds but the tests fail o
 | ------------------ | ----------------------------------------------------- |
 | `middleware.go`    | Added `Flush()` method to `responseWriter`            |
 | `handlers_test.go` | Added `TestLoggingMiddleware_Flusher` regression test |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

@@ -3,6 +3,8 @@
 **Created:** 2026-06-21 08:34
 **Session focus:** Fix nix build, document cqrs-htmx removal, harden CI/tests, modernize codebase
 
+**Resolution:** ~~plan open~~ executed 2026-06-21/22: C1–C9 shipped (`e34be9c`, `37486b8`, `dd01955`, `aa07cbe`); C11 presets shipped 2026-07-04; C15 reconnection shipped (`app.js` backoff); C16 rejected (ROADMAP won't-do); C17 done then superseded (json/v2 stable in go 1.27, flag dropped); C18 rejected (ROADMAP won't-do).
+
 ---
 
 ## Context
@@ -286,3 +288,9 @@ graph TD
 - [ ] `GOWORK=off templ generate` succeeds (if templates touched)
 - [ ] `nix build` passes (after Tier 0)
 - [ ] No new dependencies added without evaluation
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

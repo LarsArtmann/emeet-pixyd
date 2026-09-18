@@ -3,6 +3,8 @@
 **Date:** 2026-08-05 03:56 CEST
 **Session scope:** Single H003 lint finding surfaced by `/tmp/go-humanize-linter` on `handlers.go:60`.
 
+**Resolution:** ~~vendorHash finalisation uncommitted~~ — committed in the same-day vendorHash chain (`26c904f`/`f821b4f`/`800f19b`); go-humanize now v1.1.0. The go-humanize linter stayed ad-hoc in /tmp (never CI-integrated).
+
 ---
 
 ## TL;DR
@@ -165,3 +167,9 @@ Three things genuinely require your input:
 2. **Do you want the auto-commit daemon to capture these two uncommitted nix hash updates, or should I make an explicit `git commit` with the standard Crush attribution format?** The daemon has already made 2 commits in this session, but the working tree still has 2 modified files. I could either wait for the daemon or commit explicitly — your preference.
 
 3. **The linter binary `/tmp/go-humanize-linter` — is this your project, an external tool, or something you want integrated into CI?** If it's yours, the next natural step is a `flake.nix` derivation for it; if it's external, I should not vendor it. If it should run in CI, we need to add a step in `go-test.yml`.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

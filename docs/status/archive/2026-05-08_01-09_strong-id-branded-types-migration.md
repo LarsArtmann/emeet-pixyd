@@ -2,7 +2,9 @@
 
 **Date:** 2026-05-08 01:09
 **Author:** Crush (GLM-5.1)
-**Status:** DONE — all 3 violations fixed, tests green, lint clean (pre-existing `unparam` only)
+**Status:** ~~DONE — all 3 violations fixed, tests green, lint clean (pre-existing `unparam` only)~~ resolved — see Resolution below.
+
+**Resolution:** ~~3 branded-type violations~~ fixed (status line already "DONE"); `PID`/`SourceID` phantom typing has held ever since (`go-branded-id`, now v0.6.0).
 
 ---
 
@@ -119,3 +121,9 @@ process_test.go     | 41 +++++++++++++++++++++++------------------
 internal/pixy/ids.go| 21 +++++++++++++++++++++ (NEW)
 12 files changed, 106 insertions(+), 89 deletions(-)
 ```
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

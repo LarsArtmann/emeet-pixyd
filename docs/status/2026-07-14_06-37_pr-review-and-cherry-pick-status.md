@@ -2,6 +2,8 @@
 
 > Session focus: Reviewed two open PRs from external contributor, cherry-picked the still-valid fixes, closed PRs.
 
+**Resolution:** ~~uncommitted fixes~~ committed and pushed (deadline/Unwrap/ffmpeg-stderr work is on master; supersession chain ends in CHANGELOG 0.4.0).
+
 ---
 
 ## a) FULLY DONE
@@ -195,3 +197,9 @@ The 4 fixes are logically related (all from PR review) but semantically distinct
 ### 2. Should the `WriteTimeout` clearing use an idle timeout instead of `time.Time{}`?
 
 Clearing the write deadline entirely means an abandoned MJPEG connection (client gone, TCP still open) holds the stream semaphore forever, blocking all other stream attempts. A more robust fix would set a recurring idle timeout (e.g., reset a 30s deadline after each successful frame write). This is the approach nginx uses for streaming. The current fix is correct for the immediate bug but may need revisiting. **Should I implement the idle-timeout variant now, or ship the simple fix first?**
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

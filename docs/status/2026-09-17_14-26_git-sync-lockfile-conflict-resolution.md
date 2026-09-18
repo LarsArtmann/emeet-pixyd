@@ -5,6 +5,8 @@
 - **Repo**: `emeet-pixyd` @ `master` == `origin/master` (`c22209b`), working tree clean.
 - **Honesty note**: a **second writer (parallel agent session and/or the user) was active in this repo during this session** and performed parts of the fix. This report separates _what I did_, _what I verified_, and _what the other writer did_ — attribution is flagged where unknown.
 
+**Resolution:** ~~b1–b4~~ — CI-parity gates green in CI; website build verified + deployed; lockfile guard shipped (`website.yml` frozen-lockfile); AGENTS lessons recorded. STILL OPEN: dependency-bump ownership policy (ROADMAP open question), stale `html-validate` exclude (TODO #164), auto-commit daemon improvements (host-level), resolution-note convention (adopted informally).
+
 ---
 
 ## Timeline (evidence-based)
@@ -129,3 +131,9 @@ Impact: Critical/High/Medium/Low · Effort: S <30min / M 30min–2h / L >2h
 ---
 
 _Point-in-time snapshot — will go stale. Feed section (f) into `TODO_LIST.md` via docs-health HARVEST when resuming work._
+
+---
+
+## Resolution (2026-09-18)
+
+Open-item routing as of 2026-09-18: f3/f16 → ROADMAP open questions; f11/f12 → TODO #164; f24–f27 were already TODO #129–#135; f28 informally adopted. The lockfile-conflict class recurred in spirit on 2026-09-17 (the 13:52 plan T1) and was fixed by the pnpm regeneration playbook.

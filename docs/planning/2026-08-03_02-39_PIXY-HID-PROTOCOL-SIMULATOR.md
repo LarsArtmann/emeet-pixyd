@@ -3,6 +3,8 @@
 **Date:** 2026-08-03
 **Goal:** Build a protocol-faithful PIXY HID simulator that validates byte-level correctness, replacing the blind `fakeHIDDevice` stub for integration testing.
 
+**Resolution:** ~~plan open~~ fully executed (`69da92d` + three gap-closure rounds, 50 tests); the simulator is now the canonical HID test double (`withPixySimulator()`).
+
 ---
 
 ## Problem
@@ -292,3 +294,9 @@ graph TD
 - Not a V4L2 simulator (PTZ is well-covered by DI stubs)
 - Not a replacement for `fakeHIDDevice` (it coexists — different fidelity levels)
 - Not a NixOS VM test (Layer 3 future work)
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

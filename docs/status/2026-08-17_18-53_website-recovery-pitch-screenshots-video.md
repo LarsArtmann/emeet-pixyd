@@ -4,6 +4,8 @@
 **Session scope:** Fix `emeet-pixyd.lars.software` "Site Not Found" → full go-live; rewrite landing pitch around the "no Linux software for this webcam" origin story; add real screenshots; produce a HyperFrames demo video; rebuild + verify website.
 **Session ends with:** shell PATH completely broken (all commands fail, even `ls`/`date`) — report written via Write tool per user instruction. Undeployed build, uncommitted work.
 
+**Resolution:** ~~b) undeployed build~~ deployed + verified live next session (`2026-08-18_01-18`, `a76d8f6`); cert resolved (CNAME validation, no TXT needed); shell death was transient. Remaining open work harvested as TODO #129–#136.
+
 ---
 
 ## a) FULLY DONE
@@ -193,3 +195,9 @@
 ---
 
 _Report written under degraded tooling (no shell). All claims verified by tool output captured during the session._
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

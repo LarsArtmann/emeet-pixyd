@@ -5,6 +5,8 @@
 **Branch:** master
 **Previous commit:** `63ebd8b` — refactor: adopt cqrs-htmx/v2 (committed during session)
 
+**Resolution:** ~~nix build broken by private go-cqrs-lite~~ resolved by REMOVING cqrs-htmx entirely (`1c112a8`, `54007aa`) — the adoption documented here lasted ~24h. See `2026-06-21_08-08`.
+
 ---
 
 ## Executive Summary
@@ -172,3 +174,9 @@ The entire nix build pipeline is blocked on this. `cqrs-htmx/v2` (which is publi
 | HTMX JS          | `static/htmx-2.0.8.min.js` (82KB file)    | `cqrshtmx.HTMXScriptHandler()` (embedded)                  | `handlers.go:312`  |
 | Health JSON      | `json.Marshal` + `Write(data)`            | `cqrshtmx.WriteJSON()`                                     | `handlers.go:154`  |
 | Broadcast        | `broadcastStateChanged()` manual loop     | `Broadcaster.Broadcast(SSEEvent{...})`                     | `main.go:199`      |
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

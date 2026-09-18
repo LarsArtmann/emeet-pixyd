@@ -4,6 +4,8 @@
 **Branch:** `master` at `765db53`\
 **Session:** Nix flake improvements + UI redesign follow-up status
 
+**Resolution:** ~~nix improvements follow-ups~~ shipped `765db53`; superseded by later nix sessions (FOD fix 07-28, go 1.27 pin 09-17).
+
 ---
 
 ## Executive Summary
@@ -256,3 +258,9 @@ Prioritized by impact × effort (Pareto order):
 - (c) Add a `Value()` or `Raw()` method to `go-branded-id` and update callers
 
 The `nix` `doCheck = false` workaround masks this in builds but the tests fail on every `go test` run. We need a decision on the intended direction before fixing the 4 affected tests.
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.

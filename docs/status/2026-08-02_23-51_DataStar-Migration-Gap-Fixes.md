@@ -4,6 +4,8 @@
 **Session:** Follow-up to `docs/status/2026-08-02_23-23_HTMX-to-DataStar-Migration.md` — closing the critical gaps identified there.
 **Verdict:** All 3 critical UX bugs fixed. All stale HTMX references in live files purged. Tests pass with `-race`, lint is 0 issues, `golangci-lint` clean, `gofmt` clean, `nix flake check` passes. **No browser testing was done** — runtime correctness is inferred from code review + DataStar SDK event analysis, not verified in a real browser.
 
+**Resolution:** ~~browser testing + remaining c-items~~ — browser-level verification eventually done via headless-Chromium screenshots (2026-08-17, offline state; online retake = TODO #129); data-indicator/FuzzReadSignals/PatchSignals shipped next day. CSP nonce remains a ROADMAP-grade hardening idea.
+
 ---
 
 ## What Was Done
@@ -187,3 +189,9 @@ Closed the 6 highest-priority gaps from the previous status report's "NEXT TASKS
 2. **Should the offline banner be inside or outside `#status-panel`?** I put it outside (in `page()` directly) so DataStar morphs don't reset its visibility. But this means it's server-rendered with `style="display:none"` and only JS can show it. Alternatively, it could be inside the panel and toggled by a signal — but then every panel morph would need to preserve the signal state. **Which approach do you prefer?**
 
 3. **Is `PatchSignals` worth implementing for PTZ sliders?** It would reduce SSE payload from ~4 KB (full panel HTML) to ~20 bytes (3 signal values) per slider debounce. But it requires the PTZ handler to send signals instead of element patches, and the panel still needs to re-render when other state changes (camera mode, audio, etc.). **Is the bandwidth/CPU saving worth the complexity of two patch paths (signals for PTZ, elements for everything else)?**
+
+---
+
+## Resolution (2026-09-18)
+
+All session work shipped; this report is retained as a point-in-time snapshot. See `CHANGELOG.md` and the successor reports in this directory for the durable record.
