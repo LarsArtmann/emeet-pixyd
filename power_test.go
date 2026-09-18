@@ -230,3 +230,32 @@ func TestPresetPush_SlotOverflowRejected(t *testing.T) {
 		t.Errorf("push overflow = %q, want slot error", result.String())
 	}
 }
+
+func TestPresetSave_MultiWordNameTruncates(t *testing.T) {
+	t.Parallel()
+
+	_, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	// PIN THE BUG (former TODO #123): strings.Fields dispatch means
+	// `preset save my home` saves the preset "my" and silently drops
+	// "home". The web UI (data-bind input) does not have this problem.
+	// See docs/adr/2026-09-18_multi-word-preset-names.md.
+	result := d.handleCommand(t.Context(), "preset save my home")
+	if result.IsError() {
+		t.Fatalf("preset save failed: %s", result.String())
+	}
+
+	d.mu.RLock()
+	_, homeExists := d.state.Presets["my home"]
+	_, myExists := d.state.Presets["my"]
+	d.mu.RUnlock()
+
+	if homeExists {
+		t.Error("multi-word name saved; the truncation bug is fixed — update this test and the ADR")
+	}
+
+	if !myExists {
+		t.Fatal("expected the truncated preset \"my\" to exist (pinning the bug)")
+	}
+}
