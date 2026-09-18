@@ -32,39 +32,7 @@ func (d *Daemon) setMotorSpeed(ctx context.Context, motor pixy.MotorType, speed 
 		pixy.MotorSpeedPayload(motor, speed)...,
 	)
 
-	d.mu.RLock()
-	hidDev := d.hidDev
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
-
-	if hidDev == nil {
-		return fmt.Errorf("setMotorSpeed (no device): %w", pixy.ErrPIXYNotConnected)
-	}
-
-	if circuitOpen {
-		return fmt.Errorf("setMotorSpeed: %w", pixy.ErrPIXYNotConnected)
-	}
-
-	if err := hidDev.Send(report); err != nil {
-		d.mu.Lock()
-		d.hidFailCount++
-
-		recordHIDFailure(ctx)
-
-		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
-		}
-		d.mu.Unlock()
-		d.broadcastStateChanged()
-
-		return fmt.Errorf("setMotorSpeed send: %w", err)
-	}
-
-	d.mu.Lock()
-	d.hidFailCount = 0
-	d.mu.Unlock()
-
-	return nil
+	return d.sendV2Set(ctx, "setMotorSpeed", report)
 }
 
 // setTargetTrack sends the official V2 SetTargetTrack command for a tracking
@@ -100,6 +68,75 @@ func (d *Daemon) setTargetTrack(ctx context.Context, mode pixy.TargetTrackMode) 
 		d.broadcastStateChanged()
 
 		return fmt.Errorf("setTargetTrack send: %w", err)
+	}
+
+	d.mu.Lock()
+	d.hidFailCount = 0
+	d.mu.Unlock()
+
+	return nil
+}
+
+// maxHardwarePresetSlots is the assumed motor-preset slot count. The official
+// GetMotorPresetPosMode sweep that pins the real count (and per-slot validity)
+// runs in the hardware session (plan M27 / TODO #141); the guard only prevents
+// sending slots the firmware is unlikely to have.
+const maxHardwarePresetSlots = 8
+
+// setMotorPos moves one axis to an absolute position over the official V2
+// SetMotorPos command (head+payload single report, motor-MCU iface). The
+// position unit is assumed to be the same degrees/multiplier we present
+// everywhere else (M27-verify). Acquires d.hidMu itself.
+func (d *Daemon) setMotorPos(ctx context.Context, motor pixy.MotorType, pos float32) error {
+	report := append(
+		pixy.V2SetMotorPos.WithIface(pixy.MotorMCUIface).Bytes(),
+		pixy.MotorSpeedPayload(motor, pos)...,
+	)
+
+	return d.sendV2Set(ctx, "setMotorPos", report)
+}
+
+// setMotorPresetPos saves the CURRENT position into a 1-based hardware slot.
+func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
+	report := append(pixy.V2SetMotorPresetPos.WithIface(pixy.MotorMCUIface).Bytes(), slot)
+
+	return d.sendV2Set(ctx, "setMotorPresetPos", report)
+}
+
+// sendV2Set is the shared transport for single-report V2 SET commands:
+// device/circuit guards, Send, and setDeviceState-style failure accounting.
+// Callers wanting hidMu serialization take the lock themselves.
+func (d *Daemon) sendV2Set(ctx context.Context, op string, report []byte) error {
+	d.mu.RLock()
+	hidDev := d.hidDev
+	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
+	d.mu.RUnlock()
+
+	if hidDev == nil {
+		return fmt.Errorf("%s (no device): %w", op, pixy.ErrPIXYNotConnected)
+	}
+
+	if circuitOpen {
+		return fmt.Errorf("%s: %w", op, pixy.ErrPIXYNotConnected)
+	}
+
+	d.hidMu.Lock()
+	err := hidDev.Send(report)
+	d.hidMu.Unlock()
+
+	if err != nil {
+		d.mu.Lock()
+		d.hidFailCount++
+
+		recordHIDFailure(ctx)
+
+		if d.hidFailCount < hidCircuitBreakerThreshold {
+			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+		}
+		d.mu.Unlock()
+		d.broadcastStateChanged()
+
+		return fmt.Errorf("%s send: %w", op, err)
 	}
 
 	d.mu.Lock()
