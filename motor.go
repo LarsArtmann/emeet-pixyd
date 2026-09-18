@@ -66,5 +66,3 @@ func (d *Daemon) setMotorSpeed(ctx context.Context, motor pixy.MotorType, speed 
 
 	return nil
 }
-
-
