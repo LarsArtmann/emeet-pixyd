@@ -66,3 +66,45 @@ func (d *Daemon) setMotorSpeed(ctx context.Context, motor pixy.MotorType, speed 
 
 	return nil
 }
+
+// setTargetTrack sends the official V2 SetTargetTrack command for a tracking
+// variant (TODO #140): single report, head 09 04 01 01 + [mode:u8][f32x3]
+// with zeroed floats. Failure accounting mirrors setMotorSpeed. Callers hold
+// d.hidMu (command dispatcher contract, same as setTracking).
+func (d *Daemon) setTargetTrack(ctx context.Context, mode pixy.TargetTrackMode) error {
+	report := append(pixy.V2SetTargetTrack.Bytes(), pixy.TargetTrackPayload(mode)...)
+
+	d.mu.RLock()
+	hidDev := d.hidDev
+	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
+	d.mu.RUnlock()
+
+	if hidDev == nil {
+		return fmt.Errorf("setTargetTrack (no device): %w", pixy.ErrPIXYNotConnected)
+	}
+
+	if circuitOpen {
+		return fmt.Errorf("setTargetTrack: %w", pixy.ErrPIXYNotConnected)
+	}
+
+	if err := hidDev.Send(report); err != nil {
+		d.mu.Lock()
+		d.hidFailCount++
+
+		recordHIDFailure(ctx)
+
+		if d.hidFailCount < hidCircuitBreakerThreshold {
+			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+		}
+		d.mu.Unlock()
+		d.broadcastStateChanged()
+
+		return fmt.Errorf("setTargetTrack send: %w", err)
+	}
+
+	d.mu.Lock()
+	d.hidFailCount = 0
+	d.mu.Unlock()
+
+	return nil
+}

@@ -224,3 +224,59 @@ func ParseChargeStatus(resp []byte) (byte, error) {
 
 	return payload[0], nil
 }
+
+// TargetTrackMode selects the tracking variant of the official
+// SetTargetTrack command (TODO #140). UI strings confirm the three variants
+// Face / HalfBody / FullBody.
+//
+// VALUE ASSIGNMENT IS AN ASSUMPTION pending hardware verification (plan
+// M27): 0/1/2 follows the UI ordering with face as the default variant. The
+// command payload is [mode:u8][f32x3]; the three floats' meaning (sensitivity
+// or target box) is unknown, so emeet-pixyd transmits zeros.
+type TargetTrackMode byte
+
+const (
+	TrackFace     TargetTrackMode = 0
+	TrackHalfBody TargetTrackMode = 1
+	TrackFullBody TargetTrackMode = 2
+)
+
+func (m TargetTrackMode) Valid() bool { return m <= TrackFullBody }
+
+func (m TargetTrackMode) String() string {
+	switch m {
+	case TrackFace:
+		return "face"
+	case TrackHalfBody:
+		return "halfbody"
+	case TrackFullBody:
+		return "fullbody"
+	default:
+		return fmt.Sprintf("track(%d)", byte(m))
+	}
+}
+
+// ParseTargetTrackMode maps CLI aliases (including the short forms
+// "half"/"full") to a variant.
+func ParseTargetTrackMode(input string) (TargetTrackMode, bool) {
+	switch input {
+	case "face", "0":
+		return TrackFace, true
+	case "halfbody", "half", "1":
+		return TrackHalfBody, true
+	case "fullbody", "full", "2":
+		return TrackFullBody, true
+	default:
+		return 0, false
+	}
+}
+
+// TargetTrackPayload builds the [mode:u8][f32x3] payload for
+// V2SetTargetTrack. The three floats are transmitted as zeros: their
+// semantics are not decoded yet (M27-verify).
+func TargetTrackPayload(mode TargetTrackMode) []byte {
+	out := make([]byte, 13)
+	out[0] = byte(mode)
+
+	return out
+}

@@ -273,3 +273,25 @@ func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) Command
 
 	return okResult(fmt.Sprintf("motor speed set: %s %g", motor, speed))
 }
+
+// handleTrackingVariantCommand implements `tracking <face|halfbody|fullbody>`
+// (TODO #140): the mode-aware tracking layer one level below the binary
+// track/idle/privacy switch. Unlike the camera mode, the variant is NOT
+// persisted to state.json in v1 — the daemon re-asserts the persisted camera
+// mode on device re-appear, but the variant resets (verified M27).
+func (d *Daemon) handleTrackingVariantCommand(ctx context.Context, parts []string) CommandResult {
+	if len(parts) < minCmdParts {
+		return errResultMsg(respTrackingUsage)
+	}
+
+	mode, ok := pixy.ParseTargetTrackMode(parts[1])
+	if !ok {
+		return errResultMsg(respTrackingUsage)
+	}
+
+	if err := d.setTargetTrack(ctx, mode); err != nil {
+		return errResult("tracking", err)
+	}
+
+	return okResult("tracking variant: " + mode.String())
+}
