@@ -86,7 +86,7 @@ const maxHardwarePresetSlots = 8
 // setMotorPos moves one axis to an absolute position over the official V2
 // SetMotorPos command (head+payload single report, motor-MCU iface). The
 // position unit is assumed to be the same degrees/multiplier we present
-// everywhere else (M27-verify). Acquires d.hidMu itself.
+// everywhere else (M27-verify). LOCK CONTRACT: caller holds d.hidMu.
 func (d *Daemon) setMotorPos(ctx context.Context, motor pixy.MotorType, pos float32) error {
 	report := append(
 		pixy.V2SetMotorPos.WithIface(pixy.MotorMCUIface).Bytes(),
@@ -97,6 +97,7 @@ func (d *Daemon) setMotorPos(ctx context.Context, motor pixy.MotorType, pos floa
 }
 
 // setMotorPresetPos saves the CURRENT position into a 1-based hardware slot.
+// LOCK CONTRACT: caller holds d.hidMu.
 func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
 	report := append(pixy.V2SetMotorPresetPos.WithIface(pixy.MotorMCUIface).Bytes(), slot)
 
@@ -105,7 +106,9 @@ func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
 
 // sendV2Set is the shared transport for single-report V2 SET commands:
 // device/circuit guards, Send, and setDeviceState-style failure accounting.
-// Callers wanting hidMu serialization take the lock themselves.
+// LOCK CONTRACT: the caller holds d.hidMu (the command dispatcher holds it
+// for HID commands; multi-step callers take it around their whole sequence —
+// taking it here would deadlock against the dispatcher).
 func (d *Daemon) sendV2Set(ctx context.Context, op string, report []byte) error {
 	d.mu.RLock()
 	hidDev := d.hidDev
@@ -120,9 +123,7 @@ func (d *Daemon) sendV2Set(ctx context.Context, op string, report []byte) error 
 		return fmt.Errorf("%s: %w", op, pixy.ErrPIXYNotConnected)
 	}
 
-	d.hidMu.Lock()
 	err := hidDev.Send(report)
-	d.hidMu.Unlock()
 
 	if err != nil {
 		d.mu.Lock()

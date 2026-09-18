@@ -370,6 +370,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 const (
 	presetSave     = "save"
 	presetLoad     = "load"
+	presetPush     = "push"
 	presetDelete   = "delete"
 	presetList     = "list"
 	minPresetParts = 3
@@ -377,7 +378,7 @@ const (
 
 func isValidPresetSubcmd(s string) bool {
 	switch s {
-	case presetSave, presetLoad, presetDelete, presetList:
+	case presetSave, presetLoad, presetPush, presetDelete, presetList:
 		return true
 	default:
 		return false
@@ -406,6 +407,12 @@ func (d *Daemon) handlePresetCommand(ctx context.Context, parts []string) Comman
 		}
 
 		return d.handlePresetLoad(ctx, parts[2])
+	case presetPush:
+		if len(parts) < minPresetParts {
+			return errResultMsg("preset push: missing name")
+		}
+
+		return d.handlePresetPush(ctx, parts[2])
 	case presetDelete:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset delete: missing name")
@@ -519,4 +526,71 @@ func (d *Daemon) handlePresetDelete(name string) CommandResult {
 	d.broadcastStateChanged()
 
 	return okResult(fmt.Sprintf("preset %q deleted", name))
+}
+
+// handlePresetPush mirrors a named software preset into a hardware motor slot
+// (TODO #141): the daemon moves each axis to the preset position over the
+// official V2 SetMotorPos command, then saves the current position into the
+// slot with SetMotorPresetPos. Slots map deterministically from the preset
+// list order (alphabetical, 1-based), the same order the CLI and web UI
+// present everywhere else.
+//
+// This command MOVES THE PHYSICAL CAMERA — it is the one preset operation
+// with a visible hardware side effect. Slot-count discovery and per-slot
+// verification run in the hardware session (plan M27); until then the slot
+// guard is the conservative maxHardwarePresetSlots.
+func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResult {
+	if err := pixy.ValidatePresetName(name); err != nil {
+		return errResultMsg(err.Error())
+	}
+
+	d.mu.RLock()
+	values, exists := d.state.Presets[name]
+	d.mu.RUnlock()
+
+	if !exists {
+		return errResultMsg(respPresetNotFound)
+	}
+
+	d.mu.RLock()
+	sorted := d.state.Presets.SortedNames()
+	d.mu.RUnlock()
+
+	slot := 0
+
+	for i, n := range sorted {
+		if n == name {
+			slot = i + 1
+
+			break
+		}
+	}
+
+	if slot == 0 || slot > maxHardwarePresetSlots {
+		return errResultMsg(fmt.Sprintf("preset push: no hardware slot for %q (slots 1..%d)", name, maxHardwarePresetSlots))
+	}
+
+	// The whole move+save sequence is one HID operation: hold hidMu so no
+	// tracking/audio command interleaves between the move and the save.
+	d.hidMu.Lock()
+	defer d.hidMu.Unlock()
+
+	for _, axis := range []struct {
+		motor pixy.MotorType
+		val   int
+	}{
+		{pixy.MotorPan, values.Pan},
+		{pixy.MotorTilt, values.Tilt},
+		{pixy.MotorZoom, values.Zoom},
+	} {
+		if err := d.setMotorPos(ctx, axis.motor, float32(axis.val)); err != nil {
+			return errResult("preset push "+name, err)
+		}
+	}
+
+	if err := d.setMotorPresetPos(ctx, byte(slot)); err != nil {
+		return errResult("preset push "+name, err)
+	}
+
+	return okResult(fmt.Sprintf("preset pushed: %s -> slot %d", name, slot))
 }

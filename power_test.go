@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -154,5 +156,77 @@ func TestParseBatteryAndCharge(t *testing.T) {
 
 	if _, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta.Bytes()); err == nil {
 		t.Error("empty charge payload accepted")
+	}
+}
+
+func TestPresetPush_SimulatorSequence(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	d.mu.Lock()
+	d.state.Presets = pixy.PresetMap{"home": {Pan: 30, Tilt: -10, Zoom: 120}}
+	d.mu.Unlock()
+
+	result := d.handleCommand(t.Context(), "preset push home")
+	if result.IsError() {
+		t.Fatalf("preset push failed: %s", result.String())
+	}
+
+	if want := "preset pushed: home -> slot 1"; result.String() != want {
+		t.Errorf("response = %q, want %q", result.String(), want)
+	}
+
+	// Three SetMotorPos reports (pan, tilt, zoom) then SetMotorPresetPos slot 1.
+	reports := sim.SentReports()
+	if len(reports) != 4 {
+		t.Fatalf("expected 4 V2 reports, got %d", len(reports))
+	}
+
+	wantPosHead := pixy.V2SetMotorPos.WithIface(pixy.MotorMCUIface).Bytes()
+	wantSaveHead := pixy.V2SetMotorPresetPos.WithIface(pixy.MotorMCUIface).Bytes()
+
+	for i, axis := range []byte{byte(pixy.MotorPan), byte(pixy.MotorTilt), byte(pixy.MotorZoom)} {
+		if string(reports[i][:4]) != string(wantPosHead) || reports[i][4] != axis {
+			t.Errorf("report %d = %x, want SetMotorPos for axis %#02x", i, reports[i], axis)
+		}
+	}
+
+	if string(reports[3][:4]) != string(wantSaveHead) || reports[3][4] != 1 {
+		t.Errorf("save report = %x, want SetMotorPresetPos slot 1", reports[3])
+	}
+}
+
+func TestPresetPush_UnknownPreset(t *testing.T) {
+	t.Parallel()
+
+	_, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	result := d.handleCommand(t.Context(), "preset push nope")
+	if !result.IsError() || result.String() != errorPrefix+respPresetNotFound {
+		t.Errorf("push unknown = %q, want %q", result.String(), respPresetNotFound)
+	}
+}
+
+func TestPresetPush_SlotOverflowRejected(t *testing.T) {
+	t.Parallel()
+
+	_, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	d.mu.Lock()
+	d.state.Presets = pixy.PresetMap{}
+
+	for i := range maxHardwarePresetSlots + 1 {
+		d.state.Presets[fmt.Sprintf("p%02d", i)] = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}
+	}
+
+	d.mu.Unlock()
+
+	result := d.handleCommand(t.Context(), "preset push p08")
+	if !result.IsError() || !strings.Contains(result.String(), "no hardware slot") {
+		t.Errorf("push overflow = %q, want slot error", result.String())
 	}
 }
