@@ -178,6 +178,41 @@ combination is unrecognized, `Got` is set to `false` and the caller reports an e
 
 ---
 
+## Official V2Head Command Table (2026-09-18)
+
+The official EMEET STUDIO app constructs every HID command from a
+`EMHidCmdV2Head(u8,u8,u8,u8)` header. Extracting all 162 static initializers
+from the macOS binary (`tools/emhid/`) decoded the full command space:
+
+```
+[b0, b1, b2, b3]
+  │   │   │   └─ command ID within (device, category); SET and GET are
+  │   │   │      distinct IDs (SET_MOTOR_SPEED=3 vs GET_MOTOR_SPEED=19)
+  │   │   └─ category (mergeType component: mergeType = (dev<<5) | func)
+  │   └─ logical sub-device (0x00 power … 0x0a SD; motor SETs go on the
+  │      wire with the iface byte overwritten to 0x63, the motor-MCU)
+  └─ report head: 0x09 (V2) or 0x07 (legacy V1 commands)
+```
+
+**Our protocol is this protocol.** The 9-byte config + 4-byte commit framing
+above is one dialect of the V2 family — concretely, our tracking config
+`0x09,0x01,0x01,0,0,1,0,1,mode` + commit `0x09,0x01,0x01,0x01` corresponds to
+official `CMD_SET_DEVICE_MODE` head `[09 01 01 01]` with payload `[mode:u8]`
+(plus our driver-era padding bytes 3–7).
+
+**Queries are bare 4-byte heads** — no payload, no commit. Known heads:
+battery `09 00 00 02`, charge `09 00 00 06`, motor speed `09 03 01 13`,
+motor pos `09 03 01 02`, target track `09 04 01 02`, device mode
+`09 02 01 00` (note: GET_DEVICE_MODE lives on device `0x02` while our
+empirical tracking query reuses the SET head on `0x01`).
+
+Full table: `tools/emhid/cmdtable.json` (machine-readable) and
+`docs/hid-protocol-official-map.md` §3.5 (grouped, annotated). Payload
+layouts and the still-open items (enum values, response framing) are
+documented there.
+
+---
+
 ## Circuit Breaker
 
 The daemon implements a HID circuit breaker with a threshold of 3 consecutive

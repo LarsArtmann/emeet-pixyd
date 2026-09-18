@@ -101,6 +101,14 @@ framing). Their log tag **`[HID_RACE_FIX] HID read thread paused, safe to start
 hid_write`** shows they hit (and patched) the same hidapi concurrent read/write race our
 `hidMu` serialization prevents by design.
 
+**Byte-level confirmation (2026-09-18):** the extracted V2Head table
+(`tools/emhid/cmdtable.json`, 162 commands; map doc §3.5) proves our framing IS
+the official protocol: our tracking config `0x09,0x01,0x01,…,mode` + commit
+`0x09,0x01,0x01,0x01` is `CMD_SET_DEVICE_MODE` (head `[09 01 01 01]`, payload
+`[mode:u8]`) plus driver-era padding; our gesture interface byte `0x04` matches
+`CMD_SET_GESTURE_RECOG_STA` `[09 04 02 01]`; our audio interface byte `0x05`
+matches the audio DSP device group. Queries are bare 4-byte heads.
+
 ---
 
 ## 3. Feature Comparison
