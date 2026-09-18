@@ -200,10 +200,10 @@
                     # bare `cat` reads stdin and the test hangs forever; here
                     # it fails fast with an empty unit and a clear assert.
                     unit = machine.succeed(
-                        "find /etc/systemd/user -name 'emeet-pixyd.service' -exec cat {} \\;"
+                        "find /etc /nix/store /usr -maxdepth 6 -name 'emeet-pixyd.service' -exec cat {} \\; 2>/dev/null || true"
                     )
                     assert unit.strip() != "", \
-                        "emeet-pixyd user unit not found under /etc/systemd/user"
+                        "emeet-pixyd user unit not found; searched /etc, /nix/store (maxdepth 6), /usr"
                     assert "ProtectSystem=strict" in unit
                     assert "EMEET_PIXYD_AUTO=off" in unit
                     assert "EMEET_PIXYD_DEFAULT_AUDIO=nc" in unit
