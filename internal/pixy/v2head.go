@@ -297,13 +297,16 @@ func ParseU16(resp []byte) (uint16, error) {
 	return binary.LittleEndian.Uint16(payload), nil
 }
 
+// v2U32PayloadLen is the byte count of a u32 response payload.
+const v2U32PayloadLen = 4
+
 // ParseU32 reads a GetFuncSta response: [u32 LE] after the head echo
 // (framing assumption, pinned at hardware verification). The bitfield's
 // individual capability bits are not decoded yet.
 func ParseU32(resp []byte) (uint32, error) {
 	payload := resp[min(len(resp), v2ResponseOverhead):]
 
-	if len(payload) < 4 {
+	if len(payload) < v2U32PayloadLen {
 		return 0, fmt.Errorf("u32 payload %d bytes: %w", len(payload), ErrV2ResponseShort)
 	}
 

@@ -22,10 +22,19 @@ type identityInfo struct {
 	FuncStatus uint32
 }
 
+// identityQueryCount is the number of identity heads identityStatus probes.
+const identityQueryCount = 4
+
 // identityStatus queries all identity heads and reports which answered.
 func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
-	info := identityInfo{}
-	ok := make([]bool, 4)
+	info := identityInfo{
+		Serial:     "",
+		Version:    0,
+		DeviceVer:  0,
+		FuncStatus: 0,
+	}
+
+	ok := make([]bool, identityQueryCount)
 
 	if sn, err := d.queryIdentityString(ctx, pixy.V2GetSN); err == nil {
 		info.Serial = sn
@@ -50,6 +59,7 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 	return info, ok
 }
 
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
@@ -59,6 +69,7 @@ func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (str
 	return pixy.ParseString(resp)
 }
 
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
@@ -68,6 +79,7 @@ func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16
 	return pixy.ParseU16(resp)
 }
 
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
@@ -82,7 +94,7 @@ func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32
 // answer are omitted entirely - output stays stable on devices that ignore
 // these heads.
 func formatIdentity(info identityInfo, ok []bool) []string {
-	tokens := make([]string, 0, 4)
+	tokens := make([]string, 0, identityQueryCount)
 
 	if ok[0] {
 		tokens = append(tokens, "sn="+info.Serial)
