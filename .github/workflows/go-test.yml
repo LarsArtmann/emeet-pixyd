@@ -44,7 +44,9 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: latest
+          # Pinned to the nix devShell version — dev/CI drift on a
+          # config-sensitive v2 linter silently changes the signal.
+          version: v2.13.2
           args: --timeout 2m
 
       - name: Vulnerability check
@@ -70,6 +72,18 @@ jobs:
           path: testdata/fuzz
           key: fuzz-corpus-${{ github.run_id }}
           restore-keys: fuzz-corpus-
+
+      - name: Assert fuzz targets match CI
+        run: |
+          # A target missing from this list is fuzzed nowhere — the exact
+          # gap class that shipped with the model-aware probe parsing.
+          EXPECTED="FuzzExtractJPEGFrame FuzzParseHIDResponse FuzzParsePTZValue FuzzReadSignals FuzzHandleConfigAndCommit FuzzParseUevent"
+          echo "$EXPECTED" | tr ' ' '\n' | sort > /tmp/expected.txt
+          go test -list '^Fuzz' . | grep '^Fuzz' | sort > /tmp/actual.txt
+          if ! diff -u /tmp/expected.txt /tmp/actual.txt; then
+            echo "ERROR: fuzz targets drifted from the CI list — update both together"
+            exit 1
+          fi
 
       - name: Fuzz
         run: |
