@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/gsap.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -16,21 +16,282 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
+        background: #0d0b0a;
       }
       #root {
+        position: relative;
         width: 100%;
         height: 100%;
+        background: #0d0b0a;
+        overflow: hidden;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #f4f4f5;
+      }
+      .glow {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        width: 1500px;
+        height: 900px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(closest-side, rgba(139, 92, 246, 0.16), rgba(139, 92, 246, 0) 70%);
+        pointer-events: none;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .mono {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      .eyebrow {
+        color: #8b5cf6;
+        font-size: 26px;
+        letter-spacing: 0.55em;
+        margin-bottom: 48px;
+      }
+      .h1 {
+        font-size: 110px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+        text-align: center;
+        color: #e4e4e7;
+      }
+      .h1 .accent {
+        color: #8b5cf6;
+      }
+      .sub {
+        margin-top: 36px;
+        font-size: 34px;
+        color: #a1a1aa;
+      }
+      .h2 {
+        font-size: 84px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #f4f4f5;
+        margin-bottom: 90px;
+      }
+      .cards {
+        display: flex;
+        gap: 44px;
+      }
+      .card {
+        width: 380px;
+        padding: 42px 0 38px;
+        text-align: center;
+        background: #161311;
+        border: 1px solid #262220;
+        border-radius: 18px;
+      }
+      .card .name {
+        font-size: 34px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 18px;
+      }
+      .card .unavailable {
+        font-size: 26px;
+        color: #f87171;
+      }
+      .badge {
+        margin-top: 70px;
+        padding: 20px 44px;
+        border: 2px solid #f87171;
+        border-radius: 14px;
+        color: #f87171;
+        font-size: 30px;
+        letter-spacing: 0.12em;
+      }
+      .panel {
+        width: 1420px;
+        height: 560px;
+        background: #131110;
+        border: 1px solid #262220;
+        border-radius: 26px;
+        padding: 40px 44px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
+      }
+      .panel-top {
+        display: flex;
+        gap: 40px;
+        flex: 1;
+      }
+      .viewport {
+        position: relative;
+        width: 680px;
+        background: #0c0a09;
+        border: 1px solid #201d1b;
+        border-radius: 16px;
+      }
+      .call-label {
+        position: absolute;
+        top: 22px;
+        left: 26px;
+        color: #f87171;
+        font-size: 24px;
+        letter-spacing: 0.18em;
+      }
+      .face-dot {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 120px;
+        height: 120px;
+        margin: -60px 0 0 -60px;
+        border-radius: 50%;
+        border: 3px solid #8b5cf6;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
       }
-      #title {
+      .face-dot .core {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #a78bfa 0%, #7c3aed 70%);
+        filter: blur(1px);
+      }
+      .controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .section-label {
+        color: #d4d4d8;
+        font-size: 22px;
+        letter-spacing: 0.3em;
+        margin-bottom: 20px;
+      }
+      .modes {
+        display: flex;
+        gap: 18px;
+      }
+      .mode {
+        width: 148px;
+        padding: 20px 0;
+        text-align: center;
+        background: #1a1715;
+        border: 1px solid #2a2624;
+        border-radius: 12px;
+      }
+      .mode .m-name {
+        font-size: 24px;
+        font-weight: 700;
         color: #f4f4f5;
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
+      }
+      .mode .m-desc {
+        font-size: 15px;
+        color: #a1a1aa;
+        margin-top: 8px;
+      }
+      .mode.active {
+        border-color: #22c55e;
+        box-shadow: 0 0 24px rgba(34, 197, 94, 0.28);
+      }
+      .mode.active .m-name {
+        color: #22c55e;
+      }
+      .audio {
+        display: flex;
+        margin-top: 6px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #2a2624;
+      }
+      .seg {
+        width: 150px;
+        padding: 18px 0;
+        text-align: center;
+        font-size: 21px;
+        color: #d4d4d8;
+        background: #1a1715;
+      }
+      .seg.active {
+        background: #4c1d95;
+        color: #ede9fe;
+      }
+      .ptz {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .radar {
+        position: relative;
+        width: 150px;
+        height: 150px;
+      }
+      .radar .ring {
+        position: absolute;
+        inset: 0;
+        border: 1px solid #3a3634;
+        border-radius: 50%;
+      }
+      .radar .ring.inner {
+        inset: 28px;
+      }
+      .radar .cross-h,
+      .radar .cross-v {
+        position: absolute;
+        background: #3a3634;
+      }
+      .radar .cross-h {
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+      }
+      .radar .cross-v {
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 1px;
+      }
+      .radar .dot {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        left: 50%;
+        top: 50%;
+        border-radius: 50%;
+        background: #a78bfa;
+        box-shadow: 0 0 18px rgba(139, 92, 246, 0.9);
+      }
+      .readouts {
+        text-align: right;
+        color: #d4d4d8;
+        font-size: 22px;
+        line-height: 1.9;
+      }
+      .readouts .val {
+        color: #a78bfa;
+      }
+      .status-strip {
+        height: 64px;
+        background: #0c0a09;
+        border: 1px solid #201d1b;
+        border-radius: 12px;
+      }
+      .chip {
+        margin-top: 64px;
+        padding: 24px 54px;
+        background: rgba(76, 29, 149, 0.18);
+        border: 1px solid #8b5cf6;
+        border-radius: 14px;
+        color: #a78bfa;
+        font-size: 32px;
       }
     </style>
   </head>
@@ -39,15 +300,154 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
+      data-duration="25"
       data-width="1920"
       data-height="1080"
     >
-      <h1 id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
+      <div class="glow" id="glow"></div>
+
+      <section class="scene" id="scene-title">
+        <div class="eyebrow mono" id="t-eyebrow">EMEET PIXY × LINUX</div>
+        <div class="h1" id="t-line1">A great AI webcam.</div>
+        <div class="h1 accent" id="t-line2">Dumb on Linux.</div>
+        <div class="sub" id="t-sub">The vendor ships software for Windows and macOS only.</div>
+      </section>
+
+      <section class="scene" id="scene-problem">
+        <div class="h2" id="p-head">Everything smart about it, locked away.</div>
+        <div class="cards">
+          <div class="card" id="p-card1">
+            <div class="name">Face Tracking</div>
+            <div class="unavailable mono">× unavailable</div>
+          </div>
+          <div class="card" id="p-card2">
+            <div class="name">Privacy Shutter</div>
+            <div class="unavailable mono">× unavailable</div>
+          </div>
+          <div class="card" id="p-card3">
+            <div class="name">Noise Cancelling</div>
+            <div class="unavailable mono">× unavailable</div>
+          </div>
+        </div>
+        <div class="badge mono" id="p-badge">WINDOWS &amp; macOS ONLY</div>
+      </section>
+
+      <section class="scene" id="scene-ui">
+        <div class="panel" id="ui-panel">
+          <div class="panel-top">
+            <div class="viewport">
+              <div class="call-label mono">CALL_ACTIVE</div>
+              <div class="face-dot" id="ui-face"><div class="core" id="ui-face-core"></div></div>
+            </div>
+            <div class="controls">
+              <div class="section-label mono">CAMERA MODE</div>
+              <div class="modes">
+                <div class="mode active" id="ui-mode1">
+                  <div class="m-name">Tracking</div>
+                  <div class="m-desc">Face tracking on</div>
+                </div>
+                <div class="mode" id="ui-mode2">
+                  <div class="m-name">Idle</div>
+                  <div class="m-desc">Standby</div>
+                </div>
+                <div class="mode" id="ui-mode3">
+                  <div class="m-name">Privacy</div>
+                  <div class="m-desc">Lens blocked</div>
+                </div>
+              </div>
+              <div class="section-label mono" style="margin-top: 34px">AUDIO</div>
+              <div class="audio">
+                <div class="seg active">Noise Canc.</div>
+                <div class="seg">Live</div>
+                <div class="seg">Original</div>
+              </div>
+            </div>
+            <div class="ptz">
+              <div class="radar">
+                <div class="ring"></div>
+                <div class="ring inner"></div>
+                <div class="cross-h"></div>
+                <div class="cross-v"></div>
+                <div class="dot" id="ui-radar-dot"></div>
+              </div>
+              <div class="readouts mono">
+                <div>pan <span class="val">+42°</span></div>
+                <div>tilt <span class="val">+18°</span></div>
+                <div>zoom <span class="val">120</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="status-strip"></div>
+        </div>
+      </section>
+
+      <section class="scene" id="scene-outro">
+        <div class="h1" id="o-line1">Linux gets <span class="accent">every feature</span>.</div>
+        <div class="h1" id="o-line2">Automatically.</div>
+        <div class="chip mono" id="o-chip">emeet-pixyd.lars.software</div>
+      </section>
     </div>
+
     <script>
       const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, 0);
+
+      const show = (sel, at, dur = 0.6) =>
+        tl.fromTo(sel, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: dur, ease: "power2.out" }, at);
+      const hide = (sel, at, dur = 0.5) =>
+        tl.to(sel, { autoAlpha: 0, duration: dur, ease: "power2.in" }, at);
+
+      // Scene 1 — Title (0–6s)
+      show("#scene-title", 0.0, 0.01);
+      show("#t-eyebrow", 0.3);
+      show("#t-line1", 0.7);
+      show("#t-line2", 1.1);
+      show("#t-sub", 2.0);
+      hide("#scene-title", 5.5);
+
+      // Scene 2 — Problem (6–11s)
+      show("#scene-problem", 6.0, 0.01);
+      show("#p-head", 6.3);
+      show("#p-card1", 6.8, 0.5);
+      show("#p-card2", 7.0, 0.5);
+      show("#p-card3", 7.2, 0.5);
+      show("#p-badge", 7.8, 0.5);
+      hide("#scene-problem", 10.5);
+
+      // Scene 3 — UI recreation (11–20s)
+      show("#scene-ui", 11.0, 0.01);
+      tl.fromTo(
+        "#ui-panel",
+        { autoAlpha: 0, scale: 0.96 },
+        { autoAlpha: 1, scale: 1, duration: 0.6, ease: "power2.out" },
+        11.2
+      );
+      show("#ui-face", 12.0, 0.5);
+      show("#ui-mode1", 12.4, 0.4);
+      show("#ui-mode2", 12.55, 0.4);
+      show("#ui-mode3", 12.7, 0.4);
+      show("#ui-radar-dot", 13.1, 0.4);
+
+      // Face-dot pulse: finite repeats (determinism), settles before the cut.
+      tl.fromTo(
+        "#ui-face-core",
+        { scale: 0.82 },
+        { scale: 1.12, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 6 },
+        12.2
+      );
+      // Radar dot drifts between positions like a tracking readout.
+      // Transform-based motion (lint: layout props snap to device pixels).
+      // Radar is 150px; offsets from center: (18,-12), (-15,15), (0,0).
+      tl.to("#ui-radar-dot", { x: 18, y: -12, duration: 1.4, ease: "sine.inOut" }, 13.6);
+      tl.to("#ui-radar-dot", { x: -15, y: 15, duration: 1.4, ease: "sine.inOut" }, 15.2);
+      tl.to("#ui-radar-dot", { x: 0, y: 0, duration: 1.4, ease: "sine.inOut" }, 16.8);
+      hide("#scene-ui", 19.5);
+
+      // Scene 4 — Outro (20–25s)
+      show("#scene-outro", 20.0, 0.01);
+      show("#o-line1", 20.3);
+      show("#o-line2", 20.7);
+      show("#o-chip", 21.4, 0.6);
+
       window.__timelines["main"] = tl;
       tl.seek(0);
     </script>
