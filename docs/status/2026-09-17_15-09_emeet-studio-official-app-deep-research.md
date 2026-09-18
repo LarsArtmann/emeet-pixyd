@@ -137,7 +137,6 @@ The actual deliverable. All input data exists from the macOS analysis
    battery status, tracking-mode variants, privacy trigger time) be triaged into
    `TODO_LIST.md`/`ROADMAP.md` as candidates, or is that out of scope for this task?
 
-
 **Resolution:** ~~Top 3 next tasks~~ 1. ~~Finish the Windows extraction~~ done via pure-Python parser (`61ce62b`, all 2,211 files SHA256-verified `tools/inno661/`); 2. ~~Write the comparison report~~ done (`docs/emeet-studio-official-app-comparison.md`); 3. ~~Persist findings~~ done (`docs/hid-protocol.md` cross-check section, TODO #143). Open questions 1–3 all answered by the follow-up sessions.
 
 ---

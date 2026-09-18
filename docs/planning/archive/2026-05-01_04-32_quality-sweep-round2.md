@@ -87,7 +87,6 @@ Sorted by **impact × ease** (high impact + easy = do first).
 - `AutoMode` and `DefaultAudio` belong in `Config`, not `State`. `State` is runtime (camera/inCall), `Config` is startup policy.
 - No new types needed — reuse existing `bool` and `AudioMode`.
 
-
 **Resolution:** ~~round-2 items in progress~~ completed `e545544`/`ba2b8d6`/`871dbe9`; superseded by the 2026-05-02 sessions.
 
 ---

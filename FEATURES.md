@@ -86,15 +86,15 @@
 
 ## CLI / Unix Socket
 
-| Feature             | Status                | Notes                                                                                  |
-| ------------------- | --------------------- | -------------------------------------------------------------------------------------- |
-| Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                         |
-| Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).               |
+| Feature             | Status                | Notes                                                                                                                                                          |
+| ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                                                                                                 |
+| Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).                                                                                       |
 | Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`, `webStatus.Model` also carries it). Web UI/Waybar surfacing tracked as TODO #161. |
-| Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                     |
-| Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                           |
-| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`). Pan/tilt/auto/battery not yet included (see ROADMAP/TODO #161). |
-| --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                    |
+| Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                                                                                             |
+| Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                                                                                                   |
+| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`). Pan/tilt/auto/battery not yet included (see ROADMAP/TODO #161).                                                   |
+| --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                                                                                            |
 
 ## Desktop Notifications
 
@@ -104,12 +104,12 @@
 
 ## Device Management
 
-| Feature           | Status                | Notes                                                                                                         |
-| ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Device Probing    | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0` (PIXY) or `0118` (PIXY 2K); `isPixyProductID()` helper; model flows through `probeResult` → `Daemon.model` → logs/output. |
-| Hotplug Detection | 🟢 `FULLY_FUNCTIONAL` | Netlink uevent listener; context-cancellable; retries transient read errors.                                  |
-| Device-Reappear Reconcile | 🟢 `FULLY_FUNCTIONAL` | `reconcileOnDeviceAppear` (`device.go`): fresh installs adopt hardware; persisted camera mode is re-asserted when hardware differs (privacy survives power cycles/replugs); audio/gesture adopt. Pinned by `reconcile_test.go`. |
-| Startup Permission Warning | 🟢 `FULLY_FUNCTIONAL` | `warnInaccessibleDevices` (`probe.go`): probed-but-inaccessible `/dev` nodes produce an actionable udev-fix hint instead of a cryptic EACCES on first HID command. |
+| Feature                    | Status                | Notes                                                                                                                                                                                                                           |
+| -------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Device Probing             | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0` (PIXY) or `0118` (PIXY 2K); `isPixyProductID()` helper; model flows through `probeResult` → `Daemon.model` → logs/output.                                                     |
+| Hotplug Detection          | 🟢 `FULLY_FUNCTIONAL` | Netlink uevent listener; context-cancellable; retries transient read errors.                                                                                                                                                    |
+| Device-Reappear Reconcile  | 🟢 `FULLY_FUNCTIONAL` | `reconcileOnDeviceAppear` (`device.go`): fresh installs adopt hardware; persisted camera mode is re-asserted when hardware differs (privacy survives power cycles/replugs); audio/gesture adopt. Pinned by `reconcile_test.go`. |
+| Startup Permission Warning | 🟢 `FULLY_FUNCTIONAL` | `warnInaccessibleDevices` (`probe.go`): probed-but-inaccessible `/dev` nodes produce an actionable udev-fix hint instead of a cryptic EACCES on first HID command.                                                              |
 
 ## State Persistence
 
@@ -129,8 +129,8 @@
 
 ## Error Handling
 
-| Feature              | Status                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature              | Status                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Error Classification | 🟢 `FULLY_FUNCTIONAL` | `go-error-family`: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `HTTPStatus(err)`/`ExitCode(err)`/`LogError()` derive HTTP status, BSD sysexits exit codes, and structured log fields from error semantics — fixed 3 genuine 500→503 stream bugs. Scoped by design: DataStar action handlers return 200+SSE patch (correct `patch-elements` pattern), and the HID circuit breaker stays untouched. |
 
 ## HID Communication
@@ -149,17 +149,17 @@
 
 ## Nix Build
 
-| Feature   | Status                | Notes                                                                                                 |
-| --------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| Nix Flake | 🟢 `FULLY_FUNCTIONAL` | `nix build`, `nix run`, `nix flake check` with `proxyVendor` for templ. `nix flake check` runs in CI. |
+| Feature       | Status                    | Notes                                                                                                                                                    |
+| ------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nix Flake     | 🟢 `FULLY_FUNCTIONAL`     | `nix build`, `nix run`, `nix flake check` with `proxyVendor` for templ. `nix flake check` runs in CI.                                                    |
 | NixOS VM Test | 🔶 `PARTIALLY_FUNCTIONAL` | `vmTest` (`testers.nixosTest`, `flake.nix:164`) evaluates clean and boots, but subtest 3 hangs on an unguarded `cat $(find ...)` — tracked as TODO #157. |
 
 ---
 
 ## Accessibility
 
-| Feature | Status                    | Notes                                                                                                                                    |
-| ------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature     | Status                    | Notes                                                                                                                                                                                                                                                                      |
+| ----------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WCAG 2.1 AA | 🟡 `PARTIALLY_FUNCTIONAL` | Code-level audit + fixes shipped (aria-labels, `aria-live` toasts, `aria-current` cards, focus-visible, contrast) — see `docs/accessibility-audit.md`. **Manual screen-reader (NVDA/VoiceOver/Orca) and real mobile-device checklists are documented but never executed.** |
 
 ## Summary

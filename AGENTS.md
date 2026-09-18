@@ -32,29 +32,29 @@ main() → NewDaemon() → Run()
   └── systemd sd_notify (READY=1, WATCHDOG=1)
 ```
 
-| File | Purpose |
-| ---- | ------- |
-| `main.go` | `Daemon` struct, lifecycle (`Run` → `startHTTPServer` + `eventLoop` + `handleShutdown`), signals, `main()` |
-| `commands.go` | Command routing (socket + CLI), named command/response constants, `handleQueryCommand`, `handleTogglePrivacy` |
-| `handlers.go` | HTTP routing, web handlers, DataStar SSE rendering |
-| `ptz.go` | PTZ logic: `ptzAxes` map, `parsePTZValue`, readback scheduling |
-| `metrics.go` | `daemonMetrics` struct, OTel registration (lazy `sync.Once`, no `init()` anywhere) |
-| `stream.go` | MJPEG streaming, snapshot, JPEG extraction, typed stream errors |
-| `http.go` / `middleware.go` | HTTP helpers (`writeJSON`, `chain`, middleware implementations) |
-| `sse.go` | `Broadcaster` (thread-safe fan-out); wire format handled by the DataStar SDK |
-| `hid.go` | HID config/query over hidraw; generic `queryHIDState[T]` |
-| `device.go` | Device state mgmt, `reconcileOnDeviceAppear`, `getStatus`, `syncState` |
-| `process.go` | `/proc/*/fd` call detection, PipeWire switching, notifications |
-| `uevent.go` / `uevent_linux.go` | Netlink uevent listener (`UeventListener` interface) |
-| `auto.go` | Auto-manage loop, debounce |
-| `state.go` | JSON state persistence (atomic tmp+rename, schema version `"v"`) |
-| `probe.go` | Pure `probeDevices()` → `probeResult{VideoDev, HidrawDev, Model}`; `warnInaccessibleDevices` |
-| `errorfamily.go` / `errors.go` | Sentinel classification (Infrastructure/Rejection/Transient), `CommandError`, `errorPrefix` |
-| `commander.go` / `deps.go` | `CommandRunner` + `Dependencies` DI struct (function fields, noop defaults) |
-| `waybar.go` / `web_types.go` / `cache.go` | Waybar JSON; typed `webStatus`; `lastFrameCache`/`ptzCache` |
-| `templates.templ` | DataStar UI (compiled via `templ generate`) |
-| `internal/pixy/` | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model` |
-| `tools/inno661/`, `tools/emhid/` | EMEET STUDIO reverse-engineering artifacts (see Research section) |
+| File                                      | Purpose                                                                                                                                               |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.go`                                 | `Daemon` struct, lifecycle (`Run` → `startHTTPServer` + `eventLoop` + `handleShutdown`), signals, `main()`                                            |
+| `commands.go`                             | Command routing (socket + CLI), named command/response constants, `handleQueryCommand`, `handleTogglePrivacy`                                         |
+| `handlers.go`                             | HTTP routing, web handlers, DataStar SSE rendering                                                                                                    |
+| `ptz.go`                                  | PTZ logic: `ptzAxes` map, `parsePTZValue`, readback scheduling                                                                                        |
+| `metrics.go`                              | `daemonMetrics` struct, OTel registration (lazy `sync.Once`, no `init()` anywhere)                                                                    |
+| `stream.go`                               | MJPEG streaming, snapshot, JPEG extraction, typed stream errors                                                                                       |
+| `http.go` / `middleware.go`               | HTTP helpers (`writeJSON`, `chain`, middleware implementations)                                                                                       |
+| `sse.go`                                  | `Broadcaster` (thread-safe fan-out); wire format handled by the DataStar SDK                                                                          |
+| `hid.go`                                  | HID config/query over hidraw; generic `queryHIDState[T]`                                                                                              |
+| `device.go`                               | Device state mgmt, `reconcileOnDeviceAppear`, `getStatus`, `syncState`                                                                                |
+| `process.go`                              | `/proc/*/fd` call detection, PipeWire switching, notifications                                                                                        |
+| `uevent.go` / `uevent_linux.go`           | Netlink uevent listener (`UeventListener` interface)                                                                                                  |
+| `auto.go`                                 | Auto-manage loop, debounce                                                                                                                            |
+| `state.go`                                | JSON state persistence (atomic tmp+rename, schema version `"v"`)                                                                                      |
+| `probe.go`                                | Pure `probeDevices()` → `probeResult{VideoDev, HidrawDev, Model}`; `warnInaccessibleDevices`                                                          |
+| `errorfamily.go` / `errors.go`            | Sentinel classification (Infrastructure/Rejection/Transient), `CommandError`, `errorPrefix`                                                           |
+| `commander.go` / `deps.go`                | `CommandRunner` + `Dependencies` DI struct (function fields, noop defaults)                                                                           |
+| `waybar.go` / `web_types.go` / `cache.go` | Waybar JSON; typed `webStatus`; `lastFrameCache`/`ptzCache`                                                                                           |
+| `templates.templ`                         | DataStar UI (compiled via `templ generate`)                                                                                                           |
+| `internal/pixy/`                          | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model` |
+| `tools/inno661/`, `tools/emhid/`          | EMEET STUDIO reverse-engineering artifacts (see Research section)                                                                                     |
 
 ### Key behaviors
 
@@ -90,15 +90,15 @@ main() → NewDaemon() → Run()
 
 SDK `datastar-go`, JS runtime self-hosted at `static/datastar.js` (ES module). CSP includes `'unsafe-eval'` (required by DataStar expression evaluation).
 
-| Pattern | Attribute |
-| ------- | --------- |
-| Action button | `data-on:click="@post('/api/track')"` |
-| Loading state | `data-indicator="loading"` + `data-class:btn-loading="$loading"` — the SHARED `$loading` signal is intentional (hardware ops are serialized; nested fetches stack via the counter) |
-| Signal init | `data-signals:pan="0"` |
-| Two-way binding | `data-bind="$pan"` (slider thumb reflects external changes) |
-| Reactive text/CSS | `data-text="$pan + '°'"`, `data-style:--pan-x="..."` |
-| Debounced input | `data-on:input__debounce.300ms="@post('/api/ptz/pan')"` |
-| Persistent SSE | `data-init="@get('/api/events', {openWhenHidden: true})"` on `<body>` |
+| Pattern           | Attribute                                                                                                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Action button     | `data-on:click="@post('/api/track')"`                                                                                                                                              |
+| Loading state     | `data-indicator="loading"` + `data-class:btn-loading="$loading"` — the SHARED `$loading` signal is intentional (hardware ops are serialized; nested fetches stack via the counter) |
+| Signal init       | `data-signals:pan="0"`                                                                                                                                                             |
+| Two-way binding   | `data-bind="$pan"` (slider thumb reflects external changes)                                                                                                                        |
+| Reactive text/CSS | `data-text="$pan + '°'"`, `data-style:--pan-x="..."`                                                                                                                               |
+| Debounced input   | `data-on:input__debounce.300ms="@post('/api/ptz/pan')"`                                                                                                                            |
+| Persistent SSE    | `data-init="@get('/api/events', {openWhenHidden: true})"` on `<body>`                                                                                                              |
 
 Server side: `sse.PatchElementTempl(statusPanel(status))` morphs `#status-panel` by ID (idiomorph); PTZ slider updates use `sse.MarshalAndPatchSignals` (~20 bytes) with full-panel HTML only for errors; toasts via `sse.ExecuteScript("window.__showToast(...)")`; signals read via `datastar.ReadSignals`. SSE indicator + offline banner live OUTSIDE `#status-panel` so morphs don't reset them. Scripts load at end of `<body>` (`app.js` touches `document.body`). Server-rendered `style` attributes back the reactive `data-style` ones (FOUC prevention).
 
