@@ -5,6 +5,9 @@ overrides:
   fast-uri: 3.1.6
   js-yaml: 4.3.2
   svgo: 4.1.0
+# minimumReleaseAge exemptions are TEMPORARY: once the pinned version is
+# older than the release-age window, remove the entry (a stale exclude
+# silently disables the supply-chain gate for that package forever).
 minimumReleaseAgeExclude:
-  - html-validate@11.7.0
+  # astro@7.3.3: needed 2026-09; drop when 7.3.3 is older than the age window.
   - astro@7.3.3

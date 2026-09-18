@@ -19,7 +19,16 @@ async function getGitHubStars(): Promise<number | null> {
 }
 
 const stars = await getGitHubStars();
-const starsText = stars !== null ? `${stars} Stars` : 'Star on GitHub';
+
+// Live star counts only read as social proof above a threshold; a small
+// number (2, 6...) undermines the pitch, so low counts fall back to the
+// neutral "Star on GitHub" call to action.
+const STARS_SOCIAL_PROOF_THRESHOLD = 10;
+
+const starsText =
+  stars !== null && stars >= STARS_SOCIAL_PROOF_THRESHOLD
+    ? `${stars} Stars`
+    : 'Star on GitHub';
 
 const highlightedCode = `<span class="text-text-muted"># Start the daemon</span>
 <span class="text-accent">emeet-pixyd</span>
