@@ -109,22 +109,21 @@ func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
 // LOCK CONTRACT: the caller holds d.hidMu (the command dispatcher holds it
 // for HID commands; multi-step callers take it around their whole sequence —
 // taking it here would deadlock against the dispatcher).
-func (d *Daemon) sendV2Set(ctx context.Context, op string, report []byte) error {
+func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte) error {
 	d.mu.RLock()
 	hidDev := d.hidDev
 	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
 	d.mu.RUnlock()
 
 	if hidDev == nil {
-		return fmt.Errorf("%s (no device): %w", op, pixy.ErrPIXYNotConnected)
+		return fmt.Errorf("%s (no device): %w", operation, pixy.ErrPIXYNotConnected)
 	}
 
 	if circuitOpen {
-		return fmt.Errorf("%s: %w", op, pixy.ErrPIXYNotConnected)
+		return fmt.Errorf("%s: %w", operation, pixy.ErrPIXYNotConnected)
 	}
 
 	err := hidDev.Send(report)
-
 	if err != nil {
 		d.mu.Lock()
 		d.hidFailCount++
@@ -137,7 +136,7 @@ func (d *Daemon) sendV2Set(ctx context.Context, op string, report []byte) error 
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 
-		return fmt.Errorf("%s send: %w", op, err)
+		return fmt.Errorf("%s send: %w", operation, err)
 	}
 
 	d.mu.Lock()

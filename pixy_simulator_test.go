@@ -333,7 +333,14 @@ func buildV2SetSpecs() map[[4]byte]v2SetSpec {
 		{pixy.V2SetTargetTrack, trackSpec},
 	} {
 		specs[spec.head] = spec.def
-		specs[spec.head.WithIface(pixy.MotorMCUIface)] = spec.def
+
+		// The motor-MCU iface substitution is a MOTOR-device routing rule
+		// (mergeType(3,3)); applying it to other devices would collide —
+		// e.g. SetMotorPos(0x63) and SetTargetTrack(0x63) both become
+		// [09 63 01 01].
+		if spec.head[1] == pixy.V2DevMotor {
+			specs[spec.head.WithIface(pixy.MotorMCUIface)] = spec.def
+		}
 	}
 
 	return specs
@@ -349,7 +356,11 @@ func buildV2GetHeads() map[[4]byte]bool {
 		pixy.V2GetDeviceMode,
 	} {
 		heads[head] = true
-		heads[head.WithIface(pixy.MotorMCUIface)] = true
+
+		// 0x63 substitution is motor-device routing only (see buildV2SetSpecs).
+		if head[1] == pixy.V2DevMotor {
+			heads[head.WithIface(pixy.MotorMCUIface)] = true
+		}
 	}
 
 	return heads

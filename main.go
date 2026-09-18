@@ -373,6 +373,7 @@ Commands:
   speed <axis> <v>  Set motor speed over HID (axis: pan, tilt, zoom)
   battery           Show battery/charge if the device supports it
   tracking <mode>   Set tracking variant (face, halfbody, fullbody)
+  preset push <name>    Mirror a saved preset into a hardware motor slot
   preset save <name>    Save current PTZ position as named preset
   preset load <name>    Recall a saved preset
   preset delete <name>  Delete a saved preset

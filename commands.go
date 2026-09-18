@@ -567,7 +567,9 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 	}
 
 	if slot == 0 || slot > maxHardwarePresetSlots {
-		return errResultMsg(fmt.Sprintf("preset push: no hardware slot for %q (slots 1..%d)", name, maxHardwarePresetSlots))
+		return errResultMsg(
+			fmt.Sprintf("preset push: no hardware slot for %q (slots 1..%d)", name, maxHardwarePresetSlots),
+		)
 	}
 
 	// The whole move+save sequence is one HID operation: hold hidMu so no
