@@ -170,4 +170,4 @@
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 
-The codebase is mature and production-ready. The two `PARTIALLY_FUNCTIONAL` items are verification gaps (real-device testing), not missing functionality — no core feature is missing or broken. PTZ speed (#138), battery status (#139), tracking-mode variants (#140), and motor-preset mirroring (#141) are research-unblocked but not started (bytes known via `tools/emhid/cmdtable.json`; see `TODO_LIST.md`).
+The codebase is mature and production-ready. The three `PARTIALLY_FUNCTIONAL` items are verification/infrastructure gaps (real-device testing, an unexecuted checklist, a hanging VM test), not missing functionality — no core feature is missing or broken. PTZ speed (#138), battery status (#139), tracking-mode variants (#140), and motor-preset mirroring (#141) are research-unblocked but not started (bytes known via `tools/emhid/cmdtable.json`; see `TODO_LIST.md`).
