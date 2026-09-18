@@ -274,8 +274,12 @@ func ParseTargetTrackMode(input string) (TargetTrackMode, bool) {
 // TargetTrackPayload builds the [mode:u8][f32x3] payload for
 // V2SetTargetTrack. The three floats are transmitted as zeros: their
 // semantics are not decoded yet (M27-verify).
+// v2TargetTrackPayloadLen is the byte count of the SetTargetTrack payload:
+// [mode:u8][f32x3].
+const v2TargetTrackPayloadLen = 13
+
 func TargetTrackPayload(mode TargetTrackMode) []byte {
-	out := make([]byte, 13)
+	out := make([]byte, v2TargetTrackPayloadLen)
 	out[0] = byte(mode)
 
 	return out
