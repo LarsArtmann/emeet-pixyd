@@ -84,7 +84,6 @@
             };
           };
 
-          checks.format = config.treefmt.build.check self;
           packages = {
             emeet-pixyd = pkgs.callPackage ./package.nix {
               inherit
@@ -118,6 +117,7 @@
           };
 
           checks = {
+            format = config.treefmt.build.check self;
             build = config.packages.default;
 
             lint = (pkgs.buildGoModule.override { go = pkgs.go_1_27; }) {
