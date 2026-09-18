@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math"
 	"sync"
@@ -26,15 +27,15 @@ type pixyProtocolState struct {
 	// V2 command surface state (official protocol families). Motor axes are
 	// indexed by pixy.MotorType. Battery/charge are the simulator's fixed
 	// fixture values; read paths assert against them.
-	motorSpeed    [3]float32
-	motorPos      [3]float32
-	motorLimit    float32
-	targetTrack   v2TargetTrack
-	batteryLevel  byte
-	chargeSta     byte
-	funcSta       uint32
-	serialNumber  string
-	firmwareVer   uint16
+	motorSpeed   [3]float32
+	motorPos     [3]float32
+	motorLimit   float32
+	targetTrack  v2TargetTrack
+	batteryLevel byte
+	chargeSta    byte
+	funcSta      uint32
+	serialNumber string
+	firmwareVer  uint16
 }
 
 type v2TargetTrack struct {
@@ -286,74 +287,82 @@ func isCommitReport(report []byte) bool {
 
 // v2SetSpecs maps known V2 SET heads to their payload validation. Motor heads
 // are registered in both routings (logical 0x03 and motor-MCU 0x63).
-var v2SetSpecs = map[[4]byte]v2SetSpec{}
+var v2SetSpecs = buildV2SetSpecs()
 
-// v2GetResponses maps known V2 GET heads to response payload builders.
-var v2GetHeads = map[[4]byte]bool{}
+// v2GetHeads maps known V2 GET heads to response payload builders.
+var v2GetHeads = buildV2GetHeads()
 
-func init() {
-	registerV2 := func(head pixy.V2Head, spec v2SetSpec, isGet bool) {
-		for _, iface := range []byte{head[1], pixy.MotorMCUIface} {
-			key := head
-			key[1] = iface
-			if spec.name != "" {
-				v2SetSpecs[key] = spec
-			}
-			if isGet {
-				v2GetHeads[key] = true
-			}
-		}
-	}
-
+func buildV2SetSpecs() map[[4]byte]v2SetSpec {
 	speedSpec := v2SetSpec{name: "SetMotorSpeed", payloadLen: 5, validate: validateMotorPayload}
 	posSpec := v2SetSpec{name: "SetMotorPos", payloadLen: 5, validate: validateMotorPayload}
-	presetSpec := v2SetSpec{name: "SetMotorPresetPos", payloadLen: 5, validate: func(payload []byte) error {
+	presetSpec := v2SetSpec{name: "SetMotorPresetPos", payloadLen: 1, validate: func(payload []byte) error {
 		if payload[0] == 0 {
-			return fmt.Errorf("preset slot 0 is invalid (slots are 1-based)")
+			return errPresetSlotZero
 		}
+
 		return nil
 	}}
-	presetModeSpec := v2SetSpec{name: "SetMotorPresetPosMode", payloadLen: 6, validate: func(payload []byte) error {
+
+	presetModeSpec := v2SetSpec{name: "SetMotorPresetPosMode", payloadLen: 2, validate: func(payload []byte) error {
 		if payload[0] == 0 {
-			return fmt.Errorf("preset slot 0 is invalid (slots are 1-based)")
+			return errPresetSlotZero
 		}
+
 		return nil
 	}}
+
 	trackSpec := v2SetSpec{name: "SetTargetTrack", payloadLen: 13, validate: func(payload []byte) error {
 		if payload[0] > 2 {
-			return fmt.Errorf("target track mode %d out of range (Face/HalfBody/FullBody = 0..2, assignment M27-verify)", payload[0])
+			return fmt.Errorf("target track mode %d out of range (Face/HalfBody/FullBody = 0..2): %w",
+				payload[0], ErrTrackModeRange)
 		}
+
 		return nil
 	}}
 
-	// SETs (isGet=false). Motor SETs only exist in SET form; the target-track
-	// head pair shares Dev 0x04 Cat 0x01.
-	for _, h := range []pixy.V2Head{pixy.V2SetMotorSpeed} {
-		registerV2(h, speedSpec, false)
-	}
-	for _, h := range []pixy.V2Head{pixy.V2SetMotorPos} {
-		registerV2(h, posSpec, false)
-	}
-	for _, h := range []pixy.V2Head{pixy.V2SetMotorPresetPos} {
-		registerV2(h, presetSpec, false)
-	}
-	for _, h := range []pixy.V2Head{pixy.V2SetMotorPresetPosMode} {
-		registerV2(h, presetModeSpec, false)
-	}
-	for _, h := range []pixy.V2Head{pixy.V2SetTargetTrack} {
-		registerV2(h, trackSpec, false)
+	specs := make(map[[4]byte]v2SetSpec)
+
+	for _, spec := range []struct {
+		head pixy.V2Head
+		def  v2SetSpec
+	}{
+		{pixy.V2SetMotorSpeed, speedSpec},
+		{pixy.V2SetMotorPos, posSpec},
+		{pixy.V2SetMotorPresetPos, presetSpec},
+		{pixy.V2SetMotorPresetPosMode, presetModeSpec},
+		{pixy.V2SetTargetTrack, trackSpec},
+	} {
+		specs[spec.head] = spec.def
+		specs[spec.head.WithIface(pixy.MotorMCUIface)] = spec.def
 	}
 
-	// GETs (isGet=true, no SET registration).
-	for _, h := range []pixy.V2Head{
+	return specs
+}
+
+func buildV2GetHeads() map[[4]byte]bool {
+	heads := make(map[[4]byte]bool)
+
+	for _, head := range []pixy.V2Head{
 		pixy.V2GetMotorSpeed, pixy.V2GetMotorPos, pixy.V2GetMotorPresetPosMode,
 		pixy.V2GetTargetTrack, pixy.V2GetBatteryLevel, pixy.V2GetChargeSta,
 		pixy.V2GetFuncSta, pixy.V2GetSN, pixy.V2GetVer, pixy.V2GetDeviceVer,
 		pixy.V2GetDeviceMode,
 	} {
-		registerV2(h, v2SetSpec{}, true)
+		heads[head] = true
+		heads[head.WithIface(pixy.MotorMCUIface)] = true
 	}
+
+	return heads
 }
+
+// errPresetSlotZero and ErrTrackModeRange are the simulator's V2 validation
+// errors (wrapped for dynamic context at the call site).
+var (
+	errPresetSlotZero = errors.New("preset slot 0 is invalid (slots are 1-based)")
+	// ErrTrackModeRange is returned when a target-track mode byte exceeds the
+	// three known UI variants (assignment M27-verify).
+	ErrTrackModeRange = errors.New("track mode out of range")
+)
 
 type v2SetSpec struct {
 	name       string
@@ -363,22 +372,29 @@ type v2SetSpec struct {
 
 func validateMotorPayload(payload []byte) error {
 	if !pixy.MotorType(payload[0]).Valid() {
-		return fmt.Errorf("invalid motor type %d", payload[0])
+		return fmt.Errorf("invalid motor type %d: %w", payload[0], pixy.ErrInvalidMotorType)
 	}
+
 	return nil
 }
 
 // isV2SetReport reports whether a Send report is a known V2 SET command.
 // Checked BEFORE isCommitReport: motor SET heads collide with the commit
-// shape ([2]=0x01, [3]==[1]) but always carry payload (len ≥ 5), while real
-// commit reports are exactly 4 bytes.
+// shape ([2]=0x01, [3]==[1]). Head-only reports (len 4) with a registered V2
+// SET head are also routed here so a missing payload is rejected as a V2
+// payload error instead of being misread as a legacy commit — no registered
+// V2 SET head is a valid legacy commit target (their ifaces are not
+// tracking/audio/gesture).
 func isV2SetReport(report []byte) bool {
-	if len(report) < 5 || report[0] != pixy.V2ReportPrefix {
+	if len(report) < 4 || report[0] != pixy.V2ReportPrefix {
 		return false
 	}
+
 	var key [4]byte
 	copy(key[:], report[:4])
+
 	_, ok := v2SetSpecs[key]
+
 	return ok
 }
 
@@ -389,8 +405,10 @@ func isV2GetQuery(query []byte) bool {
 	if len(query) < 4 || query[0] != pixy.V2ReportPrefix {
 		return false
 	}
+
 	var key [4]byte
 	copy(key[:], query[:4])
+
 	return v2GetHeads[key]
 }
 
@@ -417,11 +435,15 @@ func (s *pixyProtocolState) handleV2Set(report []byte) error {
 	case "SetMotorPos":
 		s.motorPos[payload[0]] = f32LE(payload[1:])
 	case "SetTargetTrack":
-		s.targetTrack = v2TargetTrack{mode: payload[0], args: [3]float32{f32LE(payload[1:]), f32LE(payload[5:]), f32LE(payload[9:])}}
+		s.targetTrack = v2TargetTrack{
+			mode: payload[0],
+			args: [3]float32{f32LE(payload[1:]), f32LE(payload[5:]), f32LE(payload[9:])},
+		}
 	case "SetMotorPresetPos", "SetMotorPresetPosMode":
 		// Slot writes are accepted but not modeled (slot contents are an
 		// M27 hardware-verify surface; nothing reads them back yet).
 	}
+
 	return nil
 }
 
@@ -438,28 +460,21 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 	copy(resp, key[:])
 	body := resp[4:]
 
+	speedKey := [4]byte(pixy.V2GetMotorSpeed)
+	speedKey63 := [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface))
+	posKey := [4]byte(pixy.V2GetMotorPos)
+	posKey63 := [4]byte(pixy.V2GetMotorPos.WithIface(pixy.MotorMCUIface))
+
 	switch key {
-	case [4]byte(pixy.V2GetMotorSpeed), [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface)):
-		mt := pixy.MotorPan
-		if len(query) >= 5 {
-			mt = pixy.MotorType(query[4])
-		}
-		if !mt.Valid() {
-			mt = pixy.MotorPan
-		}
-		body[0] = byte(mt)
-		putF32LE(body[1:], s.motorSpeed[mt])
+	case speedKey, speedKey63:
+		motor := queryMotorType(query)
+		body[0] = byte(motor)
+		putF32LE(body[1:], s.motorSpeed[motor])
 		putF32LE(body[5:], s.motorLimit)
-	case [4]byte(pixy.V2GetMotorPos), [4]byte(pixy.V2GetMotorPos.WithIface(pixy.MotorMCUIface)):
-		mt := pixy.MotorPan
-		if len(query) >= 5 {
-			mt = pixy.MotorType(query[4])
-		}
-		if !mt.Valid() {
-			mt = pixy.MotorPan
-		}
-		body[0] = byte(mt)
-		putF32LE(body[1:], s.motorPos[mt])
+	case posKey, posKey63:
+		motor := queryMotorType(query)
+		body[0] = byte(motor)
+		putF32LE(body[1:], s.motorPos[motor])
 	case [4]byte(pixy.V2GetTargetTrack):
 		body[0] = s.targetTrack.mode
 		putF32LE(body[1:], s.targetTrack.args[0])
@@ -482,7 +497,24 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 	default:
 		// Unknown-but-valid V2 head: head echo only (empty payload ACK).
 	}
+
 	return resp
+}
+
+// queryMotorType reads the per-axis motor byte from a V2 GET query,
+// defaulting to pan for bare-head queries.
+func queryMotorType(query []byte) pixy.MotorType {
+	if len(query) < 5 {
+		return pixy.MotorPan
+	}
+
+	motor := pixy.MotorType(query[4])
+
+	if !motor.Valid() {
+		return pixy.MotorPan
+	}
+
+	return motor
 }
 
 func f32LE(b []byte) float32 {
@@ -499,7 +531,7 @@ func (s *pixySimulator) Send(report []byte) error {
 	s.sentTimestamps = append(s.sentTimestamps, time.Now())
 	s.mu.Unlock()
 
-	if s.commitErr != nil && isCommitReport(report) {
+	if s.commitErr != nil && !isV2SetReport(report) && isCommitReport(report) {
 		return s.commitErr
 	}
 

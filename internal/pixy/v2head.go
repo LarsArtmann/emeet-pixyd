@@ -2,6 +2,7 @@ package pixy
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math"
 )
@@ -19,17 +20,18 @@ import (
 //     flag bit (SET_MOTOR_SPEED=3 vs GET_MOTOR_SPEED=19).
 type V2Head [4]byte
 
-// Report prefix shared by the config/commit dialect and the V2 command surface.
+// V2ReportPrefix is the report head shared by the config/commit dialect and
+// the V2 command surface.
 const V2ReportPrefix byte = 0x09
 
 // V2 device (Dev byte) values, from the extracted table.
 const (
-	V2DevPower  byte = 0x00 // battery, charge, power management
-	V2DevDevice byte = 0x01 // identity, mode, factory reset
+	V2DevPower   byte = 0x00 // battery, charge, power management
+	V2DevDevice  byte = 0x01 // identity, mode, factory reset
 	V2DevPrivacy byte = 0x02 // privacy timing, light, GET_DEVICE_MODE
-	V2DevMotor  byte = 0x03 // motor / PTZ
-	V2DevOptics byte = 0x04 // focus/ev/wb, target+object track, gesture
-	V2DevAudio  byte = 0x05 // audio DSP
+	V2DevMotor   byte = 0x03 // motor / PTZ
+	V2DevOptics  byte = 0x04 // focus/ev/wb, target+object track, gesture
+	V2DevAudio   byte = 0x05 // audio DSP
 )
 
 // MotorMCUIface is the on-wire iface byte the official app substitutes for
@@ -38,10 +40,21 @@ const (
 // PIXY firmware answers is a pending hardware verification (plan M27).
 const MotorMCUIface byte = 0x63
 
+var (
+	// ErrV2ResponseShort is returned when a V2 read response is too short to
+	// carry the documented payload.
+	ErrV2ResponseShort = errors.New("v2 response too short")
+	// ErrInvalidMotorType is returned when a motor byte is not a valid
+	// pixy.MotorType.
+	ErrInvalidMotorType = errors.New("invalid motor type")
+)
+
 // Known V2 command heads used by emeet-pixyd. Bytes are from
 // tools/emhid/cmdtable.json; payload layouts from official controller call
 // sites (map doc §3.5). Response framing is NOT yet pinned — read paths treat
 // responses as best-effort parse + raw fallback until hardware verification.
+//
+//nolint:gochecknoglobals // protocol constants; [4]byte cannot be Go consts
 var (
 	// V2SetMotorSpeed: payload [motorType:u8][speed:f32 LE].
 	V2SetMotorSpeed = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x03}
@@ -129,35 +142,60 @@ func (h V2Head) Bytes() []byte { return append([]byte(nil), h[:]...) }
 func (h V2Head) WithIface(iface byte) V2Head {
 	out := h
 	out[1] = iface
+
 	return out
 }
+
+// V2PayloadSize is the byte count of a [motorType:u8][speed:f32 LE] payload.
+const V2PayloadSize = 5
+
+// v2ResponseOverhead is the head-echo prefix length assumed for V2 responses
+// (framing assumption, pinned at hardware verification, plan M27).
+const v2ResponseOverhead = 4
+
+// v2MotorSpeedPayloadLen is the byte count of a GetMotorSpeed response
+// payload: [motorType:u8][speed:f32][limit:f32].
+const v2MotorSpeedPayloadLen = 9
 
 // MotorSpeedPayload builds the [motorType:u8][speed:f32 LE] payload for
 // V2SetMotorSpeed / V2SetMotorPos.
 func MotorSpeedPayload(motor MotorType, speed float32) []byte {
-	out := make([]byte, 5)
+	out := make([]byte, V2PayloadSize)
 	out[0] = byte(motor)
 	binary.LittleEndian.PutUint32(out[1:], motorF32Bits(speed))
+
 	return out
 }
 
+// MotorSpeedReading is a parsed CMD_GET_MOTOR_SPEED response: the queried
+// axis, its configured speed, and the hardware-reported speed limit.
+type MotorSpeedReading struct {
+	Motor MotorType
+	Speed float32
+	Limit float32
+}
+
 // ParseMotorSpeedResponse reads a [motorType:u8][speed:f32][limit:f32]
-// GetMotorSpeed response payload (framing assumption: the head is echoed in
-// front of the payload — pinned at hardware verification).
-func ParseMotorSpeedResponse(resp []byte) (motor MotorType, speed, limit float32, err error) {
-	if len(resp) < 4+9 {
-		return 0, 0, 0, fmt.Errorf("motor speed response: too short (%d bytes)", len(resp))
+// GetMotorSpeed response (framing assumption: the head is echoed in front of
+// the payload — pinned at hardware verification).
+func ParseMotorSpeedResponse(resp []byte) (MotorSpeedReading, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	if len(payload) < v2MotorSpeedPayloadLen {
+		return MotorSpeedReading{}, fmt.Errorf("motor speed payload %d bytes: %w", len(payload), ErrV2ResponseShort)
 	}
 
-	motor = MotorType(resp[4])
+	motor := MotorType(payload[0])
 	if !motor.Valid() {
-		return 0, 0, 0, fmt.Errorf("motor speed response: invalid motor type %d", resp[4])
+		return MotorSpeedReading{}, fmt.Errorf("motor speed payload byte %d: %w", payload[0], ErrInvalidMotorType)
 	}
 
-	speed = f32FromBits(binary.LittleEndian.Uint32(resp[5:]))
-	limit = f32FromBits(binary.LittleEndian.Uint32(resp[9:]))
-	return motor, speed, limit, nil
+	return MotorSpeedReading{
+		Motor: motor,
+		Speed: f32FromBits(binary.LittleEndian.Uint32(payload[1:])),
+		Limit: f32FromBits(binary.LittleEndian.Uint32(payload[5:])),
+	}, nil
 }
 
 func motorF32Bits(f float32) uint32 { return math.Float32bits(f) }
-func f32FromBits(b uint32) float32   { return math.Float32frombits(b) }
+func f32FromBits(b uint32) float32  { return math.Float32frombits(b) }
