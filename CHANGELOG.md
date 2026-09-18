@@ -19,9 +19,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Camera model in the web panel and Waybar**: the detected model (PIXY vs PIXY 2K) shows as a footer badge in the web UI, in the Waybar tooltip, and as an additive `model` Waybar JSON field.
 - **V2Head protocol vocabulary** (`internal/pixy/v2head.go`): typed command heads, motor types, and payload builders shared by the daemon and the simulator.
 
+### Changed
+
+- **CI hardening**: golangci-lint pinned to v2.13.2 (devShell parity), a fuzz-target existence assert diffs the repo's `Fuzz*` list against CI, and the dead `auto-tag.yml` (which could never fire on git-derived versions) is deleted.
+- **Website**: hero terminal unified onto a structured single source (render-diff verified byte-identical), `typescript@~6.0.2` pinned so strict typechecking works again, `VideoObject` JSON-LD + dedicated video poster frame, a mobile hero overflow fix (390px QA), and the site changelog page now documents the new HID command families. Redeployed to production with live verification.
+- **Demo video source reconstructed** (`website/emeet-pixy-demo/`): the lost HyperFrames composition was rebuilt from the committed render (STORYBOARD.md + deterministic composition), check-passed, rendered, and frame-compared — re-renders are one command again.
+
 ### Fixed
 
-- Nothing yet.
+- **vmTest hang**: the NixOS module test no longer hangs on `cat $(find …)` — `/etc/systemd/user` is a symlink `find` cannot descend, so the substitution was empty and `cat` blocked on stdin; the test now cats the canonical path and passes end to end (`nix build .#checks.x86_64-linux.vmTest` green).
+- **Negative-index panic in the uevent model parser** found by the new `FuzzParseUevent` within seconds of its first run (production call sites pass constant non-negative indices, so latent rather than live); the crasher stays in the seed corpus.
+- **Simulator 0x63 iface collision**: the motor-MCU iface substitution is a motor-device routing rule; applying it to the optics head made `SetTargetTrack` collide with `SetMotorPos` — the preset-push tests caught the misroute.
+- **go-modules vendorHash refreshed** after the nixpkgs lock update shifted the module-store content hash (every nix build had been failing since 770436a).
 
 ## [0.4.0] - 2026-09-17
 
