@@ -41,7 +41,7 @@ const metrics = [
 ];
 ---
 
-<section class="relative flex items-center justify-center overflow-hidden pt-36 pb-20">
+<section class="relative flex items-center justify-center overflow-hidden pt-36 pb-20 min-w-0 max-w-full">
   <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-accent/5 blur-[140px] rounded-full pointer-events-none"></div>
   <div class="relative max-w-3xl xl:max-w-7xl mx-auto px-6 text-center">
     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-bg-card-solid text-xs font-mono text-text-secondary mb-8 backdrop-blur-sm">
@@ -52,7 +52,7 @@ const metrics = [
       Reverse-engineered for Linux
     </div>
 
-    <h1 class="text-[clamp(2.75rem,8vw,4.5rem)] font-bold tracking-tighter leading-[1.05] mb-6 text-text-primary">
+    <h1 class="text-[clamp(2rem,8vw,4.5rem)] font-bold tracking-tighter leading-[1.05] mb-6 text-text-primary">
       A great AI webcam,<br /><span class="text-accent">dumb on Linux</span>. Until now.
     </h1>
 
@@ -85,14 +85,14 @@ const metrics = [
 
     <div class="relative max-w-xl mx-auto">
       <div class="absolute -inset-4 bg-gradient-to-r from-accent/8 via-transparent to-accent/8 rounded-2xl pointer-events-none"></div>
-      <div class="relative rounded-xl border border-border bg-bg-code shadow-2xl overflow-hidden code-preview">
+      <div class="relative rounded-xl border border-border bg-bg-code shadow-2xl overflow-hidden code-preview min-w-0 max-w-full">
         <div class="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-bg-card-solid/50">
           {Array(3).fill(null).map(() => (
             <span class="w-2.5 h-2.5 rounded-full bg-code-dot"></span>
           ))}
           <span class="ml-3 text-xs text-text-muted font-mono">terminal</span>
         </div>
-        <pre class="p-5 text-left text-[0.8125rem] font-mono leading-[1.7] overflow-x-auto relative"><code id="hero-code" set:html={highlightedCode} /></pre>
+        <pre class="p-5 text-left text-[0.8125rem] font-mono leading-[1.7] overflow-x-auto relative min-w-0"><code id="hero-code" set:html={highlightedCode} /></pre>
         <button class="absolute top-2 right-2 bg-code-inline-bg/80 border border-border rounded-md text-text-muted px-2 py-1 cursor-pointer text-xs font-mono hover:text-text-primary hover:border-border-hover transition-all duration-150 opacity-0 [.code-preview:hover_&]:opacity-100" id="copy-btn" data-code={heroCode} aria-label="Copy code to clipboard">Copy</button>
       </div>
     </div>
