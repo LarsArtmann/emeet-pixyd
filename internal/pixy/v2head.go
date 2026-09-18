@@ -284,3 +284,47 @@ func TargetTrackPayload(mode TargetTrackMode) []byte {
 
 	return out
 }
+
+// ParseU16 reads a GetVer/GetDeviceVer response: [u16 LE] after the head
+// echo (framing assumption, pinned at hardware verification).
+func ParseU16(resp []byte) (uint16, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	if len(payload) < 2 {
+		return 0, fmt.Errorf("u16 payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+	}
+
+	return binary.LittleEndian.Uint16(payload), nil
+}
+
+// ParseU32 reads a GetFuncSta response: [u32 LE] after the head echo
+// (framing assumption, pinned at hardware verification). The bitfield's
+// individual capability bits are not decoded yet.
+func ParseU32(resp []byte) (uint32, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	if len(payload) < 4 {
+		return 0, fmt.Errorf("u32 payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+	}
+
+	return binary.LittleEndian.Uint32(payload), nil
+}
+
+// ParseString reads a GetSN-style response: printable bytes after the head
+// echo, terminated by NUL or end of buffer. Non-printable bytes truncate the
+// string (defensive against unpinned framing).
+func ParseString(resp []byte) (string, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	end := 0
+
+	for end < len(payload) && payload[end] >= 0x20 && payload[end] != 0x7f {
+		end++
+	}
+
+	if end == 0 {
+		return "", fmt.Errorf("string payload empty: %w", ErrV2ResponseShort)
+	}
+
+	return string(payload[:end]), nil
+}

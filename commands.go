@@ -205,6 +205,11 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 				parts = append(parts, string(model))
 			}
 
+			// Identity fields (TODO #151) append when the device answers;
+			// each head is best-effort so output stays parseable otherwise.
+			info, ok := d.identityStatus(ctx)
+			parts = append(parts, formatIdentity(info, ok)...)
+
 			return okResult(strings.Join(parts, " "))
 		}
 
