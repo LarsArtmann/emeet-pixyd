@@ -584,6 +584,22 @@ func (s *pixySimulator) Gesture() bool {
 	return s.state.gesture
 }
 
+// MotorSpeed returns the committed speed for a motor axis.
+func (s *pixySimulator) MotorSpeed(mt pixy.MotorType) float32 {
+	s.state.mu.Lock()
+	defer s.state.mu.Unlock()
+
+	return s.state.motorSpeed[mt]
+}
+
+// TargetTrack returns the committed tracking-variant mode and its arguments.
+func (s *pixySimulator) TargetTrack() (byte, [3]float32) {
+	s.state.mu.Lock()
+	defer s.state.mu.Unlock()
+
+	return s.state.targetTrack.mode, s.state.targetTrack.args
+}
+
 // SentReports returns all reports sent via Send (config + commit).
 func (s *pixySimulator) SentReports() [][]byte {
 	s.mu.Lock()
