@@ -58,6 +58,16 @@ const { title } = Astro.props;
         "priceCurrency": "USD"
       }
     })} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": "emeet-pixyd product tour",
+      "description": siteConfig.description,
+      "contentUrl": siteConfig.siteUrl + "/demo.mp4",
+      "thumbnailUrl": siteConfig.siteUrl + "/screenshots/demo-poster.png",
+      "uploadDate": "2026-08-18",
+      "duration": "PT25S",
+    })} />
     <Header />
     <main id="main-content">
       <slot />
