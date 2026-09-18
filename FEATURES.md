@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 >
-> **Last code-verified:** 2026-07-28 (build + `go vet` green; `golangci-lint` reports **0 issues**; full test suite green except `TestHandleStream_NoFFmpeg`, which is **environmental** — it assumes ffmpeg is absent, but this NixOS host has ffmpeg + a non-PIXY `/dev/video0`, so it blocks until its 2s timeout; it passes in CI where no hardware/ffmpeg is present).
+> **Last code-verified:** 2026-09-18 (docs-health AUDIT sweep; build + full test suite green as of the 2026-09-17/18 sessions; `golangci-lint` reports **0 issues**). `TestHandleStream_NoFFmpeg` is **environmental** on this NixOS host (ffmpeg + a non-PIXY `/dev/video0` present) and passes in CI.
 
 ## Status legend
 
@@ -80,6 +80,8 @@
 | PTZ Radar Indicator       | 🟢 `FULLY_FUNCTIONAL`     | 120px circular position indicator with crosshair, zoom ring, and glowing position dot; CSS custom properties `--pan-x`/`--pan-y`/`--zoom-pct`; live JS updates (`ptzRadar` template).                    |
 | Shortcut Legend           | 🟢 `FULLY_FUNCTIONAL`     | Fixed-position help panel (bottom-left), toggled via `?` key, FAB button, or `Escape`; lists all shortcuts (`shortcutLegend` template).                                                                  |
 | Preset UI (Web)           | 🟢 `FULLY_FUNCTIONAL`     | Save input + chips with load/delete; delegated events survive DataStar panel morphs; preset count N/16 (`presetSection` template).                                                                       |
+| Preset Autocomplete       | 🟢 `FULLY_FUNCTIONAL`     | `<datalist>` of existing preset names attached to the save input (`templates.templ:358`).                                                                                                                |
+| SSE Connection Indicator  | 🟢 `FULLY_FUNCTIONAL`     | Green/amber/red dot driven by DataStar `datastar-fetch` document events (`app.js`); offline banner outside the morphed panel so state survives SSE patches.                                              |
 | SVG Placeholder Icons     | 🟢 `FULLY_FUNCTIONAL`     | Inline SVG icons for all states (Lucide-style stroke); offline/fallback use `iconCameraOff` — no emoji anywhere.                                                                                         |
 
 ## CLI / Unix Socket
@@ -88,6 +90,7 @@
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------- |
 | Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                         |
 | Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).               |
+| Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`, `webStatus.Model` also carries it). Web UI/Waybar surfacing tracked as TODO #161. |
 | Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                     |
 | Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                           |
 | Device              | 🟢 `FULLY_FUNCTIONAL` | Returns both `/dev/videoX` and `/dev/hidrawY`.                                         |
@@ -104,8 +107,10 @@
 
 | Feature           | Status                | Notes                                                                                                         |
 | ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Device Probing    | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0` (PIXY) or `0118` (PIXY 2K); `matchesPixyID` unified helper. |
+| Device Probing    | 🟢 `FULLY_FUNCTIONAL` | sysfs walks matching vendor `328f`/product `00c0` (PIXY) or `0118` (PIXY 2K); `isPixyProductID()` helper; model flows through `probeResult` → `Daemon.model` → logs/output. |
 | Hotplug Detection | 🟢 `FULLY_FUNCTIONAL` | Netlink uevent listener; context-cancellable; retries transient read errors.                                  |
+| Device-Reappear Reconcile | 🟢 `FULLY_FUNCTIONAL` | `reconcileOnDeviceAppear` (`device.go`): fresh installs adopt hardware; persisted camera mode is re-asserted when hardware differs (privacy survives power cycles/replugs); audio/gesture adopt. Pinned by `reconcile_test.go`. |
+| Startup Permission Warning | 🟢 `FULLY_FUNCTIONAL` | `warnInaccessibleDevices` (`probe.go`): probed-but-inaccessible `/dev` nodes produce an actionable udev-fix hint instead of a cryptic EACCES on first HID command. |
 
 ## State Persistence
 
@@ -127,7 +132,7 @@
 
 | Feature              | Status                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Error Classification | 🟢 `FULLY_FUNCTIONAL` | `go-error-family` v0.10.0: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `HTTPStatus(err)`/`ExitCode(err)`/`LogError()` derive HTTP status, BSD sysexits exit codes, and structured log fields from error semantics — fixed 3 genuine 500→503 stream bugs. Scoped by design: DataStar action handlers return 200+SSE patch (correct `patch-elements` pattern), and the HID circuit breaker stays untouched. |
+| Error Classification | 🟢 `FULLY_FUNCTIONAL` | `go-error-family`: `errorfamily.go` registers 18 daemon sentinels + stdlib defaults into Infrastructure/Rejection/Transient families. `HTTPStatus(err)`/`ExitCode(err)`/`LogError()` derive HTTP status, BSD sysexits exit codes, and structured log fields from error semantics — fixed 3 genuine 500→503 stream bugs. Scoped by design: DataStar action handlers return 200+SSE patch (correct `patch-elements` pattern), and the HID circuit breaker stays untouched. |
 
 ## HID Communication
 
@@ -148,15 +153,22 @@
 | Feature   | Status                | Notes                                                                                                 |
 | --------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
 | Nix Flake | 🟢 `FULLY_FUNCTIONAL` | `nix build`, `nix run`, `nix flake check` with `proxyVendor` for templ. `nix flake check` runs in CI. |
+| NixOS VM Test | 🔶 `PARTIALLY_FUNCTIONAL` | `vmTest` (`testers.nixosTest`, `flake.nix:164`) evaluates clean and boots, but subtest 3 hangs on an unguarded `cat $(find ...)` — tracked as TODO #157. |
 
 ---
 
+## Accessibility
+
+| Feature | Status                    | Notes                                                                                                                                    |
+| ------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| WCAG 2.1 AA | 🟡 `PARTIALLY_FUNCTIONAL` | Code-level audit + fixes shipped (aria-labels, `aria-live` toasts, `aria-current` cards, focus-visible, contrast) — see `docs/accessibility-audit.md`. **Manual screen-reader (NVDA/VoiceOver/Orca) and real mobile-device checklists are documented but never executed.** |
+
 ## Summary
 
-- **Total features:** 60
-- 🟢 Fully functional: 59
-- 🟡 Partially functional: 1 (Mobile-Responsive Layout — untested on real devices)
+- **Total features:** 65
+- 🟢 Fully functional: 63
+- 🟡 Partially functional: 2 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted)
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 
-The codebase is mature and production-ready. The single `PARTIALLY_FUNCTIONAL` item is an edge-case refinement (small-screen device testing) — no core functionality is missing or broken.
+The codebase is mature and production-ready. The two `PARTIALLY_FUNCTIONAL` items are verification gaps (real-device testing), not missing functionality — no core feature is missing or broken. PTZ speed (#138), battery status (#139), tracking-mode variants (#140), and motor-preset mirroring (#141) are research-unblocked but not started (bytes known via `tools/emhid/cmdtable.json`; see `TODO_LIST.md`).
