@@ -13,6 +13,7 @@ type waybarJSON struct {
 	Text    string `json:"text"`
 	Tooltip string `json:"tooltip"`
 	Class   string `json:"class"`
+	Model   string `json:"model,omitzero"`
 }
 
 const tooltipInitSize = 64
@@ -37,6 +38,7 @@ func (d *Daemon) waybarOutput() string {
 	audio := d.state.Audio
 	inCall := d.state.InCall
 	autoMode := d.state.AutoMode
+	model := d.model
 	d.mu.RUnlock()
 
 	info := waybarCameraStates[camera]
@@ -48,7 +50,15 @@ func (d *Daemon) waybarOutput() string {
 
 	var tooltip strings.Builder
 	tooltip.Grow(tooltipInitSize)
-	tooltip.WriteString("EMEET PIXY: ")
+	tooltip.WriteString("EMEET PIXY")
+
+	if model != "" {
+		tooltip.WriteString(" (")
+		tooltip.WriteString(string(model))
+		tooltip.WriteString(")")
+	}
+
+	tooltip.WriteString(": ")
 	tooltip.WriteString(string(camera))
 	tooltip.WriteString("\nAudio: ")
 	tooltip.WriteString(string(audio))
@@ -63,6 +73,7 @@ func (d *Daemon) waybarOutput() string {
 		Text:    info.icon + " " + info.text,
 		Tooltip: tooltip.String(),
 		Class:   "custom-camera " + class,
+		Model:   string(model),
 	}
 
 	data, err := json.Marshal(out)

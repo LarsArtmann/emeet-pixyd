@@ -299,3 +299,31 @@ func TestWebPanel_DataStarAttributes(t *testing.T) {
 		`data-bind="$zoom"`,
 	})
 }
+
+func TestWebPanelGolden_ModelRendered(t *testing.T) {
+	t.Parallel()
+
+	daemon := testDaemonNoDevice(t)
+	daemon.model = pixy.Model2K
+	server := newTestWebServer(t, daemon)
+
+	body := getPanelBody(t, server)
+
+	assertContainsAll(t, body, []string{
+		`footer-model`,
+		"PIXY 2K",
+	})
+}
+
+func TestWebPanelGolden_ModelAbsentWhenUnknown(t *testing.T) {
+	t.Parallel()
+
+	daemon := testDaemonNoDevice(t)
+	server := newTestWebServer(t, daemon)
+
+	body := getPanelBody(t, server)
+
+	if strings.Contains(body, "footer-model") {
+		t.Error("expected footer-model to be absent when the model is unknown")
+	}
+}

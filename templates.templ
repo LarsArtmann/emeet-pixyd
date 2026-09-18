@@ -238,6 +238,9 @@ templ statusPanel(s webStatus) {
 				<button class="btn btn-ghost" data-on:click="@post('/api/sync')" data-indicator="loading" data-class:btn-loading="$loading" aria-label="Sync state">Sync</button>
 				<button class="btn btn-ghost" data-on:click="@post('/api/probe')" data-indicator="loading" data-class:btn-loading="$loading" aria-label="Probe devices">Probe</button>
 			</div>
+			if s.Model != "" {
+				<span class="last-synced footer-model">{ s.Model }</span>
+			}
 			if s.LastSynced != "" {
 				<span class="last-synced">Last synced { s.LastSynced } · v{ s.Version }</span>
 			} else if s.Version != "" {

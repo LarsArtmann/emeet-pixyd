@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json/v2"
+	"strings"
 	"testing"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -102,5 +103,68 @@ func TestWaybarGoldenJSON(t *testing.T) {
 				t.Errorf("golden JSON mismatch:\nwant: %s\ngot:  %s", expectedJSON, output)
 			}
 		})
+	}
+}
+
+func TestWaybarModelInTooltipAndJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		model         pixy.Model
+		wantTooltip   string
+		wantModelJSON string
+	}{
+		{
+			name:          "original_pixy",
+			model:         pixy.ModelOriginal,
+			wantTooltip:   "EMEET PIXY (PIXY): ",
+			wantModelJSON: "PIXY",
+		},
+		{
+			name:          "pixy_2k",
+			model:         pixy.Model2K,
+			wantTooltip:   "EMEET PIXY (PIXY 2K): ",
+			wantModelJSON: "PIXY 2K",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := testDaemonWithState(t, pixy.StateTracking, false)
+			d.model = tc.model
+
+			var out waybarJSON
+
+			if err := json.Unmarshal([]byte(d.waybarOutput()), &out); err != nil {
+				t.Fatalf("unmarshal waybar JSON: %v", err)
+			}
+
+			if !strings.Contains(out.Tooltip, tc.wantTooltip) {
+				t.Errorf("tooltip = %q, want containing %q", out.Tooltip, tc.wantTooltip)
+			}
+
+			if out.Model != tc.wantModelJSON {
+				t.Errorf("model field = %q, want %q", out.Model, tc.wantModelJSON)
+			}
+		})
+	}
+}
+
+func TestWaybarModelOmittedWhenUnknown(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonWithState(t, pixy.StateIdle, false)
+
+	var out map[string]any
+
+	if err := json.Unmarshal([]byte(d.waybarOutput()), &out); err != nil {
+		t.Fatalf("unmarshal waybar JSON: %v", err)
+	}
+
+	if _, present := out["model"]; present {
+		t.Errorf("model field present for unknown model, want omitted: %v", out["model"])
 	}
 }
