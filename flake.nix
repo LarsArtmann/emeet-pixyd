@@ -196,9 +196,14 @@
                     machine.succeed("grep -q '^d /run/emeet-pixyd' /etc/tmpfiles.d/*.conf")
 
                 with subtest("user service unit rendered with config and hardening"):
+                    # find -exec, not cat $(find): when find matches nothing,
+                    # bare `cat` reads stdin and the test hangs forever; here
+                    # it fails fast with an empty unit and a clear assert.
                     unit = machine.succeed(
-                        "cat $(find /etc/systemd/user -name 'emeet-pixyd.service')"
+                        "find /etc/systemd/user -name 'emeet-pixyd.service' -exec cat {} \\;"
                     )
+                    assert unit.strip() != "", \
+                        "emeet-pixyd user unit not found under /etc/systemd/user"
                     assert "ProtectSystem=strict" in unit
                     assert "EMEET_PIXYD_AUTO=off" in unit
                     assert "EMEET_PIXYD_DEFAULT_AUDIO=nc" in unit
