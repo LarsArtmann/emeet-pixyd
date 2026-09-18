@@ -156,7 +156,7 @@ func TestWeb_WebStatusOfflineNoDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	webSrv := &webServer{daemon: daemon}
-	status := webSrv.getWebStatus()
+	status := webSrv.getWebStatus(t.Context())
 	assertWebStatus(t, status)
 }
 
@@ -168,7 +168,7 @@ func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 	daemon.state.Gesture = true
 	daemon.state.InCall = true
 	webSrv := &webServer{daemon: daemon}
-	status := webSrv.getWebStatus()
+	status := webSrv.getWebStatus(t.Context())
 
 	assertWebStatusField(t, status, webStatusCheck{
 		Camera: ptr(pixy.StateTracking),
@@ -214,7 +214,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 
 			webSrv := &webServer{daemon: daemon}
 
-			status := webSrv.getWebStatus()
+			status := webSrv.getWebStatus(t.Context())
 
 			if status.Camera != tc.camera {
 				t.Errorf("expected camera=%s, got %s", tc.camera, status.Camera)
@@ -244,7 +244,7 @@ func TestWeb_WebStatusAllAudioModes(t *testing.T) {
 
 			webSrv := &webServer{daemon: daemon}
 
-			status := webSrv.getWebStatus()
+			status := webSrv.getWebStatus(t.Context())
 
 			if status.Audio != tc.audio {
 				t.Errorf("expected audio=%s, got %s", tc.audio, status.Audio)

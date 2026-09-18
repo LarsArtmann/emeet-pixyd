@@ -158,7 +158,7 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 			d.state.Audio = tc.audio
 			d.state.AutoMode = tc.autoMode
 
-			output := d.waybarOutput()
+			output := d.waybarOutput(t.Context())
 
 			var parsed map[string]string
 

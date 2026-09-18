@@ -225,7 +225,7 @@ func TestWebStatusCarriesModel(t *testing.T) {
 	d.model = pixy.Model2K
 	d.mu.Unlock()
 
-	status := (&webServer{daemon: d}).getWebStatus()
+	status := (&webServer{daemon: d}).getWebStatus(t.Context())
 
 	if status.Model != string(pixy.Model2K) {
 		t.Errorf("webStatus.Model = %q, want %q", status.Model, pixy.Model2K)

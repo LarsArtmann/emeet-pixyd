@@ -25,7 +25,7 @@ func BenchmarkWaybarOutput(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		d.waybarOutput()
+		d.waybarOutput(context.Background())
 	}
 }
 
@@ -56,7 +56,7 @@ func BenchmarkGetWebStatus(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		srv.getWebStatus()
+		srv.getWebStatus(context.Background())
 	}
 }
 

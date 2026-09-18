@@ -96,7 +96,7 @@ func TestWaybarOutput(t *testing.T) {
 
 	for _, testCase := range tests {
 		d := testDaemonWithState(t, testCase.camera, testCase.inCall)
-		output := d.waybarOutput()
+		output := d.waybarOutput(t.Context())
 
 		var parsed map[string]string
 

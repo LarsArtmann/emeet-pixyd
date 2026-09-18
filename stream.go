@@ -131,7 +131,7 @@ type streamResult struct {
 	ok      bool
 }
 
-func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
+func (s *webServer) checkDevice(ctx context.Context, responseWriter http.ResponseWriter) (webStatus, bool) {
 	status := s.getWebStatus(ctx)
 	if status.Device == "" {
 		http.Error(responseWriter, errStreamNoDevice.Error(), errorfamily.HTTPStatus(errStreamNoDevice))
@@ -147,7 +147,7 @@ func (s *webServer) setupStream(
 	responseWriter http.ResponseWriter,
 	ctx context.Context,
 ) streamResult {
-	status, ok := s.checkDevice(responseWriter)
+	status, ok := s.checkDevice(ctx, responseWriter)
 	if !ok {
 		return streamResult{}
 	}

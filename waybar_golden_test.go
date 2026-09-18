@@ -92,7 +92,7 @@ func TestWaybarGoldenJSON(t *testing.T) {
 
 			d := testDaemonWithState(t, tc.camera, tc.inCall)
 
-			output := d.waybarOutput()
+			output := d.waybarOutput(t.Context())
 
 			expectedJSON, err := json.Marshal(tc.expected)
 			if err != nil {
@@ -138,7 +138,7 @@ func TestWaybarModelInTooltipAndJSON(t *testing.T) {
 
 			var out waybarJSON
 
-			if err := json.Unmarshal([]byte(d.waybarOutput()), &out); err != nil {
+			if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &out); err != nil {
 				t.Fatalf("unmarshal waybar JSON: %v", err)
 			}
 
@@ -160,7 +160,7 @@ func TestWaybarModelOmittedWhenUnknown(t *testing.T) {
 
 	var out map[string]any
 
-	if err := json.Unmarshal([]byte(d.waybarOutput()), &out); err != nil {
+	if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &out); err != nil {
 		t.Fatalf("unmarshal waybar JSON: %v", err)
 	}
 
