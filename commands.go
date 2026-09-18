@@ -25,6 +25,7 @@ const (
 	respPresetUsage        = "usage: preset <save|load|delete|list> [name]"
 	respPresetNotFound     = "preset not found"
 	respSpeedUsage         = "usage: speed <pan|tilt|zoom> <value>"
+	respTrackingUsage      = "usage: tracking <face|halfbody|fullbody>"
 	respBatteryUnavailable = "battery: unavailable on this device"
 
 	cmdStatus        = "status"

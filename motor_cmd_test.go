@@ -235,3 +235,89 @@ func TestWebSpeedEndpoint_InvalidAxis(t *testing.T) {
 		t.Errorf("simulator touched on invalid axis: %v", got)
 	}
 }
+
+func TestHandleTrackingVariantCommand(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	for _, cmd := range []string{"tracking", "tracking sideways"} {
+		result := d.handleCommand(t.Context(), cmd)
+		if !result.IsError() || result.String() != errorPrefix+respTrackingUsage {
+			t.Errorf("handleCommand(%q) = %q, want usage error", cmd, result.String())
+		}
+	}
+
+	for _, tc := range []struct {
+		input string
+		want  pixy.TargetTrackMode
+	}{
+		{"face", pixy.TrackFace},
+		{"half", pixy.TrackHalfBody},
+		{"halfbody", pixy.TrackHalfBody},
+		{"full", pixy.TrackFullBody},
+		{"fullbody", pixy.TrackFullBody},
+	} {
+		result := d.handleCommand(t.Context(), "tracking "+tc.input)
+		if result.IsError() {
+			t.Errorf("tracking %s failed: %s", tc.input, result.String())
+
+			continue
+		}
+
+		mode, _ := sim.TargetTrack()
+		if mode != byte(tc.want) {
+			t.Errorf("tracking %s: simulator mode = %d, want %d", tc.input, mode, tc.want)
+		}
+
+		if d.trackMode != tc.want {
+			t.Errorf("tracking %s: daemon trackMode = %s, want %s", tc.input, d.trackMode, tc.want)
+		}
+	}
+}
+
+func TestHandleTrackingVariantCommand_NoDevice(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice(t)
+
+	result := d.handleCommand(t.Context(), "tracking face")
+	if !result.IsError() || !strings.Contains(result.String(), "not connected") {
+		t.Fatalf("tracking without device = %q, want not-connected", result.String())
+	}
+}
+
+func TestWebTrackingVariantEndpoint(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	server := newTestWebServer(t, d)
+
+	request, err := http.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		server.URL+"/api/tracking/fullbody",
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response, err := server.Client().Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() { _ = response.Body.Close() }()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+
+	mode, _ := sim.TargetTrack()
+	if mode != byte(pixy.TrackFullBody) {
+		t.Errorf("simulator mode = %d, want %d", mode, pixy.TrackFullBody)
+	}
+}

@@ -293,5 +293,10 @@ func (d *Daemon) handleTrackingVariantCommand(ctx context.Context, parts []strin
 		return errResult("tracking", err)
 	}
 
+	d.mu.Lock()
+	d.trackMode = mode
+	d.mu.Unlock()
+	d.broadcastStateChanged()
+
 	return okResult("tracking variant: " + mode.String())
 }

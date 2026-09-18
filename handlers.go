@@ -87,6 +87,7 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 		LastSynced:  formatLastSynced(s.daemon.lastSyncedAt),
 		Version:     buildVersion,
 		PresetNames: s.daemon.state.Presets.SortedNames(),
+		TrackMode:   s.daemon.trackMode.String(),
 	}
 	s.daemon.mu.RUnlock()
 
@@ -395,6 +396,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/speed/{axis}", server.handleSpeed)
+	mux.HandleFunc("POST /api/tracking/{variant}", server.handleTrackingVariant)
 	mux.HandleFunc("POST /api/ptz/", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "missing axis", http.StatusBadRequest)
 	})
@@ -463,6 +465,25 @@ func (s *webServer) handleSpeed(responseWriter http.ResponseWriter, request *htt
 	status := s.getWebStatusWithPTZ(request.Context())
 
 	applyResultToStatus(result, &status, toastSpeedChanged, toastTypeSuccess)
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+}
+
+// handleTrackingVariant implements POST /api/tracking/{variant} — the web
+// picker for the tracking variant, routed through the same command path as
+// the CLI.
+func (s *webServer) handleTrackingVariant(responseWriter http.ResponseWriter, request *http.Request) {
+	variant := request.PathValue("variant")
+
+	result := s.daemon.handleCommand(request.Context(), cmdTracking+" "+variant)
+
+	slog.Debug("web tracking variant", "variant", variant, "response", result.String())
+
+	status := s.getWebStatus(request.Context())
+
+	toast, tt := actionToast(cmdTracking)
+	applyResultToStatus(result, &status, toast, tt)
 
 	sse := datastar.NewSSE(responseWriter, request)
 	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally

@@ -37,6 +37,11 @@ type Daemon struct {
 	model     pixy.Model
 	hidDev    HIDDevice
 
+	// trackMode is the in-memory tracking variant (TODO #140). Unlike the
+	// camera mode it is NOT persisted: v1 semantics reset the variant on
+	// daemon restart, and reconcile does not re-assert it (M27-verify).
+	trackMode pixy.TargetTrackMode
+
 	// Debounce counters: number of consecutive polls observing a stable
 	// in-use or idle state. Both clamp to config.DebounceCount so the
 	// >= check below is the trigger boundary, not unbounded growth.
@@ -367,6 +372,7 @@ Commands:
   zoom <value>      Set zoom level (absolute; rel+/- for relative)
   speed <axis> <v>  Set motor speed over HID (axis: pan, tilt, zoom)
   battery           Show battery/charge if the device supports it
+  tracking <mode>   Set tracking variant (face, halfbody, fullbody)
   preset save <name>    Save current PTZ position as named preset
   preset load <name>    Recall a saved preset
   preset delete <name>  Delete a saved preset

@@ -149,6 +149,13 @@ templ statusPanel(s webStatus) {
 			@cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Online)
 			@cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Online)
 		</div>
+		if s.Online && s.Camera == pixy.StateTracking {
+			<div class="segmented tracking-variants" role="group" aria-label="Tracking variant">
+				@trackingSegment("face", "Face", s.TrackMode == pixy.TrackFace.String())
+				@trackingSegment("halfbody", "Half Body", s.TrackMode == pixy.TrackHalfBody.String())
+				@trackingSegment("fullbody", "Full Body", s.TrackMode == pixy.TrackFullBody.String())
+			</div>
+		}
 		<div class="controls-grid">
 			<div class="controls-col">
 				<div class="card">
@@ -320,6 +327,17 @@ templ audioSegment(mode string, label string, active bool, online bool) {
 	</button>
 }
 
+
+templ trackingSegment(variant, label string, active bool) {
+	<button
+		class={ "segment", templ.KV("active", active) }
+		data-on:click={ fmt.Sprintf("@post('/api/tracking/%s')", variant) }
+		data-indicator="loading"
+		data-class:btn-loading="$loading"
+	>
+		{ label }
+	</button>
+}
 // ---------------------------------------------------------------------------
 // PTZ Radar — reactive to $pan/$tilt/$zoom signals via data-style.
 // Server-rendered inline style provides correct initial render before
