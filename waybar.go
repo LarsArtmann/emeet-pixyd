@@ -34,7 +34,7 @@ var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
 	pixy.StateOffline:  {icon: "\uf00d", class: string(pixy.StateOffline), text: "---"},
 }
 
-func (d *Daemon) waybarOutput() string {
+func (d *Daemon) waybarOutput(ctx context.Context) string {
 	d.mu.RLock()
 	camera := d.state.Camera
 	audio := d.state.Audio
@@ -75,8 +75,11 @@ func (d *Daemon) waybarOutput() string {
 	// official HID battery queries; waybar output stays stable otherwise.
 	battery := ""
 
-	if reading, ok := d.powerStatus(context.Background()); ok {
+	reading, ok := d.powerStatus(ctx)
+
+	if ok {
 		battery = reading.String()
+
 		tooltip.WriteString("\nBattery: ")
 		tooltip.WriteString(battery)
 	}

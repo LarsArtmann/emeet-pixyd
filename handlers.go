@@ -71,34 +71,40 @@ type webServer struct {
 	daemon *Daemon
 }
 
-func (s *webServer) getWebStatus() webStatus {
+func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	s.daemon.mu.RLock()
-	defer s.daemon.mu.RUnlock()
 	//nolint:exhaustruct
 	status := webStatus{
-		Camera:     s.daemon.state.Camera,
-		Audio:      s.daemon.state.Audio,
-		Gesture:    s.daemon.state.Gesture,
-		InCall:     s.daemon.state.InCall,
-		Auto:       s.daemon.state.AutoMode,
-		Online:     s.daemon.videoDev != "",
-		Device:     s.daemon.videoDev,
-		Model:      string(s.daemon.model),
-		Error:      errStr(s.daemon.autoError),
-		LastSynced: formatLastSynced(s.daemon.lastSyncedAt),
-		Version:    buildVersion,
+		Camera:      s.daemon.state.Camera,
+		Audio:       s.daemon.state.Audio,
+		Gesture:     s.daemon.state.Gesture,
+		InCall:      s.daemon.state.InCall,
+		Auto:        s.daemon.state.AutoMode,
+		Online:      s.daemon.videoDev != "",
+		Device:      s.daemon.videoDev,
+		Model:       string(s.daemon.model),
+		Error:       errStr(s.daemon.autoError),
+		LastSynced:  formatLastSynced(s.daemon.lastSyncedAt),
+		Version:     buildVersion,
+		PresetNames: s.daemon.state.Presets.SortedNames(),
 	}
+	s.daemon.mu.RUnlock()
+
 	if status.Online {
 		status.PTZValues = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}
 	}
 
-	status.PresetNames = s.daemon.state.Presets.SortedNames()
+	// Battery reads take d.mu themselves (v2Read guards), so they happen
+	// AFTER the outer lock is released — never nest the RLocks.
+	if reading, ok := s.daemon.powerStatus(ctx); ok {
+		status.Battery = reading.String()
+	}
 
 	return status
 }
 
 func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
-	status := s.getWebStatus()
+	status := s.getWebStatus(ctx)
 	if !status.Online {
 		return status
 	}

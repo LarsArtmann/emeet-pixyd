@@ -64,9 +64,7 @@ func (d *Daemon) powerStatus(ctx context.Context) (powerReading, bool) {
 
 	reading, err := d.queryPower(ctx)
 	if err != nil {
-		// Cache the absence for half the success TTL so a battery-less
-		// device costs at most one timed-out query per ~30s window.
-		return powerReading{}, false
+		return powerReading{Level: 0, Charging: false}, false
 	}
 
 	d.powerCache.Set(reading, powerCacheTTL)
@@ -83,7 +81,7 @@ func (d *Daemon) queryPower(ctx context.Context) (powerReading, error) {
 		return powerReading{}, err
 	}
 
-	reading := powerReading{Level: level}
+	reading := powerReading{Level: level, Charging: false}
 
 	charge, err := d.queryChargeStatus(ctx)
 	if err == nil {
@@ -93,6 +91,7 @@ func (d *Daemon) queryPower(ctx context.Context) (powerReading, error) {
 	return reading, nil
 }
 
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryBatteryLevel(ctx context.Context) (int, error) {
 	resp, err := d.v2Read(ctx, pixy.V2GetBatteryLevel)
 	if err != nil {
@@ -102,6 +101,7 @@ func (d *Daemon) queryBatteryLevel(ctx context.Context) (int, error) {
 	return pixy.ParseBatteryLevel(resp)
 }
 
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryChargeStatus(ctx context.Context) (byte, error) {
 	resp, err := d.v2Read(ctx, pixy.V2GetChargeSta)
 	if err != nil {
@@ -173,4 +173,13 @@ func (d *Daemon) handleBatteryCommand(ctx context.Context) CommandResult {
 	}
 
 	return okResult("battery: " + reading.String())
+}
+
+// Invalidate drops the cached reading so the next powerStatus call re-queries
+// the device (used by tests and future pollers).
+func (c *powerCache) Invalidate() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.expiresAt = time.Time{}
 }

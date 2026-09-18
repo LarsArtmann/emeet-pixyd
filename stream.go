@@ -132,7 +132,7 @@ type streamResult struct {
 }
 
 func (s *webServer) checkDevice(responseWriter http.ResponseWriter) (webStatus, bool) {
-	status := s.getWebStatus()
+	status := s.getWebStatus(ctx)
 	if status.Device == "" {
 		http.Error(responseWriter, errStreamNoDevice.Error(), errorfamily.HTTPStatus(errStreamNoDevice))
 

@@ -162,7 +162,7 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) Comm
 func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) CommandResult {
 	switch parts[0] {
 	case cmdWaybar:
-		return okResult(d.waybarOutput())
+		return okResult(d.waybarOutput(ctx))
 
 	case cmdVersion:
 		return okResult("emeet-pixyd " + buildVersion)

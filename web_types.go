@@ -21,6 +21,7 @@ type webStatus struct {
 	ToastType   toastType
 	Version     string
 	PresetNames []string
+	Battery     string // "" when the device does not answer battery queries
 }
 
 // toastType is a branded type for toast notification kinds (success, info, error).

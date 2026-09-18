@@ -366,6 +366,7 @@ Commands:
   tilt <degrees>    Set tilt position (absolute; rel+/- for relative)
   zoom <value>      Set zoom level (absolute; rel+/- for relative)
   speed <axis> <v>  Set motor speed over HID (axis: pan, tilt, zoom)
+  battery           Show battery/charge if the device supports it
   preset save <name>    Save current PTZ position as named preset
   preset load <name>    Recall a saved preset
   preset delete <name>  Delete a saved preset
