@@ -76,6 +76,20 @@ Internally, the daemon communicates with `v4l2-ctl`:
 
 After each PTZ set, a delayed (500ms) hardware readback corrects the cache with the actual motor position.
 
+## Motor Speed
+
+PTZ position goes through V4L2, but motor **speed** uses the camera's official
+HID motor commands (reverse-engineered from the EMEET STUDIO protocol — see
+[`emeet-pixy.lars.software` protocol docs](/guides/architecture/)):
+
+```bash
+emeet-pixy speed pan 45     # axis: pan, tilt, or zoom; value 0–10000
+```
+
+The web UI exposes the same control as three speed sliders in the Position
+card. Values are transmitted verbatim as the protocol defines them; the
+physical unit is being verified against hardware.
+
 ## Center Camera
 
 ```bash

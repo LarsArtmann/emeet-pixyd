@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -164,5 +165,73 @@ func TestHandleSpeedCommand_SetMotorSpeedFailureCountsTowardBreaker(t *testing.T
 
 	if failCount != 1 {
 		t.Errorf("hidFailCount = %d, want 1 (failure must be accounted)", failCount)
+	}
+}
+
+func TestWebSpeedEndpoint(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	server := newTestWebServer(t, d)
+
+	request, err := http.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		server.URL+"/api/speed/pan",
+		strings.NewReader(`{"speedPan": 33.5}`),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := server.Client().Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() { _ = response.Body.Close() }()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+
+	if got := sim.MotorSpeed(pixy.MotorPan); got != 33.5 {
+		t.Errorf("simulator pan speed = %v, want 33.5", got)
+	}
+}
+
+func TestWebSpeedEndpoint_InvalidAxis(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	server := newTestWebServer(t, d)
+
+	request, err := http.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		server.URL+"/api/speed/head",
+		strings.NewReader(`{}`),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response, err := server.Client().Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() { _ = response.Body.Close() }()
+
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", response.StatusCode)
+	}
+
+	if got := sim.MotorSpeed(pixy.MotorPan); got != 0 {
+		t.Errorf("simulator touched on invalid axis: %v", got)
 	}
 }
