@@ -56,6 +56,10 @@ type Daemon struct {
 
 	ptzCache ptzCache
 
+	// powerCache holds the last battery/charge reading (TODO #139) with a
+	// TTL, so status/waybar surfaces cost at most one HID query per window.
+	powerCache powerCache
+
 	streamSema chan struct{}
 
 	// broadcaster distributes state-change events to all connected SSE

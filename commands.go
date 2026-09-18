@@ -12,19 +12,20 @@ import (
 )
 
 const (
-	respTrackingOn     = "tracking on"
-	respPrivacyOn      = "privacy on"
-	respTrackingOff    = "tracking off"
-	respAutoModeOff    = "auto mode: off"
-	respAutoModePrefix = "auto mode: "
-	respAutoUsage      = "usage: auto [off|full|tracking-only|privacy-only]"
-	respDeviceNotFound = "device not found"
-	respGestureOn      = "gesture on"
-	respGestureOff     = "gesture off"
-	respCentered       = "centered"
-	respPresetUsage    = "usage: preset <save|load|delete|list> [name]"
-	respPresetNotFound = "preset not found"
-	respSpeedUsage     = "usage: speed <pan|tilt|zoom> <value>"
+	respTrackingOn         = "tracking on"
+	respPrivacyOn          = "privacy on"
+	respTrackingOff        = "tracking off"
+	respAutoModeOff        = "auto mode: off"
+	respAutoModePrefix     = "auto mode: "
+	respAutoUsage          = "usage: auto [off|full|tracking-only|privacy-only]"
+	respDeviceNotFound     = "device not found"
+	respGestureOn          = "gesture on"
+	respGestureOff         = "gesture off"
+	respCentered           = "centered"
+	respPresetUsage        = "usage: preset <save|load|delete|list> [name]"
+	respPresetNotFound     = "preset not found"
+	respSpeedUsage         = "usage: speed <pan|tilt|zoom> <value>"
+	respBatteryUnavailable = "battery: unavailable on this device"
 
 	cmdStatus        = "status"
 	cmdGestureOn     = "gesture-on"
@@ -40,6 +41,7 @@ const (
 	cmdAudio         = "audio"
 	cmdCenter        = "center"
 	cmdSpeed         = "speed"
+	cmdBattery       = "battery"
 	cmdAuto          = "auto"
 	cmdPreset        = "preset"
 	cmdVersion       = "version"
@@ -61,6 +63,9 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 	switch parts[0] {
 	case cmdStatus:
 		result = okResult(d.getStatus(ctx))
+
+	case cmdBattery:
+		result = d.handleBatteryCommand(ctx)
 
 	case cmdWaybar, cmdVersion, cmdSync, cmdProbe, cmdDevice:
 		result = d.handleQueryCommand(ctx, parts)

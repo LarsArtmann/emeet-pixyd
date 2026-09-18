@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json/v2"
 	"strings"
 
@@ -14,6 +15,7 @@ type waybarJSON struct {
 	Tooltip string `json:"tooltip"`
 	Class   string `json:"class"`
 	Model   string `json:"model,omitzero"`
+	Battery string `json:"battery,omitzero"`
 }
 
 const tooltipInitSize = 64
@@ -69,11 +71,22 @@ func (d *Daemon) waybarOutput() string {
 		tooltip.WriteString("\nIn call: yes")
 	}
 
+	// Battery line (TODO #139) appears only when the device answers the
+	// official HID battery queries; waybar output stays stable otherwise.
+	battery := ""
+
+	if reading, ok := d.powerStatus(context.Background()); ok {
+		battery = reading.String()
+		tooltip.WriteString("\nBattery: ")
+		tooltip.WriteString(battery)
+	}
+
 	out := waybarJSON{
 		Text:    info.icon + " " + info.text,
 		Tooltip: tooltip.String(),
 		Class:   "custom-camera " + class,
 		Model:   string(model),
+		Battery: battery,
 	}
 
 	data, err := json.Marshal(out)

@@ -346,7 +346,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 
 	ptz := d.deps.parsePTZ(ctx, videoDev)
 
-	return fmt.Sprintf(
+	base := fmt.Sprintf(
 		"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=%s",
 		camera,
 		audio,
@@ -358,6 +358,12 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 		autoMode,
 		videoDev,
 	)
+
+	// Battery is best-effort (TODO #139): the line appears only when the
+	// wired device answers the official HID battery queries.
+	reading, ok := d.powerStatus(ctx)
+
+	return appendPowerLine(base, reading, ok)
 }
 
 func boolStr(b bool, ifTrue, ifFalse string) string {

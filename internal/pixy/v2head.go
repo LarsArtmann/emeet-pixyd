@@ -199,3 +199,28 @@ func ParseMotorSpeedResponse(resp []byte) (MotorSpeedReading, error) {
 
 func motorF32Bits(f float32) uint32 { return math.Float32bits(f) }
 func f32FromBits(b uint32) float32  { return math.Float32frombits(b) }
+
+// ParseBatteryLevel reads a GetBatteryLevel response: [level:u8] percent
+// after the head echo (framing assumption, pinned at hardware verification).
+func ParseBatteryLevel(resp []byte) (int, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	if len(payload) < 1 {
+		return 0, fmt.Errorf("battery payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+	}
+
+	return int(payload[0]), nil
+}
+
+// ParseChargeStatus reads a GetChargeSta response: [sta:u8] after the head
+// echo (framing assumption, pinned at hardware verification). Non-zero means
+// charging; the full enum is unknown until the hardware session.
+func ParseChargeStatus(resp []byte) (byte, error) {
+	payload := resp[min(len(resp), v2ResponseOverhead):]
+
+	if len(payload) < 1 {
+		return 0, fmt.Errorf("charge payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+	}
+
+	return payload[0], nil
+}
