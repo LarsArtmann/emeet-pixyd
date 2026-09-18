@@ -196,14 +196,16 @@
                     machine.succeed("grep -q '^d /run/emeet-pixyd' /etc/tmpfiles.d/*.conf")
 
                 with subtest("user service unit rendered with config and hardening"):
-                    # find -exec, not cat $(find): when find matches nothing,
-                    # bare `cat` reads stdin and the test hangs forever; here
-                    # it fails fast with an empty unit and a clear assert.
+                    # cat the canonical path directly. The earlier
+                    # `cat $(find /etc/systemd/user ...)` hung forever: NixOS
+                    # links /etc/systemd/user into the store as a SYMLINK,
+                    # find does not descend it, so the substitution was empty
+                    # and bare `cat` blocked reading stdin.
                     unit = machine.succeed(
-                        "find /etc /nix/store /usr -maxdepth 6 -name 'emeet-pixyd.service' -exec cat {} \\; 2>/dev/null || true"
+                        "cat /etc/systemd/user/emeet-pixyd.service"
                     )
                     assert unit.strip() != "", \
-                        "emeet-pixyd user unit not found; searched /etc, /nix/store (maxdepth 6), /usr"
+                        "emeet-pixyd user unit is empty"
                     assert "ProtectSystem=strict" in unit
                     assert "EMEET_PIXYD_AUTO=off" in unit
                     assert "EMEET_PIXYD_DEFAULT_AUDIO=nc" in unit
