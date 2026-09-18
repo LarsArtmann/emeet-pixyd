@@ -50,7 +50,7 @@ func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, produ
 		}
 
 		parts := strings.Split(value, sep)
-		if len(parts) <= max(vendorIdx, productIdx) {
+		if vendorIdx < 0 || productIdx < 0 || len(parts) <= max(vendorIdx, productIdx) {
 			continue
 		}
 
