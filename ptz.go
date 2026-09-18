@@ -234,6 +234,9 @@ func parsePTZValue(s string) (int, bool, error) {
 	return v, false, nil
 }
 
+// minSpeedCmdParts is the minimum word count of `speed <axis> <value>`.
+const minSpeedCmdParts = 3
+
 // maxMotorSpeedSanity is a deliberately wide sanity bound for user-supplied
 // motor speeds, NOT a hardware limit: the official protocol transmits the
 // value verbatim as float32 and the real per-axis limit (reported by
@@ -250,7 +253,7 @@ const maxMotorSpeedSanity = 10_000
 // degrees/second but is not hardware-verified yet — the CLI response and
 // web UI therefore avoid claiming a unit.
 func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) CommandResult {
-	if len(parts) < 3 {
+	if len(parts) < minSpeedCmdParts {
 		return errResultMsg(respSpeedUsage)
 	}
 

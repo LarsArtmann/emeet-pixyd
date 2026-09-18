@@ -449,7 +449,8 @@ func (s *webServer) handleSpeed(responseWriter http.ResponseWriter, request *htt
 	}
 
 	speed := signals.get(axis)
-	result := s.daemon.handleCommand(request.Context(), cmdSpeed+" "+string(axis)+" "+strconv.FormatFloat(speed, 'f', -1, 64))
+	speedCmd := cmdSpeed + " " + string(axis) + " " + strconv.FormatFloat(speed, 'f', -1, 64)
+	result := s.daemon.handleCommand(request.Context(), speedCmd)
 
 	slog.Debug("web speed", "axis", axis, "speed", speed, "response", result.String())
 
