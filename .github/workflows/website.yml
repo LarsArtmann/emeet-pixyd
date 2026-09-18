@@ -47,3 +47,48 @@ jobs:
             echo "ERROR: expected at least 19 HTML files (18 pages + 404), got $pages"
             exit 1
           fi
+
+  # Deploys only when the FIREBASE_SERVICE_ACCOUNT secret exists (setup
+  # checklist: FIREBASE_DEPLOY_SETUP.md). Until then the job self-skips and
+  # deploys stay manual (firebase deploy from website/, see AGENTS.md).
+  deploy:
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check for deploy secret
+        id: secret
+        env:
+          HAS_SECRET: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: echo "present=$HAS_SECRET" >> "$GITHUB_OUTPUT"
+
+      - name: Set up pnpm (version pinned via packageManager in package.json)
+        if: steps.secret.outputs.present == 'true'
+        run: corepack enable
+
+      - name: Install dependencies
+        if: steps.secret.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (astro + CSP hash patch)
+        if: steps.secret.outputs.present == 'true'
+        run: pnpm run build
+
+      # Stale-deploy incident rule: verify built content BEFORE uploading.
+      - name: Verify changelog content
+        if: steps.secret.outputs.present == 'true'
+        run: grep -q "0.4.0" dist/changelog/index.html
+
+      - name: Deploy to Firebase Hosting
+        if: steps.secret.outputs.present == 'true'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools@latest deploy --only hosting:emeet-pixyd --project lars-software
