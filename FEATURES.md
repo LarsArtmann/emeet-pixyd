@@ -93,8 +93,7 @@
 | Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`, `webStatus.Model` also carries it). Web UI/Waybar surfacing tracked as TODO #161. |
 | Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                     |
 | Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                           |
-| Device              | 🟢 `FULLY_FUNCTIONAL` | Returns both `/dev/videoX` and `/dev/hidrawY`.                                         |
-| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`). Pan/tilt not yet included (low priority). |
+| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`). Pan/tilt/auto/battery not yet included (see ROADMAP/TODO #161). |
 | --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                    |
 
 ## Desktop Notifications
@@ -165,9 +164,9 @@
 
 ## Summary
 
-- **Total features:** 65
+- **Total features:** 66
 - 🟢 Fully functional: 63
-- 🟡 Partially functional: 2 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted)
+- 🟡 Partially functional: 3 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted; NixOS VM Test — runs but subtest 3 hangs, TODO #157)
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 

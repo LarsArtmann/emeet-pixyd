@@ -24,7 +24,7 @@
   <a href="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/nix.yml">
     <img alt="Nix build" src="https://github.com/LarsArtmann/emeet-pixyd/actions/workflows/nix.yml/badge.svg">
   </a>
-  <img alt="Go 1.26+" src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go">
+  <img alt="Go 1.27+" src="https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go">
   <img alt="Linux only" src="https://img.shields.io/badge/platform-Linux-FCC624?logo=linux">
   <a href="https://www.emeet.com">
     <img alt="EMEET PIXY" src="https://img.shields.io/badge/device-EMEET_PIXY-328f00?logo=usb">
@@ -123,7 +123,7 @@ That's it. The module installs the daemon, udev rules, systemd user service, and
 ```bash
 git clone https://github.com/LarsArtmann/emeet-pixyd.git
 cd emeet-pixyd
-nix build    # or: go build -o emeet-pixyd .
+nix build    # or, with a Go ≥ 1.27.1 toolchain: go build -o emeet-pixyd .
 ```
 
 ## Usage

@@ -6,7 +6,9 @@ Dark mode only. The user is at a desk, often in a dimly lit room, monitoring a w
 
 ## Color Strategy
 
-Restrained: tinted neutrals with one accent (blue) and semantic state colors (green, yellow, red). No decorative gradients. No glassmorphism.
+Restrained: tinted neutrals with one accent (blue) and semantic state colors (green, yellow, red). No decorative gradients. Cards use a glassmorphism treatment (`backdrop-filter: blur`, translucent surfaces) — kept subtle; the accent stays restrained.
+
+> _Note (2026-09-18): this section previously said "No glassmorphism" from the pre-overhaul design; the 2026-07 UI overhaul shipped dark glassmorphism cards (see `FEATURES.md` → Dark Glassmorphism Theme). Updated to match reality._
 
 ### Palette
 
