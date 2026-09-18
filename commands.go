@@ -24,6 +24,7 @@ const (
 	respCentered       = "centered"
 	respPresetUsage    = "usage: preset <save|load|delete|list> [name]"
 	respPresetNotFound = "preset not found"
+	respSpeedUsage     = "usage: speed <pan|tilt|zoom> <value>"
 
 	cmdStatus        = "status"
 	cmdGestureOn     = "gesture-on"
@@ -38,6 +39,7 @@ const (
 	cmdTrack         = "track"
 	cmdAudio         = "audio"
 	cmdCenter        = "center"
+	cmdSpeed         = "speed"
 	cmdAuto          = "auto"
 	cmdPreset        = "preset"
 	cmdVersion       = "version"
@@ -64,7 +66,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 		result = d.handleQueryCommand(ctx, parts)
 
 	case cmdTrack, cmdIdle, cmdPrivacy, cmdTogglePrivacy, cmdAudio,
-		cmdGestureOn, cmdGestureOff, cmdToggleGesture:
+		cmdGestureOn, cmdGestureOff, cmdToggleGesture, cmdSpeed:
 		d.hidMu.Lock()
 		result = d.handleMutatingCommand(ctx, parts)
 		d.hidMu.Unlock()
@@ -137,6 +139,9 @@ func (d *Daemon) handleMutatingCommand(ctx context.Context, parts []string) Comm
 
 	case cmdCenter:
 		return d.handleCenterCommand(ctx)
+
+	case cmdSpeed:
+		return d.handleSpeedCommand(ctx, parts)
 
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		return d.handleAutoCommand(parts)

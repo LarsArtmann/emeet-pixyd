@@ -233,3 +233,40 @@ func parsePTZValue(s string) (int, bool, error) {
 
 	return v, false, nil
 }
+
+// maxMotorSpeedSanity is a deliberately wide sanity bound for user-supplied
+// motor speeds, NOT a hardware limit: the official protocol transmits the
+// value verbatim as float32 and the real per-axis limit (reported by
+// GetMotorSpeed) is unknown until the hardware session pins it (plan M27).
+// The bound only rejects typos and absurd values before they reach the HID
+// device; clamp to the real hardware limit here once it is verified.
+const maxMotorSpeedSanity = 10_000
+
+// handleSpeedCommand implements `speed <pan|tilt|zoom> <value>` — the HID
+// motor-speed surface (TODO #138). Unlike PTZ, this bypasses V4L2 entirely
+// and goes through the official V2 motor command family (motor.go).
+//
+// The value is passed through verbatim; the physical unit is assumed to be
+// degrees/second but is not hardware-verified yet — the CLI response and
+// web UI therefore avoid claiming a unit.
+func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) CommandResult {
+	if len(parts) < 3 {
+		return errResultMsg(respSpeedUsage)
+	}
+
+	motor, ok := pixy.MotorTypeFromAxis(pixy.Axis(parts[1]))
+	if !ok {
+		return errResultMsg(respSpeedUsage)
+	}
+
+	speed, err := strconv.ParseFloat(parts[2], 32)
+	if err != nil || speed < 0 || speed > maxMotorSpeedSanity {
+		return errResultMsg(fmt.Sprintf("invalid speed %q (want 0..%g)", parts[2], maxMotorSpeedSanity))
+	}
+
+	if err := d.setMotorSpeed(ctx, motor, float32(speed)); err != nil {
+		return errResult("speed", err)
+	}
+
+	return okResult(fmt.Sprintf("motor speed set: %s %g", motor, speed))
+}
