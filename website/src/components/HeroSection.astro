@@ -1,6 +1,6 @@
 ---
 import { siteConfig } from '../data/config';
-import { heroCode } from '../data/hero-code';
+import { heroCode, heroLines, renderHighlightedHtml } from '../data/hero-code';
 import Icon from './Icon.astro';
 
 async function getGitHubStars(): Promise<number | null> {
@@ -30,22 +30,8 @@ const starsText =
     ? `${stars} Stars`
     : 'Star on GitHub';
 
-const highlightedCode = `<span class="text-text-muted"># Start the daemon</span>
-<span class="text-accent">emeet-pixyd</span>
+const highlightedCode = renderHighlightedHtml(heroLines);
 
-<span class="text-text-muted"># Check status</span>
-emeet-pixy status
-
-<span class="text-text-muted"># Auto mode handles everything</span>
-<span class="text-code-comment"># Call starts  -&gt; face tracking + noise cancellation + audio switch</span>
-<span class="text-code-comment"># Call ends    -&gt; privacy mode (hardware lens block)</span>
-
-<span class="text-text-muted"># Manual control also available</span>
-emeet-pixy <span class="text-amber">track</span>          <span class="text-code-comment"># Enable face tracking</span>
-emeet-pixy <span class="text-amber">privacy</span>        <span class="text-code-comment"># Privacy mode</span>
-emeet-pixy <span class="text-amber">center</span>         <span class="text-code-comment"># Center camera</span>
-emeet-pixy <span class="text-amber">pan -90</span>        <span class="text-code-comment"># Pan left 90 degrees</span>
-emeet-pixy <span class="text-amber">zoom 120</span>       <span class="text-code-comment"># Zoom to 120%</span>`;
 
 const metrics = [
   { value: '4', label: 'Auto modes' },
