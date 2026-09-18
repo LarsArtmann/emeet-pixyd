@@ -9,6 +9,26 @@ All notable changes to emeet-pixyd are documented here.
 
 - Documentation website launched at `emeet-pixyd.lars.software`
 
+### New HID Command Families (official V2 protocol)
+
+The official EMEET STUDIO command table (162 command heads) was extracted
+from the vendor binary — the daemon now speaks the same protocol:
+
+- **Motor speed** — `speed <pan|tilt|zoom> <value>` over the official
+  `SetMotorSpeed` command, plus three speed sliders in the web UI
+- **Tracking variants** — `tracking <face|halfbody|fullbody>` with a web
+  picker, one level below the binary track switch
+- **Battery/charge** — `battery` command plus battery lines in `status`,
+  Waybar, and the web panel (best-effort: absence is an expected outcome)
+- **Motor-preset mirroring** — `preset push <name>` moves the camera and
+  saves the position into a hardware slot
+- **Identity queries** — `device` output now includes serial number,
+  firmware versions, and the capability bitfield when the device answers
+- **Camera model** — detected PIXY vs PIXY 2K shows in the web panel
+  footer, Waybar tooltip, and Waybar JSON
+- **Permission warning on hotplug** — the udev hint now fires when the
+  device appears, not only at daemon startup
+
 ## Key Milestones
 
 ### Call Detection & Auto-Activation
