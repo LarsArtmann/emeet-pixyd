@@ -1,8 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-09-19 (rows shrunk to one-line open work for terminal readability — every shipped half already lives in `CHANGELOG.md` [Unreleased]; #166's thread list moved to a checklist under the table; new rows #167–#172 relabeled 🔶 PARTIAL → ◻ OPEN, they have no shipped code)
+**Updated:** 2026-09-19 (shipped #167 pull early-abort, #171 `preset pull --dry-run`, #169 collision property test, #168 simulator knobs + speed-query duality, #170 dprint vendored into the devShell — details in `CHANGELOG.md` [Unreleased]; #172 evaluated: trigger NOT met — still 3 production GET families, the 4th is speed readback and lands with #138/#166; no PIXY on the bus this session, hardware rows untouched)
 
-**Previous:** 2026-09-19 (harvest + fix-on-sight sweep: pull's all-slots error gained the failure count; docs freshness fixed across README/website/map doc; #167–#172 routed; coverage 94–100% on pull paths, vmTest green)
+**Previous:** 2026-09-19 (rows shrunk to one-line open work for terminal readability — every shipped half already lives in `CHANGELOG.md` [Unreleased]; #166's thread list moved to a checklist under the table; new rows #167–#172 relabeled 🔶 PARTIAL → ◻ OPEN, they have no shipped code)
 
 > Completed work lives in `CHANGELOG.md` — it does NOT live here. Long-term ideas, design-heavy items, "decided won't-do" decisions, and open questions live in `ROADMAP.md`. This file is **open work only**: each row is the remainder, not the history.
 
@@ -48,12 +48,7 @@
 | 141 | 🔶 PARTIAL | Hardware: slot count + response shape; if mode-only, SET-echo acquisition needs Lars's Q1 call | LOW/MED | S   | `commands.go`, `motor.go`; shipped `db4943e`              |
 | 148 | 🔶 PARTIAL | Send the staged innoextract 6.6.1 upstream PR (Lars's call)                                  | MED    | S      | `tools/inno661/UPSTREAM.md`                               |
 | 150 | 🔶 PARTIAL | Pin `MotorType` + `DefaultPosMode` values (static decode exhausted; hardware/usbmon only)    | HIGH   | M      | `internal/pixy/v2head.go`; map doc §3.5a                  |
-| 167 | ◻ OPEN     | Early-abort: stop the pull sweep after N consecutive slot timeouts; report it in the summary  | MED    | S      | `commands.go` `handlePresetPull`; `12-05` §e.8            |
-| 168 | ◻ OPEN     | Simulator: builder option for `presetFullResponses` + model the speed-query duality          | LOW    | S      | `pixy_simulator_test.go`, `pixy_simulator_v2_test.go`     |
-| 169 | ◻ OPEN     | Property test: pull never evicts or mutates presets under name collisions                    | LOW    | S      | `preset_pull_test.go`; `pixy.PresetMap`                   |
-| 170 | ◻ OPEN     | Decide dprint: vendor into the devShell (recommended) or delete `dprint.json`                | LOW    | S      | `dprint.json`, `flake.nix` devShell                       |
-| 171 | ◻ OPEN     | `preset pull --dry-run`: report-only sweep (no state writes)                                 | LOW    | S      | `commands.go` `handlePresetPull`                          |
-| 172 | ◻ OPEN     | Extract a shared V2 query helper (trigger: 4th GET family lands)                             | LOW    | M      | `identity.go`, `power.go`, `motor.go`                     |
+| 172 | ◻ OPEN     | Extract a shared V2 query helper (trigger: 4th GET family lands — evaluated 2026-09-19: NOT met, identity/power/preset are 3; 4th = speed readback, gated on #138/#166) | LOW | M | `identity.go`, `power.go`, `motor.go`                     |
 
 ---
 
