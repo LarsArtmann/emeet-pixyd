@@ -19,7 +19,7 @@ go test -tags=integration ./...             # real-hardware HID/V4L2 tests
 
 - **`GOWORK=off` is mandatory** — a parent `go.work` exists that does not include this project.
 - **Go ≥ 1.27.1 required** (`go.mod`); the host toolchain may be older with `GOTOOLCHAIN=local` — run all Go tooling inside `nix develop` (devShell pins `go_1_27`).
-- CI (`.github/workflows/`): `go-test.yml` (vet, templ generate, lint, govulncheck, race tests, fuzz targets), `nix.yml` (`nix flake check --no-build` + build — do NOT duplicate into go-test.yml; a copy without the nix installer silently failed for months), `website.yml` (corepack pnpm, `--frozen-lockfile` drift guard, astro build + CSP patch, ≥19 pages), `auto-tag.yml` (dormant — TODO #162).
+- CI (`.github/workflows/`): `go-test.yml` (vet, templ generate, lint, govulncheck, race tests, fuzz targets + a list-vs-CI assert), `nix.yml` (`nix flake check --no-build` + build — do NOT duplicate into go-test.yml; a copy without the nix installer silently failed for months), `website.yml` (corepack pnpm, `--frozen-lockfile` drift guard, astro build + CSP patch, ≥19 pages, self-skipping deploy job). Releases are deliberately manual (annotated tag); `auto-tag.yml` is deleted.
 
 ## Architecture
 
@@ -43,6 +43,8 @@ main() → NewDaemon() → Run()
 | `http.go` / `middleware.go`               | HTTP helpers (`writeJSON`, `chain`, middleware implementations)                                                                                       |
 | `sse.go`                                  | `Broadcaster` (thread-safe fan-out); wire format handled by the DataStar SDK                                                                          |
 | `hid.go`                                  | HID config/query over hidraw; generic `queryHIDState[T]`                                                                                              |
+| `motor.go`                                | V2 single-report writers (`speed`, `preset push`) over hidraw, circuit-breaker accounting                                                              |
+| `identity.go`                             | Best-effort identity queries (`sn`/`ver`/`devver`/`func`) for the `device` command                                                                     |
 | `device.go`                               | Device state mgmt, `reconcileOnDeviceAppear`, `getStatus`, `syncState`                                                                                |
 | `process.go`                              | `/proc/*/fd` call detection, PipeWire switching, notifications                                                                                        |
 | `uevent.go` / `uevent_linux.go`           | Netlink uevent listener (`UeventListener` interface)                                                                                                  |
@@ -53,17 +55,18 @@ main() → NewDaemon() → Run()
 | `commander.go` / `deps.go`                | `CommandRunner` + `Dependencies` DI struct (function fields, noop defaults)                                                                           |
 | `waybar.go` / `web_types.go` / `cache.go` | Waybar JSON; typed `webStatus`; `lastFrameCache`/`ptzCache`                                                                                           |
 | `templates.templ`                         | DataStar UI (compiled via `templ generate`)                                                                                                           |
-| `internal/pixy/`                          | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model` |
+| `internal/pixy/`                          | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model`, `V2Head`, `MotorType`, `TargetTrackMode`                        |
 | `tools/inno661/`, `tools/emhid/`          | EMEET STUDIO reverse-engineering artifacts (see Research section)                                                                                     |
 
 ### Key behaviors
 
 - **HID protocol**: 9-byte config report + 4-byte commit report, 200ms sleep between. Responses are 64-byte reads parsed by byte position. Config-send failures trigger re-probe; only commit failures accumulate to the circuit breaker (threshold 3 → `ErrPIXYNotConnected`).
+- **V2 HID command families** (`internal/pixy/v2head.go`, `motor.go`, `identity.go`): official single-report commands — head `[0x09, iface, category, cmd]`; motor sets route the iface byte to 0x63 (motor-MCU sub-device) and send NO commit pair. `speed`, `tracking`, `battery`, `preset push`, and the identity queries ride them; battery answers are TTL-cached (60s) and every surface degrades by omission. Enum values, response framing (assumed head-echo), the speed unit, and the preset slot count are DOCUMENTED ASSUMPTIONS — a hardware session (TODO_LIST #166) must pin them before they are treated as verified.
 - **Call detection**: `/proc/*/fd` scan, excludes self + descendants, debounced (default 3 cycles). `auto = off` disables the monitor entirely (pinned by `TestAutoManage_AutoOff_NoAction`).
 - **Device-reappear reconcile** (`reconcileOnDeviceAppear`): fresh install (no persisted state) adopts hardware; otherwise the persisted camera mode is re-asserted when hardware differs (power cycles reset the camera — privacy must survive), audio/gesture adopt from hardware. Every failure logs and keeps belief. Do NOT reintroduce plain adopt-on-appear.
 - **PIXY 2K**: probing + udev rules accept both `00c0` and `0118`; `pixy.Model` flows through probe → logs → `device` cmd → `webStatus.Model`.
 - **PTZ**: V4L2 uses 1/3600-degree units (`v4l2UnitsPerDegree = 3600`); user-facing degrees. Limits are hardware-verified: pan ±150°, tilt ±90° (positive = up everywhere), zoom 100–150 (percentage, not multiplier). Bare numbers are absolute (including negatives); relative requires `rel` prefix. `PTZValues.Get/Set(axis)` for axis-agnostic access; `Range.Clamp()`; `pixy.Axis` branded type.
-- **Presets**: max 16 (`pixy.MaxPresets`), names validated by `pixy.ValidatePresetName`, persisted in `state.json` as `pixy.PresetMap`. Web UI handles multi-word names; CLI `strings.Fields` truncates at the first space (ROADMAP design-pender).
+- **Presets**: max 16 (`pixy.MaxPresets`), names validated by `pixy.ValidatePresetName`, persisted in `state.json` as `pixy.PresetMap`; `preset push` mirrors them into hardware slots (alphabetical mapping, assumed cap 8). Web UI handles multi-word names; CLI `strings.Fields` truncates at the first space — ADR written (`docs/adr/2026-09-18_multi-word-preset-names.md`), join-remaining lands after Lars approves.
 - **State**: `{StateDir}/state.json`, atomic write; `loadState` validates enums, warns on schema-version mismatch, still loads best-effort. Persisted state wins over env defaults (env defaults apply only when no valid state file exists).
 - **Error handling**: `go-error-family` classifies sentinels — `HTTPStatus(err)` for JSON endpoints, `ExitCode(err)` for CLI. Scoped by design: DataStar action handlers return 200 + SSE patch + toast (`applyResponseToStatus`, `actionToast` — toast type propagates, never hardcoded); the circuit breaker stays untouched. All command strings are named constants; errors use the `errorPrefix` constant.
 
@@ -81,8 +84,9 @@ main() → NewDaemon() → Run()
 - Standard `testing` only (no testify). `newTestDaemon(t, camera, videoDev, hidrawDev, opts...)` is the canonical builder — uses `t.TempDir()` (parallel-safe).
 - **`newTestDaemon` wires REAL HID/V4L2 impls by default** — tests asserting side effects without hardware MUST inject noops (`withNoopTracking()`, `withNoopAudio()`, `withNoopV4L2()`, `withNoopParsePTZ()`), otherwise they pass on CI and fail on hardware-bearing machines.
 - Options: `withInCall()`, `withAutoOff()`, `withCameraInUse()`, `withNotify*()`, `withFindSource()`, `withCapture*()`, `withDebounceCount()`, `withPixySimulator()` (returns the simulator + option).
-- `pixySimulator` (`pixy_simulator_test.go`): protocol-faithful `HIDDevice` that validates every outgoing byte, enforces config→commit sequencing, generates round-trippable responses, and supports failure injection (`sendErr`, `commitErr` — the realistic breaker trigger, `sendRecvErr`, `nilResponse`, `corruptResp`). Prefer it over `fakeHIDDevice` for HID-path tests.
-- Fuzz targets: `FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`, `FuzzHandleConfigAndCommit` (CI runs all — keep the workflow list in sync; an assert is TODO #160).
+- `pixySimulator` (`pixy_simulator_test.go`): protocol-faithful `HIDDevice` that validates every outgoing byte, enforces config→commit sequencing, generates round-trippable responses, and supports failure injection (`sendErr`, `commitErr` — the realistic breaker trigger, `sendRecvErr`, `nilResponse`, `corruptResp`). V2-head families live in `pixy_simulator_v2_test.go` + `pixyProtocolState` (payload validation, response builders, failure-injection parity). Prefer it over `fakeHIDDevice` for HID-path tests.
+- `TestIntegration_BatteryProbe` (`integration_hardware_test.go`, `-tags=integration`) sends the exact read-only V2 query heads × iface bytes {3, 0x63} — run it with the PIXY attached; it never mutates state (no config+commit).
+- Fuzz targets: `FuzzExtractJPEGFrame`, `FuzzParseHIDResponse`, `FuzzParsePTZValue`, `FuzzReadSignals`, `FuzzHandleConfigAndCommit`, `FuzzParseUevent` — CI asserts the list matches `go test -list '^Fuzz'`, so a stale entry fails the build.
 - `t.Parallel()` everywhere except tests of global mutable metrics state (`TestUpdateMetrics` runs serially).
 - Benchmarks (9): extract-JPEG, format-last-synced, parse-HID, waybar, handle-command ×2, web-status, broadcaster, simulator round-trip.
 
@@ -118,19 +122,21 @@ Server side: `sse.PatchElementTempl(statusPanel(status))` morphs `#status-panel`
 - `webStatus` (in `web_types.go`) uses typed `pixy.*` fields; templates compare against typed constants, never raw strings.
 - Uevent listener: context-cancellable, transient read errors `continue` (never `return`), fd closed on shutdown.
 - `extractJPEGFrame` has a 10M-iteration guard; debounce counters cap at `DebounceCount`.
+- Simulator V2 routing rule: motor SET heads collide with the commit-report shape, so V2 SETs are validated BEFORE the commit step, and the 0x63 iface substitution applies to motor heads ONLY (applying it to optics heads made `SetTargetTrack` collide with `SetMotorPos` — pinned by the preset-push tests).
+- vmTest: `/etc/systemd/user` is a symlink `find` cannot descend — an unguarded `cat $(find …)` blocks on stdin; cat the canonical path.
 
 ## Research artifacts (EMEET STUDIO 2.0.3 reverse engineering)
 
 - `docs/emeet-studio-official-app-comparison.md` — the deliverable (official Win EXE + Mac PKG vs emeet-pixyd; Inno 6.6.1 RE notes; Zoom call-detection differentiation).
-- `docs/hid-protocol-official-map.md` — official `CMD_*` surface ↔ our `hid.go` (gates TODO #138–#141).
+- `docs/hid-protocol-official-map.md` — official `CMD_*` surface ↔ our `hid.go` (§3.5 = the 162-command table; the remaining gate is hardware verification, TODO_LIST #166).
 - `tools/inno661/` — pure-Python Inno Setup 6.6.1 extractor; all 2,211 payload files SHA256-verified (README = format spec).
 - `tools/emhid/cmdtable.json` — 162 official command IDs + payload layouts extracted from the Mac binary (`EMHidCmdV2Head` static initializers). Head = `[0x09, iface, category, cmd]`; queries are bare 4-byte heads.
-- Ephemeral, dies with reboot (`/tmp/emeet/`): installers, extracted payloads, strings dumps, Mac disasm. Re-obtainable via the tools above.
+- Ephemeral, dies with reboot (`/tmp/emeet/`): the raw specimens are GONE as of 2026-09-19; the derived knowledge (cmdtable, format spec, parsed.json) is in-repo. Re-downloading the installers from emeet.ai is the unblock for the enum decode + x86_64 cross-verify (durable-storage question open in ROADMAP).
 - Failed approaches (do NOT retry): wine/wineWow installer runs (GUI crash), C++ innoextract patch (Python won), `lzma.FORMAT_ALONE` (use `FORMAT_RAW` after stripping 5 props bytes — Inno 6.6.1 blocks are independent LZMA1 streams).
 
 ## Website
 
-`website/` — Astro + Starlight + Tailwind v4, deployed to `emeet-pixyd.lars.software` (Firebase Hosting, project `lars-software`, target `emeet-pixyd`; cert active via CNAME validation). Accent violet `#8b5cf6`. Build: `nix shell nixpkgs#nodejs -c pnpm run build` (runs `astro build && node scripts/fix-csp.mjs`; Node 24, `.node-version`). Deploy: `firebase deploy --only hosting:emeet-pixyd --project lars-software` (auto-deploy blocked on `FIREBASE_SERVICE_ACCOUNT`, TODO #133). Gotchas: `astro check` crashes on typescript@7 (use standalone `tsc --strict`, TODO #134); hero terminal content is duplicated in `hero-code.ts` + `HeroSection.astro` (TODO #135); HyperFrames needs `HYPERFRAMES_BROWSER_PATH=<nixpkgs chromium>` and `node node_modules/hyperframes/dist/cli.js`; screenshots via headless chromium against the live daemon (current shots show offline state, TODO #129). CI: `website.yml` on `website/**` (frozen lockfile = drift guard).
+`website/` — Astro + Starlight + Tailwind v4, deployed to `emeet-pixyd.lars.software` (Firebase Hosting, project `lars-software`, target `emeet-pixyd`; cert active via CNAME validation). Accent violet `#8b5cf6`. Build: `nix shell nixpkgs#nodejs -c pnpm run build` (runs `astro build && node scripts/fix-csp.mjs`; Node 24, `.node-version`). Deploy: `firebase deploy --only hosting:emeet-pixyd --project lars-software`, or let the `website.yml` deploy job do it once `FIREBASE_SERVICE_ACCOUNT` exists (`FIREBASE_DEPLOY_SETUP.md` = setup checklist). Gotchas: `typescript` is pinned `~6.0.2` because `astro check` crashes on TS7 (`tsc --strict` is the strict gate); `pnpm-lock.yaml` must match `package.json` or the frozen-lockfile CI guard fails the website job; pre-deploy greps must grep for the NEW content, not the old; demo-video source lives in `website/emeet-pixy-demo/` (re-render: `HYPERFRAMES_BROWSER_PATH=<nixpkgs chromium> node node_modules/hyperframes/dist/cli.js render`, renders gitignored); screenshots via headless chromium against the live daemon (current shots show offline state, TODO #129).
 
 ## External libraries (adopted)
 

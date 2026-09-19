@@ -27,7 +27,11 @@ code (`internal/pixy/`) is the source of truth for these definitions.
 | Reconcile       | Aligning belief and hardware when the device (re)appears: fresh installs adopt hardware; otherwise the persisted camera mode is re-asserted. | `reconcileOnDeviceAppear`, device.go |
 | HID             | Human Interface Device protocol over `/dev/hidraw*` used for camera control.                                                                 | hid.go                               |
 | Config + Commit | The two-phase HID write: a 9-byte config report followed by a 4-byte commit report.                                                          | hid.go, 200ms inter-report delay     |
+| V2 Head          | The official single-report command frame: `[0x09, iface, category, cmd]` — no commit pair. Motor sets route the iface byte to `0x63`.        | `internal/pixy/v2head.go`, motor.go  |
+| Motor Slot       | A hardware preset position stored in the camera's motor MCU (not in state.json); mirrors of named presets land here via `preset push`.       | `preset push`, motor.go              |
 | Circuit Breaker | HID failure tracker: 3 consecutive failures trigger a device re-probe.                                                                       | device.go                            |
+| Tracking Variant | The tracking target mode: `face`, `halfbody`, or `fullbody`. In-memory only (not persisted).                                          | `pixy.TargetTrackMode`, tracking cmd |
+| Battery Surface  | The battery/charge readout (command, status, Waybar, web row); degrades by omission when the device doesn't answer.                   | `battery` cmd, waybar.go, TTL cache  |
 | PipeWire Source | The PIXY microphone as a PipeWire audio source, switched via `wpctl`.                                                                        | process.go, `SourceID`               |
 | Waybar          | Status-bar integration producing JSON for a custom Waybar module.                                                                            | waybar.go                            |
 
@@ -82,6 +86,10 @@ Actions the system can perform (via Unix socket, CLI, or web UI).
 | gesture-on / off        | Toggle hand-gesture control via HID.                  |
 | auto [mode]             | Set or report the auto-management strategy.           |
 | preset save/load/delete | Manage named PTZ presets.                             |
+| preset push             | Mirror a named preset into a hardware motor slot (moves the physical camera). |
+| speed \<axis\> \<value\> | Set motor speed over HID (axis: pan, tilt, zoom).     |
+| tracking \<variant\>    | Set the tracking variant (face, halfbody, fullbody).  |
+| battery                 | Report battery/charge when the device answers.        |
 | sync                    | Query hardware via HID, reconcile daemon state.       |
 | probe                   | Re-scan sysfs for the PIXY.                           |
 | status / device         | Report current state / device paths.                  |
