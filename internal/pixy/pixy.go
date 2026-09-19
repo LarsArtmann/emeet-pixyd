@@ -251,8 +251,8 @@ type State struct {
 	Presets       PresetMap   `json:"presets,omitempty"`
 
 	// TrackMode is the persisted tracking variant (TODO #140): the canonical
-	// TargetTrackMode string ("face"/"halfbody"/"fullbody"). Empty means
-	// "never set" and reads back as the default (face).
+	// TargetTrackMode string ("none"/"face"/"halfbody"/"fullbody"). Empty
+	// means "never set" and reads back as the default (face).
 	TrackMode string `json:"trackMode,omitempty"`
 
 	// Speeds are the persisted per-axis motor speeds (TODO #138). Zero on an

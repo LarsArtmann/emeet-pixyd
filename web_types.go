@@ -33,7 +33,7 @@ type webStatus struct {
 	Version     string
 	PresetNames []string
 	Battery     string // "" when the device does not answer battery queries
-	TrackMode   string // active tracking variant (face/halfbody/fullbody)
+	TrackMode   string // active tracking variant (none/face/halfbody/fullbody)
 	Speeds      pixy.SpeedValues
 }
 

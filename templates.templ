@@ -159,6 +159,7 @@ templ statusPanel(s webStatus) {
 		</div>
 		if s.Online && s.Camera == pixy.StateTracking {
 			<div class="segmented tracking-variants" role="group" aria-label="Tracking variant">
+				@trackingSegment("none", "None", s.TrackMode == pixy.TrackNone.String())
 				@trackingSegment("face", "Face", s.TrackMode == pixy.TrackFace.String())
 				@trackingSegment("halfbody", "Half Body", s.TrackMode == pixy.TrackHalfBody.String())
 				@trackingSegment("fullbody", "Full Body", s.TrackMode == pixy.TrackFullBody.String())

@@ -168,3 +168,42 @@ func TestWaybarModelOmittedWhenUnknown(t *testing.T) {
 		t.Errorf("model field present for unknown model, want omitted: %v", out["model"])
 	}
 }
+
+// TestWaybarBatteryClass pins the charging/discharging class tag (TODO #139
+// remainder): a battery reading appends the ChargeSta-derived state class so
+// user CSS can style it; no reading leaves the class untouched.
+func TestWaybarBatteryClass(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	var out waybarJSON
+
+	if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &out); err != nil {
+		t.Fatalf("unmarshal waybar JSON: %v", err)
+	}
+
+	if !strings.Contains(out.Class, "discharging") || out.Battery != "87% (discharging)" {
+		t.Errorf("discharging output = class %q battery %q, want discharging class + 87%%", out.Class, out.Battery)
+	}
+
+	sim.state.mu.Lock()
+	sim.state.chargeSta = 2 // the second official charging value must tag identically
+	sim.state.mu.Unlock()
+
+	d.powerCache.Invalidate()
+
+	out = waybarJSON{}
+	if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &out); err != nil {
+		t.Fatalf("unmarshal waybar JSON: %v", err)
+	}
+
+	if !strings.Contains(out.Class, "charging") {
+		t.Errorf("charging output class = %q, want charging tag", out.Class)
+	}
+
+	if strings.Contains(out.Class, "discharging") {
+		t.Errorf("charging output class = %q, must not also tag discharging", out.Class)
+	}
+}

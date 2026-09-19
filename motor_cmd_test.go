@@ -253,6 +253,8 @@ func TestHandleTrackingVariantCommand(t *testing.T) {
 		input string
 		want  pixy.TargetTrackMode
 	}{
+		{"none", pixy.TrackNone},
+		{"off", pixy.TrackNone},
 		{"face", pixy.TrackFace},
 		{"half", pixy.TrackHalfBody},
 		{"halfbody", pixy.TrackHalfBody},

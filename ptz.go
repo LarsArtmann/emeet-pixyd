@@ -292,7 +292,7 @@ func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) Command
 	return okResult(fmt.Sprintf("motor speed set: %s %g", motor, speed))
 }
 
-// handleTrackingVariantCommand implements `tracking <face|halfbody|fullbody>`
+// handleTrackingVariantCommand implements `tracking <none|face|halfbody|fullbody>`
 // (TODO #140): the mode-aware tracking layer one level below the binary
 // track/idle/privacy switch. The variant persists to state.json so the web
 // picker shows the truth after a daemon restart. Whether the hardware

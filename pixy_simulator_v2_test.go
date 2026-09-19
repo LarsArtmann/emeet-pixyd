@@ -105,7 +105,11 @@ func TestPixySimulatorV2_TargetTrackRoundTrip(t *testing.T) {
 
 	offset := pixy.V2ResponsePayloadOffset
 
-	if resp[offset] != 1 || f32LE(resp[offset+1:]) != 1.5 || f32LE(resp[offset+5:]) != 2.5 || f32LE(resp[offset+9:]) != 3.5 {
+	argsMatch := f32LE(resp[offset+1:]) == 1.5 &&
+		f32LE(resp[offset+5:]) == 2.5 &&
+		f32LE(resp[offset+9:]) == 3.5
+
+	if resp[offset] != 1 || !argsMatch {
 		t.Fatalf("target track response mismatch: %x", resp[:offset+13])
 	}
 }

@@ -149,9 +149,15 @@ func TestIntegration_AudioCycle(t *testing.T) {
 // the motor-MCU mergeType 0x63 (mergeType(3,3) = (3<<5)|3) — because the
 // official app overwrites the iface byte on the wire for motor commands and
 // which one the wired PIXY firmware answers is exactly what this probe
-// answers. Response FRAMING is still unpinned (parse bodies were in the
-// deleted /tmp disasm), so every response is logged as raw hex: the M27
-// hardware session reads this log and feeds TODO #144 / #139.
+// answers.
+//
+// Response FRAMING is statically evidenced from the Beta.25 x64 parser
+// disassembly (see pixy.V2ResponsePayloadOffset): responses echo the 4-byte
+// request head, carry a reserved dword at bytes 4..7, and put the payload at
+// offset 8 (min length 9); ChargeSta {1,2}=charging, battery level = raw byte
+// at offset 8. Every response is STILL logged as raw hex so the #166 hardware
+// session can confirm the static evidence against the wired firmware (and
+// decode the reserved bytes 4..7).
 func TestIntegration_BatteryProbe(t *testing.T) {
 	probeResult := probeDevices()
 

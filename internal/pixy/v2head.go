@@ -266,9 +266,9 @@ func ParseBatteryLevel(head V2Head, resp []byte) (int, error) {
 type ChargeStatus byte
 
 const (
-	ChargeDischarging  ChargeStatus = 0
-	ChargeCharging     ChargeStatus = 1
-	ChargeChargingAlt  ChargeStatus = 2
+	ChargeDischarging ChargeStatus = 0
+	ChargeCharging    ChargeStatus = 1
+	ChargeChargingAlt ChargeStatus = 2
 )
 
 func (c ChargeStatus) Valid() bool { return c <= ChargeChargingAlt }
@@ -413,6 +413,7 @@ func ParseString(head V2Head, resp []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	end := 0
 
 	for end < len(payload) && payload[end] >= 0x20 && payload[end] != 0x7f {

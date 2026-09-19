@@ -330,6 +330,7 @@ func TestStateTrackModeValidation(t *testing.T) {
 		wantValid bool
 	}{
 		{"", true}, // never set — valid, reads back as face
+		{"none", true},
 		{"face", true},
 		{"halfbody", true},
 		{"fullbody", true},
@@ -352,6 +353,7 @@ func TestStateEffectiveTrackMode(t *testing.T) {
 		want      TargetTrackMode
 	}{
 		{"", TrackFace},
+		{"none", TrackNone},
 		{"face", TrackFace},
 		{"halfbody", TrackHalfBody},
 		{"fullbody", TrackFullBody},
@@ -362,6 +364,51 @@ func TestStateEffectiveTrackMode(t *testing.T) {
 		if got := state.EffectiveTrackMode(); got != tc.want {
 			t.Errorf("EffectiveTrackMode(%q) = %v, want %v", tc.trackMode, got, tc.want)
 		}
+	}
+}
+
+// TestTargetTrackModeWireValues pins the corrected mode-byte assignment:
+// statically evidenced (Beta.25 x64 UI enum registration @0x14027c820) as
+// 0=None, 1=Face, 2=HalfBody, 3=FullBody. The numeric pin fails loudly if
+// anyone reverts to the disproved 0-based face-first mapping.
+func TestTargetTrackModeWireValues(t *testing.T) {
+	t.Parallel()
+
+	if TrackNone != 0 || TrackFace != 1 || TrackHalfBody != 2 || TrackFullBody != 3 {
+		t.Fatalf(
+			"wire values drifted from the official 1-based enum: none=%d face=%d halfbody=%d fullbody=%d",
+			TrackNone, TrackFace, TrackHalfBody, TrackFullBody,
+		)
+	}
+
+	// Numeric aliases encoded the disproved 0-based mapping and were removed;
+	// digits must not parse as variants.
+	for _, input := range []string{"0", "1", "2", "3"} {
+		if _, ok := ParseTargetTrackMode(input); ok {
+			t.Errorf("ParseTargetTrackMode(%q) accepted a numeric alias", input)
+		}
+	}
+}
+
+// TestChargeStatusPredicate pins the official consumer-code predicate
+// ({1,2} = charging, 0 = discharging; Beta.25 x64 @0x1403ccbf8).
+func TestChargeStatusPredicate(t *testing.T) {
+	t.Parallel()
+
+	for sta, want := range map[ChargeStatus]bool{
+		ChargeDischarging: false,
+		ChargeCharging:    true,
+		ChargeChargingAlt: true,
+		ChargeStatus(3):   false,
+		ChargeStatus(255): false,
+	} {
+		if got := sta.Charging(); got != want {
+			t.Errorf("ChargeStatus(%d).Charging() = %v, want %v", sta, got, want)
+		}
+	}
+
+	if ChargeStatus(3).Valid() {
+		t.Error("ChargeStatus(3).Valid() = true, want false outside the official enum")
 	}
 }
 
