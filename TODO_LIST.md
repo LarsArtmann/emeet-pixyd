@@ -1,8 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-09-19 (docs-health sweep: the 18 ✅ DONE rows pruned — they live in `CHANGELOG.md` [Unreleased]; #140's table corruption repaired; the M27 hardware-verification bundle consolidated as #166)
+**Updated:** 2026-09-19 (preset-pull session: `preset pull` implemented + web surface; Beta.25 x64 send/parse decodes landed — version-shift retracted, #152 closed with the absence finding, echo routing mask + preset response shapes implemented; remaining rows are hardware/session-external)
 
-**Previous:** 2026-09-19 (Pareto plan executed: M1–M26 + M28-build done; 27 rows carried dated `→ Resolution` notes, pruned by this sweep)
+**Previous:** 2026-09-19 (docs-health sweep: the 18 ✅ DONE rows pruned — they live in `CHANGELOG.md` [Unreleased]; #140's table corruption repaired; the M27 hardware-verification bundle consolidated as #166)
 
 > Completed work lives in `CHANGELOG.md` — it does NOT live here. Long-term ideas, design-heavy items, "decided won't-do" decisions, and open questions live in `ROADMAP.md`. This file is **open work only**.
 
