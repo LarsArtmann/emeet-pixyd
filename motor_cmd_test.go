@@ -271,8 +271,8 @@ func TestHandleTrackingVariantCommand(t *testing.T) {
 			t.Errorf("tracking %s: simulator mode = %d, want %d", tc.input, mode, tc.want)
 		}
 
-		if d.trackMode != tc.want {
-			t.Errorf("tracking %s: daemon trackMode = %s, want %s", tc.input, d.trackMode, tc.want)
+		if got := readState(d, func(s pixy.State) string { return s.TrackMode }); got != tc.want.String() {
+			t.Errorf("tracking %s: persisted trackMode = %q, want %q", tc.input, got, tc.want)
 		}
 	}
 }

@@ -980,6 +980,35 @@ input[type="range"]:focus-visible {
   transition: all var(--transition);
 }
 
+.preset-chip-push {
+  padding: 0.3rem 0.45rem;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--text-dim);
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+}
+
+.preset-chip-push .chip-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.preset-chip-push:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.preset-chip-push:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .preset-chip-delete:hover {
   color: var(--red);
   background: var(--red-subtle);
