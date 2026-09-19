@@ -66,11 +66,14 @@ WINDOW = 12  # max instructions examined before a ctor call
 
 
 def disassemble(binary: str) -> str:
-    print(f"disassembling .text of {binary} (objdump, a few minutes)...",
-          file=sys.stderr)
+    print(
+        f"disassembling .text of {binary} (objdump, a few minutes)...", file=sys.stderr
+    )
     return subprocess.run(
         ["objdump", "-d", "-M", "intel", "-j", ".text", binary],
-        capture_output=True, text=True, check=True,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
 
 
@@ -93,17 +96,20 @@ def load_instructions(disasm: str) -> list[tuple[str, str]]:
 def ctor_sites(instructions: list[tuple[str, str]], ctor: str) -> list[int]:
     target = f"0x{ctor}"
     return [
-        i for i, (mnemonic, operands) in enumerate(instructions)
+        i
+        for i, (mnemonic, operands) in enumerate(instructions)
         if mnemonic == "call" and operands == target
     ]
 
 
-def sweep(instructions: list[tuple[str, str]], ctors: list[int]) -> tuple[dict[str, dict], int]:
+def sweep(
+    instructions: list[tuple[str, str]], ctors: list[int]
+) -> tuple[dict[str, dict], int]:
     heads: dict[str, dict] = {}
     partial = 0
 
     for site in ctors:
-        window = instructions[max(0, site - WINDOW): site]
+        window = instructions[max(0, site - WINDOW) : site]
         slot = report = iface = cat = cmd = None
         iface_zero = cat_zero = False
 
@@ -141,8 +147,9 @@ def sweep(instructions: list[tuple[str, str]], ctors: list[int]) -> tuple[dict[s
     return heads, partial
 
 
-def attach_callbacks(instructions: list[tuple[str, str]], ctors: list[int],
-                     heads: dict[str, dict]) -> None:
+def attach_callbacks(
+    instructions: list[tuple[str, str]], ctors: list[int], heads: dict[str, dict]
+) -> None:
     """Fill each head's callback list from the lea AFTER each ctor call."""
     slot_to_key: dict[str, str] = {}
     for key, entry in heads.items():
@@ -151,14 +158,14 @@ def attach_callbacks(instructions: list[tuple[str, str]], ctors: list[int],
 
     for site in ctors:
         slot = None
-        for mnemonic, operands in instructions[max(0, site - WINDOW): site]:
+        for mnemonic, operands in instructions[max(0, site - WINDOW) : site]:
             if m := RE_SLOT.search(f"{mnemonic} {operands}"):
                 slot = m.group(1)  # last lea before the call is the slot
 
         if slot is None:
             continue
 
-        for mnemonic, operands in instructions[site + 1: site + 6]:
+        for mnemonic, operands in instructions[site + 1 : site + 6]:
             if m := RE_CALLBACK.search(f"{mnemonic} {operands}"):
                 callback = m.group(1)
                 key = slot_to_key.get(slot)
@@ -181,8 +188,9 @@ def cross_verify(heads: dict[str, dict], cmdtable: dict[str, list[int]]) -> dict
             entry["name"] = name
             matched += 1
 
-    x64_only = sorted(k for k, e in heads.items()
-                      if k != "9,0,0,0" and e["name"] is None)
+    x64_only = sorted(
+        k for k, e in heads.items() if k != "9,0,0,0" and e["name"] is None
+    )
     mac_only = sorted(k for k in table_by_tuple if k not in heads)
 
     return {
@@ -197,9 +205,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("binary", help="EMEET STUDIO 2.exe (Windows x64 build)")
     parser.add_argument("--asm", help="reuse an existing objdump -d -M intel dump")
-    parser.add_argument("--ctor", default=CTOR_DEFAULT,
-                        help=f"EMHidCmdV2Head ctor address (default {CTOR_DEFAULT})")
-    parser.add_argument("--cmdtable", default=str(Path(__file__).parent / "cmdtable.json"))
+    parser.add_argument(
+        "--ctor",
+        default=CTOR_DEFAULT,
+        help=f"EMHidCmdV2Head ctor address (default {CTOR_DEFAULT})",
+    )
+    parser.add_argument(
+        "--cmdtable", default=str(Path(__file__).parent / "cmdtable.json")
+    )
     parser.add_argument("--out", default=str(Path(__file__).parent / "x64_heads.json"))
     args = parser.parse_args()
 
@@ -218,11 +231,15 @@ def main() -> None:
     clean = {k: v for k, v in sorted(heads.items()) if k != "9,0,0,0"}
     Path(args.out).write_text(json.dumps(clean, indent=1) + "\n")
 
-    print(f"unique heads: {len(clean)} (+{stats['artifact_zero_heads']} zero-head artifact)"
-          f" | incomplete thunks skipped: {partial}")
-    print(f"cmdtable match: {stats['matched']}/{len(clean)}"
-          f" | x64-only: {len(stats['x64_only'])}"
-          f" | mac-only: {len(stats['mac_only'])}")
+    print(
+        f"unique heads: {len(clean)} (+{stats['artifact_zero_heads']} zero-head artifact)"
+        f" | incomplete thunks skipped: {partial}"
+    )
+    print(
+        f"cmdtable match: {stats['matched']}/{len(clean)}"
+        f" | x64-only: {len(stats['x64_only'])}"
+        f" | mac-only: {len(stats['mac_only'])}"
+    )
     if stats["x64_only"]:
         print(f"x64-only heads: {', '.join(stats['x64_only'])}")
     print(f"wrote {args.out}")

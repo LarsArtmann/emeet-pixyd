@@ -4,18 +4,18 @@
 
 ## a) FULLY DONE (this session, verified)
 
-| What | Verification |
-| --- | --- |
-| Response framing correction (payload@8 + head-echo + min-len 9, shared `pixy.V2ResponsePayloadOffset`, `ErrV2ResponseHeadMismatch`) | full race suite ✓, mismatch/short-response rejection pinned by `TestParseV2_HeadEchoMismatch` |
-| TargetTrackMode correction (0=none, 1=face, 2=halfbody, 3=fullbody; `none`/`off` CLI + web picker segment + persistence; numeric aliases removed) | `TestTargetTrackModeWireValues` pins the bytes; command round-trip incl. `none` in `TestHandleTrackingVariantCommand` |
-| ChargeStatus typed ({1,2}=charging, enum-validated) wired into `battery` output + Waybar `charging`/`discharging` classes | `TestChargeStatusPredicate`, `TestWaybarBatteryClass` (incl. charge value 2) |
-| `tools/emhid/extract_x64.py` + `x64_heads.json` (108/162, artifact filtered, xor-zero handled) | **fresh regeneration from the durable specimen reproduced the committed artifact byte-identically** |
-| Beta.25 inno artifacts committed (`parsed-beta25.json`, `setup0_offsets-beta25.json`) + both tool READMEs updated | files in tree; README documents the second-installer verification + `mkdir -p data` |
-| Regression tests: `TestLockOrder_V4L2MoveWithHIDCommands` (deadlock watchdog, `v4l2Mu → hidMu`), `TestStateRoundTrip_SpeedsOmitZero_TrackModeNone` (on-disk JSON shape) | both green under `-race` |
-| Docs sweep: TODO_LIST #138–#141/#150/#152, CHANGELOG [Unreleased], AGENTS.md (evidence grades, lock-order rule, research section + Wayback CDX recipe), map doc §3.5a + §6, ROADMAP, FEATURES, README, website (cli-reference/waybar/changelog) | read-back during sweep; website builds 19 pages ✓ |
-| Prior reports annotated (09:40 §g Q1/Q2, 10:04 §g Q1–Q3 → RESOLVED inline with evidence) + closing report written | strikethrough markers in place |
-| Final gates: `go build` ✓ · `go test -race -count=1 ./...` ✓ · golangci-lint **0 issues** ✓ · `nix build` ✓ · website `pnpm run build` 19 pages + CSP ✓ · fuzz list count 6 matches CI assert ✓ · `go vet -tags=integration` compiles ✓ | all run this session |
-| No dangling references to the removed `v2ResponseOverhead`; working tree clean (auto-commit daemon picked everything up) | grep + `git status` at 10:54 |
+| What                                                                                                                                                                                                                                            | Verification                                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Response framing correction (payload@8 + head-echo + min-len 9, shared `pixy.V2ResponsePayloadOffset`, `ErrV2ResponseHeadMismatch`)                                                                                                             | full race suite ✓, mismatch/short-response rejection pinned by `TestParseV2_HeadEchoMismatch`                         |
+| TargetTrackMode correction (0=none, 1=face, 2=halfbody, 3=fullbody; `none`/`off` CLI + web picker segment + persistence; numeric aliases removed)                                                                                               | `TestTargetTrackModeWireValues` pins the bytes; command round-trip incl. `none` in `TestHandleTrackingVariantCommand` |
+| ChargeStatus typed ({1,2}=charging, enum-validated) wired into `battery` output + Waybar `charging`/`discharging` classes                                                                                                                       | `TestChargeStatusPredicate`, `TestWaybarBatteryClass` (incl. charge value 2)                                          |
+| `tools/emhid/extract_x64.py` + `x64_heads.json` (108/162, artifact filtered, xor-zero handled)                                                                                                                                                  | **fresh regeneration from the durable specimen reproduced the committed artifact byte-identically**                   |
+| Beta.25 inno artifacts committed (`parsed-beta25.json`, `setup0_offsets-beta25.json`) + both tool READMEs updated                                                                                                                               | files in tree; README documents the second-installer verification + `mkdir -p data`                                   |
+| Regression tests: `TestLockOrder_V4L2MoveWithHIDCommands` (deadlock watchdog, `v4l2Mu → hidMu`), `TestStateRoundTrip_SpeedsOmitZero_TrackModeNone` (on-disk JSON shape)                                                                         | both green under `-race`                                                                                              |
+| Docs sweep: TODO_LIST #138–#141/#150/#152, CHANGELOG [Unreleased], AGENTS.md (evidence grades, lock-order rule, research section + Wayback CDX recipe), map doc §3.5a + §6, ROADMAP, FEATURES, README, website (cli-reference/waybar/changelog) | read-back during sweep; website builds 19 pages ✓                                                                     |
+| Prior reports annotated (09:40 §g Q1/Q2, 10:04 §g Q1–Q3 → RESOLVED inline with evidence) + closing report written                                                                                                                               | strikethrough markers in place                                                                                        |
+| Final gates: `go build` ✓ · `go test -race -count=1 ./...` ✓ · golangci-lint **0 issues** ✓ · `nix build` ✓ · website `pnpm run build` 19 pages + CSP ✓ · fuzz list count 6 matches CI assert ✓ · `go vet -tags=integration` compiles ✓         | all run this session                                                                                                  |
+| No dangling references to the removed `v2ResponseOverhead`; working tree clean (auto-commit daemon picked everything up)                                                                                                                        | grep + `git status` at 10:54                                                                                          |
 
 ## b) PARTIALLY DONE
 
@@ -44,10 +44,10 @@
 
 ## e) WHAT WE SHOULD IMPROVE
 
-- **A mid-session plan ledger**: the dropped `MotorMCUIface` edit proves my TODO list tracked *tasks* but not *small planned edits discovered mid-flight*. Either promote them to todos immediately or accept they evaporate.
+- **A mid-session plan ledger**: the dropped `MotorMCUIface` edit proves my TODO list tracked _tasks_ but not _small planned edits discovered mid-flight_. Either promote them to todos immediately or accept they evaporate.
 - **"All gates green" must enumerate the gates**: the project's own AGENTS lists `nix flake check`; my verification claim silently narrowed to the gates I happened to run.
 - **Markup changes deserve at least one render check** — the None segment shipped without eyes on it; a single headless-chromium screenshot (the same path #129 uses) would have closed that.
-- **Self-review pays for itself**: three concrete gaps (MotorMCUIface, DOMAIN_LANGUAGE, flake check) surfaced in ten minutes of adversarial re-reading after a session that *felt* complete.
+- **Self-review pays for itself**: three concrete gaps (MotorMCUIface, DOMAIN_LANGUAGE, flake check) surfaced in ten minutes of adversarial re-reading after a session that _felt_ complete.
 
 ## f) NEXT (from this session's findings; ranked)
 

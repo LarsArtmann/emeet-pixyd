@@ -32,31 +32,31 @@ main() → NewDaemon() → Run()
   └── systemd sd_notify (READY=1, WATCHDOG=1)
 ```
 
-| File                                      | Purpose                                                                                                                                               |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.go`                                 | `Daemon` struct, lifecycle (`Run` → `startHTTPServer` + `eventLoop` + `handleShutdown`), signals, `main()`                                            |
-| `commands.go`                             | Command routing (socket + CLI), named command/response constants, `handleQueryCommand`, `handleTogglePrivacy`                                         |
-| `handlers.go`                             | HTTP routing, web handlers, DataStar SSE rendering                                                                                                    |
-| `ptz.go`                                  | PTZ logic: `ptzAxes` map, `parsePTZValue`, readback scheduling                                                                                        |
-| `metrics.go`                              | `daemonMetrics` struct, OTel registration (lazy `sync.Once`, no `init()` anywhere)                                                                    |
-| `stream.go`                               | MJPEG streaming, snapshot, JPEG extraction, typed stream errors                                                                                       |
-| `http.go` / `middleware.go`               | HTTP helpers (`writeJSON`, `chain`, middleware implementations)                                                                                       |
-| `sse.go`                                  | `Broadcaster` (thread-safe fan-out); wire format handled by the DataStar SDK                                                                          |
-| `hid.go`                                  | HID config/query over hidraw; generic `queryHIDState[T]`                                                                                              |
-| `motor.go`                                | V2 single-report writers (`speed`, `preset push`) over hidraw, circuit-breaker accounting                                                              |
-| `identity.go`                             | Best-effort identity queries (`sn`/`ver`/`devver`/`func`) for the `device` command                                                                     |
-| `device.go`                               | Device state mgmt, `reconcileOnDeviceAppear`, `getStatus`, `syncState`                                                                                |
-| `process.go`                              | `/proc/*/fd` call detection, PipeWire switching, notifications                                                                                        |
-| `uevent.go` / `uevent_linux.go`           | Netlink uevent listener (`UeventListener` interface)                                                                                                  |
-| `auto.go`                                 | Auto-manage loop, debounce                                                                                                                            |
-| `state.go`                                | JSON state persistence (atomic tmp+rename, schema version `"v"`)                                                                                      |
-| `probe.go`                                | Pure `probeDevices()` → `probeResult{VideoDev, HidrawDev, Model}`; `warnInaccessibleDevices`                                                          |
-| `errorfamily.go` / `errors.go`            | Sentinel classification (Infrastructure/Rejection/Transient), `CommandError`, `errorPrefix`                                                           |
-| `commander.go` / `deps.go`                | `CommandRunner` + `Dependencies` DI struct (function fields, noop defaults)                                                                           |
-| `waybar.go` / `web_types.go` / `cache.go` | Waybar JSON; typed `webStatus`; `lastFrameCache`/`ptzCache`                                                                                           |
-| `templates.templ`                         | DataStar UI (compiled via `templ generate`)                                                                                                           |
-| `internal/pixy/`                          | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model`, `V2Head`, `MotorType`, `TargetTrackMode`                        |
-| `tools/inno661/`, `tools/emhid/`          | EMEET STUDIO reverse-engineering artifacts (see Research section)                                                                                     |
+| File                                      | Purpose                                                                                                                                                                                         |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main.go`                                 | `Daemon` struct, lifecycle (`Run` → `startHTTPServer` + `eventLoop` + `handleShutdown`), signals, `main()`                                                                                      |
+| `commands.go`                             | Command routing (socket + CLI), named command/response constants, `handleQueryCommand`, `handleTogglePrivacy`                                                                                   |
+| `handlers.go`                             | HTTP routing, web handlers, DataStar SSE rendering                                                                                                                                              |
+| `ptz.go`                                  | PTZ logic: `ptzAxes` map, `parsePTZValue`, readback scheduling                                                                                                                                  |
+| `metrics.go`                              | `daemonMetrics` struct, OTel registration (lazy `sync.Once`, no `init()` anywhere)                                                                                                              |
+| `stream.go`                               | MJPEG streaming, snapshot, JPEG extraction, typed stream errors                                                                                                                                 |
+| `http.go` / `middleware.go`               | HTTP helpers (`writeJSON`, `chain`, middleware implementations)                                                                                                                                 |
+| `sse.go`                                  | `Broadcaster` (thread-safe fan-out); wire format handled by the DataStar SDK                                                                                                                    |
+| `hid.go`                                  | HID config/query over hidraw; generic `queryHIDState[T]`                                                                                                                                        |
+| `motor.go`                                | V2 single-report writers (`speed`, `preset push`) over hidraw, circuit-breaker accounting                                                                                                       |
+| `identity.go`                             | Best-effort identity queries (`sn`/`ver`/`devver`/`func`) for the `device` command                                                                                                              |
+| `device.go`                               | Device state mgmt, `reconcileOnDeviceAppear`, `getStatus`, `syncState`                                                                                                                          |
+| `process.go`                              | `/proc/*/fd` call detection, PipeWire switching, notifications                                                                                                                                  |
+| `uevent.go` / `uevent_linux.go`           | Netlink uevent listener (`UeventListener` interface)                                                                                                                                            |
+| `auto.go`                                 | Auto-manage loop, debounce                                                                                                                                                                      |
+| `state.go`                                | JSON state persistence (atomic tmp+rename, schema version `"v"`)                                                                                                                                |
+| `probe.go`                                | Pure `probeDevices()` → `probeResult{VideoDev, HidrawDev, Model}`; `warnInaccessibleDevices`                                                                                                    |
+| `errorfamily.go` / `errors.go`            | Sentinel classification (Infrastructure/Rejection/Transient), `CommandError`, `errorPrefix`                                                                                                     |
+| `commander.go` / `deps.go`                | `CommandRunner` + `Dependencies` DI struct (function fields, noop defaults)                                                                                                                     |
+| `waybar.go` / `web_types.go` / `cache.go` | Waybar JSON; typed `webStatus`; `lastFrameCache`/`ptzCache`                                                                                                                                     |
+| `templates.templ`                         | DataStar UI (compiled via `templ generate`)                                                                                                                                                     |
+| `internal/pixy/`                          | Shared domain types: `Config`, `State`, `CameraState`, `AudioMode`, `AutoMode`, `PID`, `SourceID`, `Axis`, `Range`, `PTZValues`, `PresetMap`, `Model`, `V2Head`, `MotorType`, `TargetTrackMode` |
+| `tools/inno661/`, `tools/emhid/`          | EMEET STUDIO reverse-engineering artifacts (see Research section)                                                                                                                               |
 
 ### Key behaviors
 

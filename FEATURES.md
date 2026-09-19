@@ -86,15 +86,15 @@
 
 ## CLI / Unix Socket
 
-| Feature             | Status                | Notes                                                                                                                                                          |
-| ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                                                                                                 |
-| Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).                                                                                       |
-| Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`); also shown in the web footer badge and Waybar tooltip.                                                                                           |
-| Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                                                                                             |
-| Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                                                                                                   |
-| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`) + additive `model` and battery fields (omitted when absent). Pan/tilt values and charging/discharging classes not yet included (ROADMAP).                                        |
-| --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                                                                                            |
+| Feature             | Status                | Notes                                                                                                                                                                                 |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                                                                                                                        |
+| Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).                                                                                                              |
+| Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`); also shown in the web footer badge and Waybar tooltip.                                                  |
+| Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                                                                                                                    |
+| Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                                                                                                                          |
+| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`) + additive `model` and battery fields (omitted when absent). Pan/tilt values and charging/discharging classes not yet included (ROADMAP). |
+| --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                                                                                                                   |
 
 ## Desktop Notifications
 
@@ -135,18 +135,18 @@
 
 ## HID Communication
 
-| Feature                | Status                | Notes                                                                                                                     |
-| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| HID Config+Commit      | 🟢 `FULLY_FUNCTIONAL` | 9-byte config + 4-byte commit via hidraw, 200ms sleep.                                                                    |
-| HID State Query        | 🟢 `FULLY_FUNCTIONAL` | Generic `queryHIDState[T]`; `HIDDevice` interface embeds `fmt.Stringer`.                                                  |
-| HID Circuit Breaker    | 🟢 `FULLY_FUNCTIONAL` | 3 consecutive failures → re-probe; resets on success (`device.go`, threshold 3).                                          |
-| V2 Command Families    | 🟢 `FULLY_FUNCTIONAL` | Official protocol vocabulary (`internal/pixy/v2head.go`) + byte-faithful simulator validation.                            |
-| Motor Speed (HID)      | 🟢 `FULLY_FUNCTIONAL` | `speed <pan\|tilt\|zoom> <value>` over the official V2 SetMotorSpeed + web sliders; persists to `state.json` and is re-asserted before every move; unit/hardware limit #166-verify. |
+| Feature                | Status                | Notes                                                                                                                                                                                     |
+| ---------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HID Config+Commit      | 🟢 `FULLY_FUNCTIONAL` | 9-byte config + 4-byte commit via hidraw, 200ms sleep.                                                                                                                                    |
+| HID State Query        | 🟢 `FULLY_FUNCTIONAL` | Generic `queryHIDState[T]`; `HIDDevice` interface embeds `fmt.Stringer`.                                                                                                                  |
+| HID Circuit Breaker    | 🟢 `FULLY_FUNCTIONAL` | 3 consecutive failures → re-probe; resets on success (`device.go`, threshold 3).                                                                                                          |
+| V2 Command Families    | 🟢 `FULLY_FUNCTIONAL` | Official protocol vocabulary (`internal/pixy/v2head.go`) + byte-faithful simulator validation.                                                                                            |
+| Motor Speed (HID)      | 🟢 `FULLY_FUNCTIONAL` | `speed <pan\|tilt\|zoom> <value>` over the official V2 SetMotorSpeed + web sliders; persists to `state.json` and is re-asserted before every move; unit/hardware limit #166-verify.       |
 | Tracking Variants      | 🟢 `FULLY_FUNCTIONAL` | `tracking none\|face\|halfbody\|fullbody` via SetTargetTrack + web picker; persists across restarts; enum corrected to the official 1-based scheme (statically evidenced, #166 confirms). |
-| Battery/Charge         | 🟢 `FULLY_FUNCTIONAL` | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence; typed ChargeSta ({1,2}=charging) with Waybar charging/discharging classes. |
-| Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL` | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping); web chip push button with confirm prompt.        |
-| Identity Queries       | 🟢 `FULLY_FUNCTIONAL` | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                        |
-| Camera Model Surface   | 🟢 `FULLY_FUNCTIONAL` | Detected model shown in web footer, Waybar tooltip + JSON.                                                                |
+| Battery/Charge         | 🟢 `FULLY_FUNCTIONAL` | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence; typed ChargeSta ({1,2}=charging) with Waybar charging/discharging classes.              |
+| Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL` | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping); web chip push button with confirm prompt.                                            |
+| Identity Queries       | 🟢 `FULLY_FUNCTIONAL` | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                                                                                        |
+| Camera Model Surface   | 🟢 `FULLY_FUNCTIONAL` | Detected model shown in web footer, Waybar tooltip + JSON.                                                                                                                                |
 
 ## NixOS Module
 
