@@ -249,6 +249,16 @@ type State struct {
 	InCall        bool        `json:"inCall"`
 	AutoMode      AutoMode    `json:"autoMode"`
 	Presets       PresetMap   `json:"presets,omitempty"`
+
+	// TrackMode is the persisted tracking variant (TODO #140): the canonical
+	// TargetTrackMode string ("face"/"halfbody"/"fullbody"). Empty means
+	// "never set" and reads back as the default (face).
+	TrackMode string `json:"trackMode,omitempty"`
+
+	// Speeds are the persisted per-axis motor speeds (TODO #138). Zero on an
+	// axis means "no preference": the daemon leaves the firmware default in
+	// effect and does not re-send it before moves.
+	Speeds SpeedValues `json:"speeds,omitempty"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
@@ -266,8 +276,66 @@ func DefaultState() State {
 
 // Valid reports whether all enum fields contain recognized values.
 func (s State) Valid() bool {
+	if s.TrackMode != "" {
+		if _, ok := ParseTargetTrackMode(s.TrackMode); !ok {
+			return false
+		}
+	}
+
 	return s.Camera.Valid() && s.Audio.Valid() && s.AutoMode.Valid()
 }
+
+// EffectiveTrackMode returns the persisted tracking variant, or the default
+// (face) when none was ever set.
+func (s State) EffectiveTrackMode() TargetTrackMode {
+	if mode, ok := ParseTargetTrackMode(s.TrackMode); ok {
+		return mode
+	}
+
+	return TrackFace
+}
+
+// SpeedValues holds the per-axis motor speed preference (TODO #138).
+// Values are transmitted verbatim to the official SetMotorSpeed command;
+// the physical unit is assumed degrees/second until hardware verification.
+// Zero means "no preference" (firmware default stays in effect).
+type SpeedValues struct {
+	Pan  float32 `json:"pan,omitempty"`
+	Tilt float32 `json:"tilt,omitempty"`
+	Zoom float32 `json:"zoom,omitempty"`
+}
+
+// Get returns the speed for the given axis and true if the axis is
+// recognized, or 0 and false if the axis is unknown.
+func (s SpeedValues) Get(axis Axis) (float32, bool) {
+	switch axis {
+	case AxisPan:
+		return s.Pan, true
+	case AxisTilt:
+		return s.Tilt, true
+	case AxisZoom:
+		return s.Zoom, true
+	default:
+		return 0, false
+	}
+}
+
+// Set returns a copy with the given axis set to speed.
+func (s SpeedValues) Set(axis Axis, speed float32) SpeedValues {
+	switch axis {
+	case AxisPan:
+		s.Pan = speed
+	case AxisTilt:
+		s.Tilt = speed
+	case AxisZoom:
+		s.Zoom = speed
+	}
+
+	return s
+}
+
+// IsZero reports whether no axis carries a speed preference.
+func (s SpeedValues) IsZero() bool { return s.Pan == 0 && s.Tilt == 0 && s.Zoom == 0 }
 
 // PTZValues holds the current pan/tilt/zoom position of the camera.
 type PTZValues struct {

@@ -37,11 +37,6 @@ type Daemon struct {
 	model     pixy.Model
 	hidDev    HIDDevice
 
-	// trackMode is the in-memory tracking variant (TODO #140). Unlike the
-	// camera mode it is NOT persisted: v1 semantics reset the variant on
-	// daemon restart, and reconcile does not re-assert it (M27-verify).
-	trackMode pixy.TargetTrackMode
-
 	// Debounce counters: number of consecutive polls observing a stable
 	// in-use or idle state. Both clamp to config.DebounceCount so the
 	// >= check below is the trigger boundary, not unbounded growth.
@@ -301,8 +296,12 @@ func (d *Daemon) eventLoop(
 			return
 		case <-ueventCh:
 			slog.Info("device event detected, re-probing")
-			d.hidMu.Lock()
+			// Lock order is v4l2Mu -> hidMu everywhere the two nest: PTZ move
+			// paths hold v4l2Mu and briefly take hidMu to re-assert configured
+			// motor speeds before the move. Keep this the only nested site in
+			// the same order to make a lock-order inversion impossible.
 			d.v4l2Mu.Lock()
+			d.hidMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
 			probe := probeDevices() //nolint:contextcheck // probe is plain sysfs I/O, ctx not threaded
@@ -321,8 +320,8 @@ func (d *Daemon) eventLoop(
 
 				d.reconcileOnDeviceAppear(ctx)
 			}
-			d.v4l2Mu.Unlock()
 			d.hidMu.Unlock()
+			d.v4l2Mu.Unlock()
 		case <-ticker.C:
 			d.autoManage(ctx)
 			sdNotify("WATCHDOG=1")
