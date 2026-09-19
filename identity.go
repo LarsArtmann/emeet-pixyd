@@ -66,7 +66,7 @@ func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (str
 		return "", fmt.Errorf("identity string %x: %w", head, err)
 	}
 
-	return pixy.ParseString(resp)
+	return pixy.ParseString(head, resp)
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
@@ -76,7 +76,7 @@ func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16
 		return 0, fmt.Errorf("identity u16 %x: %w", head, err)
 	}
 
-	return pixy.ParseU16(resp)
+	return pixy.ParseU16(head, resp)
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
@@ -86,7 +86,7 @@ func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32
 		return 0, fmt.Errorf("identity u32 %x: %w", head, err)
 	}
 
-	return pixy.ParseU32(resp)
+	return pixy.ParseU32(head, resp)
 }
 
 // formatIdentity renders the answered identity fields as additional

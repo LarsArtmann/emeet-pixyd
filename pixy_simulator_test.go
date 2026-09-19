@@ -312,8 +312,8 @@ func buildV2SetSpecs() map[[4]byte]v2SetSpec {
 	}}
 
 	trackSpec := v2SetSpec{name: "SetTargetTrack", payloadLen: 13, validate: func(payload []byte) error {
-		if payload[0] > 2 {
-			return fmt.Errorf("target track mode %d out of range (Face/HalfBody/FullBody = 0..2): %w",
+		if !pixy.TargetTrackMode(payload[0]).Valid() {
+			return fmt.Errorf("target track mode %d out of range (None/Face/HalfBody/FullBody = 0..3): %w",
 				payload[0], ErrTrackModeRange)
 		}
 
@@ -371,7 +371,8 @@ func buildV2GetHeads() map[[4]byte]bool {
 var (
 	errPresetSlotZero = errors.New("preset slot 0 is invalid (slots are 1-based)")
 	// ErrTrackModeRange is returned when a target-track mode byte exceeds the
-	// three known UI variants (assignment M27-verify).
+	// four official UI variants (statically evidenced, Beta.25 UI enum
+	// registration; hardware confirmation pending, #166).
 	ErrTrackModeRange = errors.New("track mode out of range")
 )
 
@@ -459,17 +460,19 @@ func (s *pixyProtocolState) handleV2Set(report []byte) error {
 }
 
 // buildV2Response generates a protocol-shaped response for a V2 GET query.
-// FRAMING ASSUMPTION (unpinned until hardware verification, plan M27): the
-// response echoes the 4-byte head followed by the payload documented in the
-// map doc. When M27 pins the real framing, this builder and the read-path
-// parsers change together.
+// EVIDENCE (static, Beta.25 x64 parser disassembly; see
+// pixy.V2ResponsePayloadOffset): the response echoes the 4-byte request head,
+// carries a reserved dword at bytes 4..7 (modeled as zeros), and starts the
+// payload at offset 8. If hardware (#166) shows different framing, this
+// builder and the internal/pixy parsers change together via the shared
+// constant.
 func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 	var key [4]byte
 	copy(key[:], query[:4])
 
 	resp := make([]byte, hidRespBufSize)
 	copy(resp, key[:])
-	body := resp[4:]
+	body := resp[pixy.V2ResponsePayloadOffset:]
 
 	speedKey := [4]byte(pixy.V2GetMotorSpeed)
 	speedKey63 := [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface))

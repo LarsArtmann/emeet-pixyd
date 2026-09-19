@@ -13,11 +13,13 @@ import (
 )
 
 // The battery/charge read surface (TODO #139). Heads are from the extracted
-// official table; the RESPONSE framing is an assumption (head echo + payload)
-// pinned at the hardware session (plan M27) — every read is best-effort and
-// callers must degrade gracefully when the wired PIXY does not answer. The
-// official app ships battery-over-HID in the macOS build only, so absence is
-// an expected outcome, not an error condition.
+// official table (statically evidenced, Mac 2.0.3 cmdtable). The response
+// framing is statically evidenced from the Beta.25 x64 parser disassembly
+// (head echo + reserved dword + payload at offset 8, see
+// pixy.V2ResponsePayloadOffset); hardware confirmation is pending (#166) —
+// every read is best-effort and callers must degrade gracefully when the
+// wired PIXY does not answer. The official app ships battery-over-HID in the
+// macOS build only, so absence is an expected outcome, not an error condition.
 
 // powerCacheTTL bounds how often status/waybar reads hit the HID device for
 // battery data. One failed query per TTL is the steady-state cost on devices
@@ -26,7 +28,7 @@ const powerCacheTTL = time.Minute
 
 type powerReading struct {
 	Level    int  // percent, 0..100 (u8 on the wire)
-	Charging bool // ChargeSta != 0 (enum values M27-verify)
+	Charging bool // pixy.ChargeStatus.Charging() — {1,2} per the Beta.25 consumer-code decode
 }
 
 type powerCache struct {
@@ -85,7 +87,7 @@ func (d *Daemon) queryPower(ctx context.Context) (powerReading, error) {
 
 	charge, err := d.queryChargeStatus(ctx)
 	if err == nil {
-		reading.Charging = charge != 0
+		reading.Charging = charge.Charging()
 	}
 
 	return reading, nil
@@ -98,17 +100,17 @@ func (d *Daemon) queryBatteryLevel(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	return pixy.ParseBatteryLevel(resp)
+	return pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, resp)
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
-func (d *Daemon) queryChargeStatus(ctx context.Context) (byte, error) {
+func (d *Daemon) queryChargeStatus(ctx context.Context) (pixy.ChargeStatus, error) {
 	resp, err := d.v2Read(ctx, pixy.V2GetChargeSta)
 	if err != nil {
 		return 0, err
 	}
 
-	return pixy.ParseChargeStatus(resp)
+	return pixy.ParseChargeStatus(pixy.V2GetChargeSta, resp)
 }
 
 // v2Read sends a bare V2 GET head via SendRecv under the HID lock, with the

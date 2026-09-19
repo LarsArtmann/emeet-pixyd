@@ -44,15 +44,28 @@ var (
 	// ErrV2ResponseShort is returned when a V2 read response is too short to
 	// carry the documented payload.
 	ErrV2ResponseShort = errors.New("v2 response too short")
+	// ErrV2ResponseHeadMismatch is returned when a V2 response does not echo
+	// the request head (official parsers reject those; so do we).
+	ErrV2ResponseHeadMismatch = errors.New("v2 response head mismatch")
 	// ErrInvalidMotorType is returned when a motor byte is not a valid
 	// pixy.MotorType.
 	ErrInvalidMotorType = errors.New("invalid motor type")
+	// ErrInvalidChargeStatus is returned when a charge-status byte is not a
+	// known ChargeStatus value.
+	ErrInvalidChargeStatus = errors.New("invalid charge status")
 )
 
-// Known V2 command heads used by emeet-pixyd. Bytes are from
-// tools/emhid/cmdtable.json; payload layouts from official controller call
-// sites (map doc §3.5). Response framing is NOT yet pinned — read paths treat
-// responses as best-effort parse + raw fallback until hardware verification.
+// Known V2 command heads used by emeet-pixyd.
+//
+// EVIDENCE GRADES (see docs/hid-protocol-official-map.md §3.5):
+//   - Head bytes: statically evidenced, 2.0.3 Mac cmdtable
+//     (tools/emhid/cmdtable.json); 108/162 of those heads independently
+//     confirmed byte-for-byte in the 2.0.0-Beta.25 x64 build under the
+//     version-shift model (2.0.3 = Beta.25 IDs + 1 after two insertions).
+//   - Response framing: statically evidenced, Beta.25 x64 parser disassembly
+//     (see V2ResponsePayloadOffset) — hardware confirmation pending (#166).
+//   - Per-command payload layouts: map doc §3.5 call sites; graded per
+//     constant below where stronger evidence exists.
 //
 //nolint:gochecknoglobals // protocol constants; [4]byte cannot be Go consts
 var (
@@ -149,9 +162,40 @@ func (h V2Head) WithIface(iface byte) V2Head {
 // V2PayloadSize is the byte count of a [motorType:u8][speed:f32 LE] payload.
 const V2PayloadSize = 5
 
-// v2ResponseOverhead is the head-echo prefix length assumed for V2 responses
-// (framing assumption, pinned at hardware verification, plan M27).
-const v2ResponseOverhead = 4
+// V2ResponsePayloadOffset is where the payload starts in a V2 GET response.
+// EVIDENCE (static, Beta.25 x64 parser disassembly, TODO #166 for hardware):
+// every official CMD_*_VAL parser validates that the response's first four
+// bytes ECHO the request head, requires len >= 9, and reads the first
+// payload byte at offset 8 — bytes 4..7 are a reserved dword of unknown
+// meaning. Our previous offset-4 assumption is provably wrong against this;
+// the offset, the head-echo check, and the simulator's response builder all
+// use this constant so they evolve together.
+const V2ResponsePayloadOffset = 8
+
+// v2Payload validates the response framing and returns the payload slice:
+// a 4-byte request-head echo, the reserved dword (bytes 4..7), then the
+// payload. need is the required payload length in bytes.
+func v2Payload(want V2Head, resp []byte, need int) ([]byte, error) {
+	if len(resp) < len(want) {
+		return nil, fmt.Errorf("v2 response %d bytes: %w", len(resp), ErrV2ResponseShort)
+	}
+
+	var echo V2Head
+	copy(echo[:], resp[:len(want)])
+
+	if echo != want {
+		return nil, fmt.Errorf("v2 response head %x, want %x: %w", echo, want, ErrV2ResponseHeadMismatch)
+	}
+
+	if len(resp) < V2ResponsePayloadOffset+need {
+		return nil, fmt.Errorf(
+			"v2 payload %d bytes (need %d): %w",
+			len(resp)-V2ResponsePayloadOffset, need, ErrV2ResponseShort,
+		)
+	}
+
+	return resp[V2ResponsePayloadOffset:], nil
+}
 
 // v2MotorSpeedPayloadLen is the byte count of a GetMotorSpeed response
 // payload: [motorType:u8][speed:f32][limit:f32].
@@ -176,13 +220,13 @@ type MotorSpeedReading struct {
 }
 
 // ParseMotorSpeedResponse reads a [motorType:u8][speed:f32][limit:f32]
-// GetMotorSpeed response (framing assumption: the head is echoed in front of
-// the payload — pinned at hardware verification).
-func ParseMotorSpeedResponse(resp []byte) (MotorSpeedReading, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
-
-	if len(payload) < v2MotorSpeedPayloadLen {
-		return MotorSpeedReading{}, fmt.Errorf("motor speed payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+// GetMotorSpeed response. head is the head AS SENT (including any
+// MotorMCUIface routing): official parsers validate the echo against the
+// request head, and so does v2Payload.
+func ParseMotorSpeedResponse(head V2Head, resp []byte) (MotorSpeedReading, error) {
+	payload, err := v2Payload(head, resp, v2MotorSpeedPayloadLen)
+	if err != nil {
+		return MotorSpeedReading{}, err
 	}
 
 	motor := MotorType(payload[0])
@@ -200,51 +244,96 @@ func ParseMotorSpeedResponse(resp []byte) (MotorSpeedReading, error) {
 func motorF32Bits(f float32) uint32 { return math.Float32bits(f) }
 func f32FromBits(b uint32) float32  { return math.Float32frombits(b) }
 
-// ParseBatteryLevel reads a GetBatteryLevel response: [level:u8] percent
-// after the head echo (framing assumption, pinned at hardware verification).
-func ParseBatteryLevel(resp []byte) (int, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
-
-	if len(payload) < 1 {
-		return 0, fmt.Errorf("battery payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+// ParseBatteryLevel reads a GetBatteryLevel response: [level:u8] percent.
+// EVIDENCE (static, Beta.25 x64 parser disasm @0x14017a710): level is the raw
+// byte at offset 8; payload layout verified instruction-by-instruction.
+func ParseBatteryLevel(head V2Head, resp []byte) (int, error) {
+	payload, err := v2Payload(head, resp, 1)
+	if err != nil {
+		return 0, err
 	}
 
 	return int(payload[0]), nil
 }
 
-// ParseChargeStatus reads a GetChargeSta response: [sta:u8] after the head
-// echo (framing assumption, pinned at hardware verification). Non-zero means
-// charging; the full enum is unknown until the hardware session.
-func ParseChargeStatus(resp []byte) (byte, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
+// ChargeStatus is the CMD_GET_CHARGE_STA response enum.
+//
+// EVIDENCE (static, Beta.25 x64 consumer code @0x1403ccbf8): the official app
+// computes isCharging as (sta-1) <= 1, i.e. {1,2} = charging, 0 = discharging.
+// What distinguishes 1 from 2 is undecoded (no UI enum registration exists
+// for ChargeSta); both constants below therefore mean "charging" until the
+// hardware session (#166) separates them.
+type ChargeStatus byte
 
-	if len(payload) < 1 {
-		return 0, fmt.Errorf("charge payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+const (
+	ChargeDischarging  ChargeStatus = 0
+	ChargeCharging     ChargeStatus = 1
+	ChargeChargingAlt  ChargeStatus = 2
+)
+
+func (c ChargeStatus) Valid() bool { return c <= ChargeChargingAlt }
+
+// Charging reports whether the status is any charging state ({1,2}), the
+// official consumer code's exact predicate.
+func (c ChargeStatus) Charging() bool { return c == ChargeCharging || c == ChargeChargingAlt }
+
+func (c ChargeStatus) String() string {
+	switch c {
+	case ChargeDischarging:
+		return "discharging"
+	case ChargeCharging:
+		return "charging"
+	case ChargeChargingAlt:
+		return "charging-alt"
+	default:
+		return fmt.Sprintf("charge(%d)", byte(c))
+	}
+}
+
+// ParseChargeStatus reads a GetChargeSta response: [sta:u8] after the
+// head-echo framing. EVIDENCE (static, Beta.25 x64 parser disasm
+// @0x14017a7d0): the payload byte is the ChargeSta enum; values above 2 are
+// not in the official consumer predicate and are rejected here.
+func ParseChargeStatus(head V2Head, resp []byte) (ChargeStatus, error) {
+	payload, err := v2Payload(head, resp, 1)
+	if err != nil {
+		return 0, err
 	}
 
-	return payload[0], nil
+	sta := ChargeStatus(payload[0])
+	if !sta.Valid() {
+		return 0, fmt.Errorf("charge status %d: %w", payload[0], ErrInvalidChargeStatus)
+	}
+
+	return sta, nil
 }
 
 // TargetTrackMode selects the tracking variant of the official
-// SetTargetTrack command (TODO #140). UI strings confirm the three variants
-// Face / HalfBody / FullBody.
+// SetTargetTrack command (TODO #140).
 //
-// VALUE ASSIGNMENT IS AN ASSUMPTION pending hardware verification (plan
-// M27): 0/1/2 follows the UI ordering with face as the default variant. The
-// command payload is [mode:u8][f32x3]; the three floats' meaning (sensitivity
-// or target box) is unknown, so emeet-pixyd transmits zeros.
+// EVIDENCE (static, Beta.25 x64 UI enum registration decode @0x14027c820):
+// 0 = None ("No Smart Composition"), 1 = Face, 2 = HalfBody, 3 = FullBody —
+// every official UI enum in the app is 1-based with 0 = None. Our previous
+// 0/1/2 face-first assignment was off by one and would have sent "none"
+// where the user asked for "face". Hardware confirmation pending (#166);
+// until then the mode byte is transmitted verbatim per this table.
+// The command payload is [mode:u8][f32x3]; the three floats' meaning
+// (sensitivity or target box) is unknown, so emeet-pixyd transmits zeros.
 type TargetTrackMode byte
 
 const (
-	TrackFace     TargetTrackMode = 0
-	TrackHalfBody TargetTrackMode = 1
-	TrackFullBody TargetTrackMode = 2
+	TrackNone     TargetTrackMode = 0
+	TrackFace     TargetTrackMode = 1
+	TrackHalfBody TargetTrackMode = 2
+	TrackFullBody TargetTrackMode = 3
 )
 
 func (m TargetTrackMode) Valid() bool { return m <= TrackFullBody }
 
 func (m TargetTrackMode) String() string {
 	switch m {
+	case TrackNone:
+		return "none"
 	case TrackFace:
 		return "face"
 	case TrackHalfBody:
@@ -257,14 +346,18 @@ func (m TargetTrackMode) String() string {
 }
 
 // ParseTargetTrackMode maps CLI aliases (including the short forms
-// "half"/"full") to a variant.
+// "half"/"full") to a variant. Numeric aliases are deliberately absent:
+// they encoded the disproved 0-based mapping, and silently remapping them
+// would change their meaning.
 func ParseTargetTrackMode(input string) (TargetTrackMode, bool) {
 	switch input {
-	case "face", "0":
+	case "none", "off":
+		return TrackNone, true
+	case "face":
 		return TrackFace, true
-	case "halfbody", "half", "1":
+	case "halfbody", "half":
 		return TrackHalfBody, true
-	case "fullbody", "full", "2":
+	case "fullbody", "full":
 		return TrackFullBody, true
 	default:
 		return 0, false
@@ -285,13 +378,12 @@ func TargetTrackPayload(mode TargetTrackMode) []byte {
 	return out
 }
 
-// ParseU16 reads a GetVer/GetDeviceVer response: [u16 LE] after the head
-// echo (framing assumption, pinned at hardware verification).
-func ParseU16(resp []byte) (uint16, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
-
-	if len(payload) < 2 {
-		return 0, fmt.Errorf("u16 payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+// ParseU16 reads a GetVer/GetDeviceVer response: [u16 LE] after the
+// head-echo framing (payload shape itself still assumed, map doc §3.5).
+func ParseU16(head V2Head, resp []byte) (uint16, error) {
+	payload, err := v2Payload(head, resp, 2)
+	if err != nil {
+		return 0, err
 	}
 
 	return binary.LittleEndian.Uint16(payload), nil
@@ -300,25 +392,27 @@ func ParseU16(resp []byte) (uint16, error) {
 // v2U32PayloadLen is the byte count of a u32 response payload.
 const v2U32PayloadLen = 4
 
-// ParseU32 reads a GetFuncSta response: [u32 LE] after the head echo
-// (framing assumption, pinned at hardware verification). The bitfield's
-// individual capability bits are not decoded yet.
-func ParseU32(resp []byte) (uint32, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
-
-	if len(payload) < v2U32PayloadLen {
-		return 0, fmt.Errorf("u32 payload %d bytes: %w", len(payload), ErrV2ResponseShort)
+// ParseU32 reads a GetFuncSta response: [u32 LE] after the head-echo
+// framing (payload shape itself still assumed, map doc §3.5). The
+// bitfield's individual capability bits are not decoded yet.
+func ParseU32(head V2Head, resp []byte) (uint32, error) {
+	payload, err := v2Payload(head, resp, v2U32PayloadLen)
+	if err != nil {
+		return 0, err
 	}
 
 	return binary.LittleEndian.Uint32(payload), nil
 }
 
-// ParseString reads a GetSN-style response: printable bytes after the head
-// echo, terminated by NUL or end of buffer. Non-printable bytes truncate the
-// string (defensive against unpinned framing).
-func ParseString(resp []byte) (string, error) {
-	payload := resp[min(len(resp), v2ResponseOverhead):]
-
+// ParseString reads a GetSN-style response: printable bytes after the
+// head-echo framing, terminated by NUL or end of buffer. Non-printable
+// bytes truncate the string (defensive against the undecoded string
+// encoding, map doc §3.5).
+func ParseString(head V2Head, resp []byte) (string, error) {
+	payload, err := v2Payload(head, resp, 1)
+	if err != nil {
+		return "", err
+	}
 	end := 0
 
 	for end < len(payload) && payload[end] >= 0x20 && payload[end] != 0x7f {
