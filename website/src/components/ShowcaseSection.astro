@@ -6,11 +6,15 @@ const screenshots = [
     src: '/screenshots/webui-panel.png',
     alt: 'emeet-pixyd web control panel with camera mode cards, audio segments and PTZ controls',
     caption: 'Web control panel — mode cards, audio control, PTZ radar',
+    width: 1440,
+    height: 1600,
   },
   {
     src: '/screenshots/webui-viewport.png',
     alt: 'emeet-pixyd web UI overview with camera preview area',
     caption: 'Live view at 127.0.0.1:8090 — camera offline state shown',
+    width: 1440,
+    height: 900,
   },
 ];
 ---
@@ -36,7 +40,7 @@ const screenshots = [
   {screenshots.map((shot) => (
     <figure class="group">
       <div class="rounded-xl border border-border bg-bg-card overflow-hidden transition-all duration-200 group-hover:border-border-hover">
-        <img src={shot.src} alt={shot.alt} width="1440" height="1800" loading="lazy" decoding="async" class="w-full h-auto block" />
+        <img src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} loading="lazy" decoding="async" class="w-full h-auto block" />
       </div>
       <figcaption class="mt-2 text-xs text-text-muted text-center">{shot.caption}</figcaption>
     </figure>
