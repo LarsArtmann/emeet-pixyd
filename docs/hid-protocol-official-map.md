@@ -54,7 +54,9 @@ QML UI (EMBatteryLevel, PtzDeviceOptVM, ...)
 Legend: ✅ implemented by us · 🔷 same semantic exists officially, head+payload bytes
 known (`tools/emhid/cmdtable.json`, 2026-09-18 extraction) · ⬜ studio-feature, not
 applicable. Former 🔷 rows ("bytes unknown") were all upgraded after the V2Head
-table extraction; response _framing_ and enum _values_ remain M27-verify items (§6).
+table extraction; response _framing_ and most enum _values_ are now statically
+decoded from the Beta.25 x64 parser disassembly (§3.5a) — hardware
+confirmation remains the #166 item (§6).
 
 ### Camera / modes
 
@@ -162,6 +164,51 @@ Extraction collision note: two symbols share head `07 06 70 00`
 (`CMD_GET_SD_RECORD_SUPPORT_VIDEO_PARAM` and a V1 `SET_FOCUS_LOCK_STA`) — the
 legacy `0x07` region reuses (device, category, id) triples; irrelevant for the
 V2 `0x09` surface we implement against.
+
+**Windows x86_64 cross-verification (2026-09-19):** `tools/emhid/extract_x64.py`
+swept the CRT initializer thunks of the 2.0.0-Beta.25 Windows x64 build —
+**108/162 heads match `cmdtable.json` byte-for-byte, zero contradictions**
+(committed: `tools/emhid/x64_heads.json`; one `(9,0,0,0)` zero-initializer
+artifact filtered; the 53 Mac-only heads are mostly GETs sent via inline-head
+sender shapes the thunk sweep does not cover).
+
+**Version-shift model:** 2.0.3 (Mac) = Beta.25 IDs + 1 after two inserted
+commands — `CMD_SET_REBOOT` `[9,0,0,1]` (shifts the later power family) and
+`CMD_GET_MOTOR_SPEED` `[9,3,1,19]` (shifts the later motor family). Under this
+model every observed Mac-vs-x64 head discrepancy resolves; e.g. Beta.25
+battery/charge parser slots are `[9,0,0,1]`/`[9,0,0,5]` where 2.0.3 has
+`02`/`06`. Responses echo the request head — the apparent "response cmd =
+request − 1" was this version shift, never a protocol rule. Our requests use
+the 2.0.3 (Mac) IDs and validate the echo against the head as sent, so the
+shift is transparent to us.
+
+### 3.5a Response framing + decoded enums (2026-09-19, Beta.25 x64 parser disassembly)
+
+**Evidence grades:** `assumed` → `statically-evidenced-Beta.25` (x64
+disassembly) → `statically-evidenced-2.0.3` (Mac cmdtable) →
+`hardware-verified` (#166). Facts below are statically-evidenced-Beta.25
+unless noted; hardware confirmation is pending for all of them.
+
+- **Response framing** (parser cluster dispatcher `0x1403cc427`, per-command
+  parsers): every response must (a) echo the 4-byte request head in
+  `resp[0..3]`, (b) be ≥ 9 bytes, (c) carry its first payload byte at
+  **offset 8** — bytes 4..7 are a reserved dword of unknown meaning.
+  Implemented in our parsers via `pixy.V2ResponsePayloadOffset`; the
+  dispatcher routes commands by `resp[1] & 0x1F` (motor-MCU `0x63` routes as
+  `0x03`).
+- **Battery level** (parser `0x14017a710`): raw u8 at offset 8.
+- **ChargeSta** (parser `0x14017a7d0` + consumer code `0x1403ccbf8`):
+  `0` = discharging, `1|2` = charging (`(sta-1) <= 1` predicate); the 1-vs-2
+  distinction is undecoded. Typed as `pixy.ChargeStatus`.
+- **DefaultPosMode GET** (parser `0x14017e210`): mode u8 @8; when mode==1,
+  pan/tilt/zoom dwords LE at 9/0xd/0x11 (min length 0x15). Value semantics
+  still undecoded. This unblocks the `preset pull` design.
+- **TargetTrackMode** (UI enum registration `0x14027c820`): `0 = None`
+  ("No Smart Composition"), `1 = Face`, `2 = HalfBody`, `3 = FullBody` — every
+  official UI enum in the app is 1-based with 0 = None. Our original 0-based
+  assumption was wrong and is corrected in `pixy.TargetTrackMode`.
+- **MotorType 0/1/2 = pan/tilt/zoom**: still `assumed` (send-site payload
+  builders not yet decoded; payload builder `0x1403c53c0` is the thread).
 
 ### Power / battery (dev 0x00) — 8 commands
 
@@ -453,12 +500,18 @@ byte in this document comes from that table (§3.5). Escalation history preserve
 3. ~~Empirical probing~~ — superseded; the M3 probe now sweeps only the _exact_
    known heads × {`0x03`, `0x63`} iface variants instead of generic candidates.
 
-**What is still open (blocked 2026-09-18, needs the binary re-downloaded — the
-`/tmp` raw materials died with reboot and no download URL is committed):**
+**State as of 2026-09-19 — the 2026-09-18 blockers are broken open statically**
+(specimens re-acquired durably from the Wayback Machine; x64 pipeline committed
+as `tools/emhid/extract_x64.py`):
 
-- Enum **values** for `MotorType`, `TargetTrackMode`, `DefaultPosMode`,
-  `ChargeSta` (UI order strongly suggests 0/1/2 for the first two; M27-verify).
-- **Response framing** (`EMHidCmdV2RecvFsm::onDataRecv`, `hidCmdParseGet*`
-  bodies: head echo? sequence byte? length prefix?) — read paths implement
-  best-effort parse + raw-hex fallback until pinned.
-- Windows x86_64 cross-verification of the table (plan M25).
+- ~~Enum **values**~~ — `TargetTrackMode` (1-based + none) and `ChargeSta`
+  ({1,2}=charging) decoded from the Beta.25 x64 build and **implemented**
+  (§3.5a); `MotorType` and `DefaultPosMode` value semantics remain `assumed`
+  (send-site payload builders are the next thread, `0x1403c53c0`).
+- ~~**Response framing**~~ — decoded (§3.5a): head-echo + reserved dword +
+  payload at offset 8, min length 9; implemented behind
+  `pixy.V2ResponsePayloadOffset` with head-echo validation. Hardware
+  confirmation + the meaning of bytes 4..7 stay on the #166 list.
+- ~~Windows x86_64 cross-verification~~ — done: 108/162 byte-for-byte, zero
+  contradictions (§3.5); the 53 remaining Mac-only heads need the
+  inline-sender extraction path.
