@@ -32,9 +32,10 @@ Usage:
 re-disassembling (the full dump is ~160 MB; regeneration takes a few minutes).
 
 Verified against EMEET_STUDIO_V2.0.0-Beta.25_cn_Win.exe: 109 unique heads,
-108 matching the 2.0.3 Mac table byte-for-byte under the version-shift model
-(2.0.3 inserted SET_REBOOT and GET_MOTOR_SPEED, shifting later power/motor
-command IDs +1 vs Beta.25; see docs/hid-protocol-official-map.md).
+108 matching the 2.0.3 Mac table byte-for-byte by exact tuple match
+(2026-09-19: an earlier "version-shift" reading — 2.0.3 inserting
+SET_REBOOT/GET_MOTOR_SPEED and shifting IDs — is retracted; the matches need
+no shift, see docs/hid-protocol-official-map.md).
 """
 
 from __future__ import annotations
