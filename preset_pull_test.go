@@ -461,7 +461,10 @@ func TestPresetPull_AllSlotsUnreadable(t *testing.T) {
 	}
 
 	if queries := sim.Queries(); len(queries) != presetPullMaxConsecutiveFailures {
-		t.Errorf("pull issued %d queries, want %d (abort stops the sweep)", len(queries), presetPullMaxConsecutiveFailures)
+		t.Errorf(
+			"pull issued %d queries, want %d (abort stops the sweep)",
+			len(queries), presetPullMaxConsecutiveFailures,
+		)
 	}
 }
 

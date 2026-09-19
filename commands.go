@@ -653,6 +653,88 @@ type presetPullOutcome struct {
 	dryRun   bool
 }
 
+// presetPullSweep is the mutable bookkeeping of one in-flight pull sweep:
+// the outcome it accumulates, the first slot failure (the cause reported
+// when the whole sweep dies), the consecutive-failure counter behind the
+// early abort, and whether the software preset collection was mutated.
+type presetPullSweep struct {
+	outcome     presetPullOutcome
+	firstErr    error
+	consecutive int
+	changed     bool
+}
+
+// recordFailure books one failed slot query and reports whether the
+// early-abort threshold (presetPullMaxConsecutiveFailures, TODO #167) is
+// now reached.
+func (s *presetPullSweep) recordFailure(err error) bool {
+	s.outcome.failures++
+	s.consecutive++
+
+	if s.firstErr == nil {
+		s.firstErr = err
+	}
+
+	return s.consecutive >= presetPullMaxConsecutiveFailures
+}
+
+// admitReading classifies one occupied-with-position reading against the
+// software preset collection: already named → counted as skipped, collection
+// full → counted against the limit (stay additive: a pulled slot may never
+// push out a user-named preset), dry-run → reported as would-pull, otherwise
+// stored as an additive hw-<slot> preset. It returns whether the preset
+// limit was reached, which ends the sweep.
+func (s *presetPullSweep) admitReading(reading pixy.MotorPresetReading, slot int, d *Daemon) bool {
+	name := fmt.Sprintf(presetPullNameFormat, slot)
+
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	_, exists := d.state.Presets[name]
+	full := !exists && d.state.Presets.IsFull()
+
+	switch {
+	case exists:
+		s.outcome.skipped++
+	case full:
+	case s.outcome.dryRun:
+		s.outcome.pulled = append(s.outcome.pulled, name)
+	default:
+		if d.state.Presets == nil {
+			d.state.Presets = pixy.NewPresetMap()
+		}
+
+		d.state.Presets[name] = reading.PTZValues()
+		s.outcome.pulled = append(s.outcome.pulled, name)
+		s.changed = true
+	}
+
+	return full
+}
+
+// allSlotsFailed reports whether every attempted slot failed and nothing
+// else was observed — the "the whole sweep died" case — together with the
+// composed error message (failure count, plus the abort note when the sweep
+// stopped early).
+func (s *presetPullSweep) allSlotsFailed() (string, bool) {
+	o := &s.outcome
+
+	if len(o.pulled) > 0 || o.empty > 0 || o.skipped > 0 || o.occupied > 0 || o.failures == 0 {
+		return "", false
+	}
+
+	msg := fmt.Sprintf(
+		"preset pull: %d/%d slots unreadable",
+		o.failures, maxHardwarePresetSlots,
+	)
+
+	if o.aborted {
+		msg += fmt.Sprintf(", aborted after %d consecutive failures", presetPullMaxConsecutiveFailures)
+	}
+
+	return msg, true
+}
+
 // handlePresetPull sweeps the hardware motor preset slots (TODO #141): every
 // slot 1..maxHardwarePresetSlots is queried over the official V2
 // GetMotorPresetPosMode command and occupied slots (mode byte 1) are stored
@@ -681,22 +763,18 @@ func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResul
 	d.hidMu.Lock()
 	defer d.hidMu.Unlock()
 
-	outcome := presetPullOutcome{
-		pulled:   nil,
-		empty:    0,
-		skipped:  0,
-		occupied: 0,
-		failures: 0,
-		limitHit: false,
-		aborted:  false,
-		dryRun:   dryRun,
+	sweep := presetPullSweep{
+		outcome: presetPullOutcome{
+			pulled:   nil,
+			empty:    0,
+			skipped:  0,
+			occupied: 0,
+			failures: 0,
+			limitHit: false,
+			aborted:  false,
+			dryRun:   dryRun,
+		},
 	}
-
-	var (
-		firstErr    error
-		changed     bool
-		consecutive int
-	)
 
 	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {
 		reading, err := d.queryMotorPresetPos(ctx, byte(slot))
@@ -705,15 +783,8 @@ func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResul
 				return errResult("preset pull", err)
 			}
 
-			outcome.failures++
-			consecutive++
-
-			if firstErr == nil {
-				firstErr = err
-			}
-
-			if consecutive >= presetPullMaxConsecutiveFailures {
-				outcome.aborted = true
+			if sweep.recordFailure(err) {
+				sweep.outcome.aborted = true
 
 				break
 			}
@@ -721,10 +792,10 @@ func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResul
 			continue
 		}
 
-		consecutive = 0
+		sweep.consecutive = 0
 
 		if !reading.Occupied() {
-			outcome.empty++
+			sweep.outcome.empty++
 
 			continue
 		}
@@ -732,64 +803,30 @@ func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResul
 		if !reading.HasPosition() {
 			// Mode-only answer: the slot is set but the GET does not expose
 			// its position (Beta.25 GET parser is single-byte).
-			outcome.occupied++
+			sweep.outcome.occupied++
 
 			continue
 		}
 
-		name := fmt.Sprintf(presetPullNameFormat, slot)
-
-		d.mu.Lock()
-		_, exists := d.state.Presets[name]
-		full := !exists && d.state.Presets.IsFull()
-
-		switch {
-		case exists:
-			outcome.skipped++
-		case full:
-			// stay additive: a pulled slot may never push out a user-named preset
-		case dryRun:
-			outcome.pulled = append(outcome.pulled, name)
-		default:
-			if d.state.Presets == nil {
-				d.state.Presets = pixy.NewPresetMap()
-			}
-
-			d.state.Presets[name] = reading.PTZValues()
-			outcome.pulled = append(outcome.pulled, name)
-			changed = true
-		}
-		d.mu.Unlock()
-
-		if full {
-			outcome.limitHit = true
+		if sweep.admitReading(reading, slot, d) {
+			sweep.outcome.limitHit = true
 
 			break
 		}
 	}
 
-	if changed {
+	if sweep.changed {
 		d.mu.Lock()
 		d.saveStateOrLog("failed to save state")
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 	}
 
-	if len(outcome.pulled) == 0 && outcome.empty == 0 && outcome.skipped == 0 &&
-		outcome.occupied == 0 && outcome.failures > 0 {
-		msg := fmt.Sprintf(
-			"preset pull: %d/%d slots unreadable",
-			outcome.failures, maxHardwarePresetSlots,
-		)
-
-		if outcome.aborted {
-			msg += fmt.Sprintf(", aborted after %d consecutive failures", presetPullMaxConsecutiveFailures)
-		}
-
-		return errResult(msg, firstErr)
+	if msg, failed := sweep.allSlotsFailed(); failed {
+		return errResult(msg, sweep.firstErr)
 	}
 
-	return okResult(outcome.summary())
+	return okResult(sweep.outcome.summary())
 }
 
 // summary renders the pull result line: what landed (or would land under

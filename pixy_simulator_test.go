@@ -816,6 +816,7 @@ func withPixySimulator(opts ...simulatorOption) (*pixySimulator, testDaemonOptio
 	for _, opt := range opts {
 		opt(sim.state)
 	}
+
 	return sim, func(d *Daemon) {
 		d.hidDev = sim
 		d.deps.procInspector = newFakeProcInspector()
