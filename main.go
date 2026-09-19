@@ -373,6 +373,7 @@ Commands:
   battery           Show battery/charge if the device supports it
   tracking <mode>   Set tracking variant (face, halfbody, fullbody)
   preset push <name>    Mirror a saved preset into a hardware motor slot
+  preset pull           Sweep hardware motor slots into hw-N presets
   preset save <name>    Save current PTZ position as named preset
   preset load <name>    Recall a saved preset
   preset delete <name>  Delete a saved preset

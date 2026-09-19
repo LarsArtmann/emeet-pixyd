@@ -59,15 +59,15 @@ type pendingConfig struct {
 
 func newPixyProtocolState() *pixyProtocolState {
 	return &pixyProtocolState{
-		tracking:      pixy.StateIdle,
-		audio:         pixy.AudioNC,
-		gesture:       false,
-		pending:       make(map[byte]*pendingConfig),
-		motorLimit:    100.0,
-		motorPresets:  make(map[byte]v2MotorPreset),
-		batteryLevel:  87,
-		serialNumber:  "PIXY-SIM-0001",
-		firmwareVer:   0x0203,
+		tracking:     pixy.StateIdle,
+		audio:        pixy.AudioNC,
+		gesture:      false,
+		pending:      make(map[byte]*pendingConfig),
+		motorLimit:   100.0,
+		motorPresets: make(map[byte]v2MotorPreset),
+		batteryLevel: 87,
+		serialNumber: "PIXY-SIM-0001",
+		firmwareVer:  0x0203,
 	}
 }
 
@@ -478,7 +478,7 @@ func (s *pixyProtocolState) handleV2Set(report []byte) error {
 		}
 
 		s.motorPresets[payload[0]] = entry
-}
+	}
 
 	return nil
 }
