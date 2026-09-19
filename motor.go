@@ -173,6 +173,23 @@ func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
 	return d.sendV2Set(ctx, "setMotorPresetPos", report)
 }
 
+// queryMotorPresetPos reads one hardware motor preset slot over the official
+// V2 GetMotorPresetPosMode command (preset pull, TODO #141). The head goes
+// out with the motor-MCU iface byte followed by the 1-based slot byte; the
+// echo check validates against the head AS SENT.
+//
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
+func (d *Daemon) queryMotorPresetPos(ctx context.Context, slot byte) (pixy.MotorPresetReading, error) {
+	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
+
+	resp, err := d.v2ReadLocked(ctx, head, []byte{slot})
+	if err != nil {
+		return pixy.MotorPresetReading{}, err
+	}
+
+	return pixy.ParseMotorPresetPosResponse(head, resp)
+}
+
 // sendV2Set is the shared transport for single-report V2 SET commands:
 // device/circuit guards, Send, and setDeviceState-style failure accounting.
 // LOCK CONTRACT: the caller holds d.hidMu (the command dispatcher holds it

@@ -81,7 +81,8 @@ var (
 	V2SetMotorPresetPos = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x19}
 	// V2SetMotorPresetPosMode: payload [slot:u8][mode:u8].
 	V2SetMotorPresetPosMode = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x16}
-	// V2GetMotorPresetPosMode: response [slot][mode][pan f32][tilt f32][zoom f32].
+	// V2GetMotorPresetPosMode: response [mode:u8][pan f32][tilt f32][zoom f32]
+	// when the slot is occupied (mode==1); see ParseMotorPresetPosResponse.
 	V2GetMotorPresetPosMode = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x17}
 	// V2SetTargetTrack: payload [mode:u8][f32×3] (13 bytes).
 	V2SetTargetTrack = V2Head{V2ReportPrefix, V2DevOptics, 0x01, 0x01}
@@ -239,6 +240,73 @@ func ParseMotorSpeedResponse(head V2Head, resp []byte) (MotorSpeedReading, error
 		Speed: f32FromBits(binary.LittleEndian.Uint32(payload[1:])),
 		Limit: f32FromBits(binary.LittleEndian.Uint32(payload[5:])),
 	}, nil
+}
+
+// MotorPresetPositioned is the position-mode byte value that marks an
+// occupied motor preset slot: the response carries the pan/tilt/zoom
+// position. EVIDENCE (static, Beta.25 x64 parser disasm @0x14017e210 — the
+// shared position-mode shape): the official parser reads the three floats
+// only when the mode byte is 1; every other value marks an empty/invalid
+// slot and their semantics are undecoded.
+const MotorPresetPositioned byte = 1
+
+// MotorPresetReading is a parsed CMD_GET_MOTOR_PRESET_POS_MODE response: the
+// slot's position mode and, when the slot is occupied, its stored position.
+type MotorPresetReading struct {
+	Mode byte
+	Pan  float32
+	Tilt float32
+	Zoom float32
+}
+
+// Occupied reports whether the slot carries a stored position (mode==1).
+// Empty, invalid, and undecoded mode values all read as not occupied, so the
+// preset pull skips them.
+func (r MotorPresetReading) Occupied() bool { return r.Mode == MotorPresetPositioned }
+
+// PTZValues converts the slot position to software preset values, rounding
+// the hardware floats to the integer user-facing units and clamping to the
+// V4L2 limits. Only meaningful when Occupied is true.
+func (r MotorPresetReading) PTZValues() PTZValues {
+	return PTZValues{
+		Pan:  PanRange.Clamp(int(math.Round(float64(r.Pan)))),
+		Tilt: TiltRange.Clamp(int(math.Round(float64(r.Tilt)))),
+		Zoom: ZoomRange.Clamp(int(math.Round(float64(r.Zoom)))),
+	}
+}
+
+// v2MotorPresetPayloadLen is the byte count of an occupied-slot
+// GetMotorPresetPosMode payload: [mode:u8][pan:f32][tilt:f32][zoom:f32].
+const v2MotorPresetPayloadLen = 13
+
+// ParseMotorPresetPosResponse reads a GetMotorPresetPosMode response for one
+// queried slot. EVIDENCE (static, Beta.25 x64 parser disasm @0x14017e210):
+// mode u8 at offset 8; when mode==1, pan/tilt/zoom dwords LE at 9/0xd/0x11
+// (min length 0x15). A not-occupied mode byte needs only the framing bytes,
+// and the floats read as zero.
+func ParseMotorPresetPosResponse(head V2Head, resp []byte) (MotorPresetReading, error) {
+	payload, err := v2Payload(head, resp, 1)
+	if err != nil {
+		return MotorPresetReading{}, err
+	}
+
+	reading := MotorPresetReading{Mode: payload[0]}
+	if !reading.Occupied() {
+		return reading, nil
+	}
+
+	if len(payload) < v2MotorPresetPayloadLen {
+		return MotorPresetReading{}, fmt.Errorf(
+			"v2 preset payload %d bytes (need %d): %w",
+			len(payload), v2MotorPresetPayloadLen, ErrV2ResponseShort,
+		)
+	}
+
+	reading.Pan = f32FromBits(binary.LittleEndian.Uint32(payload[1:]))
+	reading.Tilt = f32FromBits(binary.LittleEndian.Uint32(payload[5:]))
+	reading.Zoom = f32FromBits(binary.LittleEndian.Uint32(payload[9:]))
+
+	return reading, nil
 }
 
 func motorF32Bits(f float32) uint32 { return math.Float32bits(f) }

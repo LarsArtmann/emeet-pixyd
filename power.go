@@ -118,6 +118,20 @@ func (d *Daemon) queryChargeStatus(ctx context.Context) (pixy.ChargeStatus, erro
 // framing-specific parsing lives in internal/pixy so the simulator and the
 // parsers evolve together when M27 pins the real framing.
 func (d *Daemon) v2Read(ctx context.Context, head pixy.V2Head) ([]byte, error) {
+	d.hidMu.Lock()
+	defer d.hidMu.Unlock()
+
+	return d.v2ReadLocked(ctx, head, nil)
+}
+
+// v2ReadLocked is v2Read for callers that already hold d.hidMu (the preset
+// pull sweep holds it across the whole slot loop). payload carries the
+// per-command query bytes (e.g. the slot byte); head is the head AS SENT —
+// including any MotorMCUIface routing — because the response echo is
+// validated against it.
+//
+// LOCK CONTRACT: caller holds d.hidMu.
+func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []byte) ([]byte, error) {
 	d.mu.RLock()
 	hidDev := d.hidDev
 	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
@@ -131,10 +145,9 @@ func (d *Daemon) v2Read(ctx context.Context, head pixy.V2Head) ([]byte, error) {
 		return nil, fmt.Errorf("v2Read: %w", pixy.ErrPIXYNotConnected)
 	}
 
-	d.hidMu.Lock()
-	resp, err := hidDev.SendRecv(ctx, head.Bytes())
-	d.hidMu.Unlock()
+	query := append(head.Bytes(), payload...)
 
+	resp, err := hidDev.SendRecv(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("v2Read %x: %w", head, err)
 	}

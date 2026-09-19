@@ -23,7 +23,7 @@ const (
 	respGestureOn          = "gesture on"
 	respGestureOff         = "gesture off"
 	respCentered           = "centered"
-	respPresetUsage        = "usage: preset <save|load|delete|list> [name]"
+	respPresetUsage        = "usage: preset <save|load|delete|push|pull|list> [name]"
 	respPresetNotFound     = "preset not found"
 	respSpeedUsage         = "usage: speed <pan|tilt|zoom> <value>"
 	respTrackingUsage      = "usage: tracking <none|face|halfbody|fullbody>"
@@ -376,6 +376,7 @@ const (
 	presetSave     = "save"
 	presetLoad     = "load"
 	presetPush     = "push"
+	presetPull     = "pull"
 	presetDelete   = "delete"
 	presetList     = "list"
 	minPresetParts = 3
@@ -383,7 +384,7 @@ const (
 
 func isValidPresetSubcmd(s string) bool {
 	switch s {
-	case presetSave, presetLoad, presetPush, presetDelete, presetList:
+	case presetSave, presetLoad, presetPush, presetPull, presetDelete, presetList:
 		return true
 	default:
 		return false
@@ -418,6 +419,12 @@ func (d *Daemon) handlePresetCommand(ctx context.Context, parts []string) Comman
 		}
 
 		return d.handlePresetPush(ctx, parts[2])
+	case presetPull:
+		if len(parts) != minCmdParts {
+			return errResultMsg("preset pull: takes no name")
+		}
+
+		return d.handlePresetPull(ctx)
 	case presetDelete:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset delete: missing name")
