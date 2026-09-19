@@ -717,18 +717,19 @@ func (s *presetPullSweep) admitReading(reading pixy.MotorPresetReading, slot int
 // composed error message (failure count, plus the abort note when the sweep
 // stopped early).
 func (s *presetPullSweep) allSlotsFailed() (string, bool) {
-	o := &s.outcome
+	outcome := &s.outcome
 
-	if len(o.pulled) > 0 || o.empty > 0 || o.skipped > 0 || o.occupied > 0 || o.failures == 0 {
+	if len(outcome.pulled) > 0 || outcome.empty > 0 || outcome.skipped > 0 ||
+		outcome.occupied > 0 || outcome.failures == 0 {
 		return "", false
 	}
 
 	msg := fmt.Sprintf(
 		"preset pull: %d/%d slots unreadable",
-		o.failures, maxHardwarePresetSlots,
+		outcome.failures, maxHardwarePresetSlots,
 	)
 
-	if o.aborted {
+	if outcome.aborted {
 		msg += fmt.Sprintf(", aborted after %d consecutive failures", presetPullMaxConsecutiveFailures)
 	}
 
@@ -774,6 +775,9 @@ func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResul
 			aborted:  false,
 			dryRun:   dryRun,
 		},
+		firstErr:    nil,
+		consecutive: 0,
+		changed:     false,
 	}
 
 	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {

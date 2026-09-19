@@ -760,45 +760,8 @@ func TestProperty_PresetPull_NeverEvictsOrMutates(t *testing.T) {
 
 	rng := rand.New(rand.NewSource(1))
 
-	// hw-9 is beyond the slot range on purpose: pull must never generate it.
-	userNames := []string{"stage", "door", "wide", "hw-1", "hw-2", "hw-5", "hw-9"}
-
 	for iteration := range 200 {
-		sim, opt := withPixySimulator(withPresetFullResponses())
-		d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
-
-		before := make(pixy.PresetMap)
-
-		for _, name := range userNames {
-			if rng.Intn(2) == 0 {
-				continue
-			}
-
-			before[name] = pixy.PTZValues{
-				Pan:  rng.Intn(301) - 150,
-				Tilt: rng.Intn(181) - 90,
-				Zoom: 100 + rng.Intn(51),
-			}
-		}
-
-		occupied := make(map[byte]pixy.PTZValues)
-
-		for slot := byte(1); slot <= maxHardwarePresetSlots; slot++ {
-			if rng.Intn(2) == 0 {
-				continue
-			}
-
-			pan := rng.Intn(301) - 150
-			tilt := rng.Intn(181) - 90
-			zoom := 100 + rng.Intn(51)
-
-			seedHardwareSlot(t, sim, slot, float32(pan), float32(tilt), float32(zoom))
-			occupied[slot] = pixy.PTZValues{Pan: pan, Tilt: tilt, Zoom: zoom}
-		}
-
-		d.mu.Lock()
-		d.state.Presets = maps.Clone(before)
-		d.mu.Unlock()
+		d, before, occupied := randomPullScenario(t, rng)
 
 		result := d.handleCommand(t.Context(), "preset pull")
 		if result.IsError() {
@@ -809,36 +772,107 @@ func TestProperty_PresetPull_NeverEvictsOrMutates(t *testing.T) {
 		after := d.state.Presets
 		d.mu.RUnlock()
 
-		if len(after) > pixy.MaxPresets {
-			t.Fatalf("iteration %d: %d presets after pull, want <= %d", iteration, len(after), pixy.MaxPresets)
+		assertPullAdditivity(t, iteration, before, occupied, after)
+	}
+}
+
+// randomPullScenario builds one randomized pull scenario: a daemon whose
+// software presets hold a random subset of names (including hw-N names that
+// collide with hardware slots, and hw-9 which lies beyond the slot range),
+// plus a simulator whose hardware slots are randomly occupied. It returns
+// the daemon, the software presets BEFORE the pull, and the seeded slot
+// positions.
+func randomPullScenario(t *testing.T, rng *rand.Rand) (*Daemon, pixy.PresetMap, map[byte]pixy.PTZValues) {
+	t.Helper()
+
+	sim, opt := withPixySimulator(withPresetFullResponses())
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	// hw-9 is beyond the slot range on purpose: pull must never generate it.
+	userNames := []string{"stage", "door", "wide", "hw-1", "hw-2", "hw-5", "hw-9"}
+
+	before := make(pixy.PresetMap)
+
+	for _, name := range userNames {
+		if rng.Intn(2) == 0 {
+			continue
 		}
 
-		for name, want := range before {
-			got, ok := after[name]
-			if !ok || got != want {
-				t.Fatalf("iteration %d: preset %q = (%+v, %v), want untouched %+v", iteration, name, got, ok, want)
-			}
+		before[name] = randomPTZValues(rng)
+	}
+
+	occupied := make(map[byte]pixy.PTZValues)
+
+	for slot := byte(1); slot <= maxHardwarePresetSlots; slot++ {
+		if rng.Intn(2) == 0 {
+			continue
 		}
 
-		for name, got := range after {
-			if _, existed := before[name]; existed {
-				continue
-			}
+		want := randomPTZValues(rng)
 
-			var slot int
+		seedHardwareSlot(t, sim, slot, float32(want.Pan), float32(want.Tilt), float32(want.Zoom))
+		occupied[slot] = want
+	}
 
-			if _, err := fmt.Sscanf(name, "hw-%d", &slot); err != nil {
-				t.Fatalf("iteration %d: pulled non-hw-slot name %q", iteration, name)
-			}
+	d.mu.Lock()
+	d.state.Presets = maps.Clone(before)
+	d.mu.Unlock()
 
-			want, seeded := occupied[byte(slot)]
-			if !seeded {
-				t.Fatalf("iteration %d: pulled %q from slot %d that was never occupied", iteration, name, slot)
-			}
+	return d, before, occupied
+}
 
-			if got != want {
-				t.Fatalf("iteration %d: %s = %+v, want seeded %+v", iteration, name, got, want)
-			}
+// randomPTZValues draws values within the V4L2 limits so a seeded slot and
+// its pulled preset round-trip without clamping.
+func randomPTZValues(rng *rand.Rand) pixy.PTZValues {
+	return pixy.PTZValues{
+		Pan:  rng.Intn(301) - 150,
+		Tilt: rng.Intn(181) - 90,
+		Zoom: 100 + rng.Intn(51),
+	}
+}
+
+// assertPullAdditivity checks the pull invariants for one scenario: the
+// collection never exceeds pixy.MaxPresets, every pre-existing entry is
+// untouched, and every new entry is an accurate hw-<slot> pull from a slot
+// that was actually occupied.
+func assertPullAdditivity(
+	t *testing.T,
+	iteration int,
+	before pixy.PresetMap,
+	occupied map[byte]pixy.PTZValues,
+	after pixy.PresetMap,
+) {
+	t.Helper()
+
+	if len(after) > pixy.MaxPresets {
+		t.Fatalf("iteration %d: %d presets after pull, want <= %d", iteration, len(after), pixy.MaxPresets)
+	}
+
+	for name, want := range before {
+		got, ok := after[name]
+		if !ok || got != want {
+			t.Fatalf("iteration %d: preset %q = (%+v, %v), want untouched %+v", iteration, name, got, ok, want)
+		}
+	}
+
+	for name, got := range after {
+		if _, existed := before[name]; existed {
+			continue
+		}
+
+		var slot int
+
+		if _, err := fmt.Sscanf(name, "hw-%d", &slot); err != nil {
+			t.Fatalf("iteration %d: pulled non-hw-slot name %q", iteration, name)
+		}
+
+		want, seeded := occupied[byte(slot)]
+		if !seeded {
+			t.Fatalf("iteration %d: pulled %q from slot %d that was never occupied", iteration, name, slot)
+		}
+
+		if got != want {
+			t.Fatalf("iteration %d: %s = %+v, want seeded %+v", iteration, name, got, want)
 		}
 	}
 }
