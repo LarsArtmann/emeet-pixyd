@@ -290,7 +290,12 @@ func ParseMotorPresetPosResponse(head V2Head, resp []byte) (MotorPresetReading, 
 		return MotorPresetReading{}, err
 	}
 
-	reading := MotorPresetReading{Mode: payload[0]}
+	reading := MotorPresetReading{
+		Mode: payload[0],
+		Pan:  0,
+		Tilt: 0,
+		Zoom: 0,
+	}
 	if !reading.Occupied() {
 		return reading, nil
 	}

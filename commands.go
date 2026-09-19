@@ -662,6 +662,7 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 			}
 
 			failures++
+
 			if firstErr == nil {
 				firstErr = err
 			}

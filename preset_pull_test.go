@@ -115,7 +115,8 @@ func TestParseMotorPresetPosResponse_HeadMismatch(t *testing.T) {
 
 	resp := v2Response(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface), 1)
 
-	if _, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, resp); !errors.Is(err, pixy.ErrV2ResponseHeadMismatch) {
+	_, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, resp)
+	if !errors.Is(err, pixy.ErrV2ResponseHeadMismatch) {
 		t.Errorf("mismatched echo err = %v, want ErrV2ResponseHeadMismatch", err)
 	}
 }
@@ -178,7 +179,11 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 	}
 
 	// SetMotorPresetPosMode [slot][mode] flips the slot back to empty.
-	if err := sim.Send(append(append(pixy.V2SetMotorPresetPosMode.WithIface(pixy.MotorMCUIface).Bytes(), 2), 0)); err != nil {
+	modeReport := append(
+		pixy.V2SetMotorPresetPosMode.WithIface(pixy.MotorMCUIface).Bytes(), 2, 0,
+	)
+
+	if err := sim.Send(modeReport); err != nil {
 		t.Fatalf("SetMotorPresetPosMode: %v", err)
 	}
 
@@ -377,6 +382,7 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 
 	second := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
 	second.config.StateDir = stateDir
+
 	if !second.loadState() {
 		t.Fatal("loadState = false, want true")
 	}
