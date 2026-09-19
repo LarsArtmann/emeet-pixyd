@@ -142,7 +142,15 @@ grouped tables below are the human-readable view).
 
 **Motor-MCU routing:** motor `SET` commands overwrite the iface byte on the wire
 with `0x63` (motor-MCU sub-device, `mergeType(3,3)`); the table records the
-logical `0x03`. Probes should try **both** `b1=0x03` and `b1=0x63` (M3 probe does).
+logical `0x03`. **Statically confirmed (2026-09-19, Beta.25 x64):** the
+motor-speed query send site (`0x14017ecad`) loads the logical head and then
+overwrites its dev byte with the result of the literal
+`mergeType(dev,func) = (dev<<5)|func` helper (`0x140179c30`: `shl cl,5; or
+dl`) called with (3,3) — the substitution is computed at send time in
+Beta.25 too, not a 2.0.3-only behavior. Every response parser additionally
+masks `resp[1] & 0x1F` before comparing the echo, so either dev byte in the
+echo validates. Our parsers implement the same mask via
+`pixy.v2EchoMatches`.
 
 **Payload layouts (from controller call sites + log format strings):**
 
@@ -172,15 +180,16 @@ swept the CRT initializer thunks of the 2.0.0-Beta.25 Windows x64 build —
 artifact filtered; the 53 Mac-only heads are mostly GETs sent via inline-head
 sender shapes the thunk sweep does not cover).
 
-**Version-shift model:** 2.0.3 (Mac) = Beta.25 IDs + 1 after two inserted
-commands — `CMD_SET_REBOOT` `[9,0,0,1]` (shifts the later power family) and
-`CMD_GET_MOTOR_SPEED` `[9,3,1,19]` (shifts the later motor family). Under this
-model every observed Mac-vs-x64 head discrepancy resolves; e.g. Beta.25
-battery/charge parser slots are `[9,0,0,1]`/`[9,0,0,5]` where 2.0.3 has
-`02`/`06`. Responses echo the request head — the apparent "response cmd =
-request − 1" was this version shift, never a protocol rule. Our requests use
-the 2.0.3 (Mac) IDs and validate the echo against the head as sent, so the
-shift is transparent to us.
+**Version-shift model — DISPROVED (2026-09-19):** the earlier hypothesis that
+"2.0.3 = Beta.25 IDs + 1 after two inserted commands" is wrong. The committed
+`x64_heads.json` cross-verifies **108 heads by exact match — including the
+whole power family (`09 00 00 01..09`) and the whole motor family
+(`09 03 01 00..0x20`) — with zero contradictions**, so Beta.25 and 2.0.3
+command IDs are byte-identical everywhere the sweep reaches. The
+"Beta.25 battery/charge parser slots are [9,0,0,1]/[9,0,0,5]" note was a
+misreading. Practical consequence: send the Mac-derived heads verbatim (the
+"response cmd = request − 1" observation was never a protocol rule —
+responses echo the request head).
 
 ### 3.5a Response framing + decoded enums (2026-09-19, Beta.25 x64 parser disassembly)
 
@@ -196,6 +205,28 @@ unless noted; hardware confirmation is pending for all of them.
   Implemented in our parsers via `pixy.V2ResponsePayloadOffset`; the
   dispatcher routes commands by `resp[1] & 0x1F` (motor-MCU `0x63` routes as
   `0x03`).
+- **DefaultPosMode SET-echo** (parser `0x14017e210`, head `09 03 01 14`):
+  min 9; mode u8 @8; when mode==1 and len ≥ 0x15, pan/tilt/zoom dwords LE at
+  9/0xd/0x11. (The earlier note attributing a "DefaultPosMode GET" shape to
+  preset slots was this parser — it belongs to the power-on-default command.)
+  Value semantics still undecoded.
+- **PresetPosMode GET** (`09 03 01 17` + slot byte, parser thunk `0x14017e5d0`
+  → shared single-byte parser `0x140179640`): the query carries the slot byte
+  after the head (send site `0x14017eec0`), and the response is
+  **mode-only** — one payload u8 @8, min 9. No position floats are returned
+  by the GET in this build.
+- **PresetPosMode SET-echo** (parser `0x14017e330`, head `09 03 01 16`):
+  min 10; `[slot:u8 @8][mode:u8 @9]`; when mode==1 and len ≥ 0x16,
+  pan/tilt/zoom dwords LE at 0xa/0xe/0x12. The slot positions therefore ride
+  the SET command's echo response, not the GET.
+- **MotorSpeed GET-riding-SET** (send site `0x14017ecad`, parser
+  `0x14017e430`): the speed query is sent as the SET head `09 63 01 03` +
+  `[motorType:u8]` (dev byte computed via mergeType(3,3)); the response is
+  min 0x11: `[motorType:u8 @8][speed:f32 @9][limit:f32 @0xd]` — our
+  `pixy.MotorSpeedReading` shape. Which head the wired firmware answers for
+  speed (`09 63 01 03` vs the 2.0.3 `09 03 01 13`) is a #166 pin.
+- **Echo routing mask**: every parser masks `resp[1] & 0x1F` before the echo
+  comparison; implemented in `pixy.v2EchoMatches`.
 - **Battery level** (parser `0x14017a710`): raw u8 at offset 8.
 - **ChargeSta** (parser `0x14017a7d0` + consumer code `0x1403ccbf8`):
   `0` = discharging, `1|2` = charging (`(sta-1) <= 1` predicate); the 1-vs-2
@@ -207,8 +238,12 @@ unless noted; hardware confirmation is pending for all of them.
   ("No Smart Composition"), `1 = Face`, `2 = HalfBody`, `3 = FullBody` — every
   official UI enum in the app is 1-based with 0 = None. Our original 0-based
   assumption was wrong and is corrected in `pixy.TargetTrackMode`.
-- **MotorType 0/1/2 = pan/tilt/zoom**: still `assumed` (send-site payload
-  builders not yet decoded; payload builder `0x1403c53c0` is the thread).
+- **MotorType 0/1/2 = pan/tilt/zoom**: still `assumed`. Thread narrowed
+  (2026-09-19): the speed-query sender (`0x14017ec50`) passes the motor byte
+  through from its caller verbatim — it is caller-supplied data, not a
+  constant table — and its callers are vtable-indirect, so the value decode
+  needs hardware tracing (usbmon) rather than more static reading. (The
+  earlier `0x1403c53c0` pointer is a Qt copy helper, not a payload builder.)
 
 ### Power / battery (dev 0x00) — 8 commands
 
@@ -507,11 +542,15 @@ as `tools/emhid/extract_x64.py`):
 - ~~Enum **values**~~ — `TargetTrackMode` (1-based + none) and `ChargeSta`
   ({1,2}=charging) decoded from the Beta.25 x64 build and **implemented**
   (§3.5a); `MotorType` and `DefaultPosMode` value semantics remain `assumed`
-  (send-site payload builders are the next thread, `0x1403c53c0`).
-- ~~**Response framing**~~ — decoded (§3.5a): head-echo + reserved dword +
-  payload at offset 8, min length 9; implemented behind
-  `pixy.V2ResponsePayloadOffset` with head-echo validation. Hardware
-  confirmation + the meaning of bytes 4..7 stay on the #166 list.
+  (the MotorType send site passes the byte through from vtable-indirect
+  callers — see the MotorType note in §3.5a).
+- ~~**Response framing**~~ — decoded (§3.5a): head-echo (with the `& 0x1F`
+  routing mask) + reserved dword + payload at offset 8, min length 9;
+  implemented behind `pixy.V2ResponsePayloadOffset` / `pixy.v2EchoMatches`.
+  Hardware confirmation + the meaning of bytes 4..7 stay on the #166 list.
+  Per-command min lengths and response shapes for the preset/default-pos
+  family decoded 2026-09-19 (§3.5a) and implemented in
+  `pixy.ParseMotorPresetPosResponse`.
 - ~~Windows x86_64 cross-verification~~ — done: 108/162 byte-for-byte, zero
   contradictions (§3.5); the 53 remaining Mac-only heads need the
   inline-sender extraction path.

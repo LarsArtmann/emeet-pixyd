@@ -155,11 +155,32 @@ func TestParseMotorPresetPosResponse_TruncatedFullShape(t *testing.T) {
 func TestParseMotorPresetPosResponse_HeadMismatch(t *testing.T) {
 	t.Parallel()
 
-	resp := v2Response(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface), pixy.MotorPresetPositioned)
+	// Echo a genuinely different command (battery head, masked dev 0x00 vs
+	// 0x03) — must be rejected even under the routing mask.
+	resp := v2Response(pixy.V2GetBatteryLevel, pixy.MotorPresetPositioned)
 
 	_, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, resp)
 	if !errors.Is(err, pixy.ErrV2ResponseHeadMismatch) {
 		t.Errorf("mismatched echo err = %v, want ErrV2ResponseHeadMismatch", err)
+	}
+}
+
+func TestParseMotorPresetPosResponse_RoutingMaskEcho(t *testing.T) {
+	t.Parallel()
+
+	// Every official parser masks the echo's dev byte with 0x1F, so a device
+	// answering with the logical motor dev byte (0x03) instead of the routed
+	// 0x63 still validates against the head as sent.
+	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
+	resp := v2Response(pixy.V2GetMotorPresetPosMode, pixy.MotorPresetPositioned)
+
+	reading, err := pixy.ParseMotorPresetPosResponse(head, resp)
+	if err != nil {
+		t.Fatalf("logical-dev echo rejected: %v", err)
+	}
+
+	if !reading.Occupied() {
+		t.Error("logical-dev echo reading = not occupied, want occupied")
 	}
 }
 
