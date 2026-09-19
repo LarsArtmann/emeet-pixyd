@@ -47,11 +47,40 @@ minutes for the full `--disassemble` pass.
 - **Symbol-name collisions in the legacy `0x07` region**: two symbols share
   head `07 06 70 00`; the JSON keeps both (one overwrites the other in
   insertion order). Irrelevant for the V2 `0x09` surface.
-- **Windows x86_64 cross-verification is not implemented** (the PE has a
-  different initializer shape; tracked as TODO #152).
+- **Windows x86_64 cross-verification is implemented** (`extract_x64.py`):
+  108/162 heads match byte-for-byte, zero contradictions — see below.
 - The extractor reads **heads only** — payload layouts were derived separately
   from controller call sites and log format strings and are documented in the
   map doc.
+
+## Windows x86_64 cross-verification (`extract_x64.py`)
+
+Second-sources the Mac table against the Windows x64 build
+(`EMEET_STUDIO_V2.0.0-Beta.25_cn_Win.exe`, re-acquired from the Wayback
+Machine; durable specimen in `~/specimens/emeet-studio/`). In the PE the
+`EMHidCmdV2Head` globals are zeroed in the file image — CRT initializer
+thunks construct them at load time, passing the four head bytes as register
+immediates to the ctor (`0x140179370` in this build). The extractor sweeps
+those thunks (including the `xor r8d/r9d` zero-byte forms), deduplicates by
+head tuple, and cross-verifies against `cmdtable.json`:
+
+```sh
+python3 extract_x64.py /path/to/EMEET\ STUDIO\ 2.exe          # objdump pass, a few minutes
+python3 extract_x64.py /path/to/EMEET\ STUDIO\ 2.exe --asm text.asm  # reuse a dump
+```
+
+Result (committed as `x64_heads.json`; regeneration from the specimen was
+verified byte-identical): **108/162 match byte-for-byte, 0 x64-only heads**
+(plus one filtered `(9,0,0,0)` zero-initializer artifact). The 53 Mac-only
+heads are mostly GETs sent via inline-head sender shapes the CRT-thunk sweep
+does not cover — the completion path is the `0x14017f110` caller set.
+
+**Version-shift model** (recorded in
+[`docs/hid-protocol-official-map.md`](../../docs/hid-protocol-official-map.md)
+§3.5): 2.0.3 (Mac) = Beta.25 IDs + 1 after two inserted commands
+(`SET_REBOOT [9,0,0,1]`, `GET_MOTOR_SPEED [9,3,1,19]`). Every observed
+Mac-vs-x64 discrepancy resolves under this model — responses echo the
+request head; the apparent off-by-one was never a protocol rule.
 
 ## Table excerpt
 

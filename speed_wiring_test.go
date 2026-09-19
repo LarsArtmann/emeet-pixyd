@@ -365,15 +365,15 @@ func TestLockOrder_V4L2MoveWithHIDCommands(t *testing.T) {
 		"speed tilt 30", "tracking halfbody", "status",
 	}
 
-	var wg sync.WaitGroup
+	var waitGroup sync.WaitGroup
 
 	done := make(chan struct{})
 
 	for worker := range 3 {
-		wg.Add(1)
+		waitGroup.Add(1)
 
 		go func(n int) {
-			defer wg.Done()
+			defer waitGroup.Done()
 
 			for i := range 25 {
 				_ = d.handleCommand(t.Context(), commands[(n+i)%len(commands)])
@@ -382,7 +382,7 @@ func TestLockOrder_V4L2MoveWithHIDCommands(t *testing.T) {
 	}
 
 	go func() {
-		wg.Wait()
+		waitGroup.Wait()
 		close(done)
 	}()
 

@@ -10,9 +10,18 @@ CRC/SHA256-verified. Analysis context:
 **Verification status: all 2,211 payload files SHA256-match the digests Inno
 itself recorded** (`verify.py` exit 0, 2026-09-17).
 
+**Verified on a second installer**: the toolchain transferred unchanged to
+`EMEET_STUDIO_V2.0.0-Beta.25_cn_Win.exe` (2026-09-19, re-acquired via the
+Wayback Machine; installer + full extraction live in
+`~/specimens/emeet-studio/`). Its parse data is committed as
+`data/parsed-beta25.json` + `data/setup0_offsets-beta25.json`; the Beta.25
+payload extraction (`work/out/`, incl. the disassembled x64 `EMEET STUDIO
+2.exe`) is regenerable from the durable installer with the commands below.
+
 ## Usage
 
 ```bash
+mkdir -p data OUTDIR   # the scripts do not create directories
 python3 extract_setup0.py INSTALLER.exe data/setup0.bin   # loader table + setup-0 de-chunk
 python3 finish_parse.py    data/setup0.bin data/parsed.json
 python3 extract_files.py   INSTALLER.exe data/parsed.json data/setup0_offsets.json OUTDIR/
