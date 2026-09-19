@@ -3,10 +3,13 @@
 package main
 
 import (
+	"context"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"maps"
 	"math"
+	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
@@ -471,6 +474,7 @@ type flakyQuerySim struct {
 
 	mu        sync.Mutex
 	remaining int
+	attempts  int
 }
 
 func (f *flakyQuerySim) SendRecv(ctx context.Context, report []byte) ([]byte, error) {
@@ -481,6 +485,7 @@ func (f *flakyQuerySim) SendRecv(ctx context.Context, report []byte) ([]byte, er
 		f.remaining--
 	}
 
+	f.attempts++
 	f.mu.Unlock()
 
 	if fail {
@@ -490,6 +495,15 @@ func (f *flakyQuerySim) SendRecv(ctx context.Context, report []byte) ([]byte, er
 	return f.pixySimulator.SendRecv(ctx, report)
 }
 
+// Attempts counts every SendRecv, failed or not — the simulator only records
+// the queries that reached it.
+func (f *flakyQuerySim) Attempts() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.attempts
+}
+
 func (f *flakyQuerySim) String() string { return "flaky-query-sim" }
 
 func TestPresetPull_EarlyAbortStopsSweep(t *testing.T) {
@@ -497,24 +511,26 @@ func TestPresetPull_EarlyAbortStopsSweep(t *testing.T) {
 
 	sim, opt := withPixySimulator()
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
-	d.hidDev = &flakyQuerySim{pixySimulator: sim, remaining: presetPullMaxConsecutiveFailures}
+	flaky := &flakyQuerySim{pixySimulator: sim, remaining: presetPullMaxConsecutiveFailures}
+	d.hidDev = flaky
 
 	result := d.handleCommand(t.Context(), "preset pull")
 	if !result.IsError() || !strings.Contains(result.String(), "aborted after 3 consecutive failures") {
 		t.Fatalf("flaky-start pull = %q, want abort error", result.String())
 	}
 
-	if queries := sim.Queries(); len(queries) != presetPullMaxConsecutiveFailures {
-		t.Errorf("sweep issued %d queries, want %d", len(queries), presetPullMaxConsecutiveFailures)
+	if attempts := flaky.Attempts(); attempts != presetPullMaxConsecutiveFailures {
+		t.Errorf("sweep attempted %d queries, want %d", attempts, presetPullMaxConsecutiveFailures)
 	}
 }
 
 func TestPresetPull_SuccessResetsAbortCounter(t *testing.T) {
 	t.Parallel()
 
-	sim, opt := withPixySimulator()
+	sim, opt := withPixySimulator(withPresetFullResponses())
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
-	d.hidDev = &flakyQuerySim{pixySimulator: sim, remaining: 2}
+	flaky := &flakyQuerySim{pixySimulator: sim, remaining: 2}
+	d.hidDev = flaky
 
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
 
@@ -533,8 +549,8 @@ func TestPresetPull_SuccessResetsAbortCounter(t *testing.T) {
 		t.Errorf("response = %q, want hw-3 pulled with 2 unreadable", result.String())
 	}
 
-	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
-		t.Errorf("sweep issued %d queries, want %d", len(queries), maxHardwarePresetSlots)
+	if attempts := flaky.Attempts(); attempts != maxHardwarePresetSlots {
+		t.Errorf("sweep attempted %d queries, want %d", attempts, maxHardwarePresetSlots)
 	}
 }
 
@@ -546,6 +562,8 @@ func TestPresetPull_DryRunDoesNotMutate(t *testing.T) {
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
+
+	reportsBeforePull := len(sim.SentReports())
 
 	before := pixy.PresetMap{
 		"custom": {Pan: 5, Tilt: 5, Zoom: 105},
@@ -574,8 +592,8 @@ func TestPresetPull_DryRunDoesNotMutate(t *testing.T) {
 		t.Errorf("dry run mutated presets: %+v, want unchanged %+v", got, before)
 	}
 
-	if reports := sim.SentReports(); len(reports) != 0 {
-		t.Errorf("dry run sent %d HID reports, want 0", len(reports))
+	if reports := sim.SentReports(); len(reports) != reportsBeforePull {
+		t.Errorf("dry run sent %d extra HID reports, want 0", len(reports)-reportsBeforePull)
 	}
 
 	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
@@ -725,4 +743,99 @@ func TestWebPresetPull_RendersHeaderButton(t *testing.T) {
 		`@post('/api/preset/pull')`,
 		`aria-label="Pull presets from camera hardware slots"`,
 	})
+}
+
+// TestProperty_PresetPull_NeverEvictsOrMutates pins pull's additivity
+// contract under arbitrary name collisions (TODO #169): over many randomized
+// scenarios — random user presets including hw-N names that collide with
+// hardware slots, random occupied slots, random limit pressure — pull never
+// evicts or mutates an existing entry, never exceeds pixy.MaxPresets, and
+// only ever adds hw-<slot> names whose values match the seeded hardware
+// slot. The seed is fixed so CI failures are reproducible.
+func TestProperty_PresetPull_NeverEvictsOrMutates(t *testing.T) {
+	t.Parallel()
+
+	rng := rand.New(rand.NewSource(1))
+
+	// hw-9 is beyond the slot range on purpose: pull must never generate it.
+	userNames := []string{"stage", "door", "wide", "hw-1", "hw-2", "hw-5", "hw-9"}
+
+	for iteration := range 200 {
+		sim, opt := withPixySimulator(withPresetFullResponses())
+		d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+		before := make(pixy.PresetMap)
+
+		for _, name := range userNames {
+			if rng.Intn(2) == 0 {
+				continue
+			}
+
+			before[name] = pixy.PTZValues{
+				Pan:  rng.Intn(301) - 150,
+				Tilt: rng.Intn(181) - 90,
+				Zoom: 100 + rng.Intn(51),
+			}
+		}
+
+		occupied := make(map[byte]pixy.PTZValues)
+
+		for slot := byte(1); slot <= maxHardwarePresetSlots; slot++ {
+			if rng.Intn(2) == 0 {
+				continue
+			}
+
+			pan := rng.Intn(301) - 150
+			tilt := rng.Intn(181) - 90
+			zoom := 100 + rng.Intn(51)
+
+			seedHardwareSlot(t, sim, slot, float32(pan), float32(tilt), float32(zoom))
+			occupied[slot] = pixy.PTZValues{Pan: pan, Tilt: tilt, Zoom: zoom}
+		}
+
+		d.mu.Lock()
+		d.state.Presets = maps.Clone(before)
+		d.mu.Unlock()
+
+		result := d.handleCommand(t.Context(), "preset pull")
+		if result.IsError() {
+			t.Fatalf("iteration %d: pull failed: %s", iteration, result.String())
+		}
+
+		d.mu.RLock()
+		after := d.state.Presets
+		d.mu.RUnlock()
+
+		if len(after) > pixy.MaxPresets {
+			t.Fatalf("iteration %d: %d presets after pull, want <= %d", iteration, len(after), pixy.MaxPresets)
+		}
+
+		for name, want := range before {
+			got, ok := after[name]
+			if !ok || got != want {
+				t.Fatalf("iteration %d: preset %q = (%+v, %v), want untouched %+v", iteration, name, got, ok, want)
+			}
+		}
+
+		for name, got := range after {
+			if _, existed := before[name]; existed {
+				continue
+			}
+
+			var slot int
+
+			if _, err := fmt.Sscanf(name, "hw-%d", &slot); err != nil {
+				t.Fatalf("iteration %d: pulled non-hw-slot name %q", iteration, name)
+			}
+
+			want, seeded := occupied[byte(slot)]
+			if !seeded {
+				t.Fatalf("iteration %d: pulled %q from slot %d that was never occupied", iteration, name, slot)
+			}
+
+			if got != want {
+				t.Fatalf("iteration %d: %s = %+v, want seeded %+v", iteration, name, got, want)
+			}
+		}
+	}
 }
