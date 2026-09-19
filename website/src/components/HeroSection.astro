@@ -92,7 +92,7 @@ const metrics = [
           ))}
           <span class="ml-3 text-xs text-text-muted font-mono">terminal</span>
         </div>
-        <pre class="p-5 text-left text-[0.8125rem] font-mono leading-[1.7] overflow-x-auto relative min-w-0"><code id="hero-code" set:html={highlightedCode} /></pre>
+        <pre tabindex="0" class="p-5 text-left text-[0.8125rem] font-mono leading-[1.7] overflow-x-auto relative min-w-0"><code id="hero-code" set:html={highlightedCode} /></pre>
         <button class="absolute top-2 right-2 bg-code-inline-bg/80 border border-border rounded-md text-text-muted px-2 py-1 cursor-pointer text-xs font-mono hover:text-text-primary hover:border-border-hover transition-all duration-150 opacity-0 [.code-preview:hover_&]:opacity-100" id="copy-btn" data-code={heroCode} aria-label="Copy code to clipboard">Copy</button>
       </div>
     </div>
