@@ -24,7 +24,7 @@ const (
 	respGestureOn          = "gesture on"
 	respGestureOff         = "gesture off"
 	respCentered           = "centered"
-	respPresetUsage        = "usage: preset <save|load|delete|push|pull|list> [name]"
+	respPresetUsage        = "usage: preset <save|load|delete|push|pull [--dry-run]|list> [name]"
 	respPresetNotFound     = "preset not found"
 	respSpeedUsage         = "usage: speed <pan|tilt|zoom> <value>"
 	respTrackingUsage      = "usage: tracking <none|face|halfbody|fullbody>"
@@ -382,6 +382,7 @@ const (
 	presetDelete   = "delete"
 	presetList     = "list"
 	minPresetParts = 3
+	flagDryRun     = "--dry-run"
 )
 
 func isValidPresetSubcmd(s string) bool {
@@ -422,11 +423,14 @@ func (d *Daemon) handlePresetCommand(ctx context.Context, parts []string) Comman
 
 		return d.handlePresetPush(ctx, parts[2])
 	case presetPull:
-		if len(parts) != minCmdParts {
+		switch {
+		case len(parts) == minCmdParts:
+			return d.handlePresetPull(ctx, false)
+		case len(parts) == minCmdParts+1 && parts[2] == flagDryRun:
+			return d.handlePresetPull(ctx, true)
+		default:
 			return errResultMsg("preset pull: takes no name")
 		}
-
-		return d.handlePresetPull(ctx)
 	case presetDelete:
 		if len(parts) < minPresetParts {
 			return errResultMsg("preset delete: missing name")
@@ -626,13 +630,37 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 // apart from named ones; pull never touches any other name.
 const presetPullNameFormat = "hw-%d"
 
+// presetPullMaxConsecutiveFailures bounds the pull sweep's worst case: after
+// this many back-to-back slot failures the device is treated as
+// unresponsive and the sweep stops instead of grinding through the
+// remaining slots (~4s of dead air at the assumed cap, TODO #167). The
+// threshold matches the HID circuit breaker's consecutive-failure
+// semantics; a single success resets the counter, and the summary reports
+// the abort so a truncated sweep is never mistaken for a complete one.
+const presetPullMaxConsecutiveFailures = 3
+
+// presetPullOutcome is the result of one preset pull sweep: what landed
+// (or would land, under dry-run), why the other slots did not, and whether
+// the sweep stopped early.
+type presetPullOutcome struct {
+	pulled   []string
+	empty    int
+	skipped  int
+	occupied int
+	failures int
+	limitHit bool
+	aborted  bool
+	dryRun   bool
+}
+
 // handlePresetPull sweeps the hardware motor preset slots (TODO #141): every
 // slot 1..maxHardwarePresetSlots is queried over the official V2
 // GetMotorPresetPosMode command and occupied slots (mode byte 1) are stored
 // as additive hw-<slot> presets, rounded and clamped to the V4L2 limits.
 // Pull is additive — existing preset names are never overwritten — explicit
 // (nothing auto-syncs afterward), and read-only on the hardware: no motor
-// moves.
+// moves. With dryRun the sweep is report-only: identical queries and
+// accounting, but nothing is stored, persisted, or broadcast (TODO #171).
 //
 // Two response shapes are statically evidenced (Beta.25 x64 parsers, see
 // pixy.MotorPresetReading): the full shape carries the position and lands as
@@ -640,26 +668,34 @@ const presetPullNameFormat = "hw-%d"
 // position, and those slots are counted instead of stored. Slots whose mode
 // byte marks them empty/invalid are skipped; per-slot query failures are
 // skipped too (one dead slot must not abort the sweep), except an
-// unreachable device, which aborts immediately. When EVERY slot fails, the
-// first cause is returned prefixed with the failure count ("8/8 slots
-// unreadable") so the error says how much of the sweep died. The slot count
-// is the assumed maxHardwarePresetSlots cap until the #166 hardware session
-// pins the real count with this same sweep.
-func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
+// unreachable device, which aborts immediately. When EVERY attempted slot
+// fails, the first cause is returned prefixed with the failure count ("8/8
+// slots unreadable") so the error says how much of the sweep died. After
+// presetPullMaxConsecutiveFailures back-to-back failures the sweep aborts
+// early (TODO #167) and says so in the outcome. The slot count is the
+// assumed maxHardwarePresetSlots cap until the #166 hardware session pins
+// the real count with this same sweep.
+func (d *Daemon) handlePresetPull(ctx context.Context, dryRun bool) CommandResult {
 	// The whole sweep is one HID operation: hold hidMu so no tracking/audio
 	// command interleaves between slot queries.
 	d.hidMu.Lock()
 	defer d.hidMu.Unlock()
 
+	outcome := presetPullOutcome{
+		pulled:   nil,
+		empty:    0,
+		skipped:  0,
+		occupied: 0,
+		failures: 0,
+		limitHit: false,
+		aborted:  false,
+		dryRun:   dryRun,
+	}
+
 	var (
-		pulled   []string
-		skipped  int
-		occupied int
-		empty    int
-		failures int
-		firstErr error
-		limitHit bool
-		changed  bool
+		firstErr    error
+		changed     bool
+		consecutive int
 	)
 
 	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {
@@ -669,17 +705,26 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 				return errResult("preset pull", err)
 			}
 
-			failures++
+			outcome.failures++
+			consecutive++
 
 			if firstErr == nil {
 				firstErr = err
 			}
 
+			if consecutive >= presetPullMaxConsecutiveFailures {
+				outcome.aborted = true
+
+				break
+			}
+
 			continue
 		}
 
+		consecutive = 0
+
 		if !reading.Occupied() {
-			empty++
+			outcome.empty++
 
 			continue
 		}
@@ -687,7 +732,7 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 		if !reading.HasPosition() {
 			// Mode-only answer: the slot is set but the GET does not expose
 			// its position (Beta.25 GET parser is single-byte).
-			occupied++
+			outcome.occupied++
 
 			continue
 		}
@@ -700,22 +745,24 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 
 		switch {
 		case exists:
-			skipped++
+			outcome.skipped++
 		case full:
 			// stay additive: a pulled slot may never push out a user-named preset
+		case dryRun:
+			outcome.pulled = append(outcome.pulled, name)
 		default:
 			if d.state.Presets == nil {
 				d.state.Presets = pixy.NewPresetMap()
 			}
 
 			d.state.Presets[name] = reading.PTZValues()
-			pulled = append(pulled, name)
+			outcome.pulled = append(outcome.pulled, name)
 			changed = true
 		}
 		d.mu.Unlock()
 
 		if full {
-			limitHit = true
+			outcome.limitHit = true
 
 			break
 		}
@@ -728,44 +775,62 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 		d.broadcastStateChanged()
 	}
 
-	if len(pulled) == 0 && empty == 0 && skipped == 0 && occupied == 0 && failures > 0 {
-		return errResult(
-			fmt.Sprintf("preset pull: %d/%d slots unreadable", failures, maxHardwarePresetSlots),
-			firstErr,
+	if len(outcome.pulled) == 0 && outcome.empty == 0 && outcome.skipped == 0 &&
+		outcome.occupied == 0 && outcome.failures > 0 {
+		msg := fmt.Sprintf(
+			"preset pull: %d/%d slots unreadable",
+			outcome.failures, maxHardwarePresetSlots,
 		)
+
+		if outcome.aborted {
+			msg += fmt.Sprintf(", aborted after %d consecutive failures", presetPullMaxConsecutiveFailures)
+		}
+
+		return errResult(msg, firstErr)
 	}
 
-	return okResult(pullSummary(pulled, empty, skipped, occupied, failures, limitHit))
+	return okResult(outcome.summary())
 }
 
-// pullSummary renders the pull result line: what landed, and why the other
-// slots did not. Zero counts are omitted.
-func pullSummary(pulled []string, empty, skipped, occupied, failures int, limitHit bool) string {
+// summary renders the pull result line: what landed (or would land under
+// dry-run), and why the other slots did not. Zero counts are omitted.
+func (o presetPullOutcome) summary() string {
 	var b strings.Builder
 
-	if len(pulled) > 0 {
-		b.WriteString("preset pulled: " + strings.Join(pulled, ", "))
-	} else {
+	switch {
+	case o.dryRun && len(o.pulled) > 0:
+		b.WriteString("preset pull (dry run): would pull: ")
+		b.WriteString(strings.Join(o.pulled, ", "))
+	case o.dryRun:
+		b.WriteString("preset pull (dry run): no slot positions")
+	case len(o.pulled) > 0:
+		b.WriteString("preset pulled: ")
+		b.WriteString(strings.Join(o.pulled, ", "))
+	default:
 		b.WriteString("preset pull: no slot positions")
 	}
 
-	if occupied > 0 {
-		fmt.Fprintf(&b, ", %d set (position not exposed)", occupied)
+	if o.occupied > 0 {
+		fmt.Fprintf(&b, ", %d set (position not exposed)", o.occupied)
 	}
 
-	if empty > 0 {
-		fmt.Fprintf(&b, ", %d empty", empty)
+	if o.empty > 0 {
+		fmt.Fprintf(&b, ", %d empty", o.empty)
 	}
 
-	if skipped > 0 {
-		fmt.Fprintf(&b, ", %d already named", skipped)
+	if o.skipped > 0 {
+		fmt.Fprintf(&b, ", %d already named", o.skipped)
 	}
 
-	if failures > 0 {
-		fmt.Fprintf(&b, ", %d unreadable", failures)
+	if o.failures > 0 {
+		fmt.Fprintf(&b, ", %d unreadable", o.failures)
 	}
 
-	if limitHit {
+	if o.aborted {
+		fmt.Fprintf(&b, ", aborted after %d consecutive failures", presetPullMaxConsecutiveFailures)
+	}
+
+	if o.limitHit {
 		fmt.Fprintf(&b, ", preset limit reached (%d)", pixy.MaxPresets)
 	}
 
