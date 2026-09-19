@@ -145,6 +145,7 @@
 | Tracking Variants      | 🟢 `FULLY_FUNCTIONAL` | `tracking none\|face\|halfbody\|fullbody` via SetTargetTrack + web picker; persists across restarts; enum corrected to the official 1-based scheme (statically evidenced, #166 confirms). |
 | Battery/Charge         | 🟢 `FULLY_FUNCTIONAL` | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence; typed ChargeSta ({1,2}=charging) with Waybar charging/discharging classes.              |
 | Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL` | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping); web chip push button with confirm prompt.                                            |
+| Motor-Preset Pull      | 🟢 `FULLY_FUNCTIONAL` | `preset pull`: read-only sweep of slots 1..8 via GetMotorPresetPosMode; occupied slots become additive `hw-<slot>` presets (never overwriting existing names); web header Pull button. Slot count + mode semantics #166-verify. |
 | Identity Queries       | 🟢 `FULLY_FUNCTIONAL` | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                                                                                        |
 | Camera Model Surface   | 🟢 `FULLY_FUNCTIONAL` | Detected model shown in web footer, Waybar tooltip + JSON.                                                                                                                                |
 
