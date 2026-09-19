@@ -145,7 +145,10 @@ func TestParseMotorPresetPosResponse_TruncatedFullShape(t *testing.T) {
 	}
 
 	if !reading.Occupied() || reading.HasPosition() {
-		t.Errorf("truncated full = (occupied %v, position %v), want (true, false)", reading.Occupied(), reading.HasPosition())
+		t.Errorf(
+			"truncated full = (occupied %v, position %v), want (true, false)",
+			reading.Occupied(), reading.HasPosition(),
+		)
 	}
 }
 
@@ -189,7 +192,10 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 	}
 
 	if !reading.Occupied() || reading.HasPosition() {
-		t.Fatalf("slot 2 reading = (occupied %v, position %v), want (true, false)", reading.Occupied(), reading.HasPosition())
+		t.Fatalf(
+			"slot 2 reading = (occupied %v, position %v), want (true, false)",
+			reading.Occupied(), reading.HasPosition(),
+		)
 	}
 
 	// Untouched slot: mode byte 0.
