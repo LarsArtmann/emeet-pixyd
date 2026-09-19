@@ -302,9 +302,9 @@ func (s State) EffectiveTrackMode() TargetTrackMode {
 // the physical unit is assumed degrees/second until hardware verification.
 // Zero means "no preference" (firmware default stays in effect).
 type SpeedValues struct {
-	Pan  float32 `json:"pan,omitempty"`
-	Tilt float32 `json:"tilt,omitempty"`
-	Zoom float32 `json:"zoom,omitempty"`
+	Pan  float32 `json:"pan,omitzero"`
+	Tilt float32 `json:"tilt,omitzero"`
+	Zoom float32 `json:"zoom,omitzero"`
 }
 
 // Get returns the speed for the given axis and true if the axis is

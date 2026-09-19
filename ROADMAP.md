@@ -62,12 +62,13 @@ These came out of the 2026-09 official-app reverse-engineering (`docs/emeet-stud
 - **usbmon cross-validation** — capture the official app on Windows to confirm the `mergeType` sub-device routing (`0x63` vs `3` iface byte).
 - **`hidCmdSend`-style bounded retry** in our HID layer (the official impl retries with w4=50) + `hidCmdSend` retry-semantics decoding.
 - **Privacy-trigger-time semantics** — the official app exposes a configurable privacy trigger delay; semantics unknown.
-- **Motor-speed persistence** — `#138` shipped the `speed` command; this is the follow-through: `state.json` schema v2 + an `EMEET_PIXYD_MOTOR_SPEED` env default once the real unit/limit is hardware-verified.
+- **Motor-speed env default** — `#138` shipped the `speed` command plus persistence (`state.json` carries `speeds`, re-asserted on every move path and on device re-appear); the remaining follow-through is an `EMEET_PIXYD_MOTOR_SPEED` env default + real-unit clamping once the unit/limit is hardware-verified (#166).
 - **`GET_DEVICE_MODE` authoritative query** — switch mode reads to the official head (`09 02 01 00`) or document why the empirical SET-head query stays (probe now exercises it).
 - **`GET_FUNC_STA` bitfield decode** — turn the raw `func=` hex in `device` output into capability-gated UI.
 - **`FuzzParseV2Response`** — parser-security parity with the uevent fuzzer once framing is hardware-pinned.
 - **`EMEET_PIXYD_PRODUCT_IDS` env override** for future PIXY variants — YAGNI until a third model appears.
 - **Device-DISAPPEAR reconcile semantics** — only device-appear is handled today; what should belief/state do on unplug (clean reset vs keep-last)?
+- **`preset pull` (hardware → state), TODO #141 design** — the inverse of `preset push`: sweep hardware motor slots into named software presets. Design sketch: `preset pull` sends `GET_MOTOR_PRESET_POS_MODE` (`09 63 01 17`, response `[slot][mode][pan f32][tilt f32][zoom f32]` per the framing assumption) for slots `1..N` (N from the #166 slot-count sweep), skips invalid/empty slots per the mode byte, and writes each valid slot as a `hw-<slot>` preset (never overwriting user-named presets — pull is additive and explicit, no auto-sync). BLOCKED on the #166 hardware session pinning: response framing, slot count, and per-slot mode semantics. Effort once pinned: S.
 
 ---
 
