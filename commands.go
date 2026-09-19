@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -303,6 +304,10 @@ func (d *Daemon) handleGestureCommand(ctx context.Context, cmd string) CommandRe
 }
 
 func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
+	// Centering moves every axis: re-assert configured speeds first (TODO
+	// #138), best-effort like the single-axis moves.
+	d.reassertSpeeds(ctx, pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom)
+
 	err := d.deps.centerCamera(ctx)
 	if err != nil {
 		return errResult(cmdCenter, err)
@@ -496,6 +501,10 @@ func (d *Daemon) handlePresetLoad(ctx context.Context, name string) CommandResul
 		return errResultMsg(respDeviceNotFound)
 	}
 
+	// Wired motor speeds (TODO #138): re-assert all configured speeds before
+	// the three-axis recall so the move runs at the user's speeds.
+	d.reassertSpeeds(ctx, pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom)
+
 	for _, axis := range ptzAxisOrder {
 		info := ptzAxes[axis]
 		val, _ := values.Get(axis)
@@ -576,6 +585,12 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 	// tracking/audio command interleaves between the move and the save.
 	d.hidMu.Lock()
 	defer d.hidMu.Unlock()
+
+	// Wired motor speeds (TODO #138): the push moves every axis over HID —
+	// re-assert configured speeds first, best-effort like the V4L2 paths.
+	if speedErr := d.reassertSpeedsLocked(ctx, pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom); speedErr != nil {
+		slog.Warn("preset push: speed re-assert failed, moving at firmware default", "error", speedErr)
+	}
 
 	for _, axis := range []struct {
 		motor pixy.MotorType

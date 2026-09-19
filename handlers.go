@@ -87,7 +87,8 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 		LastSynced:  formatLastSynced(s.daemon.lastSyncedAt),
 		Version:     buildVersion,
 		PresetNames: s.daemon.state.Presets.SortedNames(),
-		TrackMode:   s.daemon.trackMode.String(),
+		TrackMode:   s.daemon.state.EffectiveTrackMode().String(),
+		Speeds:      s.daemon.state.Speeds,
 	}
 	s.daemon.mu.RUnlock()
 
@@ -374,6 +375,26 @@ func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, reque
 	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
+// handlePresetPush implements POST /api/preset/push/{name} — the web surface
+// for mirroring a preset into a hardware motor slot (TODO #141). The client
+// confirms via a browser dialog first: the command MOVES THE PHYSICAL CAMERA.
+func (s *webServer) handlePresetPush(responseWriter http.ResponseWriter, request *http.Request) {
+	name := request.PathValue("name")
+	if name == "" {
+		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+
+		return
+	}
+
+	result := s.daemon.handleCommand(request.Context(), cmdPreset+" push "+name)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+}
+
 func newWebMux(server *webServer) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
@@ -394,6 +415,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/preset/save/{name}", server.handlePresetSave)
 	mux.HandleFunc("POST /api/preset/load/{name}", server.handlePresetLoad)
 	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
+	mux.HandleFunc("POST /api/preset/push/{name}", server.handlePresetPush)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/speed/{axis}", server.handleSpeed)
 	mux.HandleFunc("POST /api/tracking/{variant}", server.handleTrackingVariant)

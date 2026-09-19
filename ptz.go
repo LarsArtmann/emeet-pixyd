@@ -161,6 +161,11 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	val = info.Range.Clamp(val)
 
+	// Wired motor speeds (TODO #138): re-assert the persisted speed for this
+	// axis so the move happens at the user's configured speed. Best-effort —
+	// a missing/failing HID path must not block the V4L2 move itself.
+	d.reassertSpeeds(ctx, axis)
+
 	v4l2Err := d.deps.v4l2Set(
 		ctx,
 		videoDev,
@@ -252,12 +257,19 @@ const maxMotorSpeedSanity = 10_000
 // The value is passed through verbatim; the physical unit is assumed to be
 // degrees/second but is not hardware-verified yet — the CLI response and
 // web UI therefore avoid claiming a unit.
+//
+// On success the speed is persisted (TODO #138 wiring) and re-asserted onto
+// the motor MCU before every later move of that axis (PTZ, preset
+// load/push, center, device re-appear). A value of 0 is sent to the device
+// but persists as "no preference" — zero never gates a move.
 func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) CommandResult {
 	if len(parts) < minSpeedCmdParts {
 		return errResultMsg(respSpeedUsage)
 	}
 
-	motor, ok := pixy.MotorTypeFromAxis(pixy.Axis(parts[1]))
+	axis := pixy.Axis(parts[1])
+
+	motor, ok := pixy.MotorTypeFromAxis(axis)
 	if !ok {
 		return errResultMsg(respSpeedUsage)
 	}
@@ -271,14 +283,22 @@ func (d *Daemon) handleSpeedCommand(ctx context.Context, parts []string) Command
 		return errResult("speed", err)
 	}
 
+	d.mu.Lock()
+	d.state.Speeds = d.state.Speeds.Set(axis, float32(speed))
+	d.saveStateOrLog("failed to save state")
+	d.mu.Unlock()
+	d.broadcastStateChanged()
+
 	return okResult(fmt.Sprintf("motor speed set: %s %g", motor, speed))
 }
 
 // handleTrackingVariantCommand implements `tracking <face|halfbody|fullbody>`
 // (TODO #140): the mode-aware tracking layer one level below the binary
-// track/idle/privacy switch. Unlike the camera mode, the variant is NOT
-// persisted to state.json in v1 — the daemon re-asserts the persisted camera
-// mode on device re-appear, but the variant resets (verified M27).
+// track/idle/privacy switch. The variant persists to state.json so the web
+// picker shows the truth after a daemon restart. Whether the hardware
+// retains the variant across power cycles — and therefore whether
+// reconcile should re-assert it like the camera mode — is a hardware
+// verification question (plan M27 / TODO #166).
 func (d *Daemon) handleTrackingVariantCommand(ctx context.Context, parts []string) CommandResult {
 	if len(parts) < minCmdParts {
 		return errResultMsg(respTrackingUsage)
@@ -294,7 +314,8 @@ func (d *Daemon) handleTrackingVariantCommand(ctx context.Context, parts []strin
 	}
 
 	d.mu.Lock()
-	d.trackMode = mode
+	d.state.TrackMode = mode.String()
+	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 	d.broadcastStateChanged()
 

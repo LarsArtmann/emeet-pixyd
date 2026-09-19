@@ -226,9 +226,9 @@ templ statusPanel(s webStatus) {
 						data-signals:pan={ fmt.Sprintf("%d", s.Pan) }
 						data-signals:tilt={ fmt.Sprintf("%d", s.Tilt) }
 						data-signals:zoom={ fmt.Sprintf("%d", s.Zoom) }
-						data-signals:speedPan="0"
-						data-signals:speedTilt="0"
-						data-signals:speedZoom="0"
+						data-signals:speedPan={ formatSpeed(s.Speeds.Pan) }
+						data-signals:speedTilt={ formatSpeed(s.Speeds.Tilt) }
+						data-signals:speedZoom={ formatSpeed(s.Speeds.Zoom) }
 					>
 						<div class="card-title">Position</div>
 						<div class="ptz-layout">
@@ -243,9 +243,9 @@ templ statusPanel(s webStatus) {
 						<div class="speed-block">
 							<div class="card-title">Speed <span class="badge-mini">HID</span></div>
 							<div class="ptz-controls">
-								@speedSlider("Pan", "pan", "speedPan", 0)
-								@speedSlider("Tilt", "tilt", "speedTilt", 0)
-								@speedSlider("Zoom", "zoom", "speedZoom", 0)
+								@speedSlider("Pan", "pan", "speedPan", formatSpeed(s.Speeds.Pan))
+								@speedSlider("Tilt", "tilt", "speedTilt", formatSpeed(s.Speeds.Tilt))
+								@speedSlider("Zoom", "zoom", "speedZoom", formatSpeed(s.Speeds.Zoom))
 							</div>
 						</div>
 						<div class="spacer"></div>
@@ -420,6 +420,14 @@ templ presetChip(name string) {
 			{ name }
 		</button>
 		<button
+			class="preset-chip-push"
+			data-on:click={ fmt.Sprintf("confirm('Push preset %q to the camera? The camera will physically move.') && @post('/api/preset/push/%s')", name, name) }
+			aria-label={ fmt.Sprintf("Push preset %s to camera hardware slot", name) }
+			title="Push to camera hardware slot (moves the camera)"
+		>
+			@iconPush()
+		</button>
+		<button
 			class="preset-chip-delete"
 			data-on:click={ fmt.Sprintf("@post('/api/preset/delete/%s')", name) }
 			aria-label={ fmt.Sprintf("Delete preset %s", name) }
@@ -478,10 +486,11 @@ templ shortcutLegend() {
 // ---------------------------------------------------------------------------
 
 // speedSlider renders one motor-speed row (0..100 sanity scale, transmitted
-// verbatim to the official V2 SetMotorSpeed command). Initial values are
-// unknown until the hardware session pins the GetMotorSpeed response framing,
-// so sliders start at 0 and the value display carries no unit claim.
-templ speedSlider(label, axis, signal string, value int) {
+// verbatim to the official V2 SetMotorSpeed command). The initial value is
+// the persisted speed (0 = no preference) — the real hardware limit and unit
+// stay unknown until the hardware session pins the GetMotorSpeed response
+// framing, so the value display carries no unit claim.
+templ speedSlider(label, axis, signal, value string) {
 	<div class="slider-row" id={ "speed-" + axis }>
 		<span class="slider-label">{ label }</span>
 		<input
@@ -491,11 +500,11 @@ templ speedSlider(label, axis, signal string, value int) {
 			min="0"
 			max="100"
 			step="1"
-			value={ fmt.Sprintf("%d", value) }
+			value={ value }
 			data-bind={ fmt.Sprintf("$%s", signal) }
 			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", signal) }
 			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/speed/%s')", axis) }
 		/>
-		<span class="slider-value" id={ "speed-val-" + axis } data-text={ fmt.Sprintf("$%s", signal) }>{ fmt.Sprintf("%d", value) }</span>
+		<span class="slider-value" id={ "speed-val-" + axis } data-text={ fmt.Sprintf("$%s", signal) }>{ value }</span>
 	</div>
 }

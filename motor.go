@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -82,6 +83,72 @@ func (d *Daemon) setTargetTrack(ctx context.Context, mode pixy.TargetTrackMode) 
 // runs in the hardware session (plan M27 / TODO #141); the guard only prevents
 // sending slots the firmware is unlikely to have.
 const maxHardwarePresetSlots = 8
+
+// reassertSpeeds re-sends the persisted per-axis motor speeds over
+// SetMotorSpeed before a move (TODO #138 wiring). Firmware-side retention is
+// untrustworthy (power cycles reset it; per-move retention is M27-verify), so
+// every move path re-asserts instead of assuming. Axes whose persisted speed
+// is zero carry no preference and are skipped; nothing is sent when no listed
+// axis has a speed.
+//
+// Failures are logged, not returned: the speed is an enhancement to the move,
+// never a precondition. No lock is taken here — callers on the V4L2 move
+// paths (which hold v4l2Mu) rely on the global v4l2Mu → hidMu lock order.
+func (d *Daemon) reassertSpeeds(ctx context.Context, axes ...pixy.Axis) {
+	d.mu.RLock()
+	configured := false
+
+	for _, axis := range axes {
+		if speed, ok := d.state.Speeds.Get(axis); ok && speed > 0 {
+			configured = true
+
+			break
+		}
+	}
+	d.mu.RUnlock()
+
+	if !configured {
+		return
+	}
+
+	d.hidMu.Lock()
+	err := d.reassertSpeedsLocked(ctx, axes...)
+	d.hidMu.Unlock()
+
+	if err != nil {
+		slog.Warn("motor-speed re-assert failed, moving at firmware default speed", "error", err)
+	}
+}
+
+// reassertSpeedsLocked is reassertSpeeds for callers that already hold
+// d.hidMu (preset push, reconcile-on-appear). It stops at the first failing
+// axis so one flaky device cannot triple-count toward the HID circuit
+// breaker within a single re-assert.
+//
+// LOCK CONTRACT: caller holds d.hidMu.
+func (d *Daemon) reassertSpeedsLocked(ctx context.Context, axes ...pixy.Axis) error {
+	d.mu.RLock()
+	speeds := d.state.Speeds
+	d.mu.RUnlock()
+
+	for _, axis := range axes {
+		speed, ok := speeds.Get(axis)
+		if !ok || speed <= 0 {
+			continue
+		}
+
+		motor, ok := pixy.MotorTypeFromAxis(axis)
+		if !ok {
+			continue
+		}
+
+		if err := d.setMotorSpeed(ctx, motor, speed); err != nil {
+			return fmt.Errorf("%s speed %g: %w", axis, speed, err)
+		}
+	}
+
+	return nil
+}
 
 // setMotorPos moves one axis to an absolute position over the official V2
 // SetMotorPos command (head+payload single report, motor-MCU iface). The

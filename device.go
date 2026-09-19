@@ -308,6 +308,15 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 		}
 	}
 
+	// Persisted motor speeds are user intent too (TODO #138 wiring): a power
+	// cycle resets the firmware, so re-assert them on every re-appear. With
+	// no configured speeds this is a no-op (fresh installs never get here —
+	// they return early above). Best-effort: a failure logs and moves are
+	// simply slower, never blocked.
+	if speedErr := d.reassertSpeedsLocked(ctx, pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom); speedErr != nil {
+		slog.Warn("reconcile: motor-speed re-assert failed", "error", speedErr)
+	}
+
 	audio, audioErr := d.queryAudio(ctx)
 	gesture, gestureErr := d.queryGesture(ctx)
 
