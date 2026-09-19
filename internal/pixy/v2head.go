@@ -317,12 +317,24 @@ func ParseMotorPresetPosResponse(head V2Head, resp []byte) (MotorPresetReading, 
 
 	if len(payload) < 2 {
 		// Mode-only GET answer (Beta.25 GET parser: single byte at offset 8).
-		return MotorPresetReading{Mode: payload[0]}, nil
+		reading := MotorPresetReading{
+			Mode:   payload[0],
+			Slot:   0,
+			Pan:    0,
+			Tilt:   0,
+			Zoom:   0,
+			hasPos: false,
+		}
+
+		return reading, nil
 	}
 
 	reading := MotorPresetReading{
 		Slot:   payload[0],
 		Mode:   payload[1],
+		Pan:    0,
+		Tilt:   0,
+		Zoom:   0,
 		hasPos: payload[1] == MotorPresetPositioned && len(payload) >= v2MotorPresetFullLen,
 	}
 

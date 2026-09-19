@@ -64,13 +64,18 @@ func TestParseMotorPresetPosResponse_ModeOnly(t *testing.T) {
 	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
 
 	// The Beta.25 GET parser is single-byte: [mode] at offset 8.
-	occupied, err := pixy.ParseMotorPresetPosResponse(head, v2Response(head, pixy.MotorPresetPositioned))
+	resp := v2Response(head, pixy.MotorPresetPositioned)
+
+	occupied, err := pixy.ParseMotorPresetPosResponse(head, resp)
 	if err != nil {
 		t.Fatalf("parse mode-only occupied: %v", err)
 	}
 
 	if !occupied.Occupied() || occupied.HasPosition() {
-		t.Errorf("mode-only occupied = (occupied %v, position %v), want (true, false)", occupied.Occupied(), occupied.HasPosition())
+		t.Errorf(
+			"mode-only occupied = (occupied %v, position %v), want (true, false)",
+			occupied.Occupied(), occupied.HasPosition(),
+		)
 	}
 
 	empty, err := pixy.ParseMotorPresetPosResponse(head, v2Response(head, 0))
@@ -95,7 +100,10 @@ func TestParseMotorPresetPosResponse_FullShape(t *testing.T) {
 	}
 
 	if !reading.Occupied() || !reading.HasPosition() {
-		t.Fatalf("full occupied = (occupied %v, position %v), want (true, true)", reading.Occupied(), reading.HasPosition())
+		t.Fatalf(
+			"full occupied = (occupied %v, position %v), want (true, true)",
+			reading.Occupied(), reading.HasPosition(),
+		)
 	}
 
 	if reading.Slot != 2 {
