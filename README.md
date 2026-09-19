@@ -293,7 +293,7 @@ static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 
 ### Key Design Decisions
 
-- **HID protocol**: Commands are 9-byte config reports followed by a commit report with a 200ms inter-report delay. Responses are 64-byte reads parsed by byte position.
+- **HID protocol**: Commands are 9-byte config reports followed by a commit report with a 200ms inter-report delay. Responses are 64-byte reads parsed by byte position. Newer V2 command families (`speed`, tracking variants, `battery`, `preset push`, identity queries) use single head-framed reports (`[0x09, iface, category, cmd]`) from the official protocol instead.
 - **State persistence**: JSON file at `{StateDir}/state.json`, atomic write via `.tmp` + rename. Loaded state always wins over defaults.
 - **Call detection**: Scans `/proc/*/fd` for processes holding the video device open, excluding self and descendants. Debounced (default 3 cycles × 2s = 6s).
 - **Dependency injection**: All external interactions (HID, v4l2, PipeWire, notifications) are function fields on `Daemon`, enabling full test injectability without interfaces.
@@ -324,6 +324,8 @@ GOWORK=off go test -race -count=1 ./...
 # Lint
 GOWORK=off golangci-lint run --timeout 2m ./...
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow (pre-commit lint gate, template regeneration, issue reporting).
 
 ## License
 

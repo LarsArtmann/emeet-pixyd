@@ -4,7 +4,7 @@
 
 **Prime directive: no VERSCHLIMMBESSERN.** Every task is additive/surgical — no refactors of working code, no format wars, no speculative rewrites. Blocked/pending-decision items are marked and _not_ executed blind.
 
-**Resolution:** M1–M8 + M13 fully landed 2026-09-18 (`77a97ca`, `4f29afc`, `ba24f8d`, `4539cd7`; see `2026-09-18_05-43` §a), plus the unplanned cmdtable breakthrough that byte-unblocked M14–M17. M9–M12 and M14–M25 remain open, carried as `TODO_LIST.md` #129–#165. Living source of truth: TODO_LIST.
+**Resolution:** FULLY EXECUTED across 2026-09-18/19 — M1–M8 + M13 landed 2026-09-18 (`77a97ca`, `4f29afc`, `ba24f8d`, `4539cd7`; see `2026-09-18_05-43` §a) plus the unplanned cmdtable breakthrough; M9–M12, M14–M20, M23–M24 landed 2026-09-19 (see `2026-09-19_06-44` §a); M21/M22 (elink, EMVideoInput) routed to ROADMAP as research offshoots; M25 = TODO #129 (hardware, folds into #166). Living source of truth: `TODO_LIST.md`.
 
 ---
 

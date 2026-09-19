@@ -6,7 +6,7 @@
 - **Release**: **v0.4.0 tagged** (at `02f769c`, all-CI-green), pushed, GitHub Release published, `nix run github:LarsArtmann/emeet-pixyd/v0.4.0 -- --version` verified working
 - **CI**: all three workflows GREEN on the pushed master tip (`Go tests` ✓ `Nix` ✓ `Website build` ✓) — first fully green state including the new website job
 
-**Resolution:** ~~b1 LSP partial~~ effective for sessions after 2026-09-17 (`.crushrc` loads at startup); ~~b2/b3 held-back commit~~ `4e79b53` subsequently pushed (master in sync 0/0 on 2026-09-18) but the vmTest run itself still hangs (TODO #157). STILL OPEN: f2 close #6 (TODO #154), f3 /changelog refresh (TODO #158), f4 v0.4.1 (TODO #155), f5 secret (TODO #133), f6 (TODO #165), f7 (TODO #161), f8 (TODO #162), f9/f11 (TODO #164/#160), f10 (TODO #159), f13/f14 (ROADMAP), f15 (TODO #163), f16 (TODO #156).
+**Resolution:** ~~b1 LSP partial~~ effective for sessions after 2026-09-17 (`.crushrc` loads at startup); ~~b2/b3 held-back commit~~ `4e79b53` subsequently pushed (master in sync 0/0 on 2026-09-18) but the vmTest run itself still hangs (TODO #157). STILL OPEN (all externally gated): f2 close #6 (TODO #154, zutto), f4 v0.4.1 (TODO #155, Lars), f5 secret (TODO #133, Lars), f16 branch protection (TODO #156, Lars). ~~f3 /changelog refresh (TODO #158), f6 (TODO #165), f7 (TODO #161), f8 (TODO #162), f9/f11 (TODO #164/#160), f10 (TODO #159), f15 (TODO #163)~~ all shipped 2026-09-19; f13/f14 live in ROADMAP; the §b2 vmTest hang was fixed 2026-09-19.
 
 ---
 

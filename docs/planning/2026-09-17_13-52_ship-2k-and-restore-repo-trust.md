@@ -3,7 +3,7 @@
 **Created:** 2026-09-17 13:52 by Crush (glm-5.3)
 **Input:** `docs/status/2026-09-17_13-46_issue-6-pixy-2k-proc-monitor-toggle.md` (session status) + `TODO_LIST.md` (#124, #129–#137) + live git state.
 **Scope:** everything surfaced by the issue #6 session. No unrelated research.
-**Resolution:** executed 2026-09-17 by the v0.4.0 session — ~~zero of it has reached users~~ pushed, tagged v0.4.0 (`02f769c`), website deployed, CI all green. T1–T3, T5–T17, T19–T22 done (see `2026-09-17_17-34`); still open: T4.3 close #6 (TODO #154), T18 vmTest (TODO #157).
+**Resolution:** executed 2026-09-17 by the v0.4.0 session — ~~zero of it has reached users~~ pushed, tagged v0.4.0 (`02f769c`), website deployed, CI all green. T1–T3, T5–T17, T19–T22 done (see `2026-09-17_17-34`); still open: T4.3 close #6 (TODO #154). ~~T18 vmTest (TODO #157)~~ fixed 2026-09-19 — `nix build .#checks.vmTest` green.
 
 ---
 

@@ -4,7 +4,7 @@
 
 **TL;DR:** Issue #6 is functionally fixed and verified locally (code, tests, docs, CHANGELOG, website build, issue reply posted). Master's CI lint breakage (pre-existing, 9 findings) was repaired. Three gaps from the first "done" claim were caught in re-audit and closed. Nothing is pushed or deployed — origin/master is still red until Lars pushes. Issue #6 stays open pending the reporter's confirmation on real 2K hardware.
 
-**Resolution:** mostly executed by the follow-up sessions — ~~nothing pushed/deployed~~ pushed + v0.4.0 tagged + site deployed (`02f769c` era, `a12` in `2026-09-17_17-34`); #137 decided+implemented (`140bc98`); startup sync shipped (part of reconcile); pre-commit gate shipped (`14fb43b`); exhaustruct_v5 done; model logging/output done (`9869a39`). STILL OPEN: #6 closure (awaits @zutto), vmTest (TODO #157), `0118` fuzz home (TODO #165), online screenshots (TODO #129).
+**Resolution:** mostly executed by the follow-up sessions — ~~nothing pushed/deployed~~ pushed + v0.4.0 tagged + site deployed (`02f769c` era, `a12` in `2026-09-17_17-34`); #137 decided+implemented (`140bc98`); startup sync shipped (part of reconcile); pre-commit gate shipped (`14fb43b`); exhaustruct_v5 done; model logging/output done (`9869a39`). STILL OPEN: #6 closure (awaits @zutto), online screenshots (TODO #129, folds into the #166 hardware session). ~~vmTest (TODO #157), `0118` fuzz home (TODO #165)~~ both landed 2026-09-19.
 
 ---
 

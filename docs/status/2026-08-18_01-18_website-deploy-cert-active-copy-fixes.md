@@ -4,7 +4,7 @@
 **Session scope:** Resume after the prior session's shell death. Deploy the undeployed relaunch build, verify the custom domain, close out the ACME/cert blocker, fix flagged copy issues, update memory docs, commit.
 **Session result:** Site fully live with valid TLS (cert self-resolved — no Namecheap action needed anymore), two deploys, one commit (`a76d8f6`), memory docs refreshed. The HyperFrames video composition was confirmed **lost** (reboot wiped `/tmp`) and was **not rebuilt**.
 
-**Resolution:** ~~c) items~~ — #131 done (README tagline aligned, `448c002`); #132 done (gh repo edit; residual topic sweep → TODO #164); #133 build half done (`website.yml`), deploy half blocked on Lars; #130/#134/#135/#136 remain in TODO_LIST; HTML CDN caching FIXED (`firebase.json` catch-all max-age=0, verified 2026-09-18); terraform TXT staging still Lars's call; "2 Stars" metric still live (TODO #164).
+**Resolution:** ~~c) items~~ — #131 done (README tagline aligned, `448c002`); #132 done (gh repo edit; residual topic sweep → TODO #164, done 2026-09-19); #133 build half done (`website.yml`), deploy job now wired + self-skipping (`FIREBASE_DEPLOY_SETUP.md`); ~~#130/#134/#135/#136 remain in TODO_LIST~~ all four done 2026-09-19; HTML CDN caching FIXED (`firebase.json` catch-all max-age=0, verified 2026-09-18); "2 Stars" metric now hidden below 10 stars (2026-09-19). Still open: #129 (hardware, → #166), the terraform TXT staging cleanup (Lars's call), and the f26/f27 live docs-page + OG verification debt.
 
 ---
 

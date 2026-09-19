@@ -4,7 +4,7 @@
 **Session scope:** Fix `emeet-pixyd.lars.software` "Site Not Found" → full go-live; rewrite landing pitch around the "no Linux software for this webcam" origin story; add real screenshots; produce a HyperFrames demo video; rebuild + verify website.
 **Session ends with:** shell PATH completely broken (all commands fail, even `ls`/`date`) — report written via Write tool per user instruction. Undeployed build, uncommitted work.
 
-**Resolution:** ~~b) undeployed build~~ deployed + verified live next session (`2026-08-18_01-18`, `a76d8f6`); cert resolved (CNAME validation, no TXT needed); shell death was transient. Remaining open work harvested as TODO #129–#136.
+**Resolution:** ~~b) undeployed build~~ deployed + verified live next session (`2026-08-18_01-18`, `a76d8f6`); cert resolved (CNAME validation, no TXT needed); shell death was transient. Remaining open work harvested as TODO #129–#136 — of those, #130–#136 all shipped by 2026-09-19 (see `CHANGELOG.md` [Unreleased]). Still open: #129 online screenshots (folds into hardware session TODO #166) and the video audio-bed/9:16 cuts (§f 31–33, ROADMAP-grade).
 
 ---
 

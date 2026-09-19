@@ -5,7 +5,7 @@
 - **Repo**: `emeet-pixyd` @ `master` == `origin/master` (`c22209b`), working tree clean.
 - **Honesty note**: a **second writer (parallel agent session and/or the user) was active in this repo during this session** and performed parts of the fix. This report separates _what I did_, _what I verified_, and _what the other writer did_ — attribution is flagged where unknown.
 
-**Resolution:** ~~b1–b4~~ — CI-parity gates green in CI; website build verified + deployed; lockfile guard shipped (`website.yml` frozen-lockfile); AGENTS lessons recorded. STILL OPEN: dependency-bump ownership policy (ROADMAP open question), stale `html-validate` exclude (TODO #164), auto-commit daemon improvements (host-level), resolution-note convention (adopted informally).
+**Resolution:** ~~b1–b4~~ — CI-parity gates green in CI; website build verified + deployed; lockfile guard shipped (`website.yml` frozen-lockfile); AGENTS lessons recorded. STILL OPEN: dependency-bump ownership policy (ROADMAP open question), auto-commit daemon improvements (host-level), resolution-note convention (adopted informally). ~~Stale `html-validate` exclude (TODO #164)~~ removed 2026-09-19. The frozen-lockfile CI drift guard this report proposed caught its first real drift on 2026-09-19 (a stray typescript un-pin).
 
 ---
 

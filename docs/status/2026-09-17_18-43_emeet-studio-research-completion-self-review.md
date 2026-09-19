@@ -7,7 +7,7 @@ comparison report, and an honest look at what I did badly.
 **Deliverable:** `docs/emeet-studio-official-app-comparison.md` (committed in `61ce62b`).
 **Working artifacts:** `/tmp/emeet/` (ephemeral! see §d/§f).
 
-**Resolution:** ~~f) verification & preservation items 1–5~~ all done (#142 `tools/inno661/` + SHA256 proof, #147 /tmp cleanup + AGENTS block, CHANGELOG entry, AGENTS pointer); protocol follow-ups 6/9/13–15/18 done (#143/#145, map doc §5, `hid-protocol.md` cross-check). STILL OPEN: f7 hardware battery verdict (#144/#139), f10 privacy-trigger-time (ROADMAP), f11 elink doc (ROADMAP), f12 EMVideoInput (ROADMAP), f16 innoextract PR (#148), f17 public page (ROADMAP question). Questions g1 (payload archival) and g3 (public page) remain Lars's calls.
+**Resolution:** ~~f) verification & preservation items 1–5~~ all done (#142 `tools/inno661/` + SHA256 proof, #147 /tmp cleanup + AGENTS block, CHANGELOG entry, AGENTS pointer); protocol follow-ups 6/9/13–15/18 done (#143/#145, map doc §5, `hid-protocol.md` cross-check). STILL OPEN: f7 hardware battery verdict (TODO #166 session), f16 innoextract PR send (`tools/inno661/UPSTREAM.md` staged, Lars's call), f10 privacy-trigger-time / f11 elink / f12 EMVideoInput / f17 public page (ROADMAP). ~~g1 payload archival~~ resolved by events: the `/tmp` specimens died 2026-09-19 — the open question is now re-download + durable storage (ROADMAP). g3 remains Lars's call.
 
 ---
 
