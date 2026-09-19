@@ -154,6 +154,7 @@ emeet-pixy battery              # Show battery/charge (omitted if the device doe
 emeet-pixy preset save <name>   # Save current PTZ position as a named preset
 emeet-pixy preset load <name>   # Recall a saved preset
 emeet-pixy preset push <name>   # Mirror a saved preset into a hardware motor slot
+emeet-pixy preset pull          # Sweep hardware slots into hw-N presets (read-only)
 emeet-pixy preset list          # List all saved presets
 emeet-pixy sync                 # Sync daemon state from camera hardware
 emeet-pixy probe                # Re-detect device (video + hidraw)
@@ -206,7 +207,7 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 - PTZ sliders (pan ±150°, tilt ±90°, zoom 100–150×) with a spatial position radar
 - Motor-speed sliders and a tracking-variant picker (face / half-body / full-body)
 - Snapshot button to capture still frames
-- Preset save/load/delete chips plus hardware-slot mirroring (`preset push`)
+- Preset save/load/delete chips plus hardware-slot mirroring (`preset push` to slots, `preset pull` to sweep slots back)
 - Camera model badge and battery row (shown when the device reports it)
 - Gesture control and auto-mode toggles
 - Toast notifications for state changes

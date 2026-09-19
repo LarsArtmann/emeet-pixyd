@@ -51,7 +51,8 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Camera diagnostics endpoint (full V4L2 control dump).
 - PTZ patrol/sweep mode; configurable home position.
 - `koanf` layered config (file + env, replacing env-only).
-- Extend Waybar output: auto mode, pan/tilt values, and charging/discharging classes (model + battery level ship; the `ChargeSta` enum needs hardware verification, `TODO_LIST.md` #166).
+- Extend Waybar output: auto mode, pan/tilt values, and charging/discharging classes (model + battery level ship; the `ChargeSta` enum needs hardware verification, `TODO_LIST.md` #166). Waybar slot-occupancy (per-slot pull results in the bar JSON) is a **won't-do candidate** — toast/panel coverage suffices (`12-05` §f 40).
+- Per-slot `preset pull` outcome in the web UI — render occupied/empty/pulled per slot beyond the one-line toast (`12-05` §f 22).
 
 ### EMEET STUDIO research offshoots (intel worth keeping alive)
 

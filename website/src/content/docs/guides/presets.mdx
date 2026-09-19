@@ -44,6 +44,21 @@ In the web UI, click the `x` button on a preset chip.
 emeet-pixy preset list
 ```
 
+## Hardware Mirroring
+
+Presets can be mirrored to and from the camera's on-device motor slots
+(slots 1–8). Push moves the camera; pull is read-only:
+
+```bash
+emeet-pixy preset push home     # Mirror the "home" preset into a hardware slot
+emeet-pixy preset pull          # Sweep hardware slots into hw-1, hw-2, ... presets
+```
+
+`preset pull` never moves the motors and never overwrites your named presets —
+pulled slots land as additive `hw-<slot>` presets. Slots that are set but do
+not expose their position are counted as "set (position not exposed)" instead
+of stored.
+
 ## Limitations
 
 - Maximum **16 presets** (`pixy.MaxPresets`)
@@ -60,6 +75,8 @@ Presets are also accessible via HTTP:
 | `/api/preset/save/{name}`   | POST   | Save current PTZ as preset |
 | `/api/preset/load/{name}`   | POST   | Recall a preset            |
 | `/api/preset/delete/{name}` | POST   | Delete a preset            |
+| `/api/preset/push/{name}`   | POST   | Mirror a preset into a hardware slot |
+| `/api/preset/pull`          | POST   | Sweep hardware slots into `hw-N` presets |
 
 ## Storage
 
