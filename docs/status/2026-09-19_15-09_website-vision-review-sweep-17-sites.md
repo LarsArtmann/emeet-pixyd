@@ -6,15 +6,15 @@
 
 ## The numbers
 
-| Metric | Value |
-| --- | --- |
-| Sites discovered / live URLs found | 18 website dirs → 17 live homes reviewed |
-| Screenshots captured | 34 desktop + 34 mobile re-shoots across 3 passes |
-| Vision reviews completed | 34 views (all reviewed at least once), 3 review passes |
-| Reviews per view cost | ~30 s / ~4.2k tokens (CPU-only inference) |
-| Sites materially improved & redeployed | 3 (typespec-asyncapi, emeet-pixyd, learnings) |
-| Infra breakages diagnosed | 4 (cmdguard TLS, typespec DNS, learnings 404, /data disk) |
-| Score improvements | typespec-asyncapi 4→7 (desktop), emeet-pixyd 6→8 (desktop) |
+| Metric                                 | Value                                                      |
+| -------------------------------------- | ---------------------------------------------------------- |
+| Sites discovered / live URLs found     | 18 website dirs → 17 live homes reviewed                   |
+| Screenshots captured                   | 34 desktop + 34 mobile re-shoots across 3 passes           |
+| Vision reviews completed               | 34 views (all reviewed at least once), 3 review passes     |
+| Reviews per view cost                  | ~30 s / ~4.2k tokens (CPU-only inference)                  |
+| Sites materially improved & redeployed | 3 (typespec-asyncapi, emeet-pixyd, learnings)              |
+| Infra breakages diagnosed              | 4 (cmdguard TLS, typespec DNS, learnings 404, /data disk)  |
+| Score improvements                     | typespec-asyncapi 4→7 (desktop), emeet-pixyd 6→8 (desktop) |
 
 ---
 
@@ -28,7 +28,7 @@
 6. **learnings website rescued from a permanent 404.** `larsartmann.github.io/learnings/` serves GitHub's "There isn't a GitHub Pages site here" — and cannot ever work: repo is PRIVATE and the account plan doesn't support Pages for private repos (verified via `gh api` POST → 422 "Your current plan does not support GitHub Pages for this repository"). Built the Docusaurus site in a /tmp copy (bun), retargeted `url`/`baseUrl` from GitHub Pages to Firebase (both in the /tmp build and the real repo), created Firebase site `lars-learnings`, deployed (two transient upload failures, third attempt clean). Live: https://lars-learnings.web.app (verified by fetch — full wiki content). Added footer readability CSS (`footer__link-item`, `footer__copyright`) addressing the review's mobile findings; rebuilt + redeployed.
 7. **Baseline score table for all 17 sites produced** (desktop/mobile): gogenfilter 8/8, atomicwrite 8/6, do-auditlog 8/6, emeet-pixyd 8/6, typespec-asyncapi 7/6, art-dupl 7/6, cleanwizard 7/6, cmdguard 7/6, dynamicmarkdown 7/7, errorfamily 7/6, filewatcher 7/7, go-output 7/7, md-go-validator 7/7, templcomponents 7/6, go-workflow-auditlog 6/6, branded-id 6/7, learnings ?/5.
 8. **Model-review claims verified before acting.** Spot-checked the lowest scorers against real markup/screenshots: templcomponents "missing alt text for images" = false (no `<img>` tags exist anywhere in the templ sources); "overlapping text in code snippet" = false (visual check clean); go-output "code too small on mobile" = false positive (14px `text-sm` confirmed fine in top-fold crop). Only verified findings got fixed.
-9. **Firebase deploy auth path proven and recorded.** `GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json` + nix-shell firebase-tools works for deploys AND `hosting:sites:create` (while the Hosting *domains* API 403s even so). Written into `emeet-pixyd/AGENTS.md` Website section.
+9. **Firebase deploy auth path proven and recorded.** `GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json` + nix-shell firebase-tools works for deploys AND `hosting:sites:create` (while the Hosting _domains_ API 403s even so). Written into `emeet-pixyd/AGENTS.md` Website section.
 10. **Three broken-deployment diagnoses with exact fixes** (see c/d): cmdguard TLS, typespec DNS, learnings Pages impossibility.
 
 ## b) PARTIALLY DONE
@@ -75,58 +75,58 @@
 
 Ranked by impact; effort S <30 min, M 30 min–2 h, L >2 h. HARVEST note: items marked 🌱 are session-specific (route to the owning repo's TODO_LIST or this machine's notes); the rest are ROADMAP-fuel for vision-review-agent / website ops.
 
-| # | Task | Impact | Effort | Category |
-| --- | --- | --- | --- | --- |
-| 1 | Attach `cmdguard.lars.software` in Firebase console (fix invalid TLS cert) | Critical | S | Bug |
-| 2 | Add Namecheap CNAME `typespec-asyncapi` → `typespec-asyncapi.web.app` + attach in console | Critical | S | Bug |
-| 3 | Run SMART/self-test on the /data NVMe; decide migrate-or-replace | Critical | M | Bug |
-| 4 | Add CNAME + console attach for `learnings.lars.software` (or decide web.app-only and fix repo `url`) | High | S | Bug |
-| 5 | Re-shoot all 17 sites with `lazyImageLoadingEnabled=false` + full re-review pass (clean baseline) | High | M | Quality |
-| 6 | Add uptime + TLS-expiry monitor over all 17 live URLs with notification | High | M | Feature |
-| 7 | Commit the websites review config + shoot script into vision-review-agent (kill the /tmp dependency) | High | S | Cleanup |
-| 8 | Benchmark llama.cpp GPU offload (ROCm/Vulkan, `/dev/kfd` present) vs CPU; persist chosen flags in the stack script | High | M | Feature |
-| 9 | `shoot+verify+review` script: per-PNG blank/error-page detection gate before `once` | High | M | Quality |
-| 10 | Harvest this report's items into the owning TODO_LIST/ROADMAP files (docs-health HARVEST) | High | S | Documentation |
-| 11 | Re-diagnose the `llama-server -hf` network hang; document workaround or file upstream | Medium | M | Bug |
-| 12 | Review `/docs` subpages of all Starlight/Astro sites, not just Home | Medium | M | Quality |
-| 13 | Add dark-theme captures (`--dark--` view keys) + re-review | Medium | M | Quality |
-| 14 | Full-page captures (scroll/stitch) to eliminate "cut off at bottom" review artifacts | Medium | M | Quality |
-| 15 | Accessibility audit (axe/pa11y) across all 17 sites | High | M | Quality |
-| 16 | Broken-link + redirect audit across all 17 sites (incl. dead `/demo.mp4`-class references) | Medium | M | Bug |
-| 17 | Perf pass (Lighthouse CI or CLI) on all 17; file per-site top-3 | Medium | M | Quality |
-| 18 | SEO sweep: sitemap, robots.txt, canonical, og:image present on all 17 | Medium | M | Quality |
-| 19 | emeet-pixyd: re-capture web UI screenshots with camera ONLINE (closes TODO #129 properly) | Medium | S | Quality |
-| 20 | Regenerate `learnings` `bun.lock` in-repo (fix frozen-lockfile drift) | Medium | S | Cleanup |
-| 21 | Move `/tmp/vra/websites.json` → `~/.config/visionreviewd/websites.json` (durable default) | Medium | S | Cleanup |
-| 22 | Decide qwen2.5vl:3b fate: wire as fallback in a backup config or `ollama rm` | Low | S | Cleanup |
-| 23 | Standardize Get-Started tap targets ≥44 px mobile across the 10-template family (audit script first) | Medium | M | Quality |
-| 24 | Standardize mobile code-block sizes (`text-xs sm:text-sm` floor) across the template family | Medium | M | Quality |
-| 25 | md-go-validator: verify + fix "footer newsletter low contrast" review claim | Low | S | Bug |
-| 26 | do-auditlog: verify + fix "Get Started not centered" review claim | Low | S | Bug |
-| 27 | templcomponents: re-check "overlapping code" claim with full-height capture | Low | S | Quality |
-| 28 | typespec-asyncapi: build the real 30-second demo.mp4 (HyperFrames) and restore a video section | Low | L | Feature |
-| 29 | learnings: add og:image + social meta (it has none) | Low | S | Feature |
-| 30 | Extract shared landing-page components of the 10-site Astro family into one package (or divergence-report sync script) | High | L | Refactor |
-| 31 | Set up `visionreviewd run` (systemd user timer/unit) for scheduled re-reviews with trend tracking | Medium | M | Feature |
-| 32 | visionreviewd: record source URL in capture events (reviews currently lose which URL a shot came from) | Medium | M | Feature |
-| 33 | vision-review-agent: document the websites-review workflow in `docs/activation/` | Medium | S | Documentation |
-| 34 | Score calibration: sample each view 2–3× or raise review quality via better prompt/model | Low | M | Quality |
-| 35 | Text-level review pass (typos, overclaims, stale versions) on all 17 landing pages | Medium | M | Quality |
-| 36 | Review the auto-committed diffs in emeet-pixyd / typespec-asyncapi / learnings for sanity | Medium | S | Cleanup |
-| 37 | Confirm learnings CI (`ci.yml`) unaffected by the docusaurus.config.ts retarget | Medium | S | Bug |
-| 38 | emeet-pixyd: annotate TODO #129 (assets refreshed, online-state shots pending hardware) | Medium | S | Documentation |
-| 39 | Write the /data degradation into a durable machine note (it affects every AI workload, not this session only) | High | S | Documentation |
-| 40 | gogenfilter scored best (8/8): mine its copy/layout as the template-family gold standard | Low | M | Quality |
-| 41 | Give every site a custom 404 (verify `firebase.json` `error_page`/404.html deploy on each) | Low | S | Quality |
-| 42 | Consistent favicon/manifest/theme-color audit across the family | Low | S | Quality |
-| 43 | Check `cmdguard.web.app` content freshness vs its repo (is the deploys' source current?) | Low | S | Quality |
-| 44 | Consider `demo-poster.png` → WebP/AVIF + explicit width/height for CLS on video sections | Low | S | Quality |
-| 45 | Add per-site "last reviewed + score" badge/footer line fed from visionreviewd INDEX (dogfooding) | Low | M | Feature |
-| 46 | Batch-compare all sites against a shared design checklist (spacing scale, heading hierarchy) | Low | M | Quality |
-| 47 | Make the vision stack script auto-start llama-server on demand with health-wait (no manual babysitting) | Medium | S | Feature |
-| 48 | Evaluate a stronger reviewer model (API key or bigger local VLM) on the same views; compare score sanity | Medium | M | Quality |
-| 49 | Prune stale entries from the visionreviewd journal for dead views (discordsync project retention) | Low | S | Cleanup |
-| 50 | Monthly cadence: calendar/automation reminder to re-run this sweep and diff INDEX trends | Low | S | Feature |
+| #  | Task                                                                                                                   | Impact   | Effort | Category      |
+| -- | ---------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Attach `cmdguard.lars.software` in Firebase console (fix invalid TLS cert)                                             | Critical | S      | Bug           |
+| 2  | Add Namecheap CNAME `typespec-asyncapi` → `typespec-asyncapi.web.app` + attach in console                              | Critical | S      | Bug           |
+| 3  | Run SMART/self-test on the /data NVMe; decide migrate-or-replace                                                       | Critical | M      | Bug           |
+| 4  | Add CNAME + console attach for `learnings.lars.software` (or decide web.app-only and fix repo `url`)                   | High     | S      | Bug           |
+| 5  | Re-shoot all 17 sites with `lazyImageLoadingEnabled=false` + full re-review pass (clean baseline)                      | High     | M      | Quality       |
+| 6  | Add uptime + TLS-expiry monitor over all 17 live URLs with notification                                                | High     | M      | Feature       |
+| 7  | Commit the websites review config + shoot script into vision-review-agent (kill the /tmp dependency)                   | High     | S      | Cleanup       |
+| 8  | Benchmark llama.cpp GPU offload (ROCm/Vulkan, `/dev/kfd` present) vs CPU; persist chosen flags in the stack script     | High     | M      | Feature       |
+| 9  | `shoot+verify+review` script: per-PNG blank/error-page detection gate before `once`                                    | High     | M      | Quality       |
+| 10 | Harvest this report's items into the owning TODO_LIST/ROADMAP files (docs-health HARVEST)                              | High     | S      | Documentation |
+| 11 | Re-diagnose the `llama-server -hf` network hang; document workaround or file upstream                                  | Medium   | M      | Bug           |
+| 12 | Review `/docs` subpages of all Starlight/Astro sites, not just Home                                                    | Medium   | M      | Quality       |
+| 13 | Add dark-theme captures (`--dark--` view keys) + re-review                                                             | Medium   | M      | Quality       |
+| 14 | Full-page captures (scroll/stitch) to eliminate "cut off at bottom" review artifacts                                   | Medium   | M      | Quality       |
+| 15 | Accessibility audit (axe/pa11y) across all 17 sites                                                                    | High     | M      | Quality       |
+| 16 | Broken-link + redirect audit across all 17 sites (incl. dead `/demo.mp4`-class references)                             | Medium   | M      | Bug           |
+| 17 | Perf pass (Lighthouse CI or CLI) on all 17; file per-site top-3                                                        | Medium   | M      | Quality       |
+| 18 | SEO sweep: sitemap, robots.txt, canonical, og:image present on all 17                                                  | Medium   | M      | Quality       |
+| 19 | emeet-pixyd: re-capture web UI screenshots with camera ONLINE (closes TODO #129 properly)                              | Medium   | S      | Quality       |
+| 20 | Regenerate `learnings` `bun.lock` in-repo (fix frozen-lockfile drift)                                                  | Medium   | S      | Cleanup       |
+| 21 | Move `/tmp/vra/websites.json` → `~/.config/visionreviewd/websites.json` (durable default)                              | Medium   | S      | Cleanup       |
+| 22 | Decide qwen2.5vl:3b fate: wire as fallback in a backup config or `ollama rm`                                           | Low      | S      | Cleanup       |
+| 23 | Standardize Get-Started tap targets ≥44 px mobile across the 10-template family (audit script first)                   | Medium   | M      | Quality       |
+| 24 | Standardize mobile code-block sizes (`text-xs sm:text-sm` floor) across the template family                            | Medium   | M      | Quality       |
+| 25 | md-go-validator: verify + fix "footer newsletter low contrast" review claim                                            | Low      | S      | Bug           |
+| 26 | do-auditlog: verify + fix "Get Started not centered" review claim                                                      | Low      | S      | Bug           |
+| 27 | templcomponents: re-check "overlapping code" claim with full-height capture                                            | Low      | S      | Quality       |
+| 28 | typespec-asyncapi: build the real 30-second demo.mp4 (HyperFrames) and restore a video section                         | Low      | L      | Feature       |
+| 29 | learnings: add og:image + social meta (it has none)                                                                    | Low      | S      | Feature       |
+| 30 | Extract shared landing-page components of the 10-site Astro family into one package (or divergence-report sync script) | High     | L      | Refactor      |
+| 31 | Set up `visionreviewd run` (systemd user timer/unit) for scheduled re-reviews with trend tracking                      | Medium   | M      | Feature       |
+| 32 | visionreviewd: record source URL in capture events (reviews currently lose which URL a shot came from)                 | Medium   | M      | Feature       |
+| 33 | vision-review-agent: document the websites-review workflow in `docs/activation/`                                       | Medium   | S      | Documentation |
+| 34 | Score calibration: sample each view 2–3× or raise review quality via better prompt/model                               | Low      | M      | Quality       |
+| 35 | Text-level review pass (typos, overclaims, stale versions) on all 17 landing pages                                     | Medium   | M      | Quality       |
+| 36 | Review the auto-committed diffs in emeet-pixyd / typespec-asyncapi / learnings for sanity                              | Medium   | S      | Cleanup       |
+| 37 | Confirm learnings CI (`ci.yml`) unaffected by the docusaurus.config.ts retarget                                        | Medium   | S      | Bug           |
+| 38 | emeet-pixyd: annotate TODO #129 (assets refreshed, online-state shots pending hardware)                                | Medium   | S      | Documentation |
+| 39 | Write the /data degradation into a durable machine note (it affects every AI workload, not this session only)          | High     | S      | Documentation |
+| 40 | gogenfilter scored best (8/8): mine its copy/layout as the template-family gold standard                               | Low      | M      | Quality       |
+| 41 | Give every site a custom 404 (verify `firebase.json` `error_page`/404.html deploy on each)                             | Low      | S      | Quality       |
+| 42 | Consistent favicon/manifest/theme-color audit across the family                                                        | Low      | S      | Quality       |
+| 43 | Check `cmdguard.web.app` content freshness vs its repo (is the deploys' source current?)                               | Low      | S      | Quality       |
+| 44 | Consider `demo-poster.png` → WebP/AVIF + explicit width/height for CLS on video sections                               | Low      | S      | Quality       |
+| 45 | Add per-site "last reviewed + score" badge/footer line fed from visionreviewd INDEX (dogfooding)                       | Low      | M      | Feature       |
+| 46 | Batch-compare all sites against a shared design checklist (spacing scale, heading hierarchy)                           | Low      | M      | Quality       |
+| 47 | Make the vision stack script auto-start llama-server on demand with health-wait (no manual babysitting)                | Medium   | S      | Feature       |
+| 48 | Evaluate a stronger reviewer model (API key or bigger local VLM) on the same views; compare score sanity               | Medium   | M      | Quality       |
+| 49 | Prune stale entries from the visionreviewd journal for dead views (discordsync project retention)                      | Low      | S      | Cleanup       |
+| 50 | Monthly cadence: calendar/automation reminder to re-run this sweep and diff INDEX trends                               | Low      | S      | Feature       |
 
 ## g) THREE QUESTIONS I CANNOT ANSWER MYSELF
 
@@ -136,4 +136,4 @@ Ranked by impact; effort S <30 min, M 30 min–2 h, L >2 h. HARVEST note: items 
 
 ---
 
-*Point-in-time snapshot. Section (f) is the harvest input — if TODO_LIST/ROADMAP files weren't updated from it, run docs-health → HARVEST. Per harness rules this report is not manually committed; the auto-commit daemon will pick it up.*
+_Point-in-time snapshot. Section (f) is the harvest input — if TODO_LIST/ROADMAP files weren't updated from it, run docs-health → HARVEST. Per harness rules this report is not manually committed; the auto-commit daemon will pick it up._

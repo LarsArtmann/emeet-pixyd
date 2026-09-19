@@ -11,13 +11,13 @@ manual `workflow_dispatch` trigger for re-deploys and verification.
 
 ## What CI uses
 
-| Item        | Value                                                                 |
-| ----------- | --------------------------------------------------------------------- |
-| GCP project | `lars-software`                                                       |
-| Service account | `github-website-deploy@lars-software.iam.gserviceaccount.com`      |
-| Role        | `roles/firebasehosting.admin` (already granted)                       |
-| GitHub secret | `FIREBASE_SERVICE_ACCOUNT` (the service account's JSON key)          |
-| Hosting target | `emeet-pixyd` (Firebase project `lars-software`)                    |
+| Item            | Value                                                         |
+| --------------- | ------------------------------------------------------------- |
+| GCP project     | `lars-software`                                               |
+| Service account | `github-website-deploy@lars-software.iam.gserviceaccount.com` |
+| Role            | `roles/firebasehosting.admin` (already granted)               |
+| GitHub secret   | `FIREBASE_SERVICE_ACCOUNT` (the service account's JSON key)   |
+| Hosting target  | `emeet-pixyd` (Firebase project `lars-software`)              |
 
 The deploy job writes the secret to a temporary file, exports
 `GOOGLE_APPLICATION_CREDENTIALS`, and runs

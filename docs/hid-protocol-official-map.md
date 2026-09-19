@@ -154,13 +154,13 @@ echo validates. Our parsers implement the same mask via
 
 **Payload layouts (from controller call sites + log format strings):**
 
-| Command                         | Payload after head                  |
-| ------------------------------- | ----------------------------------- |
-| `CMD_SET_DEVICE_MODE`           | `[mode:u8]`                         |
-| `CMD_SET_MOTOR_SPEED`           | `[motorType:u8][speed:f32]` (len 5) |
-| `CMD_SET_MOTOR_PRESET_POS`      | `[slot:u8]`                         |
-| `CMD_SET_MOTOR_PRESET_POS_MODE` | `[slot:u8][mode:u8]`                |
-| `CMD_SET_TARGET_TRACK`          | `[mode:u8][f32×3]` (len 13)         |
+| Command                         | Payload after head                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CMD_SET_DEVICE_MODE`           | `[mode:u8]`                                                                                                                                                                                                                                                                         |
+| `CMD_SET_MOTOR_SPEED`           | `[motorType:u8][speed:f32]` (len 5)                                                                                                                                                                                                                                                 |
+| `CMD_SET_MOTOR_PRESET_POS`      | `[slot:u8]`                                                                                                                                                                                                                                                                         |
+| `CMD_SET_MOTOR_PRESET_POS_MODE` | `[slot:u8][mode:u8]`                                                                                                                                                                                                                                                                |
+| `CMD_SET_TARGET_TRACK`          | `[mode:u8][f32×3]` (len 13)                                                                                                                                                                                                                                                         |
 | GETs                            | bare 4-byte heads, no payload — EXCEPT: motor-GETs carry a trailing byte and the speed query rides the SET head (PresetPosMode GET = head + `[slot:u8]`; speed GET = full SET payload `[motorType:u8]` with the dev byte mergeType(3,3)=0x63); see §3.5a for the x64-verified forms |
 
 **Known query heads** (battery probe / read paths): battery `09 00 00 02`,

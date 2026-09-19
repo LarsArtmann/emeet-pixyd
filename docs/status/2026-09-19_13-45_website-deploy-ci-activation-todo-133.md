@@ -70,6 +70,7 @@
 ## f) UP TO 50 THINGS TO DO NEXT
 
 **CI/CD hardening**
+
 1. Pin `firebase-tools` version in the deploy step.
 2. Pin the action versions already present — done; audit for newer pinned SHAs quarterly.
 3. Remove or annotate the secret-presence conditional.

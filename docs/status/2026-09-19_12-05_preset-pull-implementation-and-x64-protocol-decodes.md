@@ -93,7 +93,7 @@ the user explicitly requested `.md` at this path, so this file is Markdown.
    exhausted, needs live tracing) and `DefaultPosMode` value semantics.
    Blocker: hardware. Effort: M (inside #166).
 3. **TODO #138/#139/#140 (speed, battery, tracking).** Code complete and
-   persisted; the *only* remainder of each is hardware verification inside
+   persisted; the _only_ remainder of each is hardware verification inside
    the #166 bundle. Effort: S each once attached.
 4. **TODO #133 (website deploy).** Build half shipped; deploy job
    self-skips until Lars creates `FIREBASE_SERVICE_ACCOUNT`. Note: this
@@ -137,7 +137,7 @@ could land, listed with root causes because the pattern repeats:
    power-on-default SET-echo parser (`0x14017e210`, head `…14`); the real
    preset GET parser is single-byte. Root cause: I trusted the doc's
    attribution instead of verifying which echo head each parser compares
-   against *before* coding. Fixed by disassembling all three parsers and
+   against _before_ coding. Fixed by disassembling all three parsers and
    reworking to a both-shapes parser; docs corrected. Severity had it
    shipped: pull would have misread every slot on hardware.
 3. **Simulator padded responses broke shape detection** — my parser
@@ -167,7 +167,7 @@ could land, listed with root causes because the pattern repeats:
 ## e) WHAT WE SHOULD IMPROVE
 
 1. **Verify attribution, not just content, of evidence notes.** Miss #2
-   above cost a rework: the ROADMAP said *what* the response shape was but
+   above cost a rework: the ROADMAP said _what_ the response shape was but
    attributed it to the wrong command. Standing rule for future protocol
    work: every decoded shape must cite its parser address **and** the echo
    head it validates against, in the doc, at decode time.
@@ -211,58 +211,58 @@ could land, listed with root causes because the pattern repeats:
 Ranked by impact. "Routed" = already lives in TODO_LIST/ROADMAP; "HARVEST" =
 new from this report, needs docs-health HARVEST to route.
 
-| #  | Task                                                                                                     | Impact | Effort | Category      | Route |
-| -- | -------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- | ----- |
-| 1  | Wire the PIXY and run the #166 hardware-verification bundle (one session closes items 2–12 below)        | High   | M      | Verification  | Routed #166 |
-| 2  | Run `TestIntegration_BatteryProbe` on wired hardware (battery verdict)                                   | High   | S      | Verification  | Routed #139 |
-| 3  | Pin real preset slot count via a live `preset pull` sweep                                                | High   | S      | Verification  | Routed #166 |
-| 4  | Pin which preset-response shape the wired firmware answers (mode-only vs full SET-echo)                  | High   | S      | Verification  | Routed #166 |
-| 5  | If firmware answers mode-only: verify position acquisition via `SET_MOTOR_PRESET_POS_MODE` echo (needs Q1) | High   | M      | Feature       | HARVEST |
-| 6  | Pin `MotorType` values (pan/tilt/zoom = 0/1/2) with live speed reads                                     | High   | S      | Verification  | Routed #150 |
-| 7  | Pin speed unit + hardware limit; clamp at command layer; set web slider max                              | Med    | S      | Feature       | Routed #138 |
-| 8  | Hardware-verify TargetTrackMode variants on-wire                                                         | Med    | S      | Verification  | Routed #140 |
-| 9  | Decide + implement whether reconcile re-asserts the tracking variant after power cycles                  | Med    | S      | Feature       | Routed #140 |
-| 10 | Verify motor iface echo (0x63 vs 0x03) on-wire — validates `v2EchoMatches`                               | Med    | S      | Verification  | Routed #166 |
-| 11 | Decode the reserved dword (response bytes 4..7) from live captures                                       | Low    | S      | Research      | Routed #166 |
-| 12 | Live round-trip test: `preset push` → `preset pull` → values match                                       | Med    | S      | Verification  | HARVEST |
-| 13 | Retake online web UI screenshots (live MJPEG, tracking active) + regenerate panel crop and video poster  | Med    | S      | Documentation | Routed #129 |
-| 14 | Cut v0.4.1 (5 HID families + preset pull + protocol corrections) — needs Lars's cadence call             | High   | S      | Release       | Routed #155 |
-| 15 | Close issue #6 once @zutto confirms PIXY 2K on hardware                                                  | High   | S      | Release       | Routed #154 |
-| 16 | Create `FIREBASE_SERVICE_ACCOUNT` secret and enable the website deploy job                               | Med    | S      | Release       | Routed #133 |
-| 17 | Require go-test/nix/website workflows on master (branch protection)                                      | Med    | S      | Quality       | Routed #156 |
-| 18 | Build the website (`pnpm build`) to verify this session's `changelog.mdx` edits compile                  | Med    | S      | Quality       | HARVEST |
-| 19 | Add a pre-release local gate: `govulncheck` + fuzz smoke (`go test -fuzz` seeds)                         | Med    | S      | Quality       | HARVEST |
-| 20 | Pull early-abort heuristic: stop sweep after N consecutive slot timeouts to cut worst-case ~4 s latency  | Med    | S      | Feature       | HARVEST |
-| 21 | Include the failure count in pull's all-slots-unreadable error ("8/8 slots unreadable: …")               | Low    | S      | Feature       | HARVEST |
-| 22 | Web UI: render per-slot pull outcome (occupied/empty/pulled) beyond the toast line                        | Low    | M      | Feature       | HARVEST |
-| 23 | Land the `EMEET_PIXYD_MOTOR_SPEED` env default (speed follow-up)                                         | Med    | S      | Feature       | Routed ROADMAP |
-| 24 | Decide structured command types ADR (#116) — join-remaining for multi-word names rides on it             | Med    | M      | Feature       | Routed, needs Lars |
-| 25 | Decide multi-word preset names ADR (#123) and land join-remaining                                        | Med    | S      | Feature       | Routed, needs Lars |
-| 26 | Add `FuzzParseV2Response` now that framing has dual-shape parsers                                        | Med    | M      | Quality       | Routed ROADMAP |
-| 27 | Switch mode reads to the authoritative `GET_DEVICE_MODE` head or document why the SET-head query stays   | Low    | S      | Cleanup       | Routed ROADMAP |
-| 28 | Decode `GET_FUNC_STA` bitfield into capability-gated UI                                                  | Low    | M      | Feature       | Routed ROADMAP |
-| 29 | Implement `hidCmdSend`-style bounded retry (w4=50) in the HID layer once #166 pins retry semantics       | Low    | M      | Feature       | Routed ROADMAP |
-| 30 | Reconcile the map doc §3.5 payload table's "GETs: bare heads" row with the slot/motorType-byte reality    | Low    | S      | Documentation | HARVEST |
-| 31 | Measure coverage for the new preset-pull paths; close gaps if under suite average                        | Low    | S      | Quality       | HARVEST |
-| 32 | Wrap `presetFullResponses` in a proper simulator option instead of direct field pokes                    | Low    | S      | Cleanup       | HARVEST |
-| 33 | Update `handlePresetWithLock` doc comment: push/pull take hidMu internally, save/load take v4l2Mu        | Low    | S      | Documentation | HARVEST |
-| 34 | Add a property test: pull never evicts or mutates presets under arbitrary name collisions                | Low    | S      | Quality       | HARVEST |
-| 35 | Model the speed-query duality (SET-head vs `09 03 01 13`) in the simulator for #166 comparisons          | Low    | S      | Quality       | HARVEST |
-| 36 | README: mention hardware preset mirroring (push/pull) on the sales page                                  | Low    | S      | Documentation | HARVEST |
-| 37 | Decide dprint ownership: vendor it into the devShell or delete `dprint.json`                             | Low    | S      | Cleanup       | HARVEST |
-| 38 | Extend auto-management docs/ADR: preset pull stays manual (no auto-sync on device appear)                | Low    | S      | Documentation | HARVEST |
-| 39 | Optional usbmon capture on Windows to decode MotorType values from caller sites                          | Low    | L      | Research      | HARVEST |
-| 40 | Route Waybar slot-occupancy surface to ROADMAP (won't-do candidate)                                      | Low    | S      | Cleanup       | HARVEST |
-| 41 | Deploy the website after item 18 passes so the public changelog carries preset pull + corrections        | Med    | S      | Release       | HARVEST (needs #16) |
-| 42 | Run docs-health HARVEST on this report's items (per skill handoff rule)                                  | Med    | S      | Documentation | HARVEST |
-| 43 | Run the vmTest suite once before the next release (not exercised this session)                           | Med    | S      | Quality       | HARVEST |
-| 44 | Review stale `//nolint` directives around the touched files (per AGENTS.md lint note)                    | Low    | S      | Cleanup       | HARVEST |
-| 45 | Add `preset pull` to the NixOS module docs page if it enumerates commands                                | Low    | S      | Documentation | HARVEST |
-| 46 | Consider a `preset pull --dry-run` (report-only sweep) as the safe discovery surface                     | Low    | S      | Feature       | HARVEST |
-| 47 | Tag + verify module proxy after the next release (go-release checklist)                                  | Low    | S      | Release       | HARVEST |
-| 48 | Extract a shared V2 query helper as more GET families land (identity/battery/preset each wrap it)        | Low    | M      | Cleanup       | HARVEST |
-| 49 | Record the session's 0x1403c53c0→Qt-copy-helper correction in ROADMAP research notes (done in map doc)    | Low    | S      | Documentation | HARVEST (verify only) |
-| 50 | Plan the next docs-health sweep to prune this report per the annotate-not-rewrite rule                   | Low    | S      | Documentation | HARVEST |
+| #  | Task                                                                                                       | Impact | Effort | Category      | Route                 |
+| -- | ---------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- | --------------------- |
+| 1  | Wire the PIXY and run the #166 hardware-verification bundle (one session closes items 2–12 below)          | High   | M      | Verification  | Routed #166           |
+| 2  | Run `TestIntegration_BatteryProbe` on wired hardware (battery verdict)                                     | High   | S      | Verification  | Routed #139           |
+| 3  | Pin real preset slot count via a live `preset pull` sweep                                                  | High   | S      | Verification  | Routed #166           |
+| 4  | Pin which preset-response shape the wired firmware answers (mode-only vs full SET-echo)                    | High   | S      | Verification  | Routed #166           |
+| 5  | If firmware answers mode-only: verify position acquisition via `SET_MOTOR_PRESET_POS_MODE` echo (needs Q1) | High   | M      | Feature       | HARVEST               |
+| 6  | Pin `MotorType` values (pan/tilt/zoom = 0/1/2) with live speed reads                                       | High   | S      | Verification  | Routed #150           |
+| 7  | Pin speed unit + hardware limit; clamp at command layer; set web slider max                                | Med    | S      | Feature       | Routed #138           |
+| 8  | Hardware-verify TargetTrackMode variants on-wire                                                           | Med    | S      | Verification  | Routed #140           |
+| 9  | Decide + implement whether reconcile re-asserts the tracking variant after power cycles                    | Med    | S      | Feature       | Routed #140           |
+| 10 | Verify motor iface echo (0x63 vs 0x03) on-wire — validates `v2EchoMatches`                                 | Med    | S      | Verification  | Routed #166           |
+| 11 | Decode the reserved dword (response bytes 4..7) from live captures                                         | Low    | S      | Research      | Routed #166           |
+| 12 | Live round-trip test: `preset push` → `preset pull` → values match                                         | Med    | S      | Verification  | HARVEST               |
+| 13 | Retake online web UI screenshots (live MJPEG, tracking active) + regenerate panel crop and video poster    | Med    | S      | Documentation | Routed #129           |
+| 14 | Cut v0.4.1 (5 HID families + preset pull + protocol corrections) — needs Lars's cadence call               | High   | S      | Release       | Routed #155           |
+| 15 | Close issue #6 once @zutto confirms PIXY 2K on hardware                                                    | High   | S      | Release       | Routed #154           |
+| 16 | Create `FIREBASE_SERVICE_ACCOUNT` secret and enable the website deploy job                                 | Med    | S      | Release       | Routed #133           |
+| 17 | Require go-test/nix/website workflows on master (branch protection)                                        | Med    | S      | Quality       | Routed #156           |
+| 18 | Build the website (`pnpm build`) to verify this session's `changelog.mdx` edits compile                    | Med    | S      | Quality       | HARVEST               |
+| 19 | Add a pre-release local gate: `govulncheck` + fuzz smoke (`go test -fuzz` seeds)                           | Med    | S      | Quality       | HARVEST               |
+| 20 | Pull early-abort heuristic: stop sweep after N consecutive slot timeouts to cut worst-case ~4 s latency    | Med    | S      | Feature       | HARVEST               |
+| 21 | Include the failure count in pull's all-slots-unreadable error ("8/8 slots unreadable: …")                 | Low    | S      | Feature       | HARVEST               |
+| 22 | Web UI: render per-slot pull outcome (occupied/empty/pulled) beyond the toast line                         | Low    | M      | Feature       | HARVEST               |
+| 23 | Land the `EMEET_PIXYD_MOTOR_SPEED` env default (speed follow-up)                                           | Med    | S      | Feature       | Routed ROADMAP        |
+| 24 | Decide structured command types ADR (#116) — join-remaining for multi-word names rides on it               | Med    | M      | Feature       | Routed, needs Lars    |
+| 25 | Decide multi-word preset names ADR (#123) and land join-remaining                                          | Med    | S      | Feature       | Routed, needs Lars    |
+| 26 | Add `FuzzParseV2Response` now that framing has dual-shape parsers                                          | Med    | M      | Quality       | Routed ROADMAP        |
+| 27 | Switch mode reads to the authoritative `GET_DEVICE_MODE` head or document why the SET-head query stays     | Low    | S      | Cleanup       | Routed ROADMAP        |
+| 28 | Decode `GET_FUNC_STA` bitfield into capability-gated UI                                                    | Low    | M      | Feature       | Routed ROADMAP        |
+| 29 | Implement `hidCmdSend`-style bounded retry (w4=50) in the HID layer once #166 pins retry semantics         | Low    | M      | Feature       | Routed ROADMAP        |
+| 30 | Reconcile the map doc §3.5 payload table's "GETs: bare heads" row with the slot/motorType-byte reality     | Low    | S      | Documentation | HARVEST               |
+| 31 | Measure coverage for the new preset-pull paths; close gaps if under suite average                          | Low    | S      | Quality       | HARVEST               |
+| 32 | Wrap `presetFullResponses` in a proper simulator option instead of direct field pokes                      | Low    | S      | Cleanup       | HARVEST               |
+| 33 | Update `handlePresetWithLock` doc comment: push/pull take hidMu internally, save/load take v4l2Mu          | Low    | S      | Documentation | HARVEST               |
+| 34 | Add a property test: pull never evicts or mutates presets under arbitrary name collisions                  | Low    | S      | Quality       | HARVEST               |
+| 35 | Model the speed-query duality (SET-head vs `09 03 01 13`) in the simulator for #166 comparisons            | Low    | S      | Quality       | HARVEST               |
+| 36 | README: mention hardware preset mirroring (push/pull) on the sales page                                    | Low    | S      | Documentation | HARVEST               |
+| 37 | Decide dprint ownership: vendor it into the devShell or delete `dprint.json`                               | Low    | S      | Cleanup       | HARVEST               |
+| 38 | Extend auto-management docs/ADR: preset pull stays manual (no auto-sync on device appear)                  | Low    | S      | Documentation | HARVEST               |
+| 39 | Optional usbmon capture on Windows to decode MotorType values from caller sites                            | Low    | L      | Research      | HARVEST               |
+| 40 | Route Waybar slot-occupancy surface to ROADMAP (won't-do candidate)                                        | Low    | S      | Cleanup       | HARVEST               |
+| 41 | Deploy the website after item 18 passes so the public changelog carries preset pull + corrections          | Med    | S      | Release       | HARVEST (needs #16)   |
+| 42 | Run docs-health HARVEST on this report's items (per skill handoff rule)                                    | Med    | S      | Documentation | HARVEST               |
+| 43 | Run the vmTest suite once before the next release (not exercised this session)                             | Med    | S      | Quality       | HARVEST               |
+| 44 | Review stale `//nolint` directives around the touched files (per AGENTS.md lint note)                      | Low    | S      | Cleanup       | HARVEST               |
+| 45 | Add `preset pull` to the NixOS module docs page if it enumerates commands                                  | Low    | S      | Documentation | HARVEST               |
+| 46 | Consider a `preset pull --dry-run` (report-only sweep) as the safe discovery surface                       | Low    | S      | Feature       | HARVEST               |
+| 47 | Tag + verify module proxy after the next release (go-release checklist)                                    | Low    | S      | Release       | HARVEST               |
+| 48 | Extract a shared V2 query helper as more GET families land (identity/battery/preset each wrap it)          | Low    | M      | Cleanup       | HARVEST               |
+| 49 | Record the session's 0x1403c53c0→Qt-copy-helper correction in ROADMAP research notes (done in map doc)     | Low    | S      | Documentation | HARVEST (verify only) |
+| 50 | Plan the next docs-health sweep to prune this report per the annotate-not-rewrite rule                     | Low    | S      | Documentation | HARVEST               |
 
 ## g) Three questions I cannot answer myself
 
@@ -287,5 +287,5 @@ new from this report, needs docs-health HARVEST to route.
 
 ---
 
-*Point-in-time snapshot — goes stale. Section (f) is HARVEST input for
-TODO_LIST.md/ROADMAP.md; items 42 + 49–50 track that handoff.*
+_Point-in-time snapshot — goes stale. Section (f) is HARVEST input for
+TODO_LIST.md/ROADMAP.md; items 42 + 49–50 track that handoff._

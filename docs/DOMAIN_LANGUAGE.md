@@ -8,32 +8,32 @@ code (`internal/pixy/`) is the source of truth for these definitions.
 
 ## Glossary
 
-| Term             | Definition                                                                                                                                   | Context / Where used                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| PIXY             | The EMEET PIXY dual-camera AI webcam family (original USB `328f:00c0`, PIXY 2K `328f:0118`). The hardware this daemon drives.                | Product name, udev rules, probing    |
-| Daemon           | The long-running `emeet-pixyd` background service.                                                                                           | systemd unit, lifecycle              |
-| Call             | A video call or camera session. Detected when any process opens `/dev/video*`.                                                               | Auto-management, call detection      |
-| In-Call          | State where the camera device is open by a non-daemon process.                                                                               | `State.InCall`, auto.go              |
-| Tracking         | Camera actively following faces via the on-device AI.                                                                                        | `CameraState`, HID                   |
-| Privacy          | Camera lens physically blocked by the hardware shutter.                                                                                      | `CameraState`, HID                   |
-| Idle             | Camera powered on but not tracking and not blocked.                                                                                          | `CameraState`                        |
-| Offline          | No PIXY device detected (unplugged or not probed).                                                                                           | `CameraState`                        |
-| PTZ              | Pan / Tilt / Zoom — the motorized camera position axes.                                                                                      | `Axis`, `PTZValues`, ptz.go          |
-| Preset           | A named, saved PTZ position that can be recalled later.                                                                                      | `PresetMap`, state.json              |
-| Snapshot         | A single still JPEG frame captured from the live stream.                                                                                     | `/api/snapshot`, stream.go           |
-| Debounce         | N consecutive polling cycles required before a state transition is committed.                                                                | `DebounceCount`, auto.go             |
-| Probe            | Scan sysfs (`/sys/class/video4linux`, `/sys/class/hidraw`) to find the PIXY.                                                                 | `probeDevices()`, probe.go           |
-| Hotplug          | USB plug/unplug event detected via netlink uevent, triggering a re-probe.                                                                    | uevent.go                            |
-| Reconcile        | Aligning belief and hardware when the device (re)appears: fresh installs adopt hardware; otherwise the persisted camera mode is re-asserted. | `reconcileOnDeviceAppear`, device.go |
-| HID              | Human Interface Device protocol over `/dev/hidraw*` used for camera control.                                                                 | hid.go                               |
-| Config + Commit  | The two-phase HID write: a 9-byte config report followed by a 4-byte commit report.                                                          | hid.go, 200ms inter-report delay     |
-| V2 Head          | The official single-report command frame: `[0x09, iface, category, cmd]` — no commit pair. Motor sets route the iface byte to `0x63`.        | `internal/pixy/v2head.go`, motor.go  |
+| Term             | Definition                                                                                                                                                                                       | Context / Where used                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| PIXY             | The EMEET PIXY dual-camera AI webcam family (original USB `328f:00c0`, PIXY 2K `328f:0118`). The hardware this daemon drives.                                                                    | Product name, udev rules, probing    |
+| Daemon           | The long-running `emeet-pixyd` background service.                                                                                                                                               | systemd unit, lifecycle              |
+| Call             | A video call or camera session. Detected when any process opens `/dev/video*`.                                                                                                                   | Auto-management, call detection      |
+| In-Call          | State where the camera device is open by a non-daemon process.                                                                                                                                   | `State.InCall`, auto.go              |
+| Tracking         | Camera actively following faces via the on-device AI.                                                                                                                                            | `CameraState`, HID                   |
+| Privacy          | Camera lens physically blocked by the hardware shutter.                                                                                                                                          | `CameraState`, HID                   |
+| Idle             | Camera powered on but not tracking and not blocked.                                                                                                                                              | `CameraState`                        |
+| Offline          | No PIXY device detected (unplugged or not probed).                                                                                                                                               | `CameraState`                        |
+| PTZ              | Pan / Tilt / Zoom — the motorized camera position axes.                                                                                                                                          | `Axis`, `PTZValues`, ptz.go          |
+| Preset           | A named, saved PTZ position that can be recalled later.                                                                                                                                          | `PresetMap`, state.json              |
+| Snapshot         | A single still JPEG frame captured from the live stream.                                                                                                                                         | `/api/snapshot`, stream.go           |
+| Debounce         | N consecutive polling cycles required before a state transition is committed.                                                                                                                    | `DebounceCount`, auto.go             |
+| Probe            | Scan sysfs (`/sys/class/video4linux`, `/sys/class/hidraw`) to find the PIXY.                                                                                                                     | `probeDevices()`, probe.go           |
+| Hotplug          | USB plug/unplug event detected via netlink uevent, triggering a re-probe.                                                                                                                        | uevent.go                            |
+| Reconcile        | Aligning belief and hardware when the device (re)appears: fresh installs adopt hardware; otherwise the persisted camera mode is re-asserted.                                                     | `reconcileOnDeviceAppear`, device.go |
+| HID              | Human Interface Device protocol over `/dev/hidraw*` used for camera control.                                                                                                                     | hid.go                               |
+| Config + Commit  | The two-phase HID write: a 9-byte config report followed by a 4-byte commit report.                                                                                                              | hid.go, 200ms inter-report delay     |
+| V2 Head          | The official single-report command frame: `[0x09, iface, category, cmd]` — no commit pair. Motor sets route the iface byte to `0x63`.                                                            | `internal/pixy/v2head.go`, motor.go  |
 | Motor Slot       | A hardware preset position stored in the camera's motor MCU (not in state.json); mirrors of named presets land here via `preset push`, and sweeps land back as `hw-N` presets via `preset pull`. | `preset push`/`pull`, motor.go       |
-| Circuit Breaker  | HID failure tracker: 3 consecutive failures trigger a device re-probe.                                                                       | device.go                            |
-| Tracking Variant | The tracking target mode: `none`, `face`, `halfbody`, or `fullbody`. Persisted in state.json; the web picker shows the persisted variant.  | `pixy.TargetTrackMode`, tracking cmd |
-| Battery Surface  | The battery/charge readout (command, status, Waybar, web row); degrades by omission when the device doesn't answer.                          | `battery` cmd, waybar.go, TTL cache  |
-| PipeWire Source  | The PIXY microphone as a PipeWire audio source, switched via `wpctl`.                                                                        | process.go, `SourceID`               |
-| Waybar           | Status-bar integration producing JSON for a custom Waybar module.                                                                            | waybar.go                            |
+| Circuit Breaker  | HID failure tracker: 3 consecutive failures trigger a device re-probe.                                                                                                                           | device.go                            |
+| Tracking Variant | The tracking target mode: `none`, `face`, `halfbody`, or `fullbody`. Persisted in state.json; the web picker shows the persisted variant.                                                        | `pixy.TargetTrackMode`, tracking cmd |
+| Battery Surface  | The battery/charge readout (command, status, Waybar, web row); degrades by omission when the device doesn't answer.                                                                              | `battery` cmd, waybar.go, TTL cache  |
+| PipeWire Source  | The PIXY microphone as a PipeWire audio source, switched via `wpctl`.                                                                                                                            | process.go, `SourceID`               |
+| Waybar           | Status-bar integration producing JSON for a custom Waybar module.                                                                                                                                | waybar.go                            |
 
 ## Entities
 
@@ -76,25 +76,25 @@ Things that happen in the domain.
 
 Actions the system can perform (via Unix socket, CLI, or web UI).
 
-| Command                  | Effect                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| track / idle / privacy   | Set camera mode via HID.                                                      |
-| toggle-privacy           | Switch between tracking and privacy.                                          |
-| center                   | Reset pan=0, tilt=0, zoom=100 via V4L2.                                       |
-| pan/tilt/zoom \<value\>  | Set a PTZ axis (absolute, or `rel+/-N` for relative).                         |
-| audio [mode]             | Set or cycle audio mode (NC → Live → Original → NC).                          |
-| gesture-on / off         | Toggle hand-gesture control via HID.                                          |
-| auto [mode]              | Set or report the auto-management strategy.                                   |
-| preset save/load/delete  | Manage named PTZ presets.                                                     |
-| preset push              | Mirror a named preset into a hardware motor slot (moves the physical camera). |
+| Command                  | Effect                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| track / idle / privacy   | Set camera mode via HID.                                                         |
+| toggle-privacy           | Switch between tracking and privacy.                                             |
+| center                   | Reset pan=0, tilt=0, zoom=100 via V4L2.                                          |
+| pan/tilt/zoom \<value\>  | Set a PTZ axis (absolute, or `rel+/-N` for relative).                            |
+| audio [mode]             | Set or cycle audio mode (NC → Live → Original → NC).                             |
+| gesture-on / off         | Toggle hand-gesture control via HID.                                             |
+| auto [mode]              | Set or report the auto-management strategy.                                      |
+| preset save/load/delete  | Manage named PTZ presets.                                                        |
+| preset push              | Mirror a named preset into a hardware motor slot (moves the physical camera).    |
 | preset pull              | Sweep hardware motor slots back into `hw-N` presets (read-only on the hardware). |
-| speed \<axis\> \<value\> | Set motor speed over HID (axis: pan, tilt, zoom).                             |
-| tracking \<variant\>     | Set the tracking variant (face, halfbody, fullbody).                          |
-| battery                  | Report battery/charge when the device answers.                                |
-| sync                     | Query hardware via HID, reconcile daemon state.                               |
-| probe                    | Re-scan sysfs for the PIXY.                                                   |
-| status / device          | Report current state / device paths.                                          |
-| waybar                   | Emit JSON for a Waybar module.                                                |
+| speed \<axis\> \<value\> | Set motor speed over HID (axis: pan, tilt, zoom).                                |
+| tracking \<variant\>     | Set the tracking variant (face, halfbody, fullbody).                             |
+| battery                  | Report battery/charge when the device answers.                                   |
+| sync                     | Query hardware via HID, reconcile daemon state.                                  |
+| probe                    | Re-scan sysfs for the PIXY.                                                      |
+| status / device          | Report current state / device paths.                                             |
+| waybar                   | Emit JSON for a Waybar module.                                                   |
 
 ## Bounded Contexts
 
