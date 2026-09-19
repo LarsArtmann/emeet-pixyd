@@ -55,12 +55,12 @@ minutes for the full `--disassemble` pass.
 
 ## Table excerpt
 
-| Head | Command | Meaning |
-| ---- | ------- | ------- |
-| `09 00 00 02` | `CMD_GET_BATTERY_LEVEL` | battery percent (u8) |
-| `09 00 00 06` | `CMD_GET_CHARGE_STA` | charge status enum |
-| `09 03 01 03` | `CMD_SET_MOTOR_SPEED` | `[motorType:u8][speed:f32]` |
-| `09 03 01 13` | `CMD_GET_MOTOR_SPEED` | value + limit (two f32) |
-| `09 03 01 19` | `CMD_SET_MOTOR_PRESET_POS` | `[slot:u8]` |
-| `09 04 01 01` | `CMD_SET_TARGET_TRACK` | `[mode:u8][f32×3]` |
-| `09 01 01 01` | `CMD_SET_DEVICE_MODE` | **our** tracking config+commit |
+| Head          | Command                    | Meaning                        |
+| ------------- | -------------------------- | ------------------------------ |
+| `09 00 00 02` | `CMD_GET_BATTERY_LEVEL`    | battery percent (u8)           |
+| `09 00 00 06` | `CMD_GET_CHARGE_STA`       | charge status enum             |
+| `09 03 01 03` | `CMD_SET_MOTOR_SPEED`      | `[motorType:u8][speed:f32]`    |
+| `09 03 01 13` | `CMD_GET_MOTOR_SPEED`      | value + limit (two f32)        |
+| `09 03 01 19` | `CMD_SET_MOTOR_PRESET_POS` | `[slot:u8]`                    |
+| `09 04 01 01` | `CMD_SET_TARGET_TRACK`     | `[mode:u8][f32×3]`             |
+| `09 01 01 01` | `CMD_SET_DEVICE_MODE`      | **our** tracking config+commit |

@@ -135,18 +135,18 @@
 
 ## HID Communication
 
-| Feature             | Status                | Notes                                                                            |
-| ------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| HID Config+Commit   | 🟢 `FULLY_FUNCTIONAL` | 9-byte config + 4-byte commit via hidraw, 200ms sleep.                           |
-| HID State Query     | 🟢 `FULLY_FUNCTIONAL` | Generic `queryHIDState[T]`; `HIDDevice` interface embeds `fmt.Stringer`.         |
-| HID Circuit Breaker | 🟢 `FULLY_FUNCTIONAL` | 3 consecutive failures → re-probe; resets on success (`device.go`, threshold 3). |
-| V2 Command Families | 🟢 `FULLY_FUNCTIONAL` | Official protocol vocabulary (`internal/pixy/v2head.go`) + byte-faithful simulator validation. |
-| Motor Speed (HID)     | 🟢 `FULLY_FUNCTIONAL`     | `speed <pan\|tilt\|zoom> <value>` over the official V2 SetMotorSpeed + web sliders; unit/hardware limit M27-verify.                                        |
-| Tracking Variants     | 🟢 `FULLY_FUNCTIONAL`     | `tracking face\|halfbody\|fullbody` via SetTargetTrack + web picker; enum values M27-verify.                                                              |
-| Battery/Charge        | 🟢 `FULLY_FUNCTIONAL`     | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence (device may not answer).                                  |
-| Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL`    | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping).                                                       |
-| Identity Queries      | 🟢 `FULLY_FUNCTIONAL`     | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                                                        |
-| Camera Model Surface  | 🟢 `FULLY_FUNCTIONAL`     | Detected model shown in web footer, Waybar tooltip + JSON.                                                                                                |
+| Feature                | Status                | Notes                                                                                                                     |
+| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| HID Config+Commit      | 🟢 `FULLY_FUNCTIONAL` | 9-byte config + 4-byte commit via hidraw, 200ms sleep.                                                                    |
+| HID State Query        | 🟢 `FULLY_FUNCTIONAL` | Generic `queryHIDState[T]`; `HIDDevice` interface embeds `fmt.Stringer`.                                                  |
+| HID Circuit Breaker    | 🟢 `FULLY_FUNCTIONAL` | 3 consecutive failures → re-probe; resets on success (`device.go`, threshold 3).                                          |
+| V2 Command Families    | 🟢 `FULLY_FUNCTIONAL` | Official protocol vocabulary (`internal/pixy/v2head.go`) + byte-faithful simulator validation.                            |
+| Motor Speed (HID)      | 🟢 `FULLY_FUNCTIONAL` | `speed <pan\|tilt\|zoom> <value>` over the official V2 SetMotorSpeed + web sliders; unit/hardware limit M27-verify.       |
+| Tracking Variants      | 🟢 `FULLY_FUNCTIONAL` | `tracking face\|halfbody\|fullbody` via SetTargetTrack + web picker; enum values M27-verify.                              |
+| Battery/Charge         | 🟢 `FULLY_FUNCTIONAL` | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence (device may not answer). |
+| Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL` | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping).                      |
+| Identity Queries       | 🟢 `FULLY_FUNCTIONAL` | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                        |
+| Camera Model Surface   | 🟢 `FULLY_FUNCTIONAL` | Detected model shown in web footer, Waybar tooltip + JSON.                                                                |
 
 ## NixOS Module
 
@@ -156,9 +156,9 @@
 
 ## Nix Build
 
-| Feature       | Status                    | Notes                                                                                                                                                    |
-| ------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Nix Flake     | 🟢 `FULLY_FUNCTIONAL`     | `nix build`, `nix run`, `nix flake check` with `proxyVendor` for templ. `nix flake check` runs in CI.                                                    |
+| Feature       | Status                | Notes                                                                                                                                               |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nix Flake     | 🟢 `FULLY_FUNCTIONAL` | `nix build`, `nix run`, `nix flake check` with `proxyVendor` for templ. `nix flake check` runs in CI.                                               |
 | NixOS VM Test | 🟢 `FULLY_FUNCTIONAL` | `vmTest` boots the module and asserts udev rules, tmpfiles, unit hardening + env; fixed 2026-09-19 (stdin-hang on a symlinked `/etc/systemd/user`). |
 
 ---

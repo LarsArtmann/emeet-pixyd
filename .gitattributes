@@ -15,3 +15,5 @@ reports/** linguist-generated
 *.woff2 binary
 # Binary files should not be diffed or merged
 *.mp4 binary
+# Binary files should not be diffed or merged
+*.jpg binary

@@ -24,7 +24,12 @@
         height: 100%;
         background: #0d0b0a;
         overflow: hidden;
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
         color: #f4f4f5;
       }
       .glow {
@@ -34,7 +39,11 @@
         width: 1500px;
         height: 900px;
         transform: translate(-50%, -50%);
-        background: radial-gradient(closest-side, rgba(139, 92, 246, 0.16), rgba(139, 92, 246, 0) 70%);
+        background: radial-gradient(
+          closest-side,
+          rgba(139, 92, 246, 0.16),
+          rgba(139, 92, 246, 0) 70%
+        );
         pointer-events: none;
       }
       .scene {
@@ -310,11 +319,15 @@
         <div class="eyebrow mono" id="t-eyebrow">EMEET PIXY × LINUX</div>
         <div class="h1" id="t-line1">A great AI webcam.</div>
         <div class="h1 accent" id="t-line2">Dumb on Linux.</div>
-        <div class="sub" id="t-sub">The vendor ships software for Windows and macOS only.</div>
+        <div class="sub" id="t-sub">
+          The vendor ships software for Windows and macOS only.
+        </div>
       </section>
 
       <section class="scene" id="scene-problem">
-        <div class="h2" id="p-head">Everything smart about it, locked away.</div>
+        <div class="h2" id="p-head">
+          Everything smart about it, locked away.
+        </div>
         <div class="cards">
           <div class="card" id="p-card1">
             <div class="name">Face Tracking</div>
@@ -337,7 +350,9 @@
           <div class="panel-top">
             <div class="viewport">
               <div class="call-label mono">CALL_ACTIVE</div>
-              <div class="face-dot" id="ui-face"><div class="core" id="ui-face-core"></div></div>
+              <div class="face-dot" id="ui-face">
+                <div class="core" id="ui-face-core"></div>
+              </div>
             </div>
             <div class="controls">
               <div class="section-label mono">CAMERA MODE</div>
@@ -355,7 +370,9 @@
                   <div class="m-desc">Lens blocked</div>
                 </div>
               </div>
-              <div class="section-label mono" style="margin-top: 34px">AUDIO</div>
+              <div class="section-label mono" style="margin-top: 34px">
+                AUDIO
+              </div>
               <div class="audio">
                 <div class="seg active">Noise Canc.</div>
                 <div class="seg">Live</div>
@@ -382,7 +399,9 @@
       </section>
 
       <section class="scene" id="scene-outro">
-        <div class="h1" id="o-line1">Linux gets <span class="accent">every feature</span>.</div>
+        <div class="h1" id="o-line1">
+          Linux gets <span class="accent">every feature</span>.
+        </div>
         <div class="h1" id="o-line2">Automatically.</div>
         <div class="chip mono" id="o-chip">emeet-pixyd.lars.software</div>
       </section>
@@ -392,7 +411,12 @@
       const tl = gsap.timeline({ paused: true });
 
       const show = (sel, at, dur = 0.6) =>
-        tl.fromTo(sel, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: dur, ease: "power2.out" }, at);
+        tl.fromTo(
+          sel,
+          { autoAlpha: 0, y: 28 },
+          { autoAlpha: 1, y: 0, duration: dur, ease: "power2.out" },
+          at,
+        );
       const hide = (sel, at, dur = 0.5) =>
         tl.to(sel, { autoAlpha: 0, duration: dur, ease: "power2.in" }, at);
 
@@ -419,7 +443,7 @@
         "#ui-panel",
         { autoAlpha: 0, scale: 0.96 },
         { autoAlpha: 1, scale: 1, duration: 0.6, ease: "power2.out" },
-        11.2
+        11.2,
       );
       show("#ui-face", 12.0, 0.5);
       show("#ui-mode1", 12.4, 0.4);
@@ -431,15 +455,33 @@
       tl.fromTo(
         "#ui-face-core",
         { scale: 0.82 },
-        { scale: 1.12, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 6 },
-        12.2
+        {
+          scale: 1.12,
+          duration: 0.9,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 6,
+        },
+        12.2,
       );
       // Radar dot drifts between positions like a tracking readout.
       // Transform-based motion (lint: layout props snap to device pixels).
       // Radar is 150px; offsets from center: (18,-12), (-15,15), (0,0).
-      tl.to("#ui-radar-dot", { x: 18, y: -12, duration: 1.4, ease: "sine.inOut" }, 13.6);
-      tl.to("#ui-radar-dot", { x: -15, y: 15, duration: 1.4, ease: "sine.inOut" }, 15.2);
-      tl.to("#ui-radar-dot", { x: 0, y: 0, duration: 1.4, ease: "sine.inOut" }, 16.8);
+      tl.to(
+        "#ui-radar-dot",
+        { x: 18, y: -12, duration: 1.4, ease: "sine.inOut" },
+        13.6,
+      );
+      tl.to(
+        "#ui-radar-dot",
+        { x: -15, y: 15, duration: 1.4, ease: "sine.inOut" },
+        15.2,
+      );
+      tl.to(
+        "#ui-radar-dot",
+        { x: 0, y: 0, duration: 1.4, ease: "sine.inOut" },
+        16.8,
+      );
       hide("#scene-ui", 19.5);
 
       // Scene 4 — Outro (20–25s)

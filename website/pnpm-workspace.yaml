@@ -12,4 +12,4 @@ minimumReleaseAgeExclude:
   # astro@7.3.3: needed 2026-09; drop when 7.3.3 is older than the age window.
   - astro@7.3.3
   # starlight@0.42.2: needed 2026-09 (lockfile bump); drop after the age window.
-  - '@astrojs/starlight@0.42.2'
+  - "@astrojs/starlight@0.42.2"

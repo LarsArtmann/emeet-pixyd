@@ -327,7 +327,6 @@ templ audioSegment(mode string, label string, active bool, online bool) {
 	</button>
 }
 
-
 templ trackingSegment(variant, label string, active bool) {
 	<button
 		class={ "segment", templ.KV("active", active) }
@@ -338,6 +337,7 @@ templ trackingSegment(variant, label string, active bool) {
 		{ label }
 	</button>
 }
+
 // ---------------------------------------------------------------------------
 // PTZ Radar — reactive to $pan/$tilt/$zoom signals via data-style.
 // Server-rendered inline style provides correct initial render before
