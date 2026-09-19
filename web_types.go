@@ -36,6 +36,7 @@ type webStatus struct {
 	TrackMode   string // active tracking variant (face/halfbody/fullbody)
 	Speeds      pixy.SpeedValues
 }
+
 // toastType is a branded type for toast notification kinds (success, info, error).
 type toastType string
 

@@ -34,6 +34,7 @@ func TestSpeedCommand_PersistsAcrossRestart(t *testing.T) {
 	}
 
 	second := newTestDaemon(t, pixy.StateTracking, "", "")
+
 	second.config.StateDir = stateDir
 	if !second.loadState() {
 		t.Fatal("loadState = false, want true (state file was just written)")
@@ -60,7 +61,9 @@ func TestPTZMove_ReassertsConfiguredSpeed(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+
 	var v4l2Calls []v4l2Call
+
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	if result := d.handleCommand(t.Context(), "speed pan 50"); result.IsError() {
@@ -96,7 +99,9 @@ func TestPTZMove_NoSpeedPreference_NoHIDReport(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+
 	var v4l2Calls []v4l2Call
+
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	if result := d.handleCommand(t.Context(), "pan 30"); result.IsError() {
@@ -112,7 +117,9 @@ func TestPresetLoad_ReassertsConfiguredSpeeds(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+
 	var v4l2Calls []v4l2Call
+
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	d.mu.Lock()
@@ -243,6 +250,7 @@ func TestTrackingVariant_PersistedAcrossRestart(t *testing.T) {
 
 	// Online + tracking so the panel renders the variant picker.
 	second := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+
 	second.config.StateDir = stateDir
 	if !second.loadState() {
 		t.Fatal("loadState = false, want true (state file was just written)")
@@ -259,6 +267,7 @@ func TestTrackingVariant_PersistedAcrossRestart(t *testing.T) {
 	}
 
 	server := newTestWebServer(t, second)
+
 	body := getPanelBody(t, server)
 	if !strings.Contains(body, "/api/tracking/fullbody") {
 		t.Error("panel does not render the fullbody variant segment")

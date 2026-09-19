@@ -96,6 +96,7 @@ const maxHardwarePresetSlots = 8
 // paths (which hold v4l2Mu) rely on the global v4l2Mu → hidMu lock order.
 func (d *Daemon) reassertSpeeds(ctx context.Context, axes ...pixy.Axis) {
 	d.mu.RLock()
+
 	configured := false
 
 	for _, axis := range axes {
@@ -105,6 +106,7 @@ func (d *Daemon) reassertSpeeds(ctx context.Context, axes ...pixy.Axis) {
 			break
 		}
 	}
+
 	d.mu.RUnlock()
 
 	if !configured {
