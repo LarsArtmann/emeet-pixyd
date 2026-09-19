@@ -117,3 +117,9 @@
 ---
 
 _Report written 2026-09-18 20:43 CEST by Crush, immediately after the docs-health full sweep. §f items 6–18 are already filed as TODO_LIST #154–#165 (harvest executed pre-report); items 19–30 were already on TODO_LIST; items 31–40 live in ROADMAP. The auto-commit daemon will pick this file up — no manual commit per harness contract. **THEN WAIT FOR INSTRUCTIONS.**_
+
+---
+
+## Resolution (2026-09-19)
+
+Update from the next docs-health sweep: §f verification debt (1–5) closed; 6–18 shipped in the 2026-09-19 session (M7–M13; #154/#155/#156 remain Lars/zutto-gated, #133-run waits on the secret); 19–30 all shipped or routed (M14–M26, M28-build); 41 resolved — the 7 HTML/d2 report snapshots were archived alongside the md files in this sweep; 42 (generic appendices) kept, still Lars's call; 43 PRODUCT.md reviewed and kept as the design brief; 44 SUPERB_ROADMAP already labeled historical in ROADMAP (accessibility-audit left as-is, referenced by FEATURES); 45 CONTRIBUTING link added to README. §g1 answered by the archival above; g2/g3 remain Lars's calls. TODO_LIST #129–#165 resolution notes pruned per §f38.

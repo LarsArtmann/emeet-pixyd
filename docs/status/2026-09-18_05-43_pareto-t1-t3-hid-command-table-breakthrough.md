@@ -124,3 +124,7 @@ _Awaiting instructions._
 ## Resolution (2026-09-18)
 
 f-item routing as of 2026-09-18: 1→#149, 2→#144, 3→#149, 4→#138, 5→#153, 6–9→#150, 10→#139, 11→#140, 12→#141, 13–15→#151, 17→#152, 19→#131 (done), 20→#132 (done, residue #164), 21→#134, 22→#135, 23→#133, 24→#136, 25→#130, 28→#146, 29→#148, 30→#129, 37–38→#149, 39→DONE (CHANGELOG), 40→AGENTS.md rewrite 2026-09-18, 41→.crushrc (done 2026-09-17), 46→this harvest. 26/27/31/32/43/44→ROADMAP research offshoots.
+
+## Resolution (2026-09-19)
+
+Update after the M1–M26 execution session: f-items 1–5, 10–13, 19–25, 28–30, 37–41, and 46 all shipped (see `2026-09-19_06-44` §a; f-item 4's speed unit/limit and 13–15's identity fields await hardware confirmation via #166). Still open: 6–9 → #150/#166 (hardware pins the enums/framing), 17 → #152 (specimen re-download), 16 (lint ran via the pre-commit gate on the probe commit), 42 → `GET_DEVICE_MODE` decision (ROADMAP), 43 → slot sweep (inside #166), 44 → motor-speed persistence (ROADMAP), 45 → `FuzzParseV2Response` (ROADMAP), 47 → benchmarks for the new commands (09-19 report §f), 49/50 → Lars (ROADMAP open questions).

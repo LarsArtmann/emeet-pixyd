@@ -4,6 +4,8 @@
 
 **Prime directive: no VERSCHLIMMBESSERN.** Every task is additive/surgical. Test-first for all HID work: the simulator (M6) is extended BEFORE any feature implementation lands. No refactors of working code, no dependency churn, no format wars. Blocked/pending-decision items are marked and _not_ executed blind.
 
+**Resolution (2026-09-19):** executed to its unblocked boundaries — M1–M26 + M28-build done (17 TODOs fully resolved, 7 partially with each missing piece named; see `2026-09-19_06-44` §a/§b), including an unplanned vendorHash refresh that had broken every `nix build`. M27 (hardware), M29–M31 (zutto/Lars), and M25 (specimen re-download) remain externally gated, tracked as `TODO_LIST.md` #166/#154/#155/#156/#152. Every executed item is in `CHANGELOG.md` [Unreleased].
+
 ---
 
 ## 1. Situation (why this plan exists)
