@@ -650,14 +650,14 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 	defer d.hidMu.Unlock()
 
 	var (
-		pulled     []string
-		skipped    int
-		occupied   int
-		empty      int
-		failures   int
-		firstErr   error
-		limitHit   bool
-		changed    bool
+		pulled   []string
+		skipped  int
+		occupied int
+		empty    int
+		failures int
+		firstErr error
+		limitHit bool
+		changed  bool
 	)
 
 	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {

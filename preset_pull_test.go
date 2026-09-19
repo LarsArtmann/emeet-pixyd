@@ -14,8 +14,9 @@ import (
 )
 
 // Tests for the `preset pull` command (TODO #141): the pixy-level response
-// parser, the simulator's slot modeling, and the daemon → simulator sweep
-// over the official V2 GetMotorPresetPosMode command.
+// parser (both statically evidenced shapes), the simulator's slot modeling,
+// and the daemon → simulator sweep over the official V2
+// GetMotorPresetPosMode command.
 
 // setMotorPosReport builds the official V2 SetMotorPos report with the
 // motor-MCU iface routing, the same shape the daemon's push path sends.
@@ -46,10 +47,10 @@ func seedHardwareSlot(t *testing.T, sim *pixySimulator, slot byte, pan, tilt, zo
 	}
 }
 
-// presetPosPayload builds a GetMotorPresetPosMode response payload:
-// [mode:u8][pan:f32][tilt:f32][zoom:f32].
-func presetPosPayload(mode byte, pan, tilt, zoom float32) []byte {
-	out := []byte{mode}
+// fullPresetPayload builds the full (SET-echo) response payload:
+// [slot:u8][mode:u8][pan:f32][tilt:f32][zoom:f32].
+func fullPresetPayload(slot, mode byte, pan, tilt, zoom float32) []byte {
+	out := []byte{slot, mode}
 	out = binary.LittleEndian.AppendUint32(out, math.Float32bits(pan))
 	out = binary.LittleEndian.AppendUint32(out, math.Float32bits(tilt))
 	out = binary.LittleEndian.AppendUint32(out, math.Float32bits(zoom))
@@ -57,19 +58,48 @@ func presetPosPayload(mode byte, pan, tilt, zoom float32) []byte {
 	return out
 }
 
-func TestParseMotorPresetPosResponse_Occupied(t *testing.T) {
+func TestParseMotorPresetPosResponse_ModeOnly(t *testing.T) {
 	t.Parallel()
 
 	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
-	resp := v2Response(head, presetPosPayload(pixy.MotorPresetPositioned, 30.5, -10.25, 120)...)
+
+	// The Beta.25 GET parser is single-byte: [mode] at offset 8.
+	occupied, err := pixy.ParseMotorPresetPosResponse(head, v2Response(head, pixy.MotorPresetPositioned))
+	if err != nil {
+		t.Fatalf("parse mode-only occupied: %v", err)
+	}
+
+	if !occupied.Occupied() || occupied.HasPosition() {
+		t.Errorf("mode-only occupied = (occupied %v, position %v), want (true, false)", occupied.Occupied(), occupied.HasPosition())
+	}
+
+	empty, err := pixy.ParseMotorPresetPosResponse(head, v2Response(head, 0))
+	if err != nil {
+		t.Fatalf("parse mode-only empty: %v", err)
+	}
+
+	if empty.Occupied() {
+		t.Error("mode-only empty slot = occupied, want not occupied")
+	}
+}
+
+func TestParseMotorPresetPosResponse_FullShape(t *testing.T) {
+	t.Parallel()
+
+	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
+	resp := v2Response(head, fullPresetPayload(2, pixy.MotorPresetPositioned, 30.5, -10.25, 120)...)
 
 	reading, err := pixy.ParseMotorPresetPosResponse(head, resp)
 	if err != nil {
-		t.Fatalf("parse occupied slot: %v", err)
+		t.Fatalf("parse full occupied: %v", err)
 	}
 
-	if !reading.Occupied() {
-		t.Error("occupied slot reading = false, want true")
+	if !reading.Occupied() || !reading.HasPosition() {
+		t.Fatalf("full occupied = (occupied %v, position %v), want (true, true)", reading.Occupied(), reading.HasPosition())
+	}
+
+	if reading.Slot != 2 {
+		t.Errorf("slot echo = %d, want 2", reading.Slot)
 	}
 
 	if reading.Pan != 30.5 || reading.Tilt != -10.25 || reading.Zoom != 120 {
@@ -80,40 +110,41 @@ func TestParseMotorPresetPosResponse_Occupied(t *testing.T) {
 	if values.Pan != 31 || values.Tilt != -10 || values.Zoom != 120 {
 		t.Errorf("PTZValues = %+v, want rounded+clamped (31, -10, 120)", values)
 	}
+
+	// Full shape for an unoccupied slot: slot + mode, no floats.
+	empty, err := pixy.ParseMotorPresetPosResponse(head, v2Response(head, fullPresetPayload(3, 0, 0, 0, 0)...))
+	if err != nil {
+		t.Fatalf("parse full empty: %v", err)
+	}
+
+	if empty.Occupied() || empty.HasPosition() {
+		t.Errorf("full empty = (occupied %v, position %v), want (false, false)", empty.Occupied(), empty.HasPosition())
+	}
 }
 
-func TestParseMotorPresetPosResponse_EmptySlot(t *testing.T) {
+func TestParseMotorPresetPosResponse_TruncatedFullShape(t *testing.T) {
 	t.Parallel()
 
 	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
-	resp := v2Response(head, 0)
+
+	// The official SET-echo parser gates the floats on length: a truncated
+	// full shape still yields slot + mode but no position.
+	resp := v2Response(head, 2, pixy.MotorPresetPositioned, 0, 0)
 
 	reading, err := pixy.ParseMotorPresetPosResponse(head, resp)
 	if err != nil {
-		t.Fatalf("parse empty slot: %v", err)
+		t.Fatalf("parse truncated full: %v", err)
 	}
 
-	if reading.Occupied() {
-		t.Error("empty slot reading.Occupied() = true, want false")
-	}
-}
-
-func TestParseMotorPresetPosResponse_OccupiedTooShort(t *testing.T) {
-	t.Parallel()
-
-	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
-	// mode=1 promises three floats but only one follows.
-	resp := v2Response(head, pixy.MotorPresetPositioned, 0, 0, 0, 0)
-
-	if _, err := pixy.ParseMotorPresetPosResponse(head, resp); !errors.Is(err, pixy.ErrV2ResponseShort) {
-		t.Errorf("truncated occupied payload err = %v, want ErrV2ResponseShort", err)
+	if !reading.Occupied() || reading.HasPosition() {
+		t.Errorf("truncated full = (occupied %v, position %v), want (true, false)", reading.Occupied(), reading.HasPosition())
 	}
 }
 
 func TestParseMotorPresetPosResponse_HeadMismatch(t *testing.T) {
 	t.Parallel()
 
-	resp := v2Response(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface), 1)
+	resp := v2Response(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface), pixy.MotorPresetPositioned)
 
 	_, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, resp)
 	if !errors.Is(err, pixy.ErrV2ResponseHeadMismatch) {
@@ -138,6 +169,7 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 		t.Errorf("slot 2 position = %v, want [30 -10 120]", entry.pos)
 	}
 
+	// Default: mode-only answers, the Beta.25-evidenced GET shape.
 	resp, err := sim.SendRecv(t.Context(), append(head.Bytes(), 2))
 	if err != nil {
 		t.Fatalf("GetMotorPresetPosMode slot 2: %v", err)
@@ -148,17 +180,12 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 		t.Fatalf("parse slot 2: %v", err)
 	}
 
-	if got := reading.PTZValues(); got != (pixy.PTZValues{Pan: 30, Tilt: -10, Zoom: 120}) {
-		t.Errorf("round-trip values = %+v, want {30 -10 120}", got)
+	if !reading.Occupied() || reading.HasPosition() {
+		t.Fatalf("slot 2 reading = (occupied %v, position %v), want (true, false)", reading.Occupied(), reading.HasPosition())
 	}
 
-	// Untouched slot: mode byte 0, parseable with framing bytes only.
-	emptyResp, err := sim.SendRecv(t.Context(), append(head.Bytes(), 5))
-	if err != nil {
-		t.Fatalf("GetMotorPresetPosMode slot 5: %v", err)
-	}
-
-	empty, err := pixy.ParseMotorPresetPosResponse(head, emptyResp)
+	// Untouched slot: mode byte 0.
+	empty, err := pixy.ParseMotorPresetPosResponse(head, mustPresetResponse(t, sim, head, 5))
 	if err != nil {
 		t.Fatalf("parse slot 5: %v", err)
 	}
@@ -168,14 +195,26 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 	}
 
 	// The logical 0x03 routing answers with the same shape.
-	logicalResp, err := sim.SendRecv(t.Context(), append(pixy.V2GetMotorPresetPosMode.Bytes(), 2))
-	if err != nil {
-		t.Fatalf("logical-head query: %v", err)
+	logicalResp := mustPresetResponse(t, sim, pixy.V2GetMotorPresetPosMode, 2)
+
+	if _, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, logicalResp); err != nil {
+		t.Fatalf("logical-head reading: %v", err)
 	}
 
-	logical, err := pixy.ParseMotorPresetPosResponse(pixy.V2GetMotorPresetPosMode, logicalResp)
-	if err != nil || !logical.Occupied() {
-		t.Fatalf("logical-head reading = (%+v, %v), want occupied", logical, err)
+	// Full-shape knob: the SET-echo shape carries slot + mode + position.
+	sim.state.presetFullResponses = true
+
+	full, err := pixy.ParseMotorPresetPosResponse(head, mustPresetResponse(t, sim, head, 2))
+	if err != nil {
+		t.Fatalf("parse full slot 2: %v", err)
+	}
+
+	if !full.HasPosition() || full.Slot != 2 {
+		t.Fatalf("full slot 2 = (slot %d, position %v), want (2, true)", full.Slot, full.HasPosition())
+	}
+
+	if got := full.PTZValues(); got != (pixy.PTZValues{Pan: 30, Tilt: -10, Zoom: 120}) {
+		t.Errorf("full round-trip values = %+v, want {30 -10 120}", got)
 	}
 
 	// SetMotorPresetPosMode [slot][mode] flips the slot back to empty.
@@ -192,7 +231,20 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 	}
 }
 
-func TestPresetPull_SimulatorSweep(t *testing.T) {
+// mustPresetResponse queries one preset slot and fails the test on transport
+// errors.
+func mustPresetResponse(t *testing.T, sim *pixySimulator, head pixy.V2Head, slot byte) []byte {
+	t.Helper()
+
+	resp, err := sim.SendRecv(t.Context(), append(head.Bytes(), slot))
+	if err != nil {
+		t.Fatalf("preset query slot %d: %v", slot, err)
+	}
+
+	return resp
+}
+
+func TestPresetPull_ModeOnlySweep(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
@@ -202,6 +254,44 @@ func TestPresetPull_SimulatorSweep(t *testing.T) {
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
 
 	reportsBeforePull := len(sim.SentReports())
+
+	result := d.handleCommand(t.Context(), "preset pull")
+	if result.IsError() {
+		t.Fatalf("preset pull failed: %s", result.String())
+	}
+
+	// Mode-only answers prove the slots are set but expose no position.
+	if want := "preset pull: no slot positions, 2 set (position not exposed), 6 empty"; result.String() != want {
+		t.Errorf("response = %q, want %q", result.String(), want)
+	}
+
+	d.mu.RLock()
+	count := len(d.state.Presets)
+	d.mu.RUnlock()
+
+	if count != 0 {
+		t.Errorf("mode-only pull stored %d presets, want 0 (no positions available)", count)
+	}
+
+	// Pull is read-only on the hardware: no Send (only SendRecv queries).
+	if reports := sim.SentReports(); len(reports) != reportsBeforePull {
+		t.Errorf("pull sent %d extra HID reports, want 0 (GET-only sweep)", len(reports)-reportsBeforePull)
+	}
+
+	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
+		t.Errorf("pull issued %d queries, want %d", len(queries), maxHardwarePresetSlots)
+	}
+}
+
+func TestPresetPull_FullShapeSweep(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	sim.state.presetFullResponses = true
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	seedHardwareSlot(t, sim, 1, 10, -5, 115)
+	seedHardwareSlot(t, sim, 3, 20, 10, 130)
 
 	result := d.handleCommand(t.Context(), "preset pull")
 	if result.IsError() {
@@ -229,21 +319,13 @@ func TestPresetPull_SimulatorSweep(t *testing.T) {
 			t.Errorf("%s exists, want skipped (empty slot)", name)
 		}
 	}
-
-	// Pull is read-only on the hardware: no Send (only SendRecv queries).
-	if reports := sim.SentReports(); len(reports) != reportsBeforePull {
-		t.Errorf("pull sent %d extra HID reports, want 0 (GET-only sweep)", len(reports)-reportsBeforePull)
-	}
-
-	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
-		t.Errorf("pull issued %d queries, want %d", len(queries), maxHardwarePresetSlots)
-	}
 }
 
 func TestPresetPull_NeverOverwritesExistingNames(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+	sim.state.presetFullResponses = true
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
@@ -275,6 +357,7 @@ func TestPresetPull_LimitReached(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+	sim.state.presetFullResponses = true
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
@@ -371,6 +454,8 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 	stateDir := t.TempDir()
 
 	sim, opt := withPixySimulator()
+	sim.state.presetFullResponses = true
+
 	first := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 	first.config.StateDir = stateDir
 
@@ -400,6 +485,7 @@ func TestWebPresetPullEndpoint(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
+	sim.state.presetFullResponses = true
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 2, 15, 5, 125)

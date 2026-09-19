@@ -31,12 +31,17 @@ type pixyProtocolState struct {
 	motorPos     [3]float32
 	motorLimit   float32
 	motorPresets map[byte]v2MotorPreset
-	targetTrack  v2TargetTrack
-	batteryLevel byte
-	chargeSta    byte
-	funcSta      uint32
-	serialNumber string
-	firmwareVer  uint16
+	// presetFullResponses flips preset-slot GET answers from the evidenced
+	// Beta.25 mode-only shape to the full SET-echo shape (slot+mode+PTZ),
+	// letting tests pin both parser paths until #166 shows which the wired
+	// firmware answers.
+	presetFullResponses bool
+	targetTrack         v2TargetTrack
+	batteryLevel        byte
+	chargeSta           byte
+	funcSta             uint32
+	serialNumber        string
+	firmwareVer         uint16
 }
 
 // v2MotorPreset is one modeled hardware motor preset slot: its position-mode
@@ -517,20 +522,28 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 		putF32LE(body[1:], s.motorPos[motor])
 	case presetModeKey, presetModeKey63:
 		// The queried slot byte rides after the head (like the motorType byte
-		// of the per-axis motor GETs); the response payload is the position-
-		// mode shape: mode u8, then pan/tilt/zoom only when occupied.
+		// of the per-axis motor GETs). Two evidenced shapes: mode-only is the
+		// Beta.25 GET parser's single byte; the full shape mirrors the
+		// SET_MOTOR_PRESET_POS_MODE echo ([slot][mode][pan][tilt][zoom],
+		// floats only when occupied).
 		slot := byte(0)
 		if len(query) > 4 {
 			slot = query[4]
 		}
 
 		entry := s.motorPresets[slot]
-		body[0] = entry.mode
 
-		if entry.mode == pixy.MotorPresetPositioned {
-			putF32LE(body[1:], entry.pos[0])
-			putF32LE(body[5:], entry.pos[1])
-			putF32LE(body[9:], entry.pos[2])
+		if s.presetFullResponses {
+			body[0] = slot
+			body[1] = entry.mode
+
+			if entry.mode == pixy.MotorPresetPositioned {
+				putF32LE(body[2:], entry.pos[0])
+				putF32LE(body[6:], entry.pos[1])
+				putF32LE(body[10:], entry.pos[2])
+			}
+		} else {
+			body[0] = entry.mode
 		}
 	case [4]byte(pixy.V2GetTargetTrack):
 		body[0] = s.targetTrack.mode

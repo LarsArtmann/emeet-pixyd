@@ -271,11 +271,11 @@ const MotorPresetPositioned byte = 1
 //     [slot:u8][mode:u8][pan:f32][tilt:f32][zoom:f32], min length 0x16 when
 //     occupied; the floats are present only when mode==1.
 type MotorPresetReading struct {
-	Mode  byte
-	Slot  byte
-	Pan   float32
-	Tilt  float32
-	Zoom  float32
+	Mode   byte
+	Slot   byte
+	Pan    float32
+	Tilt   float32
+	Zoom   float32
 	hasPos bool
 }
 
@@ -307,23 +307,23 @@ const v2MotorPresetFullLen = 14
 // ParseMotorPresetPosResponse reads a GetMotorPresetPosMode response for one
 // queried slot, accepting both statically evidenced shapes (see
 // MotorPresetReading): a mode-only byte at offset 8, or the full
-// slot+mode+position shape where the floats exist only when mode==1.
+// slot+mode+position shape where the floats exist only when mode==1 — the
+// same gating the official SET-echo parser applies.
 func ParseMotorPresetPosResponse(head V2Head, resp []byte) (MotorPresetReading, error) {
 	payload, err := v2Payload(head, resp, 1)
 	if err != nil {
 		return MotorPresetReading{}, err
 	}
 
-	if len(payload) < v2MotorPresetFullLen {
-		mode := payload[0]
-
-		return MotorPresetReading{Mode: mode, hasPos: false}, nil
+	if len(payload) < 2 {
+		// Mode-only GET answer (Beta.25 GET parser: single byte at offset 8).
+		return MotorPresetReading{Mode: payload[0]}, nil
 	}
 
 	reading := MotorPresetReading{
 		Slot:   payload[0],
 		Mode:   payload[1],
-		hasPos: payload[1] == MotorPresetPositioned,
+		hasPos: payload[1] == MotorPresetPositioned && len(payload) >= v2MotorPresetFullLen,
 	}
 
 	if !reading.hasPos {
