@@ -177,8 +177,13 @@ V2 `0x09` surface we implement against.
 swept the CRT initializer thunks of the 2.0.0-Beta.25 Windows x64 build —
 **108/162 heads match `cmdtable.json` byte-for-byte, zero contradictions**
 (committed: `tools/emhid/x64_heads.json`; one `(9,0,0,0)` zero-initializer
-artifact filtered; the 53 Mac-only heads are mostly GETs sent via inline-head
-sender shapes the thunk sweep does not cover).
+artifact filtered). **The remaining 53 Mac-only heads are ABSENT from the
+x64 build**, not hidden behind other sender shapes: exhaustive scans for
+inline constructions (dword-immediate stores, byte-wise adjacent stores,
+rip-relative stores) found zero additional head sites — consistent with the
+platform string-diff (§5, Windows links only a subset of the HID surface).
+The cross-verification is therefore complete: every head the x64 slice
+contains agrees with the Mac table.
 
 **Version-shift model — DISPROVED (2026-09-19):** the earlier hypothesis that
 "2.0.3 = Beta.25 IDs + 1 after two inserted commands" is wrong. The committed
