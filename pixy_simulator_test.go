@@ -503,6 +503,12 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 	copy(resp, key[:])
 	body := resp[pixy.V2ResponsePayloadOffset:]
 
+	// payloadLen is the exact payload size of this response. Real hidraw
+	// reads are short reads — the parsers gate on the received length (the
+	// official parsers take an explicit length argument) — so the simulator
+	// must return exact-length responses, never padded buffers.
+	payloadLen := 0
+
 	speedKey := [4]byte(pixy.V2GetMotorSpeed)
 	speedKey63 := [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface))
 	posKey := [4]byte(pixy.V2GetMotorPos)
@@ -516,10 +522,12 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 		body[0] = byte(motor)
 		putF32LE(body[1:], s.motorSpeed[motor])
 		putF32LE(body[5:], s.motorLimit)
+		payloadLen = 9
 	case posKey, posKey63:
 		motor := queryMotorType(query)
 		body[0] = byte(motor)
 		putF32LE(body[1:], s.motorPos[motor])
+		payloadLen = 5
 	case presetModeKey, presetModeKey63:
 		// The queried slot byte rides after the head (like the motorType byte
 		// of the per-axis motor GETs). Two evidenced shapes: mode-only is the
@@ -536,39 +544,50 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 		if s.presetFullResponses {
 			body[0] = slot
 			body[1] = entry.mode
+			payloadLen = 2
 
 			if entry.mode == pixy.MotorPresetPositioned {
 				putF32LE(body[2:], entry.pos[0])
 				putF32LE(body[6:], entry.pos[1])
 				putF32LE(body[10:], entry.pos[2])
+				payloadLen = 14
 			}
 		} else {
 			body[0] = entry.mode
+			payloadLen = 1
 		}
 	case [4]byte(pixy.V2GetTargetTrack):
 		body[0] = s.targetTrack.mode
 		putF32LE(body[1:], s.targetTrack.args[0])
 		putF32LE(body[5:], s.targetTrack.args[1])
 		putF32LE(body[9:], s.targetTrack.args[2])
+		payloadLen = 13
 	case [4]byte(pixy.V2GetBatteryLevel):
 		body[0] = s.batteryLevel
+		payloadLen = 1
 	case [4]byte(pixy.V2GetChargeSta):
 		body[0] = s.chargeSta
+		payloadLen = 1
 	case [4]byte(pixy.V2GetFuncSta):
 		binary.LittleEndian.PutUint32(body, s.funcSta)
+		payloadLen = 4
 	case [4]byte(pixy.V2GetSN):
 		copy(body, s.serialNumber)
+		payloadLen = len(s.serialNumber)
 	case [4]byte(pixy.V2GetVer):
 		binary.LittleEndian.PutUint16(body, s.firmwareVer)
+		payloadLen = 2
 	case [4]byte(pixy.V2GetDeviceVer):
 		binary.LittleEndian.PutUint16(body, s.firmwareVer)
+		payloadLen = 2
 	case [4]byte(pixy.V2GetDeviceMode):
 		body[0] = cameraHIDByte(s.tracking)
+		payloadLen = 1
 	default:
 		// Unknown-but-valid V2 head: head echo only (empty payload ACK).
 	}
 
-	return resp
+	return resp[:pixy.V2ResponsePayloadOffset+payloadLen]
 }
 
 // queryMotorType reads the per-axis motor byte from a V2 GET query,
