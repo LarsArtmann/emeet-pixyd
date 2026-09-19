@@ -1,6 +1,6 @@
 # Status Report — Pareto Execution T1–T3 + HID Command-Table Breakthrough
 
-**2026-09-18 05:43 CEST** · Session start ~20:30 2026-09-17 · Continuing `docs/planning/2026-09-17_19-35_SUPERB-pareto-execution-plan.md` (user directive: execute the whole list). This session: plan tasks M1–M8 + M13 fully landed, M7 probe committed (hardware-blocked), plus an **unplanned breakthrough that resolved the plan's central implementation gate** (M14–M17 are now byte-unblocked). Format note: `.md` per explicit user request (status-report skill default is HTML — overridden).
+**2026-09-18 05:43 CEST** · Session start ~20:30 2026-09-17 · Continuing `docs/planning/archive/2026-09-17_19-35_SUPERB-pareto-execution-plan.md` (archived 2026-09-19, fully executed; user directive: execute the whole list). This session: plan tasks M1–M8 + M13 fully landed, M7 probe committed (hardware-blocked), plus an **unplanned breakthrough that resolved the plan's central implementation gate** (M14–M17 are now byte-unblocked). Format note: `.md` per explicit user request (status-report skill default is HTML — overridden).
 
 **Resolution:** ~~b) partial items~~ — CHANGELOG entry for the breakthrough ADDED 2026-09-18; #149–#153 harvested into TODO_LIST (same day). STILL OPEN: map-doc fold-in (#149), probe rewrite with exact heads (#144/#149), emhid README (#149), M14–M17 features (#138–#141), and f-items 16/26/27/31/32 routed to TODO/ROADMAP. Questions g1–g3 (hardware, push, /tmp archival) unchanged.
 
