@@ -107,7 +107,8 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 }
 
 // handlePresetWithLock routes preset subcommands to the correct lock:
-// save/load need V4L2 I/O (v4l2Mu); delete/list are state-only (no I/O lock).
+// save/load need V4L2 I/O (v4l2Mu); delete/list are state-only (no I/O lock);
+// push/pull take hidMu internally (motor-MCU I/O) and never hold v4l2Mu.
 func (d *Daemon) handlePresetWithLock(ctx context.Context, parts []string) CommandResult {
 	needsV4L2 := len(parts) >= minCmdParts &&
 		(parts[1] == presetSave || parts[1] == presetLoad)
@@ -640,9 +641,10 @@ const presetPullNameFormat = "hw-%d"
 // byte marks them empty/invalid are skipped; per-slot query failures are
 // skipped too (one dead slot must not abort the sweep), except an
 // unreachable device, which aborts immediately. When EVERY slot fails, the
-// first error is returned so the failure has a cause. The slot count is the
-// assumed maxHardwarePresetSlots cap until the #166 hardware session pins
-// the real count with this same sweep.
+// first cause is returned prefixed with the failure count ("8/8 slots
+// unreadable") so the error says how much of the sweep died. The slot count
+// is the assumed maxHardwarePresetSlots cap until the #166 hardware session
+// pins the real count with this same sweep.
 func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 	// The whole sweep is one HID operation: hold hidMu so no tracking/audio
 	// command interleaves between slot queries.
@@ -727,7 +729,10 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 	}
 
 	if len(pulled) == 0 && empty == 0 && skipped == 0 && occupied == 0 && failures > 0 {
-		return errResult("preset pull", firstErr)
+		return errResult(
+			fmt.Sprintf("preset pull: %d/%d slots unreadable", failures, maxHardwarePresetSlots),
+			firstErr,
+		)
 	}
 
 	return okResult(pullSummary(pulled, empty, skipped, occupied, failures, limitHit))

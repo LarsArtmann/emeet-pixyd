@@ -446,6 +446,10 @@ func TestPresetPull_AllSlotsUnreadable(t *testing.T) {
 		t.Fatalf("pull with failing device = %q, want error", result.String())
 	}
 
+	if !strings.Contains(result.String(), "8/8 slots unreadable") {
+		t.Errorf("error = %q, want failure count %q", result.String(), "8/8 slots unreadable")
+	}
+
 	if !strings.Contains(result.String(), "injected read failure") {
 		t.Errorf("error = %q, want wrapped injected cause", result.String())
 	}
