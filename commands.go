@@ -625,19 +625,24 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 // apart from named ones; pull never touches any other name.
 const presetPullNameFormat = "hw-%d"
 
-// handlePresetPull sweeps the hardware motor preset slots into named software
-// presets (TODO #141; design in ROADMAP): every slot that answers with an
-// occupied position (mode==1) is stored as hw-<slot>, rounded and clamped to
-// the V4L2 limits. Pull is additive — existing preset names are never
-// overwritten — and explicit: nothing auto-syncs in either direction
-// afterward. The sweep is read-only on the hardware side; no motor moves.
+// handlePresetPull sweeps the hardware motor preset slots (TODO #141): every
+// slot 1..maxHardwarePresetSlots is queried over the official V2
+// GetMotorPresetPosMode command and occupied slots (mode byte 1) are stored
+// as additive hw-<slot> presets, rounded and clamped to the V4L2 limits.
+// Pull is additive — existing preset names are never overwritten — explicit
+// (nothing auto-syncs afterward), and read-only on the hardware: no motor
+// moves.
 //
-// Slots whose mode byte marks them empty/invalid are skipped; per-slot query
-// failures are skipped too (one dead slot must not abort the sweep), except
-// an unreachable device, which aborts immediately. When EVERY slot fails,
-// the first error is returned so the failure has a cause. The slot count is
-// the assumed maxHardwarePresetSlots cap until the #166 hardware session
-// pins the real count with this same sweep.
+// Two response shapes are statically evidenced (Beta.25 x64 parsers, see
+// pixy.MotorPresetReading): the full shape carries the position and lands as
+// a preset; the mode-only shape proves a slot is set without exposing its
+// position, and those slots are counted instead of stored. Slots whose mode
+// byte marks them empty/invalid are skipped; per-slot query failures are
+// skipped too (one dead slot must not abort the sweep), except an
+// unreachable device, which aborts immediately. When EVERY slot fails, the
+// first error is returned so the failure has a cause. The slot count is the
+// assumed maxHardwarePresetSlots cap until the #166 hardware session pins
+// the real count with this same sweep.
 func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 	// The whole sweep is one HID operation: hold hidMu so no tracking/audio
 	// command interleaves between slot queries.
@@ -645,13 +650,14 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 	defer d.hidMu.Unlock()
 
 	var (
-		pulled   []string
-		skipped  int
-		empty    int
-		failures int
-		firstErr error
-		limitHit bool
-		changed  bool
+		pulled     []string
+		skipped    int
+		occupied   int
+		empty      int
+		failures   int
+		firstErr   error
+		limitHit   bool
+		changed    bool
 	)
 
 	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {
@@ -672,6 +678,14 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 
 		if !reading.Occupied() {
 			empty++
+
+			continue
+		}
+
+		if !reading.HasPosition() {
+			// Mode-only answer: the slot is set but the GET does not expose
+			// its position (Beta.25 GET parser is single-byte).
+			occupied++
 
 			continue
 		}
@@ -712,22 +726,26 @@ func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
 		d.broadcastStateChanged()
 	}
 
-	if len(pulled) == 0 && empty == 0 && skipped == 0 && failures > 0 {
+	if len(pulled) == 0 && empty == 0 && skipped == 0 && occupied == 0 && failures > 0 {
 		return errResult("preset pull", firstErr)
 	}
 
-	return okResult(pullSummary(pulled, empty, skipped, failures, limitHit))
+	return okResult(pullSummary(pulled, empty, skipped, occupied, failures, limitHit))
 }
 
 // pullSummary renders the pull result line: what landed, and why the other
 // slots did not. Zero counts are omitted.
-func pullSummary(pulled []string, empty, skipped, failures int, limitHit bool) string {
+func pullSummary(pulled []string, empty, skipped, occupied, failures int, limitHit bool) string {
 	var b strings.Builder
 
 	if len(pulled) > 0 {
 		b.WriteString("preset pulled: " + strings.Join(pulled, ", "))
 	} else {
-		b.WriteString("preset pull: no occupied slots")
+		b.WriteString("preset pull: no slot positions")
+	}
+
+	if occupied > 0 {
+		fmt.Fprintf(&b, ", %d set (position not exposed)", occupied)
 	}
 
 	if empty > 0 {
