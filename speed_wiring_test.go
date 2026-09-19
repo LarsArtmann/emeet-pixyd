@@ -5,7 +5,9 @@ package main
 import (
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -335,4 +337,62 @@ func TestWebPresetChip_RendersConfirmedPush(t *testing.T) {
 		"The camera will physically move",
 		`aria-label="Push preset desk to camera hardware slot"`,
 	})
+}
+
+// --- #138: lock order regression (v4l2Mu → hidMu) ---
+
+// TestLockOrder_V4L2MoveWithHIDCommands pins the global lock order
+// v4l2Mu → hidMu: PTZ move paths hold v4l2Mu and take hidMu underneath
+// (reassertSpeeds), while HID-only commands take hidMu alone. If any path
+// ever nests the locks the other way around, this mixed workload deadlocks
+// and the watchdog fails the test instead of hanging the suite.
+func TestLockOrder_V4L2MoveWithHIDCommands(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+
+	var v4l2Calls []v4l2Call
+
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
+
+	// A persisted speed makes every move path nest hidMu under v4l2Mu.
+	if result := d.handleCommand(t.Context(), "speed pan 40"); result.IsError() {
+		t.Fatalf("speed pan 40: %s", result.String())
+	}
+
+	commands := []string{
+		"pan 12", "tilt rel 5", "zoom 110",
+		"speed tilt 30", "tracking halfbody", "status",
+	}
+
+	var wg sync.WaitGroup
+
+	done := make(chan struct{})
+
+	for worker := range 3 {
+		wg.Add(1)
+
+		go func(n int) {
+			defer wg.Done()
+
+			for i := range 25 {
+				_ = d.handleCommand(t.Context(), commands[(n+i)%len(commands)])
+			}
+		}(worker)
+	}
+
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("mixed V4L2/HID workload deadlocked — lock order v4l2Mu → hidMu violated")
+	}
+
+	if got := sim.MotorSpeed(pixy.MotorTilt); got != 30 {
+		t.Errorf("tilt speed = %v, want 30 (HID commands must still land)", got)
+	}
 }

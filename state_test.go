@@ -4,6 +4,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -187,5 +188,78 @@ func TestStateFileRejectsUnknownFields(t *testing.T) {
 
 	if d.state.Camera != pixy.StatePrivacy {
 		t.Errorf("expected state to remain at default, got %s", d.state.Camera)
+	}
+}
+
+// TestStateRoundTrip_SpeedsOmitZero_TrackModeNone pins the on-disk JSON
+// shape: zero speeds omit the whole "speeds" key (the file stays clean for
+// users who never configured speeds), and the corrected "none" variant
+// round-trips like any other.
+func TestStateRoundTrip_SpeedsOmitZero_TrackModeNone(t *testing.T) {
+	t.Parallel()
+
+	cfg := defaultTestConfig(t.TempDir())
+
+	d := &Daemon{
+		mu:     sync.RWMutex{},
+		config: cfg,
+		state:  pixy.DefaultState(),
+	}
+
+	d.state.TrackMode = pixy.TrackNone.String()
+	d.state.Speeds = pixy.SpeedValues{}.Set(pixy.AxisPan, 42.5)
+
+	if err := d.saveState(); err != nil {
+		t.Fatalf("saveState: %v", err)
+	}
+
+	raw, err := os.ReadFile(cfg.StateFile())
+	if err != nil {
+		t.Fatalf("read state file: %v", err)
+	}
+
+	if !strings.Contains(string(raw), `"speeds":{"pan":42.5}`) {
+		t.Errorf("state file missing speeds object: %s", raw)
+	}
+
+	if !strings.Contains(string(raw), `"trackMode":"none"`) {
+		t.Errorf("state file missing trackMode none: %s", raw)
+	}
+
+	reloaded := &Daemon{
+		mu:     sync.RWMutex{},
+		config: cfg,
+		state:  pixy.DefaultState(),
+	}
+
+	if !reloaded.loadState() {
+		t.Fatal("loadState = false, want true (state file was just written)")
+	}
+
+	if got, _ := reloaded.state.Speeds.Get(pixy.AxisPan); got != 42.5 {
+		t.Errorf("pan speed after reload = %v, want 42.5", got)
+	}
+
+	if got := reloaded.state.EffectiveTrackMode(); got != pixy.TrackNone {
+		t.Errorf("effective track mode after reload = %v, want none", got)
+	}
+
+	clean := &Daemon{
+		mu:     sync.RWMutex{},
+		config: cfg,
+		state:  pixy.DefaultState(),
+	}
+
+	if err := clean.saveState(); err != nil {
+		t.Fatalf("saveState clean: %v", err)
+	}
+
+	raw, err = os.ReadFile(cfg.StateFile())
+	if err != nil {
+		t.Fatalf("re-read state file: %v", err)
+	}
+
+	if strings.Contains(string(raw), "speeds") {
+		t.Errorf("zero speeds still wrote a speeds key: %s", raw)
 	}
 }
