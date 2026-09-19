@@ -149,7 +149,7 @@ emeet-pixy pan <value>          # Set pan (−150 to 150; or rel+/-N for relativ
 emeet-pixy tilt <value>         # Set tilt (−90 to 90; or rel+/-N for relative)
 emeet-pixy zoom <value>         # Set zoom (100 to 150; or rel+/-N for relative)
 emeet-pixy speed <axis> <value> # Set motor speed for PTZ moves (axis: pan, tilt, zoom)
-emeet-pixy tracking <variant>   # Set tracking variant (face, halfbody, fullbody)
+emeet-pixy tracking <variant>   # Set tracking variant (none, face, halfbody, fullbody)
 emeet-pixy battery              # Show battery/charge (omitted if the device doesn't answer)
 emeet-pixy preset save <name>   # Save current PTZ position as a named preset
 emeet-pixy preset load <name>   # Recall a saved preset

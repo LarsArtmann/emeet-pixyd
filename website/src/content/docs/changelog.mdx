@@ -16,8 +16,10 @@ from the vendor binary — the daemon now speaks the same protocol:
 
 - **Motor speed** — `speed <pan|tilt|zoom> <value>` over the official
   `SetMotorSpeed` command, plus three speed sliders in the web UI
-- **Tracking variants** — `tracking <face|halfbody|fullbody>` with a web
-  picker, one level below the binary track switch
+- **Tracking variants** — `tracking <none|face|halfbody|fullbody>` with a web
+  picker, one level below the binary track switch. The enum was corrected to
+  the official app's 1-based scheme (0 = "No Smart Composition", decoded from
+  the official binary); variants persist across daemon restarts
 - **Battery/charge** — `battery` command plus battery lines in `status`,
   Waybar, and the web panel (best-effort: absence is an expected outcome)
 - **Motor-preset mirroring** — `preset push <name>` moves the camera and

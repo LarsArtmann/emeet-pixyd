@@ -127,14 +127,15 @@ Server side: `sse.PatchElementTempl(statusPanel(status))` morphs `#status-panel`
 - Simulator V2 routing rule: motor SET heads collide with the commit-report shape, so V2 SETs are validated BEFORE the commit step, and the 0x63 iface substitution applies to motor heads ONLY (applying it to optics heads made `SetTargetTrack` collide with `SetMotorPos` — pinned by the preset-push tests).
 - vmTest: `/etc/systemd/user` is a symlink `find` cannot descend — an unguarded `cat $(find …)` blocks on stdin; cat the canonical path.
 
-## Research artifacts (EMEET STUDIO 2.0.3 reverse engineering)
+## Research artifacts (EMEET STUDIO reverse engineering)
 
+- Specimens live durably in `~/specimens/emeet-studio/` (2.0.0-Beta.25 Win installer + full extraction incl. the x64 `EMEET STUDIO 2.exe`); re-acquisition recipe for vendor-pulled files: **Wayback Machine CDX** (`https://web.archive.org/cdx/search/cdx?urlkey=<urlkey>*&output=json&filter=statuscode:200` then fetch `https://web.archive.org/web/<timestamp>id_/<url>` for the original bytes). The 2.0.3 Mac installer and the Beta.25 Mac pkg are NOT re-acquired (first 404; alternate snapshot forms untried) — nothing blocks on them.
 - `docs/emeet-studio-official-app-comparison.md` — the deliverable (official Win EXE + Mac PKG vs emeet-pixyd; Inno 6.6.1 RE notes; Zoom call-detection differentiation).
-- `docs/hid-protocol-official-map.md` — official `CMD_*` surface ↔ our `hid.go` (§3.5 = the 162-command table; the remaining gate is hardware verification, TODO_LIST #166).
-- `tools/inno661/` — pure-Python Inno Setup 6.6.1 extractor; all 2,211 payload files SHA256-verified (README = format spec).
-- `tools/emhid/cmdtable.json` — 162 official command IDs + payload layouts extracted from the Mac binary (`EMHidCmdV2Head` static initializers). Head = `[0x09, iface, category, cmd]`; queries are bare 4-byte heads.
-- Ephemeral, dies with reboot (`/tmp/emeet/`): the raw specimens are GONE as of 2026-09-19; the derived knowledge (cmdtable, format spec, parsed.json) is in-repo. Re-downloading the installers from emeet.ai is the unblock for the enum decode + x86_64 cross-verify (durable-storage question open in ROADMAP).
-- Failed approaches (do NOT retry): wine/wineWow installer runs (GUI crash), C++ innoextract patch (Python won), `lzma.FORMAT_ALONE` (use `FORMAT_RAW` after stripping 5 props bytes — Inno 6.6.1 blocks are independent LZMA1 streams).
+- `docs/hid-protocol-official-map.md` — official `CMD_*` surface ↔ our `hid.go` (§3.5 = the 162-command table; §3.5a = framing + decoded enums with evidence grades; the version-shift model lives there: 2.0.3 = Beta.25 IDs + 1 after SET_REBOOT/GET_MOTOR_SPEED insertions — responses echo the request head, never cmd−1). Remaining gate: hardware verification, TODO_LIST #166.
+- `tools/inno661/` — pure-Python Inno Setup 6.6.1 extractor (README = format spec); verified on both the 2.0.3 and Beta.25 Win installers; parse data for both committed under `data/`.
+- `tools/emhid/` — `cmdtable.json` (162 Mac 2.0.3 command IDs, `extract_cmdtable.py`) and `extract_x64.py` → `x64_heads.json` (CRT-thunk sweep of the Beta.25 x64 build: 108/162 byte-for-byte matches, zero contradictions; regeneration from the specimen verified deterministic). Analysis scratch (`text.asm`, ~160 MB) is regenerable via `objdump -d -M intel -j .text` and does NOT belong in the repo.
+- Failed approaches (do NOT retry): wine/wineWow installer runs (GUI crash), C++ innoextract patch (Python won), `lzma.FORMAT_ALONE` (use `FORMAT_RAW` after stripping 5 props bytes — Inno 6.6.1 blocks are independent LZMA1 streams), EMEETLINK 5.8.5 as a PIXY specimen (different product, zero motor surface).
+- Method lesson: bind a log-string → named sender/handler FIRST, then read the surrounding code; pattern-hunting without a name produced the wrong cmd−1 hypothesis and several dead ends.
 
 ## Website
 

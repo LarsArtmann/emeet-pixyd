@@ -34,7 +34,7 @@ The `waybar` command outputs a JSON object:
 }
 ```
 
-The `text` field combines a Font Awesome icon with a short label. The `class` field is always prefixed with `custom-camera` and includes the camera state. When a call is detected, ` in-call` is appended to the class.
+The `text` field combines a Font Awesome icon with a short label. The `class` field is always prefixed with `custom-camera` and includes the camera state. When a call is detected, ` in-call` is appended to the class; when the device answers the battery queries, ` charging` or ` discharging` is appended instead.
 
 ### Text and Icons by State
 
@@ -67,6 +67,14 @@ The `text` field combines a Font Awesome icon with a short label. The `class` fi
 #custom-emeet-pixy.custom-camera.in-call {
   text-decoration: underline;
 }
+
+#custom-emeet-pixy.custom-camera.charging {
+  color: #34d399;
+}
+
+#custom-emeet-pixy.custom-camera.discharging {
+  opacity: 0.9;
+}
 ```
 
 ## Tooltip
@@ -84,6 +92,10 @@ When a call is detected, a fourth line is appended:
 ```
 In call: yes
 ```
+
+When the device answers the official battery queries, a `Battery: 87% (charging)`
+line is appended and the JSON object carries an additive `battery` field
+(omitted otherwise — absence is an expected outcome, not an error).
 
 ## Click Actions
 

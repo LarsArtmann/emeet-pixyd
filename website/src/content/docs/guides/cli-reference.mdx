@@ -22,6 +22,7 @@ emeet-pixyd --help       # Show usage
 | `emeet-pixy idle`           | Set camera to idle (on but no tracking)   |
 | `emeet-pixy privacy`        | Enable privacy mode (hardware lens block) |
 | `emeet-pixy toggle-privacy` | Toggle privacy mode                       |
+| `emeet-pixy tracking <variant>` | Set the smart-composition variant (none, face, halfbody, fullbody) |
 
 ### PTZ Control
 
@@ -79,6 +80,7 @@ emeet-pixy zoom rel+5    # Relative: zoom in 5
 | --------------------------------- | ----------------------------------- |
 | `emeet-pixy preset save <name>`   | Save current PTZ position as preset |
 | `emeet-pixy preset load <name>`   | Recall a saved preset               |
+| `emeet-pixy preset push <name>`   | Mirror a preset into a hardware motor slot (the camera moves) |
 | `emeet-pixy preset delete <name>` | Delete a preset                     |
 | `emeet-pixy preset list`          | List all presets                    |
 
@@ -87,6 +89,7 @@ emeet-pixy zoom rel+5    # Relative: zoom in 5
 | Command              | Description                                              |
 | -------------------- | -------------------------------------------------------- |
 | `emeet-pixy status`  | Full status (camera, audio, gesture, PTZ, in-call, auto) |
+| `emeet-pixy battery` | Battery/charge reading (explicit "unavailable" if the device does not answer) |
 | `emeet-pixy sync`    | Sync daemon state from camera hardware                   |
 | `emeet-pixy probe`   | Re-detect device (video + hidraw)                        |
 | `emeet-pixy device`  | Show current video and hidraw device paths               |
