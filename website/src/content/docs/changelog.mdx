@@ -31,6 +31,28 @@ from the vendor binary — the daemon now speaks the same protocol:
 - **Permission warning on hotplug** — the udev hint now fires when the
   device appears, not only at daemon startup
 
+### Corrections from official-app evidence
+
+The vendor's Windows app (2.0.0-Beta.25) was re-acquired and disassembled;
+its parser code corrected several of our documented assumptions:
+
+- **V2 response framing** — responses echo the 4-byte request head, carry a
+  reserved dword, and place the payload at offset 8 (minimum length 9). Our
+  parsers previously assumed offset 4 and would have misread every V2
+  response on real hardware
+- **Tracking enum** — official values are 1-based with `0 = none`; the
+  `none` variant ("No Smart Composition") is now exposed
+- **Charge status semantics** — charge values 1 and 2 both mean "charging"
+  (0 = discharging); the Waybar output now tags `charging`/`discharging`
+  classes on the battery line
+- **Cross-verification** — 108 of the 162 extracted command heads confirmed
+  byte-for-byte in the Windows build, zero contradictions
+- **Speed persistence** — configured motor speeds survive restarts
+  (`state.json`) and are re-asserted before every move
+
+All corrections are statically evidenced from the official binary;
+hardware confirmation is tracked for the next device session.
+
 ## Key Milestones
 
 ### Call Detection & Auto-Activation

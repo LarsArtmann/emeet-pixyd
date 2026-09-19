@@ -105,6 +105,6 @@ Nothing destructive; repo is green and clean. Wasted-effort list, honestly:
 
 ## g) QUESTIONS (cannot figure these out myself)
 
-1. **Apply the tracking-enum correction now?** The official x64 evidence says `0=None, 1=Face, 2=HalfBody, 3=FullBody` — our wire sends 0=face. Applying it changes behavior of every `tracking <variant>` command pre-hardware (and raises a design question: should we expose the official `none` variant, or keep mapping our three names onto 1/2/3?). Hold until the #166 session, or land it flagged "statically evidenced, hardware-unconfirmed"?
-2. **Specimen storage (the ROADMAP open question, now concrete):** is `~/specimens/` (emeet-studio + emeet-link, ~600 MB total with extractions) the durable home you want, and may the new installer's `parsed.json` be committed into `tools/inno661/data/` (repo grows ~4 MB) — or should all derived data stay beside the specimens?
-3. **v0.4.1 timing (#155):** cut now (today's work + the five HID families, all marked "hardware verification pending") or accumulate toward v0.5 after the hardware session?
+1. ~~**Apply the tracking-enum correction now?**~~ **RESOLVED-APPLIED (2026-09-19 ~10:30):** corrected to 0=none/1=face/2=halfbody/3=fullbody; `none` exposed over CLI + web picker + persistence; numeric aliases removed; wire bytes pinned by `TestTargetTrackModeWireValues`.
+2. ~~**Specimen storage**~~ **RESOLVED:** `~/specimens/emeet-studio/` is the durable home (installer + full extraction); distilled derived data committed (`tools/emhid/x64_heads.json`, `tools/inno661/data/parsed-beta25.json`); regeneration pipeline committed (`tools/emhid/extract_x64.py`, verified deterministic). ROADMAP open question updated to resolved-in-practice.
+3. **v0.4.1 timing (#155):** cut now (today's work + the five HID families, all marked "hardware verification pending") or accumulate toward v0.5 after the hardware session? ← untouched = still Lars's call
