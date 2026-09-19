@@ -258,7 +258,7 @@ type State struct {
 	// Speeds are the persisted per-axis motor speeds (TODO #138). Zero on an
 	// axis means "no preference": the daemon leaves the firmware default in
 	// effect and does not re-send it before moves.
-	Speeds SpeedValues `json:"speeds,omitempty"`
+	Speeds SpeedValues `json:"speeds,omitzero"`
 }
 
 // DefaultState returns the initial daemon state with privacy mode and auto-management enabled.
@@ -271,6 +271,8 @@ func DefaultState() State {
 		InCall:        false,
 		AutoMode:      AutoFull,
 		Presets:       NewPresetMap(),
+		TrackMode:     "",            // never set — reads back as the default (face)
+		Speeds:        SpeedValues{}, // no speed preference
 	}
 }
 

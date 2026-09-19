@@ -139,6 +139,7 @@ linters:
         - github.com/LarsArtmann/emeet-pixyd\.Broadcaster
         - github.com/LarsArtmann/emeet-pixyd/internal/pixy\.Config
         - github.com/LarsArtmann/emeet-pixyd/internal/pixy\.PTZValues
+        - github.com/LarsArtmann/emeet-pixyd/internal/pixy\.SpeedValues
         - net\.Dialer
         - net\.ListenConfig
         - net/http\.Server
