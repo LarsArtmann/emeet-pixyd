@@ -155,6 +155,7 @@ emeet-pixy preset save <name>   # Save current PTZ position as a named preset
 emeet-pixy preset load <name>   # Recall a saved preset
 emeet-pixy preset push <name>   # Mirror a saved preset into a hardware motor slot
 emeet-pixy preset pull          # Sweep hardware slots into hw-N presets (read-only)
+emeet-pixy preset pull --dry-run # Preview the sweep without storing anything
 emeet-pixy preset list          # List all saved presets
 emeet-pixy sync                 # Sync daemon state from camera hardware
 emeet-pixy probe                # Re-detect device (video + hidraw)
