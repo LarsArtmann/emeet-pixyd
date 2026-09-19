@@ -182,6 +182,18 @@ const V2PayloadSize = 5
 // use this constant so they evolve together.
 const V2ResponsePayloadOffset = 8
 
+// v2EchoMatches compares the response's 4-byte head echo against the head AS
+// SENT, applying the official routing mask to the dev byte: every Beta.25
+// x64 parser masks resp[1] with 0x1F before comparing (e.g. @0x14017e430),
+// so a device that echoes the logical motor dev byte (0x03) instead of the
+// motor-MCU routing (0x63) still validates. 0x63 & 0x1F == 0x03.
+func v2EchoMatches(echo, want V2Head) bool {
+	return echo[0] == want[0] &&
+		echo[1]&0x1F == want[1]&0x1F &&
+		echo[2] == want[2] &&
+		echo[3] == want[3]
+}
+
 // v2Payload validates the response framing and returns the payload slice:
 // a 4-byte request-head echo, the reserved dword (bytes 4..7), then the
 // payload. need is the required payload length in bytes.
@@ -193,7 +205,7 @@ func v2Payload(want V2Head, resp []byte, need int) ([]byte, error) {
 	var echo V2Head
 	copy(echo[:], resp[:len(want)])
 
-	if echo != want {
+	if !v2EchoMatches(echo, want) {
 		return nil, fmt.Errorf("v2 response head %x, want %x: %w", echo, want, ErrV2ResponseHeadMismatch)
 	}
 
