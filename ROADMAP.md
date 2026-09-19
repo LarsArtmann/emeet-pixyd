@@ -1,6 +1,6 @@
 # emeet-pixyd — Roadmap
 
-**Updated:** 2026-09-18
+**Updated:** 2026-09-19
 **Purpose:** Long-term direction and raw ideas **not yet refined into actionable tasks**. When an idea here becomes bounded and estimable, it graduates to `TODO_LIST.md`. When it is rejected, it moves to [Decisions (won't-do)](#decisions-wont-do) below.
 
 > This is the project's living roadmap. The older `docs/SUPERB_ROADMAP.md` (archived 2026-06-05, metrics now stale) is retained only as a historical snapshot — read this file for current direction.
@@ -11,7 +11,7 @@
 
 emeet-pixyd aims to be the **zero-touch Linux companion** for the EMEET PIXY: plug it in and the camera does the right thing (tracking when you're in a call, privacy when you're not), with a polished local web UI, full CLI/socket control, first-class NixOS integration, and no cloud dependency. Everything below either extends that vision or hardens what already ships.
 
-The daemon is mature: 63/66 features `FULLY_FUNCTIONAL` (see `FEATURES.md`), build/test/lint/nix gates green. Roadmap work is therefore **enrichment and hardening**, not gap-filling.
+The daemon is mature: 71/73 features `FULLY_FUNCTIONAL` (see `FEATURES.md`), build/test/lint/nix gates green. Roadmap work is therefore **enrichment and hardening**, not gap-filling.
 
 ---
 
@@ -32,7 +32,7 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 ### Build & release hardening
 
 - Add a CI guard that fails if the go-modules FOD references store paths (regression test for the committed-binary-poisoning class of bug — the go-branded-id incident is fixed upstream, but the class is not).
-- Extend the NixOS vmTest: fake sysfs + actually start the daemon inside the VM (after TODO #157 fixes the hang).
+- Extend the NixOS vmTest: fake sysfs + actually start the daemon inside the VM (the vmTest itself is green since 2026-09-19; this is the deeper extension).
 - `nix flake update` cadence / automation (Renovate or a scheduled update job).
 
 ### Web presence
@@ -51,7 +51,7 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Camera diagnostics endpoint (full V4L2 control dump).
 - PTZ patrol/sweep mode; configurable home position.
 - `koanf` layered config (file + env, replacing env-only).
-- Extend Waybar output: auto mode, pan/tilt, and (pending #139 verdict) battery.
+- Extend Waybar output: auto mode, pan/tilt values, and charging/discharging classes (model + battery level ship; the `ChargeSta` enum needs hardware verification, `TODO_LIST.md` #166).
 
 ### EMEET STUDIO research offshoots (intel worth keeping alive)
 
@@ -62,10 +62,12 @@ These came out of the 2026-09 official-app reverse-engineering (`docs/emeet-stud
 - **usbmon cross-validation** — capture the official app on Windows to confirm the `mergeType` sub-device routing (`0x63` vs `3` iface byte).
 - **`hidCmdSend`-style bounded retry** in our HID layer (the official impl retries with w4=50) + `hidCmdSend` retry-semantics decoding.
 - **Privacy-trigger-time semantics** — the official app exposes a configurable privacy trigger delay; semantics unknown.
-- **Motor-speed state persistence** — `state.json` schema v2 if #138 (PTZ speed) ships with a desired default.
+- **Motor-speed persistence** — `#138` shipped the `speed` command; this is the follow-through: `state.json` schema v2 + an `EMEET_PIXYD_MOTOR_SPEED` env default once the real unit/limit is hardware-verified.
+- **`GET_DEVICE_MODE` authoritative query** — switch mode reads to the official head (`09 02 01 00`) or document why the empirical SET-head query stays (probe now exercises it).
+- **`GET_FUNC_STA` bitfield decode** — turn the raw `func=` hex in `device` output into capability-gated UI.
+- **`FuzzParseV2Response`** — parser-security parity with the uevent fuzzer once framing is hardware-pinned.
 - **`EMEET_PIXYD_PRODUCT_IDS` env override** for future PIXY variants — YAGNI until a third model appears.
 - **Device-DISAPPEAR reconcile semantics** — only device-appear is handled today; what should belief/state do on unplug (clean reset vs keep-last)?
-- **Motor-preset slot-count discovery** — `GetMotorPresetPosMode` slot sweep to learn how many hardware slots exist (design input for #141).
 
 ---
 
@@ -73,8 +75,8 @@ These came out of the 2026-09 official-app reverse-engineering (`docs/emeet-stud
 
 These are too design-heavy to be a TODO yet. Capture the decision (preferably as an ADR), then promote to `TODO_LIST.md`.
 
-- **Structured command types** (former TODO #116): replace `handleCommand(string) string` + `strings.Fields` dispatch with typed command structs. High value (type safety, multi-word args) but high effort and touches the whole command surface. Design question: command-parser library vs. hand-rolled registry.
-- **Multi-word preset names via CLI** (former TODO #123): the web UI handles them, but CLI `strings.Fields` dispatch silently truncates at the first space. Options: quote support / join-remaining-parts / structured commands / accept the limitation. Tied to the structured-commands decision above.
+- **Structured command types** (former TODO #116): replace `handleCommand(string) string` + `strings.Fields` dispatch with typed command structs. High value (type safety, multi-word args) but high effort and touches the whole command surface. **ADR written** (`docs/adr/2026-09-18_structured-command-types.md`, recommends incremental typed registry) — awaiting Lars's decision.
+- **Multi-word preset names via CLI** (former TODO #123): the web UI handles them, but CLI `strings.Fields` dispatch silently truncates at the first space. **ADR written** (`docs/adr/2026-09-18_multi-word-preset-names.md`, recommends join-remaining-parts; pinning test proves the bug live) — awaiting Lars's decision; the ~6-line implementation lands immediately after.
 - **Re-assert AUDIO after power cycles too** — the reconcile (TODO #137, shipped) re-asserts the persisted camera mode but deliberately adopts audio/gesture from hardware; that boundary is documented. Changing it is a product decision, not a bug.
 
 ---
@@ -82,7 +84,7 @@ These are too design-heavy to be a TODO yet. Capture the decision (preferably as
 ## Open questions (need a human answer, not a task)
 
 - **Dependency-bump ownership for `website/`:** should bumps be dependabot-only (local sessions never bump; they `git sync` first)? This is the root-cause fix for the lockfile-conflict class (`2026-09-17_14-26` g2). Related: should the auto-commit daemon also push, or is manual `git sync` cadence intentional?
-- **`/tmp` research raw materials** (348 MB Windows payload, 241 MB Mac binary, 104 MB disasm): archive somewhere durable, or let them die with reboot? The derived knowledge (cmdtable, format spec, parsed.json) is safely in-repo. (Asked 2026-09-17 18:43, still open.)
+- **`/tmp` research raw materials**: the specimens (348 MB Windows payload, 241 MB Mac binary, 104 MB disasm) died with the 2026-09-19 reboot — the derived knowledge (cmdtable, format spec, parsed.json) is safely in-repo. Open question: may future sessions re-download the EMEET STUDIO installers, and where should specimens live durably (unblocks the enum decode #150 and the x86_64 cross-verify #152)? (Asked 2026-09-17 18:43, sharpened 2026-09-19.)
 - **Is the `buildflow --fix --semantic` daemon intentional?** It aggressively reverts in-flight edits during failed builds (see `2026-07-28_15-24` §g.2). If intentional, future sessions should work in a temp checkout; if not, killing it removes real churn. (Operational, not a code task.)
 - **Push cadence:** sessions keep accumulating local commits while origin CI rots and dependabot diverges (`2026-09-17_14-26` §e4, `2026-09-17_17-34` f19). Should the daemon push per task, or is a manual cadence intentional?
 

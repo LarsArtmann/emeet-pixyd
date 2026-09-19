@@ -131,27 +131,34 @@ nix build    # or, with a Go ≥ 1.27.1 toolchain: go build -o emeet-pixyd .
 Run without arguments to start the daemon, or pass a command to communicate via Unix socket:
 
 ```
-emeet-pixy status           # Full status (camera, audio, gesture, PTZ, in-call, auto)
-emeet-pixy track            # Enable face tracking
-emeet-pixy idle             # Set camera to idle
-emeet-pixy privacy          # Enable privacy mode
-emeet-pixy toggle-privacy   # Toggle privacy mode
-emeet-pixy center           # Center camera (pan=0, tilt=0, zoom=100)
-emeet-pixy audio [mode]     # Cycle or set audio mode (nc, live, org)
-emeet-pixy gesture-on       # Enable gesture control
-emeet-pixy gesture-off      # Disable gesture control
-emeet-pixy toggle-gesture   # Toggle gesture control
-emeet-pixy auto [mode]      # Set auto mode (off, full, tracking-only, privacy-only)
-emeet-pixy auto-on          # Enable full auto mode
-emeet-pixy auto-off         # Disable auto mode
-emeet-pixy toggle-auto      # Toggle auto mode
-emeet-pixy pan <value>      # Set pan (−150 to 150; or rel+/-N for relative)
-emeet-pixy tilt <value>     # Set tilt (−90 to 90; or rel+/-N for relative)
-emeet-pixy zoom <value>     # Set zoom (100 to 150; or rel+/-N for relative)
-emeet-pixy sync             # Sync daemon state from camera hardware
-emeet-pixy probe            # Re-detect device (video + hidraw)
-emeet-pixy device           # Show current video device path
-emeet-pixy waybar           # Output Waybar JSON
+emeet-pixy status               # Full status (camera, audio, gesture, PTZ, in-call, auto)
+emeet-pixy track                # Enable face tracking
+emeet-pixy idle                 # Set camera to idle
+emeet-pixy privacy              # Enable privacy mode
+emeet-pixy toggle-privacy       # Toggle privacy mode
+emeet-pixy center               # Center camera (pan=0, tilt=0, zoom=100)
+emeet-pixy audio [mode]         # Cycle or set audio mode (nc, live, org)
+emeet-pixy gesture-on           # Enable gesture control
+emeet-pixy gesture-off          # Disable gesture control
+emeet-pixy toggle-gesture       # Toggle gesture control
+emeet-pixy auto [mode]          # Set auto mode (off, full, tracking-only, privacy-only)
+emeet-pixy auto-on              # Enable full auto mode
+emeet-pixy auto-off             # Disable auto mode
+emeet-pixy toggle-auto          # Toggle auto mode
+emeet-pixy pan <value>          # Set pan (−150 to 150; or rel+/-N for relative)
+emeet-pixy tilt <value>         # Set tilt (−90 to 90; or rel+/-N for relative)
+emeet-pixy zoom <value>         # Set zoom (100 to 150; or rel+/-N for relative)
+emeet-pixy speed <axis> <value> # Set motor speed for PTZ moves (axis: pan, tilt, zoom)
+emeet-pixy tracking <variant>   # Set tracking variant (face, halfbody, fullbody)
+emeet-pixy battery              # Show battery/charge (omitted if the device doesn't answer)
+emeet-pixy preset save <name>   # Save current PTZ position as a named preset
+emeet-pixy preset load <name>   # Recall a saved preset
+emeet-pixy preset push <name>   # Mirror a saved preset into a hardware motor slot
+emeet-pixy preset list          # List all saved presets
+emeet-pixy sync                 # Sync daemon state from camera hardware
+emeet-pixy probe                # Re-detect device (video + hidraw)
+emeet-pixy device               # Show current video device path + model
+emeet-pixy waybar               # Output Waybar JSON
 ```
 
 ## Auto Modes
@@ -197,8 +204,10 @@ The daemon serves a dark-themed control panel at `http://127.0.0.1:8090` with:
 - Camera mode cards (Track / Idle / Privacy) with SVG icons and keyboard shortcuts (T / I / P / C)
 - Audio mode selector (Noise Cancel / Live / Original)
 - PTZ sliders (pan ±150°, tilt ±90°, zoom 100–150×) with a spatial position radar
+- Motor-speed sliders and a tracking-variant picker (face / half-body / full-body)
 - Snapshot button to capture still frames
-- Preset save/load/delete chips
+- Preset save/load/delete chips plus hardware-slot mirroring (`preset push`)
+- Camera model badge and battery row (shown when the device reports it)
 - Gesture control and auto-mode toggles
 - Toast notifications for state changes
 - Live updates via SSE (Server-Sent Events)
