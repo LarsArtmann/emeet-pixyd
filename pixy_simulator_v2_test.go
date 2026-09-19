@@ -81,6 +81,49 @@ func TestPixySimulatorV2_MotorSpeedAllAxes(t *testing.T) {
 	}
 }
 
+// TestPixySimulatorV2_SpeedQueryDuality pins the two evidenced speed-query
+// forms (TODO #168, for #166 comparisons): the Beta.25 x64 build rides the
+// SET_MOTOR_SPEED head routed to the motor-MCU iface (09 63 01 03 + motor
+// byte), while the dedicated GET head (09 03 01 13) is the 2.0.3 insertion.
+// Both must answer the same [motorType][speed][limit] payload, each echoing
+// the head as sent.
+func TestPixySimulatorV2_SpeedQueryDuality(t *testing.T) {
+	t.Parallel()
+
+	sim := newPixySimulator()
+
+	if err := sim.Send(v2MotorSpeedReport(pixy.MotorPan, 42.5, pixy.MotorMCUIface)); err != nil {
+		t.Fatalf("SetMotorSpeed: %v", err)
+	}
+
+	forms := map[string]pixy.V2Head{
+		"beta.25 set-head form": pixy.V2SetMotorSpeed.WithIface(pixy.MotorMCUIface),
+		"2.0.3 get-head form":   pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface),
+	}
+
+	for name, head := range forms {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			query := append(head.Bytes(), byte(pixy.MotorPan))
+
+			resp, err := sim.SendRecv(t.Context(), query)
+			if err != nil {
+				t.Fatalf("%s: SendRecv: %v", name, err)
+			}
+
+			reading, err := pixy.ParseMotorSpeedResponse(head, resp)
+			if err != nil {
+				t.Fatalf("%s: parse: %v", name, err)
+			}
+
+			if reading.Motor != pixy.MotorPan || reading.Speed != 42.5 || reading.Limit != 100.0 {
+				t.Fatalf("%s: reading = %+v, want (pan, 42.5, 100)", name, reading)
+			}
+		})
+	}
+}
+
 func TestPixySimulatorV2_TargetTrackRoundTrip(t *testing.T) {
 	t.Parallel()
 

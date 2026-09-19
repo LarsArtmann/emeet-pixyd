@@ -34,7 +34,8 @@ type pixyProtocolState struct {
 	// presetFullResponses flips preset-slot GET answers from the evidenced
 	// Beta.25 mode-only shape to the full SET-echo shape (slot+mode+PTZ),
 	// letting tests pin both parser paths until #166 shows which the wired
-	// firmware answers.
+	// firmware answers. Set it via withPresetFullResponses at construction or
+	// SetPresetFullResponses mid-test — never by poking the field directly.
 	presetFullResponses bool
 	targetTrack         v2TargetTrack
 	batteryLevel        byte
@@ -377,6 +378,14 @@ func buildV2GetHeads() map[[4]byte]bool {
 		}
 	}
 
+	// Speed-query duality (TODO #168): the Beta.25 x64 build queries speed by
+	// riding the SET_MOTOR_SPEED head routed to 0x63 with the motorType byte
+	// appended (send site @0x14017ecad), while the dedicated GET head is the
+	// 2.0.3 insertion (version-shift model, see pixy.V2GetMotorSpeed). Both
+	// query forms are modeled so #166 comparisons can exercise either against
+	// the same [motorType][speed][limit] answer.
+	heads[pixy.V2SetMotorSpeed.WithIface(pixy.MotorMCUIface)] = true
+
 	return heads
 }
 
@@ -511,13 +520,16 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 
 	speedKey := [4]byte(pixy.V2GetMotorSpeed)
 	speedKey63 := [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface))
+	// The Beta.25 query form rides the SET head (see buildV2GetHeads); it
+	// answers with the same payload, echoing the head as sent.
+	speedKeySet63 := [4]byte(pixy.V2SetMotorSpeed.WithIface(pixy.MotorMCUIface))
 	posKey := [4]byte(pixy.V2GetMotorPos)
 	posKey63 := [4]byte(pixy.V2GetMotorPos.WithIface(pixy.MotorMCUIface))
 	presetModeKey := [4]byte(pixy.V2GetMotorPresetPosMode)
 	presetModeKey63 := [4]byte(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface))
 
 	switch key {
-	case speedKey, speedKey63:
+	case speedKey, speedKey63, speedKeySet63:
 		motor := queryMotorType(query)
 		body[0] = byte(motor)
 		putF32LE(body[1:], s.motorSpeed[motor])
@@ -744,6 +756,28 @@ func (s *pixySimulator) MotorPreset(slot byte) (v2MotorPreset, bool) {
 	return entry, ok
 }
 
+// SetPresetFullResponses flips the preset-slot GET answer shape mid-test
+// (mode-only Beta.25 default vs full SET-echo, TODO #166 pins which the
+// wired firmware answers). Prefer withPresetFullResponses at construction.
+func (s *pixySimulator) SetPresetFullResponses(on bool) {
+	s.state.mu.Lock()
+	defer s.state.mu.Unlock()
+
+	s.state.presetFullResponses = on
+}
+
+// simulatorOption configures a pixyProtocolState at simulator construction
+// (TODO #168): fidelity knobs with hardware-pending evidence become options
+// instead of direct field pokes at call sites.
+type simulatorOption func(*pixyProtocolState)
+
+// withPresetFullResponses makes preset-slot GETs answer the full SET-echo
+// shape ([slot][mode][pan][tilt][zoom]) instead of the evidenced Beta.25
+// mode-only single byte.
+func withPresetFullResponses() simulatorOption {
+	return func(s *pixyProtocolState) { s.presetFullResponses = true }
+}
+
 // SentReports returns all reports sent via Send (config + commit).
 func (s *pixySimulator) SentReports() [][]byte {
 	s.mu.Lock()
@@ -772,12 +806,16 @@ func (s *pixySimulator) Queries() [][]byte {
 // HID device. Unlike withFakeDevices, this keeps the REAL setTracking,
 // setAudio, and setGesture methods — so the full setDeviceState → Send →
 // protocol validation path is exercised. V4L2 and proc dependencies are
-// stubbed since there is no real video device.
+// stubbed since there is no real video device. Options configure the
+// simulated protocol state (e.g. withPresetFullResponses).
 //
 // Returns the simulator instance for state assertions and failure injection.
-func withPixySimulator() (*pixySimulator, testDaemonOption) {
+func withPixySimulator(opts ...simulatorOption) (*pixySimulator, testDaemonOption) {
 	sim := newPixySimulator()
 
+	for _, opt := range opts {
+		opt(sim.state)
+	}
 	return sim, func(d *Daemon) {
 		d.hidDev = sim
 		d.deps.procInspector = newFakeProcInspector()

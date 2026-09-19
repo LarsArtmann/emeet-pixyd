@@ -5,9 +5,11 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"maps"
 	"math"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -237,7 +239,7 @@ func TestPixySimulatorV2_PresetSlotRoundTrip(t *testing.T) {
 	}
 
 	// Full-shape knob: the SET-echo shape carries slot + mode + position.
-	sim.state.presetFullResponses = true
+	sim.SetPresetFullResponses(true)
 
 	full, err := pixy.ParseMotorPresetPosResponse(head, mustPresetResponse(t, sim, head, 2))
 	if err != nil {
@@ -321,8 +323,7 @@ func TestPresetPull_ModeOnlySweep(t *testing.T) {
 func TestPresetPull_FullShapeSweep(t *testing.T) {
 	t.Parallel()
 
-	sim, opt := withPixySimulator()
-	sim.state.presetFullResponses = true
+	sim, opt := withPixySimulator(withPresetFullResponses())
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
@@ -359,8 +360,7 @@ func TestPresetPull_FullShapeSweep(t *testing.T) {
 func TestPresetPull_NeverOverwritesExistingNames(t *testing.T) {
 	t.Parallel()
 
-	sim, opt := withPixySimulator()
-	sim.state.presetFullResponses = true
+	sim, opt := withPixySimulator(withPresetFullResponses())
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
@@ -391,8 +391,7 @@ func TestPresetPull_NeverOverwritesExistingNames(t *testing.T) {
 func TestPresetPull_LimitReached(t *testing.T) {
 	t.Parallel()
 
-	sim, opt := withPixySimulator()
-	sim.state.presetFullResponses = true
+	sim, opt := withPixySimulator(withPresetFullResponses())
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
@@ -446,12 +445,171 @@ func TestPresetPull_AllSlotsUnreadable(t *testing.T) {
 		t.Fatalf("pull with failing device = %q, want error", result.String())
 	}
 
-	if !strings.Contains(result.String(), "8/8 slots unreadable") {
-		t.Errorf("error = %q, want failure count %q", result.String(), "8/8 slots unreadable")
+	if !strings.Contains(result.String(), "3/8 slots unreadable") {
+		t.Errorf("error = %q, want early-aborted failure count %q", result.String(), "3/8 slots unreadable")
+	}
+
+	if !strings.Contains(result.String(), "aborted after 3 consecutive failures") {
+		t.Errorf("error = %q, want abort note", result.String())
 	}
 
 	if !strings.Contains(result.String(), "injected read failure") {
 		t.Errorf("error = %q, want wrapped injected cause", result.String())
+	}
+
+	if queries := sim.Queries(); len(queries) != presetPullMaxConsecutiveFailures {
+		t.Errorf("pull issued %d queries, want %d (abort stops the sweep)", len(queries), presetPullMaxConsecutiveFailures)
+	}
+}
+
+// flakyQuerySim fails the first N SendRecv queries, then delegates. It models
+// a device that answers eventually — impossible to express with the
+// simulator's all-or-nothing sendRecvErr — so tests can pin that one
+// success between failures resets the early-abort counter.
+type flakyQuerySim struct {
+	*pixySimulator
+
+	mu        sync.Mutex
+	remaining int
+}
+
+func (f *flakyQuerySim) SendRecv(ctx context.Context, report []byte) ([]byte, error) {
+	f.mu.Lock()
+	fail := f.remaining > 0
+
+	if fail {
+		f.remaining--
+	}
+
+	f.mu.Unlock()
+
+	if fail {
+		return nil, errors.New("injected slot failure")
+	}
+
+	return f.pixySimulator.SendRecv(ctx, report)
+}
+
+func (f *flakyQuerySim) String() string { return "flaky-query-sim" }
+
+func TestPresetPull_EarlyAbortStopsSweep(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d.hidDev = &flakyQuerySim{pixySimulator: sim, remaining: presetPullMaxConsecutiveFailures}
+
+	result := d.handleCommand(t.Context(), "preset pull")
+	if !result.IsError() || !strings.Contains(result.String(), "aborted after 3 consecutive failures") {
+		t.Fatalf("flaky-start pull = %q, want abort error", result.String())
+	}
+
+	if queries := sim.Queries(); len(queries) != presetPullMaxConsecutiveFailures {
+		t.Errorf("sweep issued %d queries, want %d", len(queries), presetPullMaxConsecutiveFailures)
+	}
+}
+
+func TestPresetPull_SuccessResetsAbortCounter(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d.hidDev = &flakyQuerySim{pixySimulator: sim, remaining: 2}
+
+	seedHardwareSlot(t, sim, 3, 20, 10, 130)
+
+	result := d.handleCommand(t.Context(), "preset pull")
+	if result.IsError() {
+		t.Fatalf("pull with intermittent failures failed: %s", result.String())
+	}
+
+	// Two failures, then a success resets the counter, so the sweep runs to
+	// completion: 8 queries, 2 unreadable, slot 3 pulled, no abort note.
+	if strings.Contains(result.String(), "aborted") {
+		t.Errorf("response = %q, want no abort note after a success reset", result.String())
+	}
+
+	if !strings.Contains(result.String(), "preset pulled: hw-3") || !strings.Contains(result.String(), "2 unreadable") {
+		t.Errorf("response = %q, want hw-3 pulled with 2 unreadable", result.String())
+	}
+
+	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
+		t.Errorf("sweep issued %d queries, want %d", len(queries), maxHardwarePresetSlots)
+	}
+}
+
+func TestPresetPull_DryRunDoesNotMutate(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator(withPresetFullResponses())
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	seedHardwareSlot(t, sim, 1, 10, -5, 115)
+	seedHardwareSlot(t, sim, 3, 20, 10, 130)
+
+	before := pixy.PresetMap{
+		"custom": {Pan: 5, Tilt: 5, Zoom: 105},
+		"hw-1":   {Pan: 99, Tilt: 0, Zoom: 140},
+	}
+
+	d.mu.Lock()
+	d.state.Presets = before
+	d.mu.Unlock()
+
+	result := d.handleCommand(t.Context(), "preset pull "+flagDryRun)
+	if result.IsError() {
+		t.Fatalf("dry-run pull failed: %s", result.String())
+	}
+
+	// hw-1 already named, hw-3 would land, the rest empty.
+	if want := "preset pull (dry run): would pull: hw-3, 6 empty, 1 already named"; result.String() != want {
+		t.Errorf("response = %q, want %q", result.String(), want)
+	}
+
+	d.mu.RLock()
+	got := d.state.Presets
+	d.mu.RUnlock()
+
+	if !maps.Equal(got, before) {
+		t.Errorf("dry run mutated presets: %+v, want unchanged %+v", got, before)
+	}
+
+	if reports := sim.SentReports(); len(reports) != 0 {
+		t.Errorf("dry run sent %d HID reports, want 0", len(reports))
+	}
+
+	if queries := sim.Queries(); len(queries) != maxHardwarePresetSlots {
+		t.Errorf("dry run issued %d queries, want %d (full sweep still runs)", len(queries), maxHardwarePresetSlots)
+	}
+}
+
+func TestPresetPull_DryRunModeOnly(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	seedHardwareSlot(t, sim, 1, 10, -5, 115)
+
+	result := d.handleCommand(t.Context(), "preset pull "+flagDryRun)
+	if result.IsError() {
+		t.Fatalf("dry-run pull failed: %s", result.String())
+	}
+
+	if want := "preset pull (dry run): no slot positions, 1 set (position not exposed), 7 empty"; result.String() != want {
+		t.Errorf("response = %q, want %q", result.String(), want)
+	}
+}
+
+func TestPresetPull_DryRunRejectsExtraName(t *testing.T) {
+	t.Parallel()
+
+	_, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	result := d.handleCommand(t.Context(), "preset pull "+flagDryRun+" hw-1")
+	if !result.IsError() || !strings.Contains(result.String(), "takes no name") {
+		t.Errorf("preset pull --dry-run hw-1 = %q, want usage error", result.String())
 	}
 }
 
@@ -492,8 +650,7 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 
 	stateDir := t.TempDir()
 
-	sim, opt := withPixySimulator()
-	sim.state.presetFullResponses = true
+	sim, opt := withPixySimulator(withPresetFullResponses())
 
 	first := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 	first.config.StateDir = stateDir
@@ -523,8 +680,7 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 func TestWebPresetPullEndpoint(t *testing.T) {
 	t.Parallel()
 
-	sim, opt := withPixySimulator()
-	sim.state.presetFullResponses = true
+	sim, opt := withPixySimulator(withPresetFullResponses())
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 2, 15, 5, 125)
