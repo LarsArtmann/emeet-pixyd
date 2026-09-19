@@ -379,9 +379,18 @@ templ presetSection(names []string) {
 	<div class="preset-section">
 		<div class="preset-header">
 			<span class="preset-label">Presets</span>
-			if len(names) > 0 {
-				<span class="preset-count">{ fmt.Sprintf("%d/%d", len(names), pixy.MaxPresets) }</span>
-			}
+			<div class="preset-header-right">
+				if len(names) > 0 {
+					<span class="preset-count">{ fmt.Sprintf("%d/%d", len(names), pixy.MaxPresets) }</span>
+				}
+				<button
+					class="btn btn-small preset-pull-btn"
+					type="button"
+					aria-label="Pull presets from camera hardware slots"
+					title="Pull hardware motor slots into presets (read-only)"
+					data-on:click="@post('/api/preset/pull')"
+				>Pull</button>
+			</div>
 		</div>
 		<div class="preset-save-row">
 			<input

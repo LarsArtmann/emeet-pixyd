@@ -886,6 +886,17 @@ input[type="range"]:focus-visible {
   opacity: 0.7;
 }
 
+.preset-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preset-pull-btn {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+}
+
 .preset-save-row {
   display: flex;
   gap: 0.4rem;

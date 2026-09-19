@@ -395,6 +395,20 @@ func (s *webServer) handlePresetPush(responseWriter http.ResponseWriter, request
 	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
+// handlePresetPull implements POST /api/preset/pull — the web surface for
+// sweeping hardware motor slots into software presets (TODO #141). The sweep
+// is read-only on the hardware side (nothing moves), so unlike push it needs
+// no browser confirm() gate.
+func (s *webServer) handlePresetPull(responseWriter http.ResponseWriter, request *http.Request) {
+	result := s.daemon.handleCommand(request.Context(), cmdPreset+" "+presetPull)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+}
+
 func newWebMux(server *webServer) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", cachingFS{handler: http.FileServer(http.FS(staticFS))})
@@ -416,6 +430,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/preset/load/{name}", server.handlePresetLoad)
 	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
 	mux.HandleFunc("POST /api/preset/push/{name}", server.handlePresetPush)
+	mux.HandleFunc("POST /api/preset/pull", server.handlePresetPull)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/speed/{axis}", server.handleSpeed)
 	mux.HandleFunc("POST /api/tracking/{variant}", server.handleTrackingVariant)

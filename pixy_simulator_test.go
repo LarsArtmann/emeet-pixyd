@@ -30,12 +30,20 @@ type pixyProtocolState struct {
 	motorSpeed   [3]float32
 	motorPos     [3]float32
 	motorLimit   float32
+	motorPresets map[byte]v2MotorPreset
 	targetTrack  v2TargetTrack
 	batteryLevel byte
 	chargeSta    byte
 	funcSta      uint32
 	serialNumber string
 	firmwareVer  uint16
+}
+
+// v2MotorPreset is one modeled hardware motor preset slot: its position-mode
+// byte and, when occupied (pixy.MotorPresetPositioned), the stored position.
+type v2MotorPreset struct {
+	mode byte
+	pos  [3]float32
 }
 
 type v2TargetTrack struct {
@@ -51,14 +59,15 @@ type pendingConfig struct {
 
 func newPixyProtocolState() *pixyProtocolState {
 	return &pixyProtocolState{
-		tracking:     pixy.StateIdle,
-		audio:        pixy.AudioNC,
-		gesture:      false,
-		pending:      make(map[byte]*pendingConfig),
-		motorLimit:   100.0,
-		batteryLevel: 87,
-		serialNumber: "PIXY-SIM-0001",
-		firmwareVer:  0x0203,
+		tracking:      pixy.StateIdle,
+		audio:         pixy.AudioNC,
+		gesture:       false,
+		pending:       make(map[byte]*pendingConfig),
+		motorLimit:    100.0,
+		motorPresets:  make(map[byte]v2MotorPreset),
+		batteryLevel:  87,
+		serialNumber:  "PIXY-SIM-0001",
+		firmwareVer:   0x0203,
 	}
 }
 
@@ -451,10 +460,25 @@ func (s *pixyProtocolState) handleV2Set(report []byte) error {
 			mode: payload[0],
 			args: [3]float32{f32LE(payload[1:]), f32LE(payload[5:]), f32LE(payload[9:])},
 		}
-	case "SetMotorPresetPos", "SetMotorPresetPosMode":
-		// Slot writes are accepted but not modeled (slot contents are an
-		// M27 hardware-verify surface; nothing reads them back yet).
-	}
+	case "SetMotorPresetPos":
+		// Saves the CURRENT position into the slot: it becomes occupied
+		// (mode=1) with the live pan/tilt/zoom coordinates.
+		s.motorPresets[payload[0]] = v2MotorPreset{
+			mode: pixy.MotorPresetPositioned,
+			pos:  [3]float32{s.motorPos[0], s.motorPos[1], s.motorPos[2]},
+		}
+	case "SetMotorPresetPosMode":
+		// [slot][mode] flips the slot's mode byte; a slot becoming occupied
+		// without stored coordinates snapshots the current position.
+		entry := s.motorPresets[payload[0]]
+		entry.mode = payload[1]
+
+		if entry.mode == pixy.MotorPresetPositioned && entry.pos == [3]float32{} {
+			entry.pos = [3]float32{s.motorPos[0], s.motorPos[1], s.motorPos[2]}
+		}
+
+		s.motorPresets[payload[0]] = entry
+}
 
 	return nil
 }
@@ -478,6 +502,8 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 	speedKey63 := [4]byte(pixy.V2GetMotorSpeed.WithIface(pixy.MotorMCUIface))
 	posKey := [4]byte(pixy.V2GetMotorPos)
 	posKey63 := [4]byte(pixy.V2GetMotorPos.WithIface(pixy.MotorMCUIface))
+	presetModeKey := [4]byte(pixy.V2GetMotorPresetPosMode)
+	presetModeKey63 := [4]byte(pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface))
 
 	switch key {
 	case speedKey, speedKey63:
@@ -489,6 +515,23 @@ func (s *pixyProtocolState) buildV2Response(query []byte) []byte {
 		motor := queryMotorType(query)
 		body[0] = byte(motor)
 		putF32LE(body[1:], s.motorPos[motor])
+	case presetModeKey, presetModeKey63:
+		// The queried slot byte rides after the head (like the motorType byte
+		// of the per-axis motor GETs); the response payload is the position-
+		// mode shape: mode u8, then pan/tilt/zoom only when occupied.
+		slot := byte(0)
+		if len(query) > 4 {
+			slot = query[4]
+		}
+
+		entry := s.motorPresets[slot]
+		body[0] = entry.mode
+
+		if entry.mode == pixy.MotorPresetPositioned {
+			putF32LE(body[1:], entry.pos[0])
+			putF32LE(body[5:], entry.pos[1])
+			putF32LE(body[9:], entry.pos[2])
+		}
 	case [4]byte(pixy.V2GetTargetTrack):
 		body[0] = s.targetTrack.mode
 		putF32LE(body[1:], s.targetTrack.args[0])
@@ -644,6 +687,16 @@ func (s *pixySimulator) TargetTrack() (byte, [3]float32) {
 	defer s.state.mu.Unlock()
 
 	return s.state.targetTrack.mode, s.state.targetTrack.args
+}
+
+// MotorPreset returns the modeled contents of a hardware preset slot.
+func (s *pixySimulator) MotorPreset(slot byte) (v2MotorPreset, bool) {
+	s.state.mu.Lock()
+	defer s.state.mu.Unlock()
+
+	entry, ok := s.state.motorPresets[slot]
+
+	return entry, ok
 }
 
 // SentReports returns all reports sent via Send (config + commit).

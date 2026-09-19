@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -617,4 +618,132 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 	}
 
 	return okResult(fmt.Sprintf("preset pushed: %s -> slot %d", name, slot))
+}
+
+// presetPullNameFormat is the software preset name for a pulled hardware
+// slot. The hw- prefix marks machine-mirrored presets so users can tell them
+// apart from named ones; pull never touches any other name.
+const presetPullNameFormat = "hw-%d"
+
+// handlePresetPull sweeps the hardware motor preset slots into named software
+// presets (TODO #141; design in ROADMAP): every slot that answers with an
+// occupied position (mode==1) is stored as hw-<slot>, rounded and clamped to
+// the V4L2 limits. Pull is additive — existing preset names are never
+// overwritten — and explicit: nothing auto-syncs in either direction
+// afterward. The sweep is read-only on the hardware side; no motor moves.
+//
+// Slots whose mode byte marks them empty/invalid are skipped; per-slot query
+// failures are skipped too (one dead slot must not abort the sweep), except
+// an unreachable device, which aborts immediately. When EVERY slot fails,
+// the first error is returned so the failure has a cause. The slot count is
+// the assumed maxHardwarePresetSlots cap until the #166 hardware session
+// pins the real count with this same sweep.
+func (d *Daemon) handlePresetPull(ctx context.Context) CommandResult {
+	// The whole sweep is one HID operation: hold hidMu so no tracking/audio
+	// command interleaves between slot queries.
+	d.hidMu.Lock()
+	defer d.hidMu.Unlock()
+
+	var (
+		pulled   []string
+		skipped  int
+		empty    int
+		failures int
+		firstErr error
+		limitHit bool
+		changed  bool
+	)
+
+	for slot := 1; slot <= maxHardwarePresetSlots; slot++ {
+		reading, err := d.queryMotorPresetPos(ctx, byte(slot))
+		if err != nil {
+			if errors.Is(err, pixy.ErrPIXYNotConnected) {
+				return errResult("preset pull", err)
+			}
+
+			failures++
+			if firstErr == nil {
+				firstErr = err
+			}
+
+			continue
+		}
+
+		if !reading.Occupied() {
+			empty++
+
+			continue
+		}
+
+		name := fmt.Sprintf(presetPullNameFormat, slot)
+
+		d.mu.Lock()
+		_, exists := d.state.Presets[name]
+		full := !exists && d.state.Presets.IsFull()
+
+		switch {
+		case exists:
+			skipped++
+		case full:
+			// stay additive: a pulled slot may never push out a user-named preset
+		default:
+			if d.state.Presets == nil {
+				d.state.Presets = pixy.NewPresetMap()
+			}
+
+			d.state.Presets[name] = reading.PTZValues()
+			pulled = append(pulled, name)
+			changed = true
+		}
+		d.mu.Unlock()
+
+		if full {
+			limitHit = true
+
+			break
+		}
+	}
+
+	if changed {
+		d.mu.Lock()
+		d.saveStateOrLog("failed to save state")
+		d.mu.Unlock()
+		d.broadcastStateChanged()
+	}
+
+	if len(pulled) == 0 && empty == 0 && skipped == 0 && failures > 0 {
+		return errResult("preset pull", firstErr)
+	}
+
+	return okResult(pullSummary(pulled, empty, skipped, failures, limitHit))
+}
+
+// pullSummary renders the pull result line: what landed, and why the other
+// slots did not. Zero counts are omitted.
+func pullSummary(pulled []string, empty, skipped, failures int, limitHit bool) string {
+	var b strings.Builder
+
+	if len(pulled) > 0 {
+		b.WriteString("preset pulled: " + strings.Join(pulled, ", "))
+	} else {
+		b.WriteString("preset pull: no occupied slots")
+	}
+
+	if empty > 0 {
+		fmt.Fprintf(&b, ", %d empty", empty)
+	}
+
+	if skipped > 0 {
+		fmt.Fprintf(&b, ", %d already named", skipped)
+	}
+
+	if failures > 0 {
+		fmt.Fprintf(&b, ", %d unreadable", failures)
+	}
+
+	if limitHit {
+		fmt.Fprintf(&b, ", preset limit reached (%d)", pixy.MaxPresets)
+	}
+
+	return b.String()
 }
