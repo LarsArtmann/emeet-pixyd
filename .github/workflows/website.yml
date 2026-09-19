@@ -49,9 +49,9 @@ jobs:
             exit 1
           fi
 
-  # Deploys only when the FIREBASE_SERVICE_ACCOUNT secret exists (setup
-  # checklist: FIREBASE_DEPLOY_SETUP.md). Until then the job self-skips and
-  # deploys stay manual (firebase deploy from website/, see AGENTS.md).
+  # Deploys on master pushes (and manual dispatches) when the
+  # FIREBASE_SERVICE_ACCOUNT secret is present. The secret is set, so the job
+  # deploys for real — see FIREBASE_DEPLOY_SETUP.md for setup and rotation.
   deploy:
     if: ${{ github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     needs: build
