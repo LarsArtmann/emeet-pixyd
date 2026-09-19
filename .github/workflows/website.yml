@@ -11,6 +11,7 @@ on:
     paths:
       - website/**
       - .github/workflows/website.yml
+  workflow_dispatch:
 
 jobs:
   build:
@@ -52,7 +53,7 @@ jobs:
   # checklist: FIREBASE_DEPLOY_SETUP.md). Until then the job self-skips and
   # deploys stay manual (firebase deploy from website/, see AGENTS.md).
   deploy:
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+    if: ${{ github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     needs: build
     runs-on: ubuntu-latest
     defaults:
@@ -79,10 +80,12 @@ jobs:
         if: steps.secret.outputs.present == 'true'
         run: pnpm run build
 
-      # Stale-deploy incident rule: verify built content BEFORE uploading.
+      # Stale-deploy incident rule: verify the freshly built changelog page
+      # contains the newest documented section BEFORE uploading. If the site's
+      # changelog is restructured, update this sentinel alongside it.
       - name: Verify changelog content
         if: steps.secret.outputs.present == 'true'
-        run: grep -q "0.4.0" dist/changelog/index.html
+        run: grep -q "Corrections from official-app evidence" dist/changelog/index.html
 
       - name: Deploy to Firebase Hosting
         if: steps.secret.outputs.present == 'true'
