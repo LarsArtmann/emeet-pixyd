@@ -23,7 +23,9 @@ from the vendor binary — the daemon now speaks the same protocol:
 - **Battery/charge** — `battery` command plus battery lines in `status`,
   Waybar, and the web panel (best-effort: absence is an expected outcome)
 - **Motor-preset mirroring** — `preset push <name>` moves the camera and
-  saves the position into a hardware slot
+  saves the position into a hardware slot, and `preset pull` sweeps hardware
+  slots back into software presets (read-only, never overwrites your named
+  presets) with a Pull button in the web panel
 - **Identity queries** — `device` output now includes serial number,
   firmware versions, and the capability bitfield when the device answers
 - **Camera model** — detected PIXY vs PIXY 2K shows in the web panel
@@ -46,7 +48,12 @@ its parser code corrected several of our documented assumptions:
   (0 = discharging); the Waybar output now tags `charging`/`discharging`
   classes on the battery line
 - **Cross-verification** — 108 of the 162 extracted command heads confirmed
-  byte-for-byte in the Windows build, zero contradictions
+  byte-for-byte in the Windows build, zero contradictions; the other 53 are
+  absent from that build (verified by exhaustive scan), and command IDs are
+  identical between the two app versions
+- **Echo routing mask** — official parsers mask the response's device byte
+  (`& 0x1F`) before validating the echo; our parsers do the same, so both
+  motor-routing forms validate
 - **Speed persistence** — configured motor speeds survive restarts
   (`state.json`) and are re-asserted before every move
 
