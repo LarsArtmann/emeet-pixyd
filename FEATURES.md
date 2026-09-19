@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 >
-> **Last code-verified:** 2026-09-18 (docs-health AUDIT sweep; build + full test suite green as of the 2026-09-17/18 sessions; `golangci-lint` reports **0 issues**). `TestHandleStream_NoFFmpeg` is **environmental** on this NixOS host (ffmpeg + a non-PIXY `/dev/video0` present) and passes in CI.
+> **Last code-verified:** 2026-09-19 (docs-health sweep; go-test workflow green on the `0f3af79` tip; `golangci-lint` reports **0 issues**). `TestHandleStream_NoFFmpeg` is **environmental** on this NixOS host (ffmpeg + a non-PIXY `/dev/video0` present) and passes in CI.
 
 ## Status legend
 
@@ -90,10 +90,10 @@
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Unix Socket Control | 🟢 `FULLY_FUNCTIONAL` | `/run/emeet-pixyd/control.sock` (`socket.go`).                                                                                                                 |
 | Status              | 🟢 `FULLY_FUNCTIONAL` | Full status string (camera, audio, gesture, PTZ, in-call, auto, device).                                                                                       |
-| Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`, `webStatus.Model` also carries it). Web UI/Waybar surfacing tracked as TODO #161. |
+| Device w/ Model     | 🟢 `FULLY_FUNCTIONAL` | Returns `/dev/videoX` + `/dev/hidrawY` + detected model (`PIXY` / `PIXY 2K`); also shown in the web footer badge and Waybar tooltip.                                                                                           |
 | Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                                                                                             |
 | Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                                                                                                   |
-| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`). Pan/tilt/auto/battery not yet included (see ROADMAP/TODO #161).                                                   |
+| Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`) + additive `model` and battery fields (omitted when absent). Pan/tilt values and charging/discharging classes not yet included (ROADMAP).                                        |
 | --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                                                                                            |
 
 ## Desktop Notifications
@@ -171,10 +171,10 @@
 
 ## Summary
 
-- **Total features:** 66
-- 🟢 Fully functional: 63
-- 🟡 Partially functional: 3 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted; NixOS VM Test — runs but subtest 3 hangs, TODO #157)
+- **Total features:** 73
+- 🟢 Fully functional: 71
+- 🟡 Partially functional: 2 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted)
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 
-The codebase is mature and production-ready. The three `PARTIALLY_FUNCTIONAL` items are verification/infrastructure gaps (real-device testing, an unexecuted checklist, a hanging VM test), not missing functionality — no core feature is missing or broken. PTZ speed (#138), battery status (#139), tracking-mode variants (#140), and motor-preset mirroring (#141) are research-unblocked but not started (bytes known via `tools/emhid/cmdtable.json`; see `TODO_LIST.md`).
+The codebase is mature and production-ready. The two `PARTIALLY_FUNCTIONAL` items are verification gaps (real-device testing, an unexecuted checklist), not missing functionality. The V2 HID command families (speed, tracking variants, battery, preset push, identity) are byte-verified against the protocol simulator; their on-hardware enum values, response framing, speed unit, and slot count are documented assumptions pinned by the next hardware session (`TODO_LIST.md` #166).
