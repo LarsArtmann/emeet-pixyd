@@ -321,3 +321,78 @@ func TestValidatePresetName(t *testing.T) {
 		}
 	}
 }
+
+func TestStateTrackModeValidation(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		trackMode string
+		wantValid bool
+	}{
+		{"", true}, // never set — valid, reads back as face
+		{"face", true},
+		{"halfbody", true},
+		{"fullbody", true},
+		{"bogus", false},
+	} {
+		state := DefaultState()
+		state.TrackMode = tc.trackMode
+
+		if got := state.Valid(); got != tc.wantValid {
+			t.Errorf("State.Valid() with TrackMode %q = %v, want %v", tc.trackMode, got, tc.wantValid)
+		}
+	}
+}
+
+func TestStateEffectiveTrackMode(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		trackMode string
+		want      TargetTrackMode
+	}{
+		{"", TrackFace},
+		{"face", TrackFace},
+		{"halfbody", TrackHalfBody},
+		{"fullbody", TrackFullBody},
+		{"bogus", TrackFace}, // defensive: loadState rejects invalid, but reads degrade to the default
+	} {
+		state := State{TrackMode: tc.trackMode}
+
+		if got := state.EffectiveTrackMode(); got != tc.want {
+			t.Errorf("EffectiveTrackMode(%q) = %v, want %v", tc.trackMode, got, tc.want)
+		}
+	}
+}
+
+func TestSpeedValuesSetGetZero(t *testing.T) {
+	t.Parallel()
+
+	var speeds SpeedValues
+	if !speeds.IsZero() {
+		t.Error("zero SpeedValues.IsZero() = false, want true")
+	}
+
+	speeds = speeds.Set(AxisPan, 40).Set(AxisTilt, 0).Set(AxisZoom, 2.5)
+	if speeds.IsZero() {
+		t.Error("configured SpeedValues.IsZero() = true, want false")
+	}
+
+	for _, tc := range []struct {
+		axis Axis
+		want float32
+	}{
+		{AxisPan, 40},
+		{AxisTilt, 0},
+		{AxisZoom, 2.5},
+	} {
+		got, ok := speeds.Get(tc.axis)
+		if !ok || got != tc.want {
+			t.Errorf("Get(%q) = %v, %v; want %v, true", tc.axis, got, ok, tc.want)
+		}
+	}
+
+	if _, ok := speeds.Get("head"); ok {
+		t.Error(`Get("head") = true, want false for unknown axis`)
+	}
+}
