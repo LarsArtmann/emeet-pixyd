@@ -20,7 +20,7 @@
 
 | #   | Status     | Task                                                                                              | Impact | Effort | Evidence                                                       |
 | --- | ---------- | ------------------------------------------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| 129 | 🚫 BLOCKED | Retake online web UI screenshots (live MJPEG, tracking active) + panel crop + video poster        | MED    | S      | `website/public/screenshots/`; report `2026-08-17_18-53` §a.4  |
+| 129 | 🚫 BLOCKED | Retake online web UI screenshots (live MJPEG, tracking active) + panel crop + video poster        | MED    | S      | `website/public/screenshots/`; report `2026-08-17_18-53` §a.4. UPDATE 2026-09-19: offline-state shots re-captured (`webui-panel.png` 1440×1600, `webui-viewport.png` 1440×900) and deployed; only the ONLINE (PIXY-attached) retake remains, bundle with #166 hardware session |
 | 154 | 🚫 BLOCKED | Close issue #6 once @zutto confirms the PIXY 2K on real hardware                                  | HIGH   | S      | report `2026-09-17_17-34` c1/f2                                |
 | 155 | 🚫 BLOCKED | Cut v0.4.1 (Lars's cadence call vs v0.5)                                                          | MED    | S      | `CHANGELOG.md` [Unreleased]                                    |
 | 156 | 🚫 BLOCKED | Branch protection: require go-test/nix/website workflows on master (GitHub settings, Lars only)   | MED    | S      | report `2026-09-17_17-34` f16                                  |
