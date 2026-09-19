@@ -73,12 +73,21 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 
 	// Battery line (TODO #139) appears only when the device answers the
 	// official HID battery queries; waybar output stays stable otherwise.
+	// A reading additionally tags the class with charging/discharging so
+	// user CSS can style the two states (ChargeSta semantics: {1,2}=charging).
 	battery := ""
 
 	reading, ok := d.powerStatus(ctx)
 
 	if ok {
 		battery = reading.String()
+
+		stateClass := "discharging"
+		if reading.Charging {
+			stateClass = "charging"
+		}
+
+		class += " " + stateClass
 
 		tooltip.WriteString("\nBattery: ")
 		tooltip.WriteString(battery)

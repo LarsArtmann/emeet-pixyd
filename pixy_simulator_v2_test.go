@@ -46,7 +46,7 @@ func TestPixySimulatorV2_MotorSpeedRoundTrip(t *testing.T) {
 			t.Fatalf("iface %#02x: GetMotorSpeed failed: %v", iface, err)
 		}
 
-		reading, err := pixy.ParseMotorSpeedResponse(resp)
+		reading, err := pixy.ParseMotorSpeedResponse(pixy.V2GetMotorSpeed.WithIface(iface), resp)
 		if err != nil {
 			t.Fatalf("iface %#02x: parse response: %v", iface, err)
 		}
@@ -103,8 +103,10 @@ func TestPixySimulatorV2_TargetTrackRoundTrip(t *testing.T) {
 		t.Fatalf("GetTargetTrack failed: %v", err)
 	}
 
-	if resp[4] != 1 || f32LE(resp[5:]) != 1.5 || f32LE(resp[9:]) != 2.5 || f32LE(resp[13:]) != 3.5 {
-		t.Fatalf("target track response mismatch: %x", resp[:17])
+	offset := pixy.V2ResponsePayloadOffset
+
+	if resp[offset] != 1 || f32LE(resp[offset+1:]) != 1.5 || f32LE(resp[offset+5:]) != 2.5 || f32LE(resp[offset+9:]) != 3.5 {
+		t.Fatalf("target track response mismatch: %x", resp[:offset+13])
 	}
 }
 
@@ -138,7 +140,7 @@ func TestPixySimulatorV2_PayloadValidation(t *testing.T) {
 		},
 		{
 			name:    "target track mode out of range",
-			report:  append(append(pixy.V2SetTargetTrack.Bytes(), 3), make([]byte, 12)...),
+			report:  append(append(pixy.V2SetTargetTrack.Bytes(), 4), make([]byte, 12)...),
 			wantErr: "out of range",
 		},
 		{
@@ -304,7 +306,7 @@ func TestPixySimulatorV2_FixtureQueries(t *testing.T) {
 				t.Fatalf("%s query failed: %v", tc.name, err)
 			}
 
-			got := resp[4 : 4+len(tc.want)]
+			got := resp[pixy.V2ResponsePayloadOffset : pixy.V2ResponsePayloadOffset+len(tc.want)]
 
 			if string(got) != string(tc.want) {
 				t.Fatalf("%s payload = %x, want %x", tc.name, got, tc.want)
@@ -363,7 +365,7 @@ func TestPixySimulatorV2_ConcurrentRoundTrip(t *testing.T) {
 				return
 			}
 
-			reading, err := pixy.ParseMotorSpeedResponse(resp)
+			reading, err := pixy.ParseMotorSpeedResponse(pixy.V2GetMotorSpeed, resp)
 			if err != nil {
 				errCh <- err
 

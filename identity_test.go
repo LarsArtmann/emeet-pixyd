@@ -66,9 +66,9 @@ func TestFormatIdentity_OmitsUnanswered(t *testing.T) {
 func TestParseString_NonPrintableTerminates(t *testing.T) {
 	t.Parallel()
 
-	resp := append(pixy.V2GetSN.Bytes(), 'A', 'B', 0x00, 'C')
+	resp := v2Response(pixy.V2GetSN, 'A', 'B', 0x00, 'C')
 
-	got, err := pixy.ParseString(resp)
+	got, err := pixy.ParseString(pixy.V2GetSN, resp)
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
@@ -77,9 +77,9 @@ func TestParseString_NonPrintableTerminates(t *testing.T) {
 		t.Errorf("ParseString = %q, want AB", got)
 	}
 
-	garbage := append(pixy.V2GetSN.Bytes(), 0x01, 0x02)
+	garbage := v2Response(pixy.V2GetSN, 0x01, 0x02)
 
-	if _, err := pixy.ParseString(garbage); err == nil {
+	if _, err := pixy.ParseString(pixy.V2GetSN, garbage); err == nil {
 		t.Error("non-printable-only payload accepted")
 	}
 }

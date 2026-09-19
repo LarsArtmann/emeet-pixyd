@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 type mockConn struct {
@@ -100,4 +102,15 @@ func testV4L2ProbesNothing(t *testing.T, devices []fakeVideoDev) {
 	if result != "" {
 		t.Errorf("expected empty, got %s", result)
 	}
+}
+
+// v2Response builds a V2 GET response in the officially evidenced framing:
+// the 4-byte request-head echo, a zeroed reserved dword (bytes 4..7, meaning
+// undecoded), then the payload at pixy.V2ResponsePayloadOffset.
+func v2Response(head pixy.V2Head, payload ...byte) []byte {
+	resp := head.Bytes()
+	resp = append(resp, make([]byte, pixy.V2ResponsePayloadOffset-len(head))...)
+	resp = append(resp, payload...)
+
+	return resp
 }

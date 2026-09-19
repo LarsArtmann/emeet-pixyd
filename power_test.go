@@ -137,25 +137,61 @@ func TestPowerCache_Expiry(t *testing.T) {
 func TestParseBatteryAndCharge(t *testing.T) {
 	t.Parallel()
 
-	batteryResp := append(pixy.V2GetBatteryLevel.Bytes(), 87)
-	chargeResp := append(pixy.V2GetChargeSta.Bytes(), 1)
+	batteryResp := v2Response(pixy.V2GetBatteryLevel, 87)
+	chargeResp := v2Response(pixy.V2GetChargeSta, 1)
 
-	level, err := pixy.ParseBatteryLevel(batteryResp)
+	level, err := pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, batteryResp)
 	if err != nil || level != 87 {
 		t.Errorf("battery = (%d, %v), want (87, nil)", level, err)
 	}
 
-	sta, err := pixy.ParseChargeStatus(chargeResp)
-	if err != nil || sta != 1 {
+	sta, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta, chargeResp)
+	if err != nil || sta != pixy.ChargeCharging {
 		t.Errorf("charge = (%d, %v), want (1, nil)", sta, err)
 	}
 
-	if _, err := pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel.Bytes()); err == nil {
+	if !sta.Charging() {
+		t.Error("charge 1 must report charging")
+	}
+
+	alt, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta, v2Response(pixy.V2GetChargeSta, 2))
+	if err != nil || !alt.Charging() {
+		t.Errorf("charge 2 = (%d, %v), want charging", alt, err)
+	}
+
+	off, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta, v2Response(pixy.V2GetChargeSta, 0))
+	if err != nil || off.Charging() {
+		t.Errorf("charge 0 = (%d, %v), want discharging", off, err)
+	}
+
+	if _, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta, v2Response(pixy.V2GetChargeSta, 3)); err == nil {
+		t.Error("charge 3 accepted outside the official enum")
+	}
+
+	if _, err := pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, pixy.V2GetBatteryLevel.Bytes()); err == nil {
 		t.Error("empty battery payload accepted")
 	}
 
-	if _, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta.Bytes()); err == nil {
+	if _, err := pixy.ParseChargeStatus(pixy.V2GetChargeSta, pixy.V2GetChargeSta.Bytes()); err == nil {
 		t.Error("empty charge payload accepted")
+	}
+}
+
+func TestParseV2_HeadEchoMismatch(t *testing.T) {
+	t.Parallel()
+
+	// A battery head echoed in front of a charge response must be rejected:
+	// official parsers compare the echo against the request head.
+	wrong := v2Response(pixy.V2GetChargeSta, 87)
+
+	if _, err := pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, wrong); err == nil {
+		t.Error("head-echo mismatch accepted")
+	}
+
+	short := v2Response(pixy.V2GetBatteryLevel, 87)
+
+	if _, err := pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, short[:7]); err == nil {
+		t.Error("response shorter than the payload offset accepted")
 	}
 }
 
