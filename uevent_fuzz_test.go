@@ -25,6 +25,10 @@ func FuzzParseUevent(f *testing.F) {
 		"HID_ID=0003:0000328F:000000C0",
 		"PRODUCT=328f/00c0",
 		"DRIVER=usbhid\nHID_ID=0003:0000328F:00000118\nHID_NAME=EMEET Pixy",
+		// Recognized-but-uncontrolled EMEET hardware: fixed C960 and an
+		// unknown EMEET-vendor product (both must NOT report a PIXY model).
+		"PRODUCT=328f/003f/100",
+		"PRODUCT=328f/0abc/100",
 		// Degenerate shapes: zeros, truncations, no separator, huge indices.
 		"PRODUCT=0000/0000/0000",
 		"PRODUCT=328f",
