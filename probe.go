@@ -53,6 +53,7 @@ func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (vendo
 	}
 
 	vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
+
 	product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
 	if vErr != nil || pErr != nil {
 		return 0, 0, false
@@ -66,7 +67,12 @@ func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (vendo
 // sit at the given indices. It scans all lines with that prefix; a match
 // anywhere counts. extraProductIDs are user-configured PIDs treated as
 // PIXY-family variants.
-func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int, extraProductIDs []int64) (pixy.Model, bool) {
+func pixyModelFromUevent(
+	ueventData []byte,
+	prefix, sep string,
+	vendorIdx, productIdx int,
+	extraProductIDs []int64,
+) (pixy.Model, bool) {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
 		vendor, product, ok := parseUeventLine(line, prefix, sep, vendorIdx, productIdx)
 		if !ok || vendor != int64(pixyVendorIDInt) {
@@ -87,7 +93,12 @@ func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, produ
 // control, or "" when the line holds no such device (controllable PIXY
 // devices and non-EMEET hardware both yield ""). devicePath is interpolated
 // into the hint so users know which node to look at.
-func unsupportedEMEETFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int, devicePath string) string {
+func unsupportedEMEETFromUevent(
+	ueventData []byte,
+	prefix, sep string,
+	vendorIdx, productIdx int,
+	devicePath string,
+) string {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
 		vendor, product, ok := parseUeventLine(line, prefix, sep, vendorIdx, productIdx)
 		if !ok || vendor != int64(pixyVendorIDInt) {
@@ -117,6 +128,7 @@ func probeVideo4linux(sysfsPath string, extraProductIDs []int64) (string, pixy.M
 	}
 
 	unsupported := ""
+
 	for _, entry := range entries {
 		name := entry.Name()
 

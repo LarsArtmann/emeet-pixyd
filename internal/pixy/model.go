@@ -1,6 +1,9 @@
 package pixy
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // Model identifies an EMEET device known to emeet-pixyd.
 type Model string
@@ -96,10 +99,8 @@ func ResolveProductID(product int64, extraProductIDs []int64) (DeviceProfile, bo
 		return profile, true
 	}
 
-	for _, extra := range extraProductIDs {
-		if extra == product {
-			return DeviceProfile{Model: ExtraModelName(product), Family: FamilyPIXY}, true
-		}
+	if slices.Contains(extraProductIDs, product) {
+		return DeviceProfile{Model: ExtraModelName(product), Family: FamilyPIXY}, true
 	}
 
 	if profile, ok := fixedUVCProfiles[product]; ok {

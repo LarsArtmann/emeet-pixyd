@@ -26,7 +26,14 @@ func TestModelFromProductID(t *testing.T) {
 
 			got, ok := ModelFromProductID(tc.product)
 			if ok != tc.wantOK || got != tc.want {
-				t.Errorf("ModelFromProductID(0x%04x) = (%q, %v), want (%q, %v)", tc.product, got, ok, tc.want, tc.wantOK)
+				t.Errorf(
+					"ModelFromProductID(0x%04x) = (%q, %v), want (%q, %v)",
+					tc.product,
+					got,
+					ok,
+					tc.want,
+					tc.wantOK,
+				)
 			}
 		})
 	}
@@ -36,24 +43,24 @@ func TestResolveProductID(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		product  int64
-		extra    []int64
-		want     DeviceProfile
+		name      string
+		product   int64
+		extra     []int64
+		want      DeviceProfile
 		wantKnown bool
 	}{
 		{
-			name:     "static PIXY wins over extra list",
-			product:  ProductIDOriginal,
-			extra:    []int64{ProductIDOriginal},
-			want:     DeviceProfile{Model: ModelOriginal, Family: FamilyPIXY},
+			name:      "static PIXY wins over extra list",
+			product:   ProductIDOriginal,
+			extra:     []int64{ProductIDOriginal},
+			want:      DeviceProfile{Model: ModelOriginal, Family: FamilyPIXY},
 			wantKnown: true,
 		},
 		{
-			name:     "extra PID becomes PIXY-family",
-			product:  0x0119,
-			extra:    []int64{0x0119, 0x0120},
-			want:     DeviceProfile{Model: "PIXY (PID 0x0119)", Family: FamilyPIXY},
+			name:      "extra PID becomes PIXY-family",
+			product:   0x0119,
+			extra:     []int64{0x0119, 0x0120},
+			want:      DeviceProfile{Model: "PIXY (PID 0x0119)", Family: FamilyPIXY},
 			wantKnown: true,
 		},
 		{

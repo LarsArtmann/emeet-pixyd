@@ -1,0 +1,26 @@
+{
+  "plugins": [
+    "node",
+    "oxc",
+    "typescript",
+    "unicorn"
+  ],
+  "categories": {
+    "correctness": "error",
+    "nursery": "off",
+    "pedantic": "warn",
+    "perf": "warn",
+    "restriction": "warn",
+    "style": "warn",
+    "suspicious": "error"
+  },
+  "rules": {
+    "oxc/no-async-await": "off",
+    "oxc/no-optional-chaining": "off",
+    "oxc/no-rest-spread-properties": "off"
+  },
+  "env": {
+    "builtin": true,
+    "node": true
+  }
+}
