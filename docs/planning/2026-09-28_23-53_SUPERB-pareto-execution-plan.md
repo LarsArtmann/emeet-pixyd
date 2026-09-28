@@ -68,8 +68,9 @@ Sorted by importance → impact → customer value (ties broken by effort ascend
 | M25 | Quality pack: `ResolveProductID` order-invariant property test (200 seeds), `probeVideo4linux` benchmark, simulator fixed-profile vendor-byte refusal | 20% | MED | S | 60m | Pins today's invariants forever | — | status f46-48 |
 | M26 | Tooling cadence: dprint/prettier for `.mdx`/`.mjs`; Renovate or scheduled `nix flake update` job | 80% | LOW | S | 60m | Ends formatter wars + dep rot | — | ROADMAP web/build |
 | M27 | Long-tail umbrella (each ≤100m, individually gated): koanf ADR, device-disappear ADR, `FuzzParseV2Response` (post-M02), `GET_FUNC_STA` decode (post-M01), `EMEET_PIXYD_MOTOR_SPEED` env default (post-M02), `#172` shared V2 helper (post-M02 trigger check), S600L + PIXY-Wireless watch rows, privacy-trigger-time + `hidCmdSend` retry research rows | 80% | LOW | L | 100m | Keeps intel alive without premature builds | mostly M01/M02 | ROADMAP offshoots |
+| M28 | Security bump: Dependabot open alerts #17–#19 (fast-uri 3.1.6→3.1.7 via workspace override ×2 HIGH CVSS 7.5; devalue 5.9.0→5.9.4 in-range, MEDIUM CVSS 5.3) + stale `minimumReleaseAgeExclude` entries dropped once lockfile outgrew them; REQUIRES PUSH for Dependabot re-scan | 4% | HIGH | S | 30m | Supply chain clean; CI frozen-lockfile guard stays green | — | alerts #17/#18/#19 |
 
-**Total medium effort:** ≈ 2,025 min ≈ 34 h (three of those hours are one wired hardware session).
+**Total medium effort:** ≈ 2,055 min ≈ 34 h (three of those hours are one wired hardware session).
 
 ---
 

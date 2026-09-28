@@ -72,6 +72,13 @@ classes exist): `EmeetPixy`, `EmeetPixy2K`, `EmeetPixyDual`, `EmeetPiko`,
   "E7002/E3165/C960 UltraX" in comments → C960-UltraX-class firmware platform).
   No hidden fourth model.
 
+**emeet-pixyd's side of this matrix (2026-09-28):** only the PIXY family gets vendor HID
+control (`00c0`, `0118`, plus runtime opt-ins via `EMEET_PIXYD_EXTRA_PRODUCT_IDS`). The
+fixed-lens UVC lineup above (C960 variants, C950, C970, S600L) is *recognized* — probed by
+PID, named in logs and `device` output — but never controlled and granted no udev rules,
+because the standard kernel UVC driver already drives it completely and it has no PIXY-class
+HID motor surface. The daemon never claims capability it does not have.
+
 ### 2.3 Their device-control surface (the part that overlaps with us)
 
 From ~96 distinct `CMD_GET_/CMD_SET_` HID names in the Windows binary (a strict subset of
@@ -135,8 +142,7 @@ matches the audio DSP device group. Queries are bare 4-byte heads.
 - **Beauty filters**: ByteDance Volcengine face reshape/whiten/makeup/sharpen pipelines
 - **Virtual camera output** (DirectShow/CMIO) and **virtual microphone** (kernel/CoreAudio driver)
 - **Live-streaming integration**: RTMP/RIST/WebRTC push, **Kuaishou OAuth** (`emeettest.emeet.ai/authuser/api/kuaishou/*`)
-- **SD-card recording management**, **LED/tally control**, **battery/charge status**
-- **Image tuning**: HDR, EV/WB/focus locks, LUT3D, meter/power-line modes
+- **SD-card recording management**, **LED/tally control**, **image tuning depth** (HDR, EV/WB/focus locks, LUT3D, meter/power-line modes) — battery/charge status has since moved to our column (V2 GET heads, hardware verification pending, TODO #166)
 - **Wireless PIXY support** (`elink` network protocol, WiFi provisioning, FIC760x WiFi firmware flash)
 - **Firmware upgrade UI** (MCU + WiFi IC), **accounts/login**, **multi-device support** (incl. budget UVC cams)
 - Auto power-on/shutdown, RTC/NTP, key remapping, privacy-trigger time
@@ -174,7 +180,13 @@ detection does not). Same mechanism covers Teams-web, browsers, and everything e
 
 ## 4. Actionable Intelligence for emeet-pixyd
 
-Ranked by value-to-effort for a Linux daemon:
+Ranked by value-to-effort for a Linux daemon.
+
+> **Status update 2026-09-28:** items 1, 2, 4, and 5 are implemented since this ranking was
+> written (PTZ speed, battery/charge heads, motor-preset push/pull, tracking variants —
+> wire-level evidence in `hid-protocol-official-map.md` §3.5a; hardware verification of the
+> remaining response shapes tracked by TODO #166), and item 6 shipped as the identity queries
+> in `device` output. Item 7 and the rest of item 3 remain open.
 
 1. **PTZ speed control** — the motor exposes a speed parameter we never set. Cheap HID
    add, visible smoothness win for preset recall/relative moves.

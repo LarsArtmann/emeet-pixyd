@@ -30,4 +30,4 @@ Commits touching `.go`/`.templ` files are gated by the pre-commit hook, which ru
 
 ## Reporting Issues
 
-Please use GitHub Issues to report bugs and request features. For device-detection problems, include the output of `emeet-pixy device` and `lsusb | grep 328f` (PIXY `328f:00c0`, PIXY 2K `328f:0118`).
+Please use GitHub Issues to report bugs and request features. For device-detection problems, include the output of `emeet-pixy device` and `lsusb | grep 328f` (PIXY `328f:00c0`, PIXY 2K `328f:0118`). Other EMEET devices are recognized (named in the `device`/`probe` output and the daemon log) but deliberately not controlled — only PIXY-family hardware speaks the vendor HID protocol. If you own an unlisted PIXY-family variant, its product ID can be registered at runtime via `EMEET_PIXYD_EXTRA_PRODUCT_IDS` (comma-separated hex, e.g. `EMEET_PIXYD_EXTRA_PRODUCT_IDS=0x00ef,0x0123`) — please also open an issue with the `lsusb` line so the ID can land in the built-in registry.

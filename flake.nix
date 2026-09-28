@@ -124,7 +124,7 @@
               pname = "emeet-pixyd-lint";
               inherit version;
               src = checkSrc;
-              vendorHash = "sha256-nZOWL+rNCy360BQ/NobyyIA4mmsKYnGqf+xmRecq/C0=";
+              vendorHash = "sha256-mQmXq+hOyaPlTJzpuH/E8vr/4HjAo65aMGsWDZqG6pM=";
               proxyVendor = true;
               doCheck = false;
 

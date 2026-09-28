@@ -1,9 +1,10 @@
 # EMEET PIXY HID Protocol — Reverse-Engineering Findings
 
 > **Source:** Extracted from `hid.go`, `device.go`, and empirical testing against
-> the EMEET PIXY dual-camera AI webcam (USB vendor `328f`, product `00c0`).
+> the EMEET PIXY dual-camera AI webcam (USB vendor `328f`, products `00c0` original
+> and `0118` PIXY 2K).
 >
-> **Last verified:** 2026-07-28 against the codebase.
+> **Last verified:** 2026-07-28 against the codebase (device-ID section re-verified 2026-09-28).
 
 ---
 
@@ -23,12 +24,12 @@ PTZ (pan/tilt/zoom) is controlled separately via **V4L2** (`v4l2-ctl`), not HID.
 | Property       | Value                                     |
 | -------------- | ----------------------------------------- |
 | USB Vendor ID  | `328f`                                    |
-| USB Product ID | `00c0`                                    |
+| USB Product ID | `00c0` (PIXY), `0118` (PIXY 2K)           |
 | Video device   | `/dev/video*` (V4L2)                      |
 | HID device     | `/dev/hidraw*`                            |
 | Name matching  | Contains `"EMEET"`, `"Pixy"`, or `"PIXY"` |
 
-Device probing walks `/sys/class/video4linux` and `/sys/class/hidraw` to match vendor/product.
+Device probing walks `/sys/class/video4linux` and `/sys/class/hidraw` to match vendor/product. Unlisted PIXY-family SKUs can be registered at runtime via `EMEET_PIXYD_EXTRA_PRODUCT_IDS` (comma-separated hex product IDs); other EMEET hardware (C960/C950/C970/S600L fixed-lens webcams) is recognized by name but never receives vendor HID bytes — it is fully driven by the standard kernel UVC driver. The full per-command protocol work lives in [`hid-protocol-official-map.md`](hid-protocol-official-map.md).
 
 ---
 

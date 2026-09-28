@@ -56,6 +56,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **go-modules vendorHash refreshed** after the nixpkgs lock update shifted the module-store content hash (every nix build had been failing since 770436a).
 - **Website CI lockfile drift**: `website/package.json` declared `typescript@~7.0.2` while `pnpm-lock.yaml` pinned `~6.0.2`, so the CI `pnpm install --frozen-lockfile` guard failed every build run; the manifest is back to `~6.0.2` (TypeScript 7 crashes `astro check`). The deploy job's stale-deploy grep also targeted the non-existent `0.4.0` string on the site changelog page; it now checks the newest documented section so a deploy cannot pass on stale content.
 
+### Security
+
+- **Dependabot alerts closed (#17–#19)**: `fast-uri` raised to 3.1.7 in the `pnpm-workspace.yaml` overrides (fixes two HIGH advisories, CVSS 7.5 — authority injection via unvalidated port and host confusion via unclosed bracket; the previous 3.1.6 pin predates both), and `devalue` bumped in-range to 5.9.4 (MEDIUM CVSS 5.3, DoS via malformed input). The stale `minimumReleaseAgeExclude` entries for `astro@7.3.3` and `@astrojs/starlight@0.42.2` were removed per their own expiry rule once the lockfile moved to 7.3.5 / 0.42.4. `pnpm audit` clean, `--frozen-lockfile` and the full website build verified.
+
 ## [0.4.0] - 2026-09-17
 
 ### Added
