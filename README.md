@@ -93,10 +93,29 @@ Extra IDs are treated as PIXY-family devices and show up as `PIXY (PID 0x…)` i
 | -------------------------- | :-----------------: | :------------: | :-------------: | :-----: | :----------: |
 | **emeet-pixyd**            |          ✓          |       ✓        |        ✓        |    ✓    |      ✓       |
 | Manual `v4l2-ctl` per call |                     |                |                 |         |      ✓       |
-| Vendor Windows/Mac app     |          ✓          |                |        ✓        |         |              |
+| EMEET STUDIO (official app) |          ✓          |                |        ✓        |         |              |
 | webcamoid                  |                     |                |                 |         |      ✓       |
 
 The differentiator is the first column: emeet-pixyd is the only option that detects calls by watching `/proc`, so it works with **any** app that opens the camera — no per-app setup, no browser extension.
+
+### Not an OBS fork — and not trying to be
+
+EMEET STUDIO, the official Windows/macOS app, is a **~350 MB OBS Studio fork**:
+scenes, sources, transitions, a virtual camera, and ByteDance beauty filters ride
+an embedded `libobs` (verified by disassembling the installer — see
+[`docs/emeet-studio-official-app-comparison.md`](docs/emeet-studio-official-app-comparison.md)).
+It also has **zero call awareness** — it never detects that you are in a call.
+
+**If you want OBS, use OBS.** It is free, open source, and better at being OBS.
+
+**If you want the PIXY's hardware-specific features to just work on Linux** —
+tracking, the privacy shutter, audio modes, PTZ, presets — **use emeet-pixyd.**
+It speaks the same wire protocol as the official app, headless, in a single
+small binary, and automates what the official app leaves manual even on its
+own platforms.
+
+The two can coexist: point OBS at `/dev/video0` and let emeet-pixyd handle the
+camera's intelligence underneath it.
 
 ## Features
 
