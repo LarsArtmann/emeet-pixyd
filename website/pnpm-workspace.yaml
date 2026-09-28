@@ -2,14 +2,6 @@ allowBuilds:
   esbuild: true
 overrides:
   brace-expansion: 5.0.6
-  fast-uri: 3.1.6
+  fast-uri: 3.1.7
   js-yaml: 4.3.2
   svgo: 4.1.0
-# minimumReleaseAge exemptions are TEMPORARY: once the pinned version is
-# older than the release-age window, remove the entry (a stale exclude
-# silently disables the supply-chain gate for that package forever).
-minimumReleaseAgeExclude:
-  # astro@7.3.3: needed 2026-09; drop when 7.3.3 is older than the age window.
-  - astro@7.3.3
-  # starlight@0.42.2: needed 2026-09 (lockfile bump); drop after the age window.
-  - "@astrojs/starlight@0.42.2"
