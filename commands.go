@@ -180,13 +180,18 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 
 	case cmdProbe:
 		d.mu.Lock()
-		d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+		d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
 		dev := d.videoDev
+		hint := d.unsupportedHint
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 
 		if dev != "" {
 			return okResult("device found: " + dev)
+		}
+
+		if hint != "" {
+			return okResult(hint)
 		}
 
 		return okResult(respDeviceNotFound)
@@ -196,6 +201,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 		dev := d.videoDev
 		hid := d.hidrawDev
 		model := d.model
+		hint := d.unsupportedHint
 		d.mu.RUnlock()
 
 		if dev != "" {
@@ -214,6 +220,10 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 			parts = append(parts, formatIdentity(info, ok)...)
 
 			return okResult(strings.Join(parts, " "))
+		}
+
+		if hint != "" {
+			return okResult(hint)
 		}
 
 		return okResult(respDeviceNotFound)

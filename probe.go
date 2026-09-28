@@ -220,7 +220,8 @@ func probeDevices(extraProductIDs []int64) probeResult {
 		result.Model = videoModel
 	}
 
-	switch {\n	case result.VideoDev != "" && result.HidrawDev != "":
+	switch {
+	case result.VideoDev != "" && result.HidrawDev != "":
 		slog.Info("found PIXY device", "model", result.Model, "video", result.VideoDev, "hidraw", result.HidrawDev)
 	case result.VideoDev != "" && result.HidrawDev == "":
 		slog.Warn("partial PIXY device: video found but no hidraw", "model", result.Model, "video", result.VideoDev)

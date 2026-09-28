@@ -16,7 +16,7 @@ import (
 func TestIntegration_DeviceProbed(t *testing.T) {
 	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
 
-	probeResult := probeDevices()
+	probeResult := probeDevices(nil)
 	d.applyProbeResultLocked(probeResult)
 
 	d.mu.RLock()
@@ -36,7 +36,7 @@ func TestIntegration_DeviceProbed(t *testing.T) {
 }
 
 func TestIntegration_PTZRoundTrip(t *testing.T) {
-	probeResult := probeDevices()
+	probeResult := probeDevices(nil)
 
 	if probeResult.VideoDev == "" {
 		t.Skip("no PIXY video device found — connect hardware to run this test")
@@ -73,7 +73,7 @@ func TestIntegration_PTZRoundTrip(t *testing.T) {
 }
 
 func TestIntegration_HIDTrackingToggle(t *testing.T) {
-	probeResult := probeDevices()
+	probeResult := probeDevices(nil)
 
 	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
 		t.Skip("no PIXY device found — connect hardware to run this test")
@@ -100,7 +100,7 @@ func TestIntegration_HIDTrackingToggle(t *testing.T) {
 }
 
 func TestIntegration_AudioCycle(t *testing.T) {
-	probeResult := probeDevices()
+	probeResult := probeDevices(nil)
 
 	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
 		t.Skip("no PIXY device found — connect hardware to run this test")
@@ -159,7 +159,7 @@ func TestIntegration_AudioCycle(t *testing.T) {
 // session can confirm the static evidence against the wired firmware (and
 // decode the reserved bytes 4..7).
 func TestIntegration_BatteryProbe(t *testing.T) {
-	probeResult := probeDevices()
+	probeResult := probeDevices(nil)
 
 	if probeResult.HidrawDev == "" {
 		t.Skip("no PIXY hidraw device found — connect hardware to run this test")

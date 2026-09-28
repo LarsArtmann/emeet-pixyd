@@ -24,7 +24,7 @@ func TestProbeHidraw_PIXYFound(t *testing.T) {
 	})
 
 	// When probing
-	result, model := probeHidraw(root)
+	result, model := probeHidraw(root, nil)
 
 	// Then the PIXY hidraw is found
 	if result != testHIDDev {
@@ -50,7 +50,7 @@ func TestProbeHidraw_PIXY2KFound(t *testing.T) {
 		},
 	})
 
-	result, model := probeHidraw(root)
+	result, model := probeHidraw(root, nil)
 
 	if result != "/dev/hidraw8" {
 		t.Errorf("expected /dev/hidraw8, got %s", result)
@@ -80,7 +80,7 @@ func TestProbeHidraw_NoPIXY(t *testing.T) {
 	})
 
 	// When probing
-	result, _ := probeHidraw(root)
+	result, _ := probeHidraw(root, nil)
 
 	// Then nothing is found
 	if result != "" {
@@ -95,7 +95,7 @@ func TestProbeHidraw_EmptyDir(t *testing.T) {
 	root := t.TempDir()
 
 	// When probing
-	result, _ := probeHidraw(root)
+	result, _ := probeHidraw(root, nil)
 
 	// Then nothing is found
 	if result != "" {
@@ -107,7 +107,7 @@ func TestProbeHidraw_NonexistentDir(t *testing.T) {
 	t.Parallel()
 
 	// Given a nonexistent sysfs path
-	result, _ := probeHidraw("/nonexistent/path/hidraw")
+	result, _ := probeHidraw("/nonexistent/path/hidraw", nil)
 
 	// Then nothing is found
 	if result != "" {
@@ -144,7 +144,7 @@ func TestProbeHidraw_MixedDevices(t *testing.T) {
 	})
 
 	// When probing
-	result, _ := probeHidraw(root)
+	result, _ := probeHidraw(root, nil)
 
 	// Then the PIXY is found
 	if result != testHIDDev {
@@ -164,7 +164,7 @@ func TestProbeHidraw_NoUeventFile(t *testing.T) {
 	}
 
 	// When probing
-	result, _ := probeHidraw(root)
+	result, _ := probeHidraw(root, nil)
 
 	// Then nothing is found (graceful skip)
 	if result != "" {
@@ -256,7 +256,7 @@ func TestHasPixyProduct(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, ok := pixyModelFromUevent([]byte(tc.uevent), "PRODUCT=", "/", 0, 1)
+			got, ok := pixyModelFromUevent([]byte(tc.uevent), "PRODUCT=", "/", 0, 1, nil)
 			if ok != tc.matches {
 				t.Errorf("pixyModelFromUevent(%q) = (%q, %v), want match %v", tc.uevent, got, ok, tc.matches)
 			}
@@ -278,7 +278,7 @@ func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 			t.Parallel()
 
 			d := newTestDaemon(t, tc.initialCamera, "", "")
-			d.applyProbeResultLocked(probeDevices())
+			d.applyProbeResultLocked(probeDevices(nil))
 
 			hasDev := d.videoDev != ""
 

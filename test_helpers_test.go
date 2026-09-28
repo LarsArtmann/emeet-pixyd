@@ -98,7 +98,7 @@ func testV4L2ProbesNothing(t *testing.T, devices []fakeVideoDev) {
 		createFakeVideo4linux(t, root, devices)
 	}
 
-	result, _ := probeVideo4linux(root)
+	result, _ := probeVideo4linux(root, nil)
 	if result != "" {
 		t.Errorf("expected empty, got %s", result)
 	}

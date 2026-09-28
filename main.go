@@ -35,7 +35,11 @@ type Daemon struct {
 	videoDev  string
 	hidrawDev string
 	model     pixy.Model
-	hidDev    HIDDevice
+	// unsupportedHint explains an EMEET device the probe recognized but
+	// cannot control (e.g. a fixed C960); empty when a PIXY-family device
+	// was found. Set only under d.mu via applyProbeResultLocked.
+	unsupportedHint string
+	hidDev          HIDDevice
 
 	// Debounce counters: number of consecutive polls observing a stable
 	// in-use or idle state. Both clamp to config.DebounceCount so the
@@ -123,7 +127,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	registerErrorFamilies()
 	// NewDaemon runs before any goroutines exist, so we can call the
 	// _Locked variant directly without taking d.mu.
-	probe := probeDevices()
+	probe := probeDevices(cfg.ExtraProductIDs)
 	d.applyProbeResultLocked(probe)
 	warnInaccessibleDevices(probe)
 	checkExternalDeps(d.deps.commander)
@@ -304,7 +308,7 @@ func (d *Daemon) eventLoop(
 			d.hidMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			probe := probeDevices() //nolint:contextcheck // probe is plain sysfs I/O, ctx not threaded
+			probe := probeDevices(d.config.ExtraProductIDs) //nolint:contextcheck // probe is plain sysfs I/O, ctx not threaded
 			d.applyProbeResultLocked(probe)
 			newVideo := d.videoDev
 			d.mu.Unlock()

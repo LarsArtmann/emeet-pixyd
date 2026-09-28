@@ -45,7 +45,7 @@ func FuzzParseUevent(f *testing.F) {
 		parsed := parseUevent(data)
 		_ = parsed
 
-		model, isPixy := pixyModelFromUevent([]byte(data), prefix, sep, vendorIdx, productIdx)
+		model, isPixy := pixyModelFromUevent([]byte(data), prefix, sep, vendorIdx, productIdx, nil)
 		if !isPixy && model != "" {
 			t.Fatalf("model %q reported with isPixy=false for %q", model, data)
 		}

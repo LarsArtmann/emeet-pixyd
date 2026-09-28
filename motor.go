@@ -63,7 +63,7 @@ func (d *Daemon) setTargetTrack(ctx context.Context, mode pixy.TargetTrackMode) 
 		recordHIDFailure(ctx)
 
 		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+			d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
 		}
 		d.mu.Unlock()
 		d.broadcastStateChanged()
@@ -217,7 +217,7 @@ func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte)
 		recordHIDFailure(ctx)
 
 		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices()) //nolint:contextcheck
+			d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
 		}
 		d.mu.Unlock()
 		d.broadcastStateChanged()
