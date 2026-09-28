@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -31,29 +30,9 @@ type powerReading struct {
 	Charging bool // pixy.ChargeStatus.Charging() — {1,2} per the Beta.25 consumer-code decode
 }
 
-type powerCache struct {
-	mu        sync.RWMutex
-	reading   powerReading
-	expiresAt time.Time
-}
-
-func (c *powerCache) Get() (powerReading, bool) {
-	now := time.Now()
-
-	c.mu.RLock()
-	valid := now.Before(c.expiresAt)
-	reading := c.reading
-	c.mu.RUnlock()
-
-	return reading, valid
-}
-
-func (c *powerCache) Set(reading powerReading, ttl time.Duration) {
-	c.mu.Lock()
-	c.reading = reading
-	c.expiresAt = time.Now().Add(ttl)
-	c.mu.Unlock()
-}
+// powerCache memoizes the last battery/charge reading (TODO #139) behind the
+// shared generic TTL cache.
+type powerCache = ttlCache[powerReading]
 
 // powerStatus returns the cached reading if fresh, otherwise queries the
 // device once and caches the result (successes AND authoritative failures —
@@ -185,13 +164,4 @@ func (d *Daemon) handleBatteryCommand(ctx context.Context) CommandResult {
 	}
 
 	return okResult("battery: " + reading.String())
-}
-
-// Invalidate drops the cached reading so the next powerStatus call re-queries
-// the device (used by tests and future pollers).
-func (c *powerCache) Invalidate() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.expiresAt = time.Time{}
 }

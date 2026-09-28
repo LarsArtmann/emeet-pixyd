@@ -32,32 +32,39 @@ func (f *lastFrameCache) Set(data []byte) {
 	f.mu.Unlock()
 }
 
-type ptzCache struct {
+// ttlCache is a tiny generic TTL cache: Get reports whether the entry is
+// still fresh, Set stores a value with a fresh deadline, Invalidate forces a
+// miss. The zero value is ready to use.
+type ttlCache[T any] struct {
 	mu        sync.RWMutex
-	values    pixy.PTZValues
+	value     T
 	expiresAt time.Time
 }
 
-func (c *ptzCache) Get() (pixy.PTZValues, bool) {
+func (c *ttlCache[T]) Get() (T, bool) {
 	now := time.Now()
 
 	c.mu.RLock()
-	valid := now.Before(c.expiresAt)
-	values := c.values
-	c.mu.RUnlock()
+	defer c.mu.RUnlock()
 
-	return values, valid
+	return c.value, now.Before(c.expiresAt)
 }
 
-func (c *ptzCache) Set(values pixy.PTZValues, ttl time.Duration) {
+func (c *ttlCache[T]) Set(value T, ttl time.Duration) {
 	c.mu.Lock()
-	c.values = values
+	defer c.mu.Unlock()
+
+	c.value = value
 	c.expiresAt = time.Now().Add(ttl)
-	c.mu.Unlock()
 }
 
-func (c *ptzCache) Invalidate() {
+func (c *ttlCache[T]) Invalidate() {
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.expiresAt = time.Time{}
-	c.mu.Unlock()
 }
+
+// ptzCache memoizes the last-synced PTZ position so panel renders don't hit
+// v4l2-ctl on every keystroke.
+type ptzCache = ttlCache[pixy.PTZValues]

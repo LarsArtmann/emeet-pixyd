@@ -519,12 +519,23 @@ func (d *Daemon) handlePresetSave(ctx context.Context, name string) CommandResul
 	))
 }
 
+// presetLookup snapshots one preset's values under a read lock; ok is false
+// when no preset with that name exists.
+func (d *Daemon) presetLookup(name string) (pixy.PTZValues, bool) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	values, ok := d.state.Presets[name]
+
+	return values, ok
+}
+
 func (d *Daemon) handlePresetLoad(ctx context.Context, name string) CommandResult {
 	d.mu.RLock()
 	videoDev := d.videoDev
-	values, ok := d.state.Presets[name]
 	d.mu.RUnlock()
 
+	values, ok := d.presetLookup(name)
 	if !ok {
 		return errResultMsg(respPresetNotFound)
 	}
@@ -585,10 +596,7 @@ func (d *Daemon) handlePresetPush(ctx context.Context, name string) CommandResul
 		return errResultMsg(err.Error())
 	}
 
-	d.mu.RLock()
-	values, exists := d.state.Presets[name]
-	d.mu.RUnlock()
-
+	values, exists := d.presetLookup(name)
 	if !exists {
 		return errResultMsg(respPresetNotFound)
 	}

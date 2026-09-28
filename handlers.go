@@ -322,6 +322,36 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	_ = sse.MarshalAndPatchSignals(status.PTZValues)
 }
 
+// presetAction builds a handler for the preset commands that address a
+// preset by name path segment (save additionally validates the name, see
+// handlePresetSave): it rejects an empty name, dispatches
+// `preset <verb> <name>` through the command path, and patches the panel
+// with the outcome.
+func (s *webServer) presetAction(verb string) http.HandlerFunc {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		name := request.PathValue("name")
+		if name == "" {
+			http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+
+			return
+		}
+
+		s.patchPresetResult(responseWriter, request, cmdPreset+" "+verb+" "+name)
+	}
+}
+
+// patchPresetResult is the shared tail of every preset web handler: run the
+// command, refresh the panel status, and morph the panel with the outcome.
+func (s *webServer) patchPresetResult(responseWriter http.ResponseWriter, request *http.Request, command string) {
+	result := s.daemon.handleCommand(request.Context(), command)
+
+	status := s.getWebStatusWithPTZ(request.Context())
+	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
+
+	sse := datastar.NewSSE(responseWriter, request)
+	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+}
+
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
 	name := request.PathValue("name")
 
@@ -332,67 +362,7 @@ func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request
 		return
 	}
 
-	result := s.daemon.handleCommand(request.Context(), cmdPreset+" save "+name)
-
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-
-	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
-}
-
-func (s *webServer) handlePresetLoad(responseWriter http.ResponseWriter, request *http.Request) {
-	name := request.PathValue("name")
-	if name == "" {
-		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
-
-		return
-	}
-
-	result := s.daemon.handleCommand(request.Context(), cmdPreset+" load "+name)
-
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-
-	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
-}
-
-func (s *webServer) handlePresetDelete(responseWriter http.ResponseWriter, request *http.Request) {
-	name := request.PathValue("name")
-	if name == "" {
-		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
-
-		return
-	}
-
-	result := s.daemon.handleCommand(request.Context(), cmdPreset+" delete "+name)
-
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-
-	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
-}
-
-// handlePresetPush implements POST /api/preset/push/{name} — the web surface
-// for mirroring a preset into a hardware motor slot (TODO #141). The client
-// confirms via a browser dialog first: the command MOVES THE PHYSICAL CAMERA.
-func (s *webServer) handlePresetPush(responseWriter http.ResponseWriter, request *http.Request) {
-	name := request.PathValue("name")
-	if name == "" {
-		http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
-
-		return
-	}
-
-	result := s.daemon.handleCommand(request.Context(), cmdPreset+" push "+name)
-
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-
-	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPresetResult(responseWriter, request, cmdPreset+" "+presetSave+" "+name)
 }
 
 // handlePresetPull implements POST /api/preset/pull — the web surface for
@@ -400,13 +370,7 @@ func (s *webServer) handlePresetPush(responseWriter http.ResponseWriter, request
 // is read-only on the hardware side (nothing moves), so unlike push it needs
 // no browser confirm() gate.
 func (s *webServer) handlePresetPull(responseWriter http.ResponseWriter, request *http.Request) {
-	result := s.daemon.handleCommand(request.Context(), cmdPreset+" "+presetPull)
-
-	status := s.getWebStatusWithPTZ(request.Context())
-	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
-
-	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPresetResult(responseWriter, request, cmdPreset+" "+presetPull)
 }
 
 func newWebMux(server *webServer) *http.ServeMux {
@@ -427,9 +391,10 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("POST /api/sync", server.action(cmdSync))
 	mux.HandleFunc("POST /api/probe", server.action(cmdProbe))
 	mux.HandleFunc("POST /api/preset/save/{name}", server.handlePresetSave)
-	mux.HandleFunc("POST /api/preset/load/{name}", server.handlePresetLoad)
-	mux.HandleFunc("POST /api/preset/delete/{name}", server.handlePresetDelete)
-	mux.HandleFunc("POST /api/preset/push/{name}", server.handlePresetPush)
+	mux.HandleFunc("POST /api/preset/load/{name}", server.presetAction(presetLoad))
+	mux.HandleFunc("POST /api/preset/delete/{name}", server.presetAction(presetDelete))
+	// push moves the physical camera — the UI gates it behind a browser confirm().
+	mux.HandleFunc("POST /api/preset/push/{name}", server.presetAction(presetPush))
 	mux.HandleFunc("POST /api/preset/pull", server.handlePresetPull)
 	mux.HandleFunc("POST /api/ptz/{axis}", server.handlePTZ)
 	mux.HandleFunc("POST /api/speed/{axis}", server.handleSpeed)
