@@ -86,7 +86,7 @@ func TestProbeVideo4linux_NonPIXYSources(t *testing.T) {
 func TestProbeVideo4linux_NonexistentDir(t *testing.T) {
 	t.Parallel()
 
-	result, _ := probeVideo4linux("/nonexistent/path/video4linux", nil)
+	result, _, _ := probeVideo4linux("/nonexistent/path/video4linux", nil)
 	if result != "" {
 		t.Errorf("expected empty, got %s", result)
 	}
@@ -137,7 +137,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 	})
 
 	// When probing
-	result, _ := probeVideo4linux(root, nil)
+	result, _, _ := probeVideo4linux(root, nil)
 
 	// Then the PIXY is found even though it's not the first device
 	if result != "/dev/video2" {

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -214,7 +215,8 @@ func TestConfigFromEnv_DefaultsWhenUnset(t *testing.T) {
 	cfg := ConfigFromEnv()
 	def := DefaultConfig()
 
-	if cfg != def {
+	// Config carries a []int64 slice, so it is not comparable with ==.
+	if !reflect.DeepEqual(cfg, def) {
 		t.Errorf("ConfigFromEnv() with no env vars = %+v, want %+v", cfg, def)
 	}
 }
