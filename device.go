@@ -42,6 +42,9 @@ func (d *Daemon) setDeviceState(
 
 	err = hidDev.Send(commitBytes)
 	if err != nil {
+		// Deliberately NOT recordHIDSendFailure: commit failures must not
+		// re-probe mid config+commit sequence — they accrue to the breaker
+		// instead (the realistic breaker trigger; see simulator tests).
 		d.mu.Lock()
 		d.hidFailCount++
 

@@ -192,6 +192,23 @@ func TestHandleQueryCommand_Device_NoDevice(t *testing.T) {
 	}
 }
 
+func TestHandleQueryCommand_Device_UnsupportedEMEET(t *testing.T) {
+	t.Parallel()
+
+	// Given a daemon whose probe recognized a fixed EMEET device
+	d := testDaemonNoDevice(t)
+	d.mu.Lock()
+	d.unsupportedHint = "EMEET C960 (USB product ID 0x003f) is recognized but not controllable"
+	d.mu.Unlock()
+
+	// When asking for the device
+	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
+
+	// Then the hint is surfaced instead of a bare not-found
+	assertCommandContains(t, resp.String(), "EMEET C960", "response")
+	assertCommandContains(t, resp.String(), "0x003f", "response")
+}
+
 func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 	t.Parallel()
 
