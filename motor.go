@@ -38,44 +38,13 @@ func (d *Daemon) setMotorSpeed(ctx context.Context, motor pixy.MotorType, speed 
 
 // setTargetTrack sends the official V2 SetTargetTrack command for a tracking
 // variant (TODO #140): single report, head 09 04 01 01 + [mode:u8][f32x3]
-// with zeroed floats. Failure accounting mirrors setMotorSpeed. Callers hold
-// d.hidMu (command dispatcher contract, same as setTracking).
+// with zeroed floats. Guards and failure accounting are the shared V2 SET
+// transport (sendV2Set). Callers hold d.hidMu (command dispatcher contract,
+// same as setTracking).
 func (d *Daemon) setTargetTrack(ctx context.Context, mode pixy.TargetTrackMode) error {
 	report := append(pixy.V2SetTargetTrack.Bytes(), pixy.TargetTrackPayload(mode)...)
 
-	d.mu.RLock()
-	hidDev := d.hidDev
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
-
-	if hidDev == nil {
-		return fmt.Errorf("setTargetTrack (no device): %w", pixy.ErrPIXYNotConnected)
-	}
-
-	if circuitOpen {
-		return fmt.Errorf("setTargetTrack: %w", pixy.ErrPIXYNotConnected)
-	}
-
-	if err := hidDev.Send(report); err != nil {
-		d.mu.Lock()
-		d.hidFailCount++
-
-		recordHIDFailure(ctx)
-
-		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
-		}
-		d.mu.Unlock()
-		d.broadcastStateChanged()
-
-		return fmt.Errorf("setTargetTrack send: %w", err)
-	}
-
-	d.mu.Lock()
-	d.hidFailCount = 0
-	d.mu.Unlock()
-
-	return nil
+	return d.sendV2Set(ctx, "setTargetTrack", report)
 }
 
 // maxHardwarePresetSlots is the assumed motor-preset slot count. The official
@@ -196,10 +165,7 @@ func (d *Daemon) queryMotorPresetPos(ctx context.Context, slot byte) (pixy.Motor
 // for HID commands; multi-step callers take it around their whole sequence —
 // taking it here would deadlock against the dispatcher).
 func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte) error {
-	d.mu.RLock()
-	hidDev := d.hidDev
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
+	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
 		return fmt.Errorf("%s (no device): %w", operation, pixy.ErrPIXYNotConnected)
@@ -211,16 +177,7 @@ func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte)
 
 	err := hidDev.Send(report)
 	if err != nil {
-		d.mu.Lock()
-		d.hidFailCount++
-
-		recordHIDFailure(ctx)
-
-		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
-		}
-		d.mu.Unlock()
-		d.broadcastStateChanged()
+		d.recordHIDSendFailure(ctx)
 
 		return fmt.Errorf("%s send: %w", operation, err)
 	}

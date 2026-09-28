@@ -81,9 +81,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 		d.hidMu.Unlock()
 
 	case cmdCenter:
-		d.v4l2Mu.Lock()
-		result = d.handleMutatingCommand(ctx, parts)
-		d.v4l2Mu.Unlock()
+		result = d.handleMutatingCommandWithV4L2Lock(ctx, parts)
 
 	case cmdAutoOn, cmdAutoOff, cmdToggleAuto, cmdAuto:
 		result = d.handleMutatingCommand(ctx, parts)
@@ -93,9 +91,7 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 
 	default:
 		if ptzAxisValid(pixy.Axis(parts[0])) {
-			d.v4l2Mu.Lock()
-			result = d.handleMutatingCommand(ctx, parts)
-			d.v4l2Mu.Unlock()
+			result = d.handleMutatingCommandWithV4L2Lock(ctx, parts)
 		} else {
 			result = errResultMsg("unknown command: " + parts[0])
 		}
@@ -104,6 +100,17 @@ func (d *Daemon) handleCommand(ctx context.Context, cmd string) CommandResult {
 	recordCommandMetric(ctx, parts[0], result)
 
 	return result
+}
+
+// handleMutatingCommandWithV4L2Lock scopes a move-path mutating command
+// (center, axis moves) under the V4L2 lock: v4l2-ctl calls serialize here,
+// and any HID reach-through (reassertSpeeds) honors the documented
+// v4l2Mu → hidMu lock order.
+func (d *Daemon) handleMutatingCommandWithV4L2Lock(ctx context.Context, parts []string) CommandResult {
+	d.v4l2Mu.Lock()
+	defer d.v4l2Mu.Unlock()
+
+	return d.handleMutatingCommand(ctx, parts)
 }
 
 // handlePresetWithLock routes preset subcommands to the correct lock:
@@ -334,6 +341,16 @@ func (d *Daemon) handleCenterCommand(ctx context.Context) CommandResult {
 	return okResult(respCentered)
 }
 
+// applyAutoMode persists an auto-mode change and broadcasts it — the single
+// write path for d.state.AutoMode from command handling.
+func (d *Daemon) applyAutoMode(mode pixy.AutoMode) {
+	d.mu.Lock()
+	d.state.AutoMode = mode
+	d.saveStateOrLog("failed to save state")
+	d.mu.Unlock()
+	d.broadcastStateChanged()
+}
+
 func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 	if len(parts) >= minCmdParts {
 		mode, parseErr := pixy.ParseAutoMode(parts[1])
@@ -341,11 +358,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 			return okResult(respAutoUsage)
 		}
 
-		d.mu.Lock()
-		d.state.AutoMode = mode
-		d.saveStateOrLog("failed to save state")
-		d.mu.Unlock()
-		d.broadcastStateChanged()
+		d.applyAutoMode(mode)
 
 		return okResult(respAutoModePrefix + mode.String())
 	}
@@ -371,11 +384,7 @@ func (d *Daemon) handleAutoCommand(parts []string) CommandResult {
 		return okResult(respAutoModePrefix + mode.String())
 	}
 
-	d.mu.Lock()
-	d.state.AutoMode = mode
-	d.saveStateOrLog("failed to save state")
-	d.mu.Unlock()
-	d.broadcastStateChanged()
+	d.applyAutoMode(mode)
 
 	if mode.IsOff() {
 		return okResult(respAutoModeOff)

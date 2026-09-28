@@ -132,10 +132,7 @@ func (d *Daemon) v2Read(ctx context.Context, head pixy.V2Head) ([]byte, error) {
 //
 // LOCK CONTRACT: caller holds d.hidMu.
 func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []byte) ([]byte, error) {
-	d.mu.RLock()
-	hidDev := d.hidDev
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
+	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
 		return nil, fmt.Errorf("v2Read (no device): %w", pixy.ErrPIXYNotConnected)

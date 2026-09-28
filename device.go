@@ -17,10 +17,7 @@ func (d *Daemon) setDeviceState(
 	configBytes, commitBytes []byte,
 	mutator stateMutator,
 ) error {
-	d.mu.RLock()
-	hidDev := d.hidDev
-	circuitOpen := d.hidFailCount >= hidCircuitBreakerThreshold
-	d.mu.RUnlock()
+	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
 		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
@@ -32,16 +29,7 @@ func (d *Daemon) setDeviceState(
 
 	err := hidDev.Send(configBytes)
 	if err != nil {
-		d.mu.Lock()
-		d.hidFailCount++
-
-		recordHIDFailure(ctx)
-
-		if d.hidFailCount < hidCircuitBreakerThreshold {
-			d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
-		}
-		d.mu.Unlock()
-		d.broadcastStateChanged()
+		d.recordHIDSendFailure(ctx)
 
 		return fmt.Errorf("setDeviceState send config: %w", err)
 	}
