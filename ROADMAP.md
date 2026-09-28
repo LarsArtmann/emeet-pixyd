@@ -32,8 +32,9 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 ### Build & release hardening
 
 - Add a CI guard that fails if the go-modules FOD references store paths (regression test for the committed-binary-poisoning class of bug — the go-branded-id incident is fixed upstream, but the class is not).
-- Extend the NixOS vmTest: fake sysfs + actually start the daemon inside the VM (the vmTest itself is green since 2026-09-19; this is the deeper extension).
+- Extend the NixOS vmTest: fake sysfs + actually start the daemon inside the VM (the vmTest itself is green since 2026-09-19; this is the deeper extension — it would exercise device recognition end to end).
 - `nix flake update` cadence / automation (Renovate or a scheduled update job).
+- art-dupl accepted-clone baseline (if the tool supports one) so the 2 documented-accepted groups (commit-failure strike, preset lock routing) stop re-flagging in every sweep (`2026-09-28_23-47` b2).
 
 ### Web presence
 
@@ -41,6 +42,7 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Per-page feedback links (issue tracker with pre-filled title); enable reading time.
 - Consider mirroring "Who is this for?" / "When NOT to use this" / the comparison matrix onto the Astro landing page (currently README-only).
 - Add a `prettier`/`prettierd` config for `.mdx`/`.mjs` to prevent future formatter wars.
+- Demo video: mention the multi-device honesty line (fixed EMEET cams recognized, not controlled) — an optional reshoot trigger, cheap to defer (`2026-09-28_23-48` f33).
 - Distill a public "how emeet-pixyd relates to EMEET STUDIO" page from the internal comparison doc — **needs Lars's call** (documents their internals publicly; positioning win vs legal/positioning risk).
 
 ### Observability & UX (lower-priority enhancements)
@@ -71,6 +73,8 @@ These came out of the 2026-09 official-app reverse-engineering (`docs/emeet-stud
 - **`EMEET_PIXYD_EXTRA_PRODUCT_IDS` env override — IMPLEMENTED (2026-09-28)**: shipped as `EMEET_PIXYD_EXTRA_PRODUCT_IDS` (comma-separated hex, additive over the static registry, extra outranks the fixed-UVC classification, display `PIXY (PID 0x…)`). Companion: the probe now recognizes known fixed-lens EMEET webcams (C960 family/C950/C970/S600L, verified public PIDs) plus unknown `328f` products and logs an actionable hint (`pixy.UnsupportedDeviceHint`) — recognized devices never receive vendor HID bytes and get no udev rules. The original "YAGNI until a third model appears" gate was met by an explicit user request for broader EMEET device support.
 - **PIXY Wireless support — awaiting hardware/PID**: EMEET's wireless AI PTZ camera (uses EMEET STUDIO II, per emeet.com) is the likely next PIXY-family device; no USB product ID is publicly known yet. The elink wireless protocol intel (~90 command families from the Mac strings, see the research offshoot above) plus the new `EMEET_PIXYD_EXTRA_PRODUCT_IDS` opt-in mean a wired-session PID report could enable control before any release. Until then it surfaces as "unknown EMEET device" with the report/opt-in hint.
 - **Device-DISAPPEAR reconcile semantics** — only device-appear is handled today; what should belief/state do on unplug (clean reset vs keep-last)?
+- **hidraw-side fixed-EMEET recognition** — the multi-device registry classifies via video4linux/sysfs PRODUCT only; a fixed-lens EMEET cam that also exposes a hidraw node is not recognized there. Either extend recognition to the hidraw path or record video-only as the deliberate decision (`2026-09-28_23-48` f6).
+- **udev snippet doc for extra-ID devices** — users who onboard a PIXY variant via `EMEET_PIXYD_EXTRA_PRODUCT_IDS` currently get no `/dev` permissions story; a documented optional udev snippet (with the explicit tradeoff that the default stays no-rules) closes the gap without widening the shipped rules (`2026-09-28_23-48` f13).
 - **`preset pull` (hardware → state), TODO #141 — IMPLEMENTED (2026-09-19, evidence-corrected)**: the inverse of `preset push`: sweep hardware motor slots into named software presets. Static decode (map doc §3.5a) shows the GET (`09 63 01 17` + slot byte) answers **mode-only** (one byte @8) in the Beta.25 build, while slot positions ride the `SET_MOTOR_PRESET_POS_MODE` echo (`[slot][mode][pan][tilt][zoom]`, floats gated on mode==1, min 0x16) — the original design's "GET returns mode@8 + floats" was a mis-attribution to the power-on-default parser. Shipped: `preset pull` queries slots `1..8` (the assumed cap), parses BOTH evidenced shapes via `pixy.ParseMotorPresetPosResponse`, stores full-shape occupied slots as additive `hw-<slot>` presets (rounded, clamped, never overwriting user names), counts mode-only slots as "set (position not exposed)", and gained a web Pull button (`POST /api/preset/pull`). Residual for the #166 hardware session: pin the real slot count and which response shape the wired firmware answers (a 2.0.3-era firmware may answer the GET with the full shape).
 
 ---

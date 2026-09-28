@@ -49,6 +49,15 @@
 | 148 | 🔶 PARTIAL | Send the staged innoextract 6.6.1 upstream PR (Lars's call)                                  | MED    | S      | `tools/inno661/UPSTREAM.md`                               |
 | 150 | 🔶 PARTIAL | Pin `MotorType` + `DefaultPosMode` values (static decode exhausted; hardware/usbmon only)    | HIGH   | M      | `internal/pixy/v2head.go`; map doc §3.5a                  |
 | 172 | ◻ OPEN     | Extract a shared V2 query helper (trigger: 4th GET family lands — evaluated 2026-09-19: NOT met, identity/power/preset are 3; 4th = speed readback, gated on #138/#166) | LOW | M | `identity.go`, `power.go`, `motor.go`                     |
+| 173 | ◻ OPEN     | Surface the unsupported-device hint in the web UI (offline panel) + Waybar tooltip/JSON — gated on the ADR answer | MED | M | `commands.go` `device`/`probe` hint; report `2026-09-28_23-48` f5 |
+| 174 | ◻ OPEN     | Branch tests for the hint paths: `probe`/`device` hint output + rate-limited `unsupportedWarnLimiter` log branch | MED | S | `probe.go`; report `2026-09-28_23-48` f7 |
+| 175 | ◻ OPEN     | Website SEO pass: per-page description frontmatter audit, sitemap ping after deploy, per-page OG images for docs routes (astro-og-canvas) | LOW | S | `website/astro.config.mjs`; report f8/f32 — verified 2026-09-28: docs pages carry og:title/description but no og:image (landing-only) |
+| 176 | ◻ OPEN     | Gate the auto-commit daemon on a green pre-commit build (kills the red-at-HEAD class: bad commits land mid-session and every later session pays the diagnosis tax) | HIGH | M | report `2026-09-28_23-47` f1/d1 |
+| 177 | ◻ OPEN     | Scope BuildFlow's ruff step away from `tools/inno661/`+`tools/emhid/` (or ruff-clean them, SIM115 ×20) so the full dev gate goes green for Go work | MED | S | report `2026-09-28_23-47` b1/f3 |
+| 178 | ◻ OPEN     | Benchmark delta: confirm `ttlCache[T]` + preset double-RLock are perf-neutral post-refactor | LOW | S | `cache.go`; report `2026-09-28_23-47` b6 |
+| 179 | ◻ OPEN     | Decide: always `ValidatePresetName` in the web preset action (400 for garbage names vs today's passthrough to the command layer) | LOW | S | `handlers.go` `presetAction`; report `2026-09-28_23-47` b4 |
+| 180 | ◻ OPEN     | Align `.crushrc` LSP lint config with `.golangci.yml` (drop golines/wsl_v5 noise the repo does not gate on) | LOW | S | `.crushrc`; report `2026-09-28_23-47` f15 |
+| 181 | ◻ OPEN     | Mechanical nolint sweep post-refactor (nolintlint- or grep-driven): remove directives whose suppressing rationale rotted | MED | M | AGENTS.md lint gotcha; report `2026-09-28_23-47` f16 |
 
 ---
 
