@@ -174,8 +174,8 @@
 
 ## Summary
 
-- **Total features:** 73
-- 🟢 Fully functional: 71
+- **Total features:** 75
+- 🟢 Fully functional: 73
 - 🟡 Partially functional: 2 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted)
 - 🔴 Broken: 0
 - ⚪ Planned: 0

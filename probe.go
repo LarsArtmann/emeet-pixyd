@@ -41,7 +41,7 @@ func isPixyName(name string) bool {
 // "prefix=..." line, or reports not-ok when the line has a different prefix
 // or cannot be parsed (uevent files can have spurious continuation lines —
 // callers keep scanning instead of treating this as a mismatch).
-func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (vendor, product int64, ok bool) {
+func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (int64, int64, bool) {
 	value, hasPrefix := strings.CutPrefix(line, prefix)
 	if !hasPrefix {
 		return 0, 0, false

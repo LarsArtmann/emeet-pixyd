@@ -14,8 +14,8 @@ import (
 
 // hidSendGuard snapshots the HID device handle and the circuit-breaker state
 // under a read lock (acquire → copy → release); callers act on the copies.
-// circuitOpen is true once hidFailCount has reached the breaker threshold.
-func (d *Daemon) hidSendGuard() (hidDev HIDDevice, circuitOpen bool) {
+// The boolean is true once hidFailCount has reached the breaker threshold.
+func (d *Daemon) hidSendGuard() (HIDDevice, bool) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 

@@ -308,9 +308,7 @@ func (d *Daemon) eventLoop(
 			d.hidMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			probe := probeDevices(
-				d.config.ExtraProductIDs,
-			)
+			probe := probeDevices(d.config.ExtraProductIDs) //nolint:contextcheck // sysfs I/O, ctx not threaded
 			d.applyProbeResultLocked(probe)
 			newVideo := d.videoDev
 			d.mu.Unlock()

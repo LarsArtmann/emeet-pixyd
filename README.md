@@ -60,11 +60,32 @@ No setup per app. No browser extension. Works with anything that opens `/dev/vid
 
 Skip this daemon if:
 
-- You don't own an EMEET PIXY (`328f:00c0`) or PIXY 2K (`328f:0118`) — this is hardware-specific, not a generic webcam tool. Reach for [webcamoid](https://webcamoid.github.io/) instead.
+- You don't own a PIXY-family device — the automation targets the EMEET PIXY (`328f:00c0`) and PIXY 2K (`328f:0118`). Other EMEET webcams (C960, C950, S600, …) are standard UVC cameras that the Linux kernel already drives completely; the daemon recognizes them and says so, but has nothing to automate. See [Supported Devices](#supported-devices). For general webcam tooling, reach for [webcamoid](https://webcamoid.github.io/) instead.
 - You're on **macOS or Windows** — this is Linux-only by design (HID hidraw, V4L2, `/proc`, netlink uevents).
 - The camera's own tracking toggle is enough for you — if you never forget to enable it, you don't need a daemon.
 - You want **cloud or AI features** — this is fully local, no network calls, no telemetry.
 - You need **multi-vendor webcam management** — this targets one device family. See [Related Tools](https://emeet-pixyd.lars.software/related-tools/) for general-purpose alternatives.
+
+## Supported Devices
+
+| Device                | USB ID                  | Support                                                                                             |
+| --------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| EMEET PIXY            | `328f:00c0`             | **Full** — tracking, privacy, audio, PTZ, presets, battery                                          |
+| EMEET PIXY 2K         | `328f:0118`             | **Full** — same protocol as the PIXY                                                                |
+| EMEET C960 / C960 2K  | `328f:003f` / `328f:2013` / `328f:007c` | Recognized — fixed UVC camera, fully driven by the standard kernel driver; nothing to automate |
+| EMEET C950 / C970     | `328f:0073` / `328f:002d` | Recognized — fixed UVC camera                                                                       |
+| EMEET S600L           | `328f:00ef`             | Recognized — fixed UVC camera                                                                       |
+| Other EMEET devices   | `328f:*`                | Detected as "unknown EMEET device" — the daemon logs the product ID and how to report or opt in     |
+
+The daemon never sends vendor commands to devices outside the PIXY family: fixed EMEET webcams have no vendor control surface, so there is nothing to automate — and no reason to grant extra device permissions. When a recognized-but-unsupported device is plugged in without a PIXY, the daemon logs one rate-limited hint explaining exactly that, and `emeet-pixy device` repeats it.
+
+**Own an unlisted PIXY variant?** Point the daemon at it without waiting for a release:
+
+```bash
+EMEET_PIXYD_EXTRA_PRODUCT_IDS=0x0119 emeet-pixyd   # comma-separated hex IDs
+```
+
+Extra IDs are treated as PIXY-family devices and show up as `PIXY (PID 0x…)` in logs and the UI.
 
 ## Comparison
 
@@ -229,6 +250,7 @@ All config is via environment variables (no CLI flags — `os.Args` is reserved 
 | `EMEET_PIXYD_DEBUG`          | `false`            | Enable pprof endpoints at `/debug/pprof/`                                                                 |
 | `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off (manual, no /proc monitoring), full, tracking-only, privacy-only (legacy: true/1, false/0) |
 | `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                                                         |
+| `EMEET_PIXYD_EXTRA_PRODUCT_IDS` | *(empty)*       | Comma-separated hex USB product IDs treated as PIXY-family variants (e.g. `0x0119,01ab`)                  |
 
 ### NixOS Module Options
 
@@ -310,6 +332,8 @@ static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 | `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                                                         |
 | No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                                                      |
 | Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                                               |
+| "recognized but not controllable: EMEET C960 …" | You have a fixed EMEET webcam, not a PIXY — the standard UVC driver already handles it; emeet-pixyd automates only the PIXY family. Nothing to fix. |
+| "unknown EMEET device (USB product ID 0x…)" | Unregistered EMEET hardware. If it is a PIXY-family variant, set `EMEET_PIXYD_EXTRA_PRODUCT_IDS=0x<pid>`; otherwise open an issue with the ID. |
 | Web UI shows "Camera in use"      | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open.                                         |
 | Debounce too slow                 | Reduce `EMEET_PIXYD_DEBOUNCE_COUNT` (default 3) or `EMEET_PIXYD_POLL_INTERVAL` (default 2s).                            |
 
