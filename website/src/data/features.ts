@@ -34,7 +34,7 @@ export const features: Feature[] = [
   {
     icon: "plug",
     title: "USB Hotplug",
-    desc: "Netlink uevent listener detects USB plug/unplug in real time. The daemon auto-re-probes without a restart.",
+    desc: "Netlink uevent listener detects USB plug/unplug in real time. Recognizes the whole EMEET lineup — PIXY, PIXY 2K, and fixed webcams — and only ever speaks the vendor protocol to the PIXY family.",
   },
   {
     icon: "terminal",

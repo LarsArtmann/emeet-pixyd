@@ -9,6 +9,19 @@ All notable changes to emeet-pixyd are documented here.
 
 - Documentation website launched at `emeet-pixyd.lars.software`
 
+### Broader EMEET device support
+
+- **Device recognition** — the daemon now classifies everything on the bus:
+  controllable PIXY-family devices, known fixed EMEET webcams (C960 family,
+  C950, C970, S600L), and unknown EMEET products. Fixed webcams are recognized
+  but never receive vendor commands (the standard UVC driver already handles
+  them completely); when no PIXY is present the daemon logs an actionable
+  hint, and `emeet-pixy device` repeats it. See
+  [Supported Devices](/getting-started/supported-devices/)
+- **`EMEET_PIXYD_EXTRA_PRODUCT_IDS`** — onboard unlisted PIXY-family variants
+  (a regional SKU or the wireless model when it lands) without waiting for a
+  release: comma-separated hex product IDs, displayed as `PIXY (PID 0x…)`
+
 ### New HID Command Families (official V2 protocol)
 
 The official EMEET STUDIO command table (162 command heads) was extracted
