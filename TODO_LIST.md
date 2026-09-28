@@ -61,6 +61,6 @@
 
 ---
 
-All completed work lives in `CHANGELOG.md` ([Unreleased] carries the 2026-09-17 → 09-19 work). Design decisions and open questions live in `ROADMAP.md` — #116 (structured command types) and #123 (multi-word preset names) have recommendation ADRs (`docs/adr/2026-09-18_*.md`) awaiting Lars's decision.
+All completed work lives in `CHANGELOG.md` ([Unreleased] carries the 2026-09-17 → 09-19 work). Design decisions and open questions live in `ROADMAP.md` — #116 (structured command types), #123 (multi-word preset names), hint surfacing (#173), the NixOS `extraProductIds` option, and the erraudit debt policy have recommendation ADRs (`docs/adr/2026-09-18_*.md`, `docs/adr/2026-09-28_*.md`) awaiting Lars's decision.
 
 > Full ranked backlog with rationale: `docs/status/2026-09-19_14-00_harvest-and-fix-on-sight-sweep.md` §f — older ranked backlogs are harvested into this file; items not covered above are ROADMAP-grade research or micro-hygiene.

@@ -86,6 +86,9 @@ These are too design-heavy to be a TODO yet. Capture the decision (preferably as
 - **Structured command types** (former TODO #116): replace `handleCommand(string) string` + `strings.Fields` dispatch with typed command structs. High value (type safety, multi-word args) but high effort and touches the whole command surface. **ADR written** (`docs/adr/2026-09-18_structured-command-types.md`, recommends incremental typed registry) — awaiting Lars's decision.
 - **Multi-word preset names via CLI** (former TODO #123): the web UI handles them, but CLI `strings.Fields` dispatch silently truncates at the first space. **ADR written** (`docs/adr/2026-09-18_multi-word-preset-names.md`, recommends join-remaining-parts; pinning test proves the bug live) — awaiting Lars's decision; the ~6-line implementation lands immediately after.
 - **Re-assert AUDIO after power cycles too** — the reconcile (TODO #137, shipped) re-asserts the persisted camera mode but deliberately adopts audio/gesture from hardware; that boundary is documented. Changing it is a product decision, not a bug.
+- **Unsupported-hint surfacing (web UI/Waybar)** — recommendation ADR written (`docs/adr/2026-09-28_unsupported-hint-surfacing.md`, recommends short label + tooltip via a typed `webStatus` field) — awaiting Lars's decision; gates TODO #173.
+- **NixOS `extraProductIds` option** — recommendation ADR written (`docs/adr/2026-09-28_nixos-extra-product-ids.md`, recommends a list option over the raw env var, env stays the wire format) — awaiting Lars's decision.
+- **Erraudit debt policy** — recommendation ADR written (`docs/adr/2026-09-28_erraudit-debt-policy.md`, recommends `//nolint:erraudit` at the 29 accepted sites + `erraudit nolint-audit` for staleness, so the buildflow gate exits green again) — awaiting Lars's decision; the 29-finding rationale itself is already in AGENTS.md.
 
 ---
 
