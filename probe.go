@@ -37,41 +37,86 @@ func isPixyName(name string) bool {
 		strings.Contains(name, "PIXY")
 }
 
-// pixyModelFromUevent reports which PIXY model a "prefix=v/p/..." line
-// (separated by sep) in ueventData identifies, where vendor and product sit
-// at the given indices. It scans all lines with that prefix; a match anywhere
-// counts, but lines that don't have enough parts are skipped (not treated
-// as a mismatch — uevent files can have spurious continuation lines).
-func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int) (pixy.Model, bool) {
+// parseUeventLine extracts the (vendor, product) pair from one
+// "prefix=..." line, or reports not-ok when the line has a different prefix
+// or cannot be parsed (uevent files can have spurious continuation lines —
+// callers keep scanning instead of treating this as a mismatch).
+func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (vendor, product int64, ok bool) {
+	value, hasPrefix := strings.CutPrefix(line, prefix)
+	if !hasPrefix {
+		return 0, 0, false
+	}
+
+	parts := strings.Split(value, sep)
+	if vendorIdx < 0 || productIdx < 0 || len(parts) <= max(vendorIdx, productIdx) {
+		return 0, 0, false
+	}
+
+	vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
+	product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
+	if vErr != nil || pErr != nil {
+		return 0, 0, false
+	}
+
+	return vendor, product, true
+}
+
+// pixyModelFromUevent reports which PIXY-family model a "prefix=v/p/..."
+// line (separated by sep) in ueventData identifies, where vendor and product
+// sit at the given indices. It scans all lines with that prefix; a match
+// anywhere counts. extraProductIDs are user-configured PIDs treated as
+// PIXY-family variants.
+func pixyModelFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int, extraProductIDs []int64) (pixy.Model, bool) {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
-		value, ok := strings.CutPrefix(line, prefix)
-		if !ok {
+		vendor, product, ok := parseUeventLine(line, prefix, sep, vendorIdx, productIdx)
+		if !ok || vendor != int64(pixyVendorIDInt) {
 			continue
 		}
 
-		parts := strings.Split(value, sep)
-		if vendorIdx < 0 || productIdx < 0 || len(parts) <= max(vendorIdx, productIdx) {
-			continue
-		}
-
-		vendor, vErr := strconv.ParseInt(parts[vendorIdx], 16, 0)
-		product, pErr := strconv.ParseInt(parts[productIdx], 16, 0)
-
-		if model, isPixy := pixy.ModelFromProductID(product); vErr == nil && pErr == nil &&
-			vendor == int64(pixyVendorIDInt) && isPixy {
-			return model, true
+		if profile, known := pixy.ResolveProductID(product, extraProductIDs); known &&
+			profile.Family == pixy.FamilyPIXY {
+			return profile.Model, true
 		}
 	}
 
 	return "", false
 }
 
-func probeVideo4linux(sysfsPath string) (string, pixy.Model) {
-	entries, err := os.ReadDir(sysfsPath)
-	if err != nil {
-		return "", ""
+// unsupportedEMEETFromUevent describes an EMEET device in a
+// "prefix=v/p/..." uevent line that the daemon recognizes but cannot
+// control, or "" when the line holds no such device (controllable PIXY
+// devices and non-EMEET hardware both yield ""). devicePath is interpolated
+// into the hint so users know which node to look at.
+func unsupportedEMEETFromUevent(ueventData []byte, prefix, sep string, vendorIdx, productIdx int, devicePath string) string {
+	for line := range strings.SplitSeq(string(ueventData), "\n") {
+		vendor, product, ok := parseUeventLine(line, prefix, sep, vendorIdx, productIdx)
+		if !ok || vendor != int64(pixyVendorIDInt) {
+			continue
+		}
+
+		profile, known := pixy.ResolveProductID(product, nil)
+		if known && profile.Family == pixy.FamilyPIXY {
+			return ""
+		}
+
+		model := ""
+		if known {
+			model = string(profile.Model)
+		}
+
+		return pixy.UnsupportedDeviceHint(model, product) + " (at " + devicePath + ")"
 	}
 
+	return ""
+}
+
+func probeVideo4linux(sysfsPath string, extraProductIDs []int64) (string, pixy.Model, string) {
+	entries, err := os.ReadDir(sysfsPath)
+	if err != nil {
+		return "", "", ""
+	}
+
+	unsupported := ""
 	for _, entry := range entries {
 		name := entry.Name()
 
@@ -95,15 +140,19 @@ func probeVideo4linux(sysfsPath string) (string, pixy.Model) {
 			continue
 		}
 
-		if model, isPixy := pixyModelFromUevent(ueventData, "PRODUCT=", "/", 0, 1); isPixy {
-			return videoPath, model
+		if model, isPixy := pixyModelFromUevent(ueventData, "PRODUCT=", "/", 0, 1, extraProductIDs); isPixy {
+			return videoPath, model, ""
+		}
+
+		if unsupported == "" {
+			unsupported = unsupportedEMEETFromUevent(ueventData, "PRODUCT=", "/", 0, 1, videoPath)
 		}
 	}
 
-	return "", ""
+	return "", "", unsupported
 }
 
-func probeHidraw(sysfsPath string) (string, pixy.Model) {
+func probeHidraw(sysfsPath string, extraProductIDs []int64) (string, pixy.Model) {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
 		return "", ""
@@ -123,7 +172,7 @@ func probeHidraw(sysfsPath string) (string, pixy.Model) {
 
 		for line := range strings.SplitSeq(string(ueventData), "\n") {
 			if hidName, ok := strings.CutPrefix(line, "HID_NAME="); ok {
-				if model, isPixy := pixyModelFromUevent(ueventData, "HID_ID=", ":", 1, 2); isPixy &&
+				if model, isPixy := pixyModelFromUevent(ueventData, "HID_ID=", ":", 1, 2, extraProductIDs); isPixy &&
 					isPixyName(hidName) {
 					return hidrawPath, model
 				}
@@ -138,30 +187,49 @@ type probeResult struct {
 	VideoDev  string
 	HidrawDev string
 	Model     pixy.Model
+
+	// UnsupportedHint explains an EMEET device the probe recognized but
+	// cannot control. It is only set when no PIXY-family video device was
+	// found, so a real PIXY always wins over the hint.
+	UnsupportedHint string
 }
 
-func probeDevices() probeResult {
+// unsupportedWarnInterval bounds how often the recognized-but-uncontrolled
+// EMEET device hint is repeated. The condition is stable while the device
+// stays plugged in, so per-probe logging would flood the journal.
+const unsupportedWarnInterval = time.Hour
+
+// unsupportedWarnLimiter rate-limits the unsupported-device hint.
+//
+//nolint:gochecknoglobals // package-level by design: probes are plain functions
+var unsupportedWarnLimiter = newWarnLimiter(unsupportedWarnInterval)
+
+func probeDevices(extraProductIDs []int64) probeResult {
 	recordProbe()
 
-	videoDev, videoModel := probeVideo4linux("/sys/class/video4linux")
-	hidrawDev, hidrawModel := probeHidraw("/sys/class/hidraw")
+	videoDev, videoModel, unsupported := probeVideo4linux("/sys/class/video4linux", extraProductIDs)
+	hidrawDev, hidrawModel := probeHidraw("/sys/class/hidraw", extraProductIDs)
 
 	result := probeResult{
-		VideoDev:  videoDev,
-		HidrawDev: hidrawDev,
-		Model:     hidrawModel,
+		VideoDev:        videoDev,
+		HidrawDev:       hidrawDev,
+		Model:           hidrawModel,
+		UnsupportedHint: unsupported,
 	}
 	if result.Model == "" {
 		result.Model = videoModel
 	}
 
-	switch {
-	case result.VideoDev != "" && result.HidrawDev != "":
+	switch {\n	case result.VideoDev != "" && result.HidrawDev != "":
 		slog.Info("found PIXY device", "model", result.Model, "video", result.VideoDev, "hidraw", result.HidrawDev)
 	case result.VideoDev != "" && result.HidrawDev == "":
 		slog.Warn("partial PIXY device: video found but no hidraw", "model", result.Model, "video", result.VideoDev)
 	case result.VideoDev == "" && result.HidrawDev != "":
 		slog.Warn("partial PIXY device: hidraw found but no video", "model", result.Model, "hidraw", result.HidrawDev)
+	case result.UnsupportedHint != "":
+		if unsupportedWarnLimiter.allow(result.UnsupportedHint) {
+			slog.Info("EMEET device recognized without daemon support", "hint", result.UnsupportedHint)
+		}
 	}
 
 	return result
@@ -228,6 +296,7 @@ func (d *Daemon) applyProbeResultLocked(r probeResult) {
 	d.videoDev = r.VideoDev
 	d.hidrawDev = r.HidrawDev
 	d.model = r.Model
+	d.unsupportedHint = r.UnsupportedHint
 
 	if r.HidrawDev != "" {
 		d.hidDev = newHIDRawDevice(r.HidrawDev)

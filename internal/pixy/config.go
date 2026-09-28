@@ -20,6 +20,11 @@ type Config struct {
 	Debug         bool
 	AutoMode      AutoMode
 	DefaultAudio  AudioMode
+
+	// ExtraProductIDs are additional USB product IDs (hex, from
+	// EMEET_PIXYD_EXTRA_PRODUCT_IDS) treated as PIXY-family devices. They
+	// let users onboard PIXY variants the registry does not know yet.
+	ExtraProductIDs []int64
 }
 
 // DefaultConfig returns the standard daemon configuration.
@@ -43,7 +48,8 @@ func DefaultConfig() Config {
 // Recognized variables: EMEET_PIXYD_STATE_DIR, EMEET_PIXYD_WEB_ADDR,
 // EMEET_PIXYD_POLL_INTERVAL (Go duration), EMEET_PIXYD_DEBOUNCE_COUNT (int),
 // EMEET_PIXYD_DEBUG (bool), EMEET_PIXYD_AUTO (off/full/tracking-only/privacy-only, or legacy true/1/false/0),
-// EMEET_PIXYD_DEFAULT_AUDIO (nc/live/org).
+// EMEET_PIXYD_DEFAULT_AUDIO (nc/live/org),
+// EMEET_PIXYD_EXTRA_PRODUCT_IDS (comma-separated hex USB product IDs).
 func ConfigFromEnv() Config {
 	cfg := DefaultConfig()
 
@@ -95,7 +101,36 @@ func ConfigFromEnv() Config {
 		}
 	}
 
+	if v := os.Getenv("EMEET_PIXYD_EXTRA_PRODUCT_IDS"); v != "" {
+		cfg.ExtraProductIDs = ParseExtraProductIDs(v)
+	}
+
 	return cfg
+}
+
+// ParseExtraProductIDs parses a comma-separated list of hex USB product IDs
+// (e.g. "0x0119,01ab"). Empty, unparseable, and non-positive entries are
+// skipped with a warning so one bad value cannot disable the others.
+func ParseExtraProductIDs(value string) []int64 {
+	var ids []int64
+
+	for raw := range strings.SplitSeq(value, ",") {
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
+			continue
+		}
+
+		id, parseErr := strconv.ParseInt(strings.TrimPrefix(strings.ToLower(raw), "0x"), 16, 64)
+		if parseErr != nil || id <= 0 {
+			slog.Warn("invalid EMEET_PIXYD_EXTRA_PRODUCT_IDS entry, skipping", "value", raw)
+
+			continue
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids
 }
 
 // Config validation sentinel errors.
