@@ -22,7 +22,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
-		return fmt.Errorf("create state dir: %w", createErr)
+		return fmt.Errorf("create state dir %s: %w", d.config.StateDir, createErr)
 	}
 
 	//nolint:exhaustruct
@@ -30,7 +30,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	listener, err := lc.Listen(ctx, "unix", socketPath)
 	if err != nil {
-		return fmt.Errorf("listen: %w", err)
+		return fmt.Errorf("listen on %s: %w", socketPath, err)
 	}
 
 	defer func() {
