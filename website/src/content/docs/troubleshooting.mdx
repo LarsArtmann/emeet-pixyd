@@ -14,6 +14,8 @@ lsusb | grep 328f
 
 If not listed, check your USB connection. Try a different cable or port.
 
+If `lsusb` shows a **different** `328f:*` ID, you have another EMEET product — see [Supported Devices](/getting-started/supported-devices/): fixed EMEET webcams are recognized but intentionally not controlled, and unlisted PIXY-family variants can be onboarded via `EMEET_PIXYD_EXTRA_PRODUCT_IDS`.
+
 ### Permission denied on hidraw
 
 Verify udev rules match vendor `328f` and product `00c0` (PIXY) or `0118` (PIXY 2K):

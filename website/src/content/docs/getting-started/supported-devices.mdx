@@ -1,0 +1,77 @@
+---
+title: Supported Devices
+description: Which EMEET devices emeet-pixyd controls, which it recognizes, and how to onboard new PIXY variants
+---
+
+emeet-pixyd automates the **EMEET PIXY family** — the only EMEET webcams with a
+vendor control surface worth automating. Here is exactly what that means for
+your hardware.
+
+## Compatibility matrix
+
+| Device               | USB ID                                  | Status                                                                                             |
+| -------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| EMEET PIXY           | `328f:00c0`                             | **Full support** — tracking, privacy, audio, PTZ, presets, battery                                  |
+| EMEET PIXY 2K        | `328f:0118`                             | **Full support** — same protocol as the original PIXY                                              |
+| EMEET C960 / C960 2K | `328f:003f` / `328f:2013` / `328f:007c` | **Recognized** — fixed UVC camera, nothing to automate                                              |
+| EMEET C950 / C970    | `328f:0073` / `328f:002d`               | **Recognized** — fixed UVC camera                                                                   |
+| EMEET S600L          | `328f:00ef`                             | **Recognized** — fixed UVC camera                                                                   |
+| Other EMEET devices  | `328f:*`                                | **Detected** — logged as "unknown EMEET device" with the product ID and next steps                  |
+
+:::tip[Check your device]
+Run `lsusb | grep 328f` and match the ID against the table. The daemon logs the
+same classification at startup.
+:::
+
+## Why fixed EMEET webcams show "recognized, not controllable"
+
+The C960 family, C950, C970, and S600 are fixed-lens webcams. Linux drives them
+completely through the standard UVC kernel driver — video, autofocus,
+microphones, everything. The vendor-specific features emeet-pixyd automates
+(on-device AI tracking, the motorized privacy shutter, noise-cancellation
+modes) simply do not exist in that hardware.
+
+So the daemon does the honest thing instead of pretending:
+
+- It **recognizes** the device by USB product ID and names it in the logs.
+- It **never sends** vendor HID bytes to it — no risk, no broken behavior.
+- It gets **no udev rules** — devices the daemon cannot control get no extra
+  `/dev` permissions.
+- With no PIXY on the bus, it logs one rate-limited hint explaining the
+  situation, and `emeet-pixy device` repeats it on demand.
+
+If you own one of these cameras, you do not need a daemon — the kernel already
+did the work.
+
+## Unlisted PIXY variant? Onboard it yourself
+
+New PIXY-family hardware (a regional SKU, or the wireless model when it lands)
+can be adopted without waiting for a release:
+
+```bash
+EMEET_PIXYD_EXTRA_PRODUCT_IDS=0x0119 emeet-pixyd
+```
+
+- The value is a comma-separated list of hex USB product IDs (`0x0119,01ab`).
+- Extra IDs are treated as PIXY-family devices — full control, same protocol.
+- They display as `PIXY (PID 0x0119)` in logs and the web UI, so a
+  misclassification stays visible.
+- Invalid entries are skipped with a warning; the built-in IDs always stay
+  enabled.
+
+:::caution[PIXY-family products only]
+Only point `EMEET_PIXYD_EXTRA_PRODUCT_IDS` at PIXY-family hardware. The daemon
+will speak the PIXY HID protocol to whatever you list.
+:::
+
+## Want your device supported?
+
+Open an issue with the output of:
+
+```bash
+lsusb | grep 328f
+```
+
+Include the full `ID` pair and the product name. Unknown EMEET products are
+classified from community reports, and PIXY-family PIDs usually need only a
+one-line registry entry — see [Contributing](/contributing/) for the workflow.

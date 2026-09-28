@@ -67,6 +67,7 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             { label: "Installation", slug: "getting-started/installation" },
+            { label: "Supported Devices", slug: "getting-started/supported-devices" },
             { label: "Quick Start", slug: "getting-started/quick-start" },
           ],
         },
