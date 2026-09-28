@@ -55,12 +55,12 @@ func ppidOf(pid pixy.PID) pixy.PID {
 
 	statStr := string(statData)
 
-	lastParen := strings.LastIndex(statStr, ")")
-	if lastParen == -1 {
+	_, after, ok := strings.CutLast(statStr, ")")
+	if !ok {
 		return pixy.PID{}
 	}
 
-	fields := strings.Fields(statStr[lastParen+1:])
+	fields := strings.Fields(after)
 	if len(fields) < 2 {
 		return pixy.PID{}
 	}
