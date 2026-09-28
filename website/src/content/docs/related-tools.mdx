@@ -13,6 +13,8 @@ The standard V4L2 command-line tool for camera control. emeet-pixyd uses it unde
 
 Professional streaming software. When OBS opens the camera device, emeet-pixyd detects it as a "call" and activates tracking. The two work together seamlessly.
 
+**Not an OBS fork — and not trying to be.** EMEET STUDIO, the vendor's official Windows/macOS app, *is* an OBS Studio fork: scenes, sources, transitions, a virtual camera, and ByteDance beauty filters on an embedded `libobs` (verified by disassembling the installer — see the internal comparison doc in the repository). It also has zero call awareness: it never detects that you are in a call. emeet-pixyd is the opposite shape — a single small headless binary that speaks the same wire protocol as the official app and automates what it leaves manual. If you want OBS, use OBS; if you want the PIXY's hardware features to just work on Linux, use emeet-pixyd; the two coexist (point OBS at `/dev/video0` and let emeet-pixyd run the camera's intelligence underneath).
+
 ## Audio
 
 ### PipeWire / WirePlumber
