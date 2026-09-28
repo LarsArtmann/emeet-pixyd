@@ -356,3 +356,44 @@ func TestConfigFromEnv_InvalidAudioIgnored(t *testing.T) {
 		t.Errorf("DefaultAudio = %q, want default %q", cfg.DefaultAudio, AudioNC)
 	}
 }
+
+func TestParseExtraProductIDs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		value string
+		want  []int64
+	}{
+		{"empty", "", nil},
+		{"whitespace only", "  ,  ", nil},
+		{"single 0x form", "0x0119", []int64{0x0119}},
+		{"single bare hex", "01ab", []int64{0x01ab}},
+		{"uppercase 0X", "0X003F", []int64{0x003f}},
+		{"multiple with spaces", "0x0119, 01ab ,003f", []int64{0x0119, 0x01ab, 0x003f}},
+		{"invalid entries skipped", "0x0119,nope,,zz", []int64{0x0119}},
+		{"non-positive entries skipped", "0, -1, 0x0119", []int64{0x0119}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := ParseExtraProductIDs(tc.value)
+			if !slices.Equal(got, tc.want) {
+				t.Errorf("ParseExtraProductIDs(%q) = %v, want %v", tc.value, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestConfigFromEnv_ExtraProductIDs(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_EXTRA_PRODUCT_IDS", "0x0119,01ab")
+
+	cfg := ConfigFromEnv()
+
+	want := []int64{0x0119, 0x01ab}
+	if !slices.Equal(cfg.ExtraProductIDs, want) {
+		t.Errorf("ExtraProductIDs = %v, want %v", cfg.ExtraProductIDs, want)
+	}
+}
