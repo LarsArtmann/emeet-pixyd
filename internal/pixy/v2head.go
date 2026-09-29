@@ -2,6 +2,7 @@ package pixy
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
 
 	errorfamily "github.com/larsartmann/go-error-family"

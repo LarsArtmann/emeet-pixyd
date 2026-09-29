@@ -3,7 +3,7 @@
 package main
 
 import (
-	"errors"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const errorPrefix = "error: "
@@ -71,9 +71,9 @@ func errStr(e error) string {
 
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.
-	ErrAudioSourceNotFound = errors.New("PIXY audio source not found")
+	ErrAudioSourceNotFound error = errorfamily.NewInfrastructure("audio.source_not_found", "PIXY audio source not found")
 	// ErrInvalidValue is returned when a PTZ value is out of range.
-	ErrInvalidValue = errors.New("invalid value")
+	ErrInvalidValue error = errorfamily.NewRejection("ptz.value_invalid", "invalid value")
 	// errDeviceNotFound is returned when the video device path is empty.
-	errDeviceNotFound = errors.New("device not found")
+	errDeviceNotFound error = errorfamily.NewInfrastructure("device.not_found", "device not found")
 )
