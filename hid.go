@@ -136,6 +136,7 @@ func (h *hidrawDevice) Send(report []byte) (err error) {
 	return nil
 }
 
+//nolint:nonamedreturns // named err is required for the deferred close-error aggregation
 func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte, err error) {
 	if h.path == "" {
 		return nil, pixy.Wrap(pixy.ErrHIDDeviceNotAvailable, "hid.recv_device_unset", "hidSendRecv (device not set)")

@@ -58,6 +58,7 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 
 	responseWriter.Header().Set("Content-Type", "image/jpeg")
 	responseWriter.Header().Set("Cache-Control", "no-store")
+
 	if _, writeErr := responseWriter.Write(frame); writeErr != nil {
 		slog.Debug("snapshot write failed", "err", writeErr)
 	}
@@ -98,6 +99,7 @@ func cleanupFFmpeg(cmd *exec.Cmd) {
 	case waitErr := <-done:
 		if waitErr != nil {
 			slog.Debug("ffmpeg exited nonzero", "err", waitErr)
+
 			return
 		}
 	case <-time.After(ffmpegShutdownTimeout):
