@@ -20,23 +20,23 @@ func (d *Daemon) setDeviceState(
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return fmt.Errorf("setDeviceState (no device): %w", pixy.ErrPIXYNotConnected)
+		return pixy.Wrap(pixy.ErrPIXYNotConnected, "device.set_state_nodevice", "setDeviceState (no device)")
 	}
 
 	if circuitOpen {
-		return fmt.Errorf("setDeviceState: %w", pixy.ErrPIXYNotConnected)
+		return pixy.Wrap(pixy.ErrPIXYNotConnected, "device.set_state_circuit", "setDeviceState")
 	}
 
 	err := hidDev.Send(configBytes)
 	if err != nil {
 		d.recordHIDSendFailure(ctx)
 
-		return fmt.Errorf("setDeviceState send config: %w", err)
+		return pixy.Wrap(err, "device.set_state_config", "setDeviceState send config")
 	}
 
 	select {
 	case <-ctx.Done():
-		return fmt.Errorf("setDeviceState: %w", ctx.Err())
+		return pixy.Wrap(ctx.Err(), "device.set_state_ctx", "setDeviceState")
 	case <-time.After(hidCommandSleepMs * time.Millisecond):
 	}
 
@@ -52,7 +52,7 @@ func (d *Daemon) setDeviceState(
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 
-		return fmt.Errorf("setDeviceState send commit: %w", err)
+		return pixy.Wrap(err, "device.set_state_commit", "setDeviceState send commit")
 	}
 
 	d.mu.Lock()
@@ -101,7 +101,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
-		return fmt.Errorf("centerCamera: %w", pixy.ErrPIXYNotConnected)
+		return pixy.Wrap(pixy.ErrPIXYNotConnected, "camera.center_nodevice", "centerCamera")
 	}
 
 	controls := map[string]string{
@@ -112,7 +112,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	for ctrl, val := range controls {
 		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
 		if err != nil {
-			return fmt.Errorf("centerCamera %s=%s: %w", ctrl, val, err)
+			return pixy.Wrapf(err, "camera.center_v4l2", "centerCamera %s=%s", ctrl, val)
 		}
 	}
 

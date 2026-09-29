@@ -114,18 +114,18 @@ func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []b
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return nil, fmt.Errorf("v2Read (no device): %w", pixy.ErrPIXYNotConnected)
+		return nil, pixy.Wrap(pixy.ErrPIXYNotConnected, "battery.read_nodevice", "v2Read (no device)")
 	}
 
 	if circuitOpen {
-		return nil, fmt.Errorf("v2Read: %w", pixy.ErrPIXYNotConnected)
+		return nil, pixy.Wrap(pixy.ErrPIXYNotConnected, "battery.read_circuit", "v2Read")
 	}
 
 	query := append(head.Bytes(), payload...)
 
 	resp, err := hidDev.SendRecv(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("v2Read %x: %w", head, err)
+		return nil, pixy.Wrapf(err, "battery.read", "v2Read %x", head)
 	}
 
 	return resp, nil

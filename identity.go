@@ -63,7 +63,7 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
-		return "", fmt.Errorf("identity string %x: %w", head, err)
+		return "", pixy.Wrapf(err, "identity.string", "identity string %x", head)
 	}
 
 	return pixy.ParseString(head, resp)
@@ -73,7 +73,7 @@ func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (str
 func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
-		return 0, fmt.Errorf("identity u16 %x: %w", head, err)
+		return 0, pixy.Wrapf(err, "identity.u16", "identity u16 %x", head)
 	}
 
 	return pixy.ParseU16(head, resp)
@@ -83,7 +83,7 @@ func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16
 func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
-		return 0, fmt.Errorf("identity u32 %x: %w", head, err)
+		return 0, pixy.Wrapf(err, "identity.u32", "identity u32 %x", head)
 	}
 
 	return pixy.ParseU32(head, resp)

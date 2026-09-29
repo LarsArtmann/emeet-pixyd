@@ -114,7 +114,7 @@ func (d *Daemon) reassertSpeedsLocked(ctx context.Context, axes ...pixy.Axis) er
 		}
 
 		if err := d.setMotorSpeed(ctx, motor, speed); err != nil {
-			return fmt.Errorf("%s speed %g: %w", axis, speed, err)
+			return pixy.Wrapf(err, "motor.reassert_speed", "%s speed %g", axis, speed)
 		}
 	}
 
@@ -168,18 +168,18 @@ func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte)
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return fmt.Errorf("%s (no device): %w", operation, pixy.ErrPIXYNotConnected)
+		return pixy.Wrapf(pixy.ErrPIXYNotConnected, "motor.set_nodevice", "%s (no device)", operation)
 	}
 
 	if circuitOpen {
-		return fmt.Errorf("%s: %w", operation, pixy.ErrPIXYNotConnected)
+		return pixy.Wrapf(pixy.ErrPIXYNotConnected, "motor.set_circuit", "%s", operation)
 	}
 
 	err := hidDev.Send(report)
 	if err != nil {
 		d.recordHIDSendFailure(ctx)
 
-		return fmt.Errorf("%s send: %w", operation, err)
+		return pixy.Wrapf(err, "motor.set_send", "%s send", operation)
 	}
 
 	d.mu.Lock()
