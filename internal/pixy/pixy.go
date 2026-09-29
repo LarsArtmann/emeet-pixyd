@@ -3,12 +3,12 @@
 package pixy
 
 import (
-	"errors"
-	"fmt"
 	"slices"
 	"strings"
 	"time"
 	"unicode"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Default paths, intervals, and permission bits for the daemon.
@@ -41,15 +41,15 @@ const (
 
 var (
 	// ErrInvalidAudioMode is returned when parsing an unknown audio mode string.
-	ErrInvalidAudioMode = errors.New("invalid audio mode")
+	ErrInvalidAudioMode error = errorfamily.NewRejection("audio.mode_invalid", "invalid audio mode")
 	// ErrInvalidCameraState is returned when parsing an unknown camera state string.
-	ErrInvalidCameraState = errors.New("invalid camera state")
+	ErrInvalidCameraState error = errorfamily.NewRejection("camera.state_invalid", "invalid camera state")
 	// ErrInvalidPresetName is returned when a preset name fails validation.
-	ErrInvalidPresetName = errors.New("invalid preset name")
+	ErrInvalidPresetName error = errorfamily.NewRejection("preset.name_invalid", "invalid preset name")
 	// ErrHIDDeviceNotAvailable is returned when the HIDRAW device path is empty.
-	ErrHIDDeviceNotAvailable = errors.New("PIXY HID device not available")
+	ErrHIDDeviceNotAvailable error = errorfamily.NewInfrastructure("hid.device_unavailable", "PIXY HID device not available")
 	// ErrPIXYNotConnected is returned when the V4L2 device path is empty.
-	ErrPIXYNotConnected = errors.New("PIXY not connected")
+	ErrPIXYNotConnected error = errorfamily.NewInfrastructure("pixy.not_connected", "PIXY not connected")
 )
 
 // CameraState represents the current operating mode of the PIXY camera.
@@ -129,7 +129,7 @@ func ParseAudioMode(rawInput string) (AudioMode, error) {
 	case "org", string(AudioOriginal):
 		return AudioOriginal, nil
 	default:
-		return "", fmt.Errorf("invalid audio mode: %q: %w", rawInput, ErrInvalidAudioMode)
+		return "", Wrapf(ErrInvalidAudioMode, "audio.parse_mode", "invalid audio mode: %q", rawInput)
 	}
 }
 
@@ -210,10 +210,11 @@ func ParseAutoMode(rawInput string) (AutoMode, error) {
 	case "false", "0":
 		return AutoOff, nil
 	default:
-		return AutoOff, fmt.Errorf(
-			"invalid auto mode: %q (valid: off, full, tracking-only, privacy-only): %w",
-			rawInput,
+		return AutoOff, Wrapf(
 			ErrInvalidAutoMode,
+			"auto.parse_mode",
+			"invalid auto mode: %q (valid: off, full, tracking-only, privacy-only)",
+			rawInput,
 		)
 	}
 }
@@ -231,7 +232,7 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 	case string(StateOffline):
 		return StateOffline, nil
 	default:
-		return "", fmt.Errorf("invalid camera state: %q: %w", rawInput, ErrInvalidCameraState)
+		return "", Wrapf(ErrInvalidCameraState, "camera.parse_state", "invalid camera state: %q", rawInput)
 	}
 }
 
@@ -435,21 +436,22 @@ const (
 func ValidatePresetName(name string) error {
 	trimmed := strings.TrimSpace(name)
 	if trimmed == "" {
-		return fmt.Errorf("preset name is empty: %w", ErrInvalidPresetName)
+		return Wrap(ErrInvalidPresetName, "preset.name_empty", "preset name is empty")
 	}
 
 	if len([]rune(trimmed)) > MaxPresetNameLength {
-		return fmt.Errorf(
-			"preset name too long (%d > %d): %w",
+		return Wrapf(
+			ErrInvalidPresetName,
+			"preset.name_too_long",
+			"preset name too long (%d > %d)",
 			len([]rune(trimmed)),
 			MaxPresetNameLength,
-			ErrInvalidPresetName,
 		)
 	}
 
 	for _, r := range trimmed {
 		if r == '/' || r == '\\' || unicode.IsControl(r) {
-			return fmt.Errorf("preset name %q contains an illegal character: %w", trimmed, ErrInvalidPresetName)
+			return Wrapf(ErrInvalidPresetName, "preset.name_char", "preset name %q contains an illegal character", trimmed)
 		}
 	}
 

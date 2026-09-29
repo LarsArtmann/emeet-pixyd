@@ -2,9 +2,9 @@ package pixy
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"math"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // V2Head is the official EMEET STUDIO HID command header, decoded from the
@@ -43,16 +43,16 @@ const MotorMCUIface byte = 0x63
 var (
 	// ErrV2ResponseShort is returned when a V2 read response is too short to
 	// carry the documented payload.
-	ErrV2ResponseShort = errors.New("v2 response too short")
+	ErrV2ResponseShort error = errorfamily.NewTransient("v2.response_short", "v2 response too short")
 	// ErrV2ResponseHeadMismatch is returned when a V2 response does not echo
 	// the request head (official parsers reject those; so do we).
-	ErrV2ResponseHeadMismatch = errors.New("v2 response head mismatch")
+	ErrV2ResponseHeadMismatch error = errorfamily.NewTransient("v2.head_mismatch", "v2 response head mismatch")
 	// ErrInvalidMotorType is returned when a motor byte is not a valid
 	// pixy.MotorType.
-	ErrInvalidMotorType = errors.New("invalid motor type")
+	ErrInvalidMotorType error = errorfamily.NewRejection("motor.type_invalid", "invalid motor type")
 	// ErrInvalidChargeStatus is returned when a charge-status byte is not a
 	// known ChargeStatus value.
-	ErrInvalidChargeStatus = errors.New("invalid charge status")
+	ErrInvalidChargeStatus error = errorfamily.NewRejection("charge.status_invalid", "invalid charge status")
 )
 
 // Known V2 command heads used by emeet-pixyd.
@@ -199,20 +199,22 @@ func v2EchoMatches(echo, want V2Head) bool {
 // payload. need is the required payload length in bytes.
 func v2Payload(want V2Head, resp []byte, need int) ([]byte, error) {
 	if len(resp) < len(want) {
-		return nil, fmt.Errorf("v2 response %d bytes: %w", len(resp), ErrV2ResponseShort)
+		return nil, Wrapf(ErrV2ResponseShort, "v2.payload_head_len", "v2 response %d bytes", len(resp))
 	}
 
 	var echo V2Head
 	copy(echo[:], resp[:len(want)])
 
 	if !v2EchoMatches(echo, want) {
-		return nil, fmt.Errorf("v2 response head %x, want %x: %w", echo, want, ErrV2ResponseHeadMismatch)
+		return nil, Wrapf(ErrV2ResponseHeadMismatch, "v2.payload_head_echo", "v2 response head %x, want %x", echo, want)
 	}
 
 	if len(resp) < V2ResponsePayloadOffset+need {
-		return nil, fmt.Errorf(
-			"v2 payload %d bytes (need %d): %w",
-			len(resp)-V2ResponsePayloadOffset, need, ErrV2ResponseShort,
+		return nil, Wrapf(
+			ErrV2ResponseShort,
+			"v2.payload_len",
+			"v2 payload %d bytes (need %d)",
+			len(resp)-V2ResponsePayloadOffset, need,
 		)
 	}
 
@@ -253,7 +255,7 @@ func ParseMotorSpeedResponse(head V2Head, resp []byte) (MotorSpeedReading, error
 
 	motor := MotorType(payload[0])
 	if !motor.Valid() {
-		return MotorSpeedReading{}, fmt.Errorf("motor speed payload byte %d: %w", payload[0], ErrInvalidMotorType)
+		return MotorSpeedReading{}, Wrapf(ErrInvalidMotorType, "motor.speed_byte", "motor speed payload byte %d", payload[0])
 	}
 
 	return MotorSpeedReading{
@@ -422,7 +424,7 @@ func ParseChargeStatus(head V2Head, resp []byte) (ChargeStatus, error) {
 
 	sta := ChargeStatus(payload[0])
 	if !sta.Valid() {
-		return 0, fmt.Errorf("charge status %d: %w", payload[0], ErrInvalidChargeStatus)
+		return 0, Wrapf(ErrInvalidChargeStatus, "charge.status_byte", "charge status %d", payload[0])
 	}
 
 	return sta, nil
@@ -541,7 +543,7 @@ func ParseString(head V2Head, resp []byte) (string, error) {
 	}
 
 	if end == 0 {
-		return "", fmt.Errorf("string payload empty: %w", ErrV2ResponseShort)
+		return "", Wrap(ErrV2ResponseShort, "v2.payload_string_empty", "string payload empty")
 	}
 
 	return string(payload[:end]), nil
