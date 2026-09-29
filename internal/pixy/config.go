@@ -136,17 +136,17 @@ func ParseExtraProductIDs(value string) []int64 {
 // Config validation sentinel errors.
 var (
 	// ErrStateDirEmpty is returned when Config.StateDir is empty.
-	ErrStateDirEmpty = errors.New("state directory must not be empty")
+	ErrStateDirEmpty error = errorfamily.NewRejection("config.state_dir_empty", "state directory must not be empty")
 	// ErrPollIntervalZero is returned when Config.PollInterval is not positive.
-	ErrPollIntervalZero = errors.New("poll interval must be positive")
+	ErrPollIntervalZero error = errorfamily.NewRejection("config.poll_interval", "poll interval must be positive")
 	// ErrDebounceCountZero is returned when Config.DebounceCount is not positive.
-	ErrDebounceCountZero = errors.New("debounce count must be positive")
+	ErrDebounceCountZero error = errorfamily.NewRejection("config.debounce_count", "debounce count must be positive")
 	// ErrWebAddrEmpty is returned when Config.WebAddr is empty.
-	ErrWebAddrEmpty = errors.New("web address must not be empty")
+	ErrWebAddrEmpty error = errorfamily.NewRejection("config.web_addr", "web address must not be empty")
 	// ErrInvalidAutoMode is returned when Config.AutoMode is not a valid mode.
-	ErrInvalidAutoMode = errors.New("invalid auto mode in config")
+	ErrInvalidAutoMode error = errorfamily.NewRejection("config.auto_mode", "invalid auto mode in config")
 	// ErrInvalidDefaultAudio is returned when Config.DefaultAudio is not a valid mode.
-	ErrInvalidDefaultAudio = errors.New("invalid default audio mode in config")
+	ErrInvalidDefaultAudio error = errorfamily.NewRejection("config.default_audio", "invalid default audio mode in config")
 )
 
 // Validate checks that all required config fields are set and sane.
@@ -168,11 +168,11 @@ func (c Config) Validate() error {
 	}
 
 	if !c.AutoMode.Valid() {
-		return fmt.Errorf("config auto mode %q: %w", c.AutoMode, ErrInvalidAutoMode)
+		return Wrapf(ErrInvalidAutoMode, "config.validate_auto", "config auto mode %q", c.AutoMode)
 	}
 
 	if !c.DefaultAudio.Valid() {
-		return fmt.Errorf("config default audio %q: %w", c.DefaultAudio, ErrInvalidDefaultAudio)
+		return Wrapf(ErrInvalidDefaultAudio, "config.validate_audio", "config default audio %q", c.DefaultAudio)
 	}
 
 	return nil
