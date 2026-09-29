@@ -291,6 +291,8 @@ func (s *webServer) writeFrames(
 // scanForSOI consumes bytes until a JPEG Start-of-Image marker pair is found.
 // On success the SOI bytes are written to buf (reset first) and true is
 // returned. A lone marker byte is unread so the caller can re-examine it.
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 	b, err := br.ReadByte()
 	if err != nil {
@@ -314,13 +316,19 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 		return true, nil
 	case jpegMarker:
 		if unreadErr := br.UnreadByte(); unreadErr != nil {
-			return false, errorfamily.Wrap(unreadErr, errorfamily.Classify(unreadErr), "stream.soi_unread", "unread lone marker byte")
+			return false, errorfamily.Wrap(
+				unreadErr,
+				errorfamily.Classify(unreadErr),
+				"stream.soi_unread",
+				"unread lone marker byte",
+			)
 		}
 	}
 
 	return false, nil
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 	const maxIterations = 10 * 1024 * 1024
 
@@ -359,7 +367,12 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		if b == jpegMarker {
 			next, nextErr := br.ReadByte()
 			if nextErr != nil {
-				return nil, errorfamily.Wrap(nextErr, errorfamily.Classify(nextErr), "stream.frame_eoi_next", "read eoi next")
+				return nil, errorfamily.Wrap(
+					nextErr,
+					errorfamily.Classify(nextErr),
+					"stream.frame_eoi_next",
+					"read eoi next",
+				)
 			}
 
 			buf.WriteByte(next)

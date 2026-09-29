@@ -132,6 +132,7 @@ type noopUeventListener struct{}
 
 func (noopUeventListener) Listen(context.Context, chan<- struct{}) {}
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func unixSocketUevent() (*os.File, error) {
 	fd, err := unixOpenNetlinkKobjectUevent()
 	if err != nil {

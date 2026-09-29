@@ -111,15 +111,21 @@ func (d *Daemon) v2Read(ctx context.Context, head pixy.V2Head) ([]byte, error) {
 // validated against it.
 //
 // LOCK CONTRACT: caller holds d.hidMu.
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []byte) ([]byte, error) {
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return nil, errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "battery.read_nodevice", "v2Read (no device)")
+		return nil, errorfamily.WrapInfrastructuref(
+			pixy.ErrPIXYNotConnected,
+			"battery.read_nodevice",
+			"v2Read (no device)",
+		)
 	}
 
 	if circuitOpen {
-		return nil, errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "battery.read_circuit", "v2Read")
+		return nil, errorfamily.WrapInfrastructuref(pixy.ErrPIXYNotConnected, "battery.read_circuit", "v2Read")
 	}
 
 	query := append(head.Bytes(), payload...)

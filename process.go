@@ -158,6 +158,7 @@ func procFDsOpenDevice(fdPath, videoDev string) bool {
 	return false
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
@@ -177,7 +178,11 @@ func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 		}
 	}
 
-	return pixy.SourceID{}, errorfamily.Wrap(ErrAudioSourceNotFound, errorfamily.Classify(ErrAudioSourceNotFound), "audio.find_source_notfound", "findPixySource")
+	return pixy.SourceID{}, errorfamily.WrapInfrastructuref(
+		ErrAudioSourceNotFound,
+		"audio.find_source_notfound",
+		"findPixySource",
+	)
 }
 
 func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {

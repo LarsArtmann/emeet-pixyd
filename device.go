@@ -13,6 +13,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) setDeviceState(
 	ctx context.Context,
 	configBytes, commitBytes []byte,
@@ -21,11 +22,15 @@ func (d *Daemon) setDeviceState(
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "device.set_state_nodevice", "setDeviceState (no device)")
+		return errorfamily.WrapInfrastructuref(
+			pixy.ErrPIXYNotConnected,
+			"device.set_state_nodevice",
+			"setDeviceState (no device)",
+		)
 	}
 
 	if circuitOpen {
-		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "device.set_state_circuit", "setDeviceState")
+		return errorfamily.WrapInfrastructuref(pixy.ErrPIXYNotConnected, "device.set_state_circuit", "setDeviceState")
 	}
 
 	err := hidDev.Send(configBytes)
@@ -98,11 +103,12 @@ func (d *Daemon) setGesture(ctx context.Context, enabled bool) error {
 	)
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) centerCamera(ctx context.Context) error {
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
-		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "camera.center_nodevice", "centerCamera")
+		return errorfamily.WrapInfrastructuref(pixy.ErrPIXYNotConnected, "camera.center_nodevice", "centerCamera")
 	}
 
 	controls := map[string]string{
@@ -113,7 +119,14 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	for ctrl, val := range controls {
 		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
 		if err != nil {
-			return errorfamily.Wrapf(err, errorfamily.Classify(err), "camera.center_v4l2", "centerCamera %s=%s", ctrl, val)
+			return errorfamily.Wrapf(
+				err,
+				errorfamily.Classify(err),
+				"camera.center_v4l2",
+				"centerCamera %s=%s",
+				ctrl,
+				val,
+			)
 		}
 	}
 

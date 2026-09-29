@@ -73,10 +73,19 @@ func ptzAxisValid(axis pixy.Axis) bool {
 	return ok
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 	err := d.deps.commander.Run(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value)
 	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Classify(err), "ptz.v4l2_set", "v4l2Set %s=%s on %s", ctrl, value, dev)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"ptz.v4l2_set",
+			"v4l2Set %s=%s on %s",
+			ctrl,
+			value,
+			dev,
+		)
 	}
 
 	return nil
@@ -143,7 +152,10 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	val, relative, parseErr := parsePTZValue(parts[1])
 	if parseErr != nil {
-		return errResult(string(axis), errorfamily.Wrap(ErrInvalidValue, errorfamily.Classify(ErrInvalidValue), "ptz.parse_error", "parse error"))
+		return errResult(
+			string(axis),
+			errorfamily.Wrap(ErrInvalidValue, errorfamily.Classify(ErrInvalidValue), "ptz.parse_error", "parse error"),
+		)
 	}
 
 	d.mu.RLock()
@@ -226,7 +238,14 @@ func parsePTZValue(s string) (int, bool, error) {
 	if rest, ok := strings.CutPrefix(s, "rel"); ok {
 		v, err := strconv.Atoi(rest)
 		if err != nil {
-			return 0, false, errorfamily.Wrapf(err, errorfamily.Classify(err), "ptz.parse_rel", "%s %q", parsePTZValueErrStr, s)
+			return 0, false, errorfamily.Wrapf(
+				err,
+				errorfamily.Classify(err),
+				"ptz.parse_rel",
+				"%s %q",
+				parsePTZValueErrStr,
+				s,
+			)
 		}
 
 		return v, true, nil
@@ -234,7 +253,14 @@ func parsePTZValue(s string) (int, bool, error) {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, false, errorfamily.Wrapf(err, errorfamily.Classify(err), "ptz.parse_abs", "%s %q", parsePTZValueErrStr, s)
+		return 0, false, errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"ptz.parse_abs",
+			"%s %q",
+			parsePTZValueErrStr,
+			s,
+		)
 	}
 
 	return v, false, nil

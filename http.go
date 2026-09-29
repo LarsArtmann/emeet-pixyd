@@ -17,12 +17,20 @@ import (
 // writeJSON encodes v as JSON and writes it with the given status and
 // Content-Type header. Buffers before writing headers so a failed encode
 // doesn't commit a success status.
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func writeJSON(w http.ResponseWriter, status int, v any) error {
 	var buf bytes.Buffer
 
 	err := json.MarshalWrite(&buf, v)
 	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Classify(err), "http.encode_json", "encode JSON response (status %d)", status)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"http.encode_json",
+			"encode JSON response (status %d)",
+			status,
+		)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

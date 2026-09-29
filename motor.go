@@ -97,6 +97,8 @@ func (d *Daemon) reassertSpeeds(ctx context.Context, axes ...pixy.Axis) {
 // breaker within a single re-assert.
 //
 // LOCK CONTRACT: caller holds d.hidMu.
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) reassertSpeedsLocked(ctx context.Context, axes ...pixy.Axis) error {
 	d.mu.RLock()
 	speeds := d.state.Speeds
@@ -164,15 +166,22 @@ func (d *Daemon) queryMotorPresetPos(ctx context.Context, slot byte) (pixy.Motor
 // LOCK CONTRACT: the caller holds d.hidMu (the command dispatcher holds it
 // for HID commands; multi-step callers take it around their whole sequence —
 // taking it here would deadlock against the dispatcher).
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte) error {
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return errorfamily.Wrapf(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "motor.set_nodevice", "%s (no device)", operation)
+		return errorfamily.WrapInfrastructuref(
+			pixy.ErrPIXYNotConnected,
+			"motor.set_nodevice",
+			"%s (no device)",
+			operation,
+		)
 	}
 
 	if circuitOpen {
-		return errorfamily.Wrapf(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "motor.set_circuit", "%s", operation)
+		return errorfamily.WrapInfrastructuref(pixy.ErrPIXYNotConnected, "motor.set_circuit", "%s", operation)
 	}
 
 	err := hidDev.Send(report)

@@ -61,6 +61,7 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
@@ -71,6 +72,7 @@ func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (str
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
@@ -81,6 +83,7 @@ func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) {
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {

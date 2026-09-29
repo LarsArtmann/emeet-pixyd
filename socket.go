@@ -18,6 +18,7 @@ import (
 
 const socketIOTimeout = 5 * time.Second
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) listenUnix(ctx context.Context) error {
 	socketPath := d.config.SocketPath()
 	if removeErr := os.Remove(socketPath); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
@@ -26,7 +27,13 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
-		return errorfamily.Wrapf(createErr, errorfamily.Classify(createErr), "socket.state_dir", "create state dir %s", d.config.StateDir)
+		return errorfamily.Wrapf(
+			createErr,
+			errorfamily.Classify(createErr),
+			"socket.state_dir",
+			"create state dir %s",
+			d.config.StateDir,
+		)
 	}
 
 	//nolint:exhaustruct
@@ -69,6 +76,8 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 // serveUnixConn handles a single socket command connection sequentially:
 // read one command, respond once, close.
+//
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) serveUnixConn(ctx context.Context, conn net.Conn) {
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {

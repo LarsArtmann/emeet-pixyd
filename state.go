@@ -89,15 +89,23 @@ func (d *Daemon) loadState() bool {
 	return true
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) ensureStateDir() error {
 	err := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Classify(err), "state.ensure_dir", "ensure state dir %s", d.config.StateDir)
+		return errorfamily.Wrapf(
+			err,
+			errorfamily.Classify(err),
+			"state.ensure_dir",
+			"ensure state dir %s",
+			d.config.StateDir,
+		)
 	}
 
 	return nil
 }
 
+//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) saveState() error {
 	err := d.ensureStateDir()
 	if err != nil {
