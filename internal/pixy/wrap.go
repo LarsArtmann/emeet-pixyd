@@ -9,14 +9,22 @@ import (
 // Wrap returns err wrapped with a machine-readable code and a context
 // message, inheriting the error family from the cause. Classification is
 // therefore decided exactly once, at the error's root: wraps add code and
-// context without ever re-classifying. Callers must pass a non-nil err —
-// every call site is inside an error branch. The concrete return keeps the
-// family visible to static analysis.
-func Wrap(err error, code, message string) *errorfamily.Error {
+// context without ever re-classifying. Nil-safe. Used inside this package;
+// root-package construction calls errorfamily.Wrap directly so the
+// constructing function carries the recognized constructor.
+func Wrap(err error, code, message string) error {
+	if err == nil {
+		return nil
+	}
+
 	return errorfamily.Wrap(err, errorfamily.Classify(err), code, message)
 }
 
 // Wrapf is the formatted-message variant of Wrap.
-func Wrapf(err error, code, format string, args ...any) *errorfamily.Error {
+func Wrapf(err error, code, format string, args ...any) error {
+	if err == nil {
+		return nil
+	}
+
 	return errorfamily.Wrapf(err, errorfamily.Classify(err), code, format, args...)
 }

@@ -110,7 +110,7 @@ func newHIDRawDevice(path string) HIDDevice {
 
 func (h *hidrawDevice) Send(report []byte) (err error) {
 	if h.path == "" {
-		return pixy.Wrap(pixy.ErrHIDDeviceNotAvailable, "hid.send_device_unset", "hidSend (device not set)")
+		return errorfamily.Wrap(pixy.ErrHIDDeviceNotAvailable, errorfamily.Classify(pixy.ErrHIDDeviceNotAvailable), "hid.send_device_unset", "hidSend (device not set)")
 	}
 
 	buf := make([]byte, hidBufSize)
@@ -118,19 +118,19 @@ func (h *hidrawDevice) Send(report []byte) (err error) {
 
 	hidFile, err := os.OpenFile(h.path, os.O_WRONLY, 0)
 	if err != nil {
-		return pixy.Wrapf(err, "hid.send_open", "hidSend open %s", h.path)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "hid.send_open", "hidSend open %s", h.path)
 	}
 
 	defer func() {
 		cerr := hidFile.Close()
 		if cerr != nil && err == nil {
-			err = pixy.Wrap(cerr, "hid.send_close", "hidSend close")
+			err = errorfamily.Wrap(cerr, errorfamily.Classify(cerr), "hid.send_close", "hidSend close")
 		}
 	}()
 
 	_, err = hidFile.Write(buf)
 	if err != nil {
-		return pixy.Wrapf(err, "hid.send_write", "hidSend write %s", h.path)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "hid.send_write", "hidSend write %s", h.path)
 	}
 
 	return nil
@@ -139,7 +139,7 @@ func (h *hidrawDevice) Send(report []byte) (err error) {
 //nolint:nonamedreturns // named err is required for the deferred close-error aggregation
 func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte, err error) {
 	if h.path == "" {
-		return nil, pixy.Wrap(pixy.ErrHIDDeviceNotAvailable, "hid.recv_device_unset", "hidSendRecv (device not set)")
+		return nil, errorfamily.Wrap(pixy.ErrHIDDeviceNotAvailable, errorfamily.Classify(pixy.ErrHIDDeviceNotAvailable), "hid.recv_device_unset", "hidSendRecv (device not set)")
 	}
 
 	buf := make([]byte, hidBufSize)
@@ -147,13 +147,13 @@ func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte
 
 	hidFile, openErr := os.OpenFile(h.path, os.O_RDWR, 0)
 	if openErr != nil {
-		return nil, pixy.Wrapf(openErr, "hid.recv_open", "open hidraw %s", h.path)
+		return nil, errorfamily.Wrapf(openErr, errorfamily.Classify(openErr), "hid.recv_open", "open hidraw %s", h.path)
 	}
 
 	defer func() {
 		if closeErr := hidFile.Close(); closeErr != nil {
 			if err != nil {
-				err = errorfamily.Compose(err, pixy.Wrap(closeErr, "hid.recv_close", "close hidraw "+h.path))
+				err = errorfamily.Compose(err, errorfamily.Wrap(closeErr, errorfamily.Classify(closeErr), "hid.recv_close", "close hidraw "+h.path))
 			} else {
 				slog.Debug("hidSendRecv close failed", "device", h.path, "err", closeErr)
 			}
@@ -162,11 +162,11 @@ func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte
 
 	written, writeErr := hidFile.Write(buf)
 	if writeErr != nil {
-		return nil, pixy.Wrapf(writeErr, "hid.recv_write", "write hidraw %s", h.path)
+		return nil, errorfamily.Wrapf(writeErr, errorfamily.Classify(writeErr), "hid.recv_write", "write hidraw %s", h.path)
 	}
 
 	if written == 0 {
-		return nil, pixy.Wrapf(errHIDWriteZero, "hid.recv_write_zero", "write hidraw %s", h.path)
+		return nil, errorfamily.Wrapf(errHIDWriteZero, errorfamily.Classify(errHIDWriteZero), "hid.recv_write_zero", "write hidraw %s", h.path)
 	}
 
 	type readResult struct {
@@ -191,7 +191,7 @@ func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte
 		return nil, pixy.Wrapf(ctx.Err(), "hid.recv_ctx", "hidSendRecv %s", h.path)
 	case r := <-resultChan:
 		if r.err != nil {
-			return nil, pixy.Wrapf(r.err, "hid.recv_read", "hidSendRecv %s read", h.path)
+			return nil, errorfamily.Wrapf(r.err, errorfamily.Classify(r.err), "hid.recv_read", "hidSendRecv %s read", h.path)
 		}
 
 		return r.data, nil
@@ -291,16 +291,16 @@ func queryHIDState[T any](
 
 	resp, err := dev.SendRecv(ctx, payload)
 	if err != nil {
-		return zero, pixy.Wrapf(err, "hid.query_sendrecv", "queryHIDState dev=%s", dev)
+		return zero, errorfamily.Wrapf(err, errorfamily.Classify(err), "hid.query_sendrecv", "queryHIDState dev=%s", dev)
 	}
 
 	if resp == nil {
-		return zero, pixy.Wrapf(errNoHIDResponse, "hid.query_no_response", "queryHIDState dev=%s", dev)
+		return zero, errorfamily.Wrapf(errNoHIDResponse, errorfamily.Classify(errNoHIDResponse), "hid.query_no_response", "queryHIDState dev=%s", dev)
 	}
 
 	parsed := parseHIDResponse(resp)
 	if !parsed.Got {
-		return zero, pixy.Wrapf(errUnrecognizedHID, "hid.query_unrecognized", "queryHIDState dev=%s", dev)
+		return zero, errorfamily.Wrapf(errUnrecognizedHID, errorfamily.Classify(errUnrecognizedHID), "hid.query_unrecognized", "queryHIDState dev=%s", dev)
 	}
 
 	return extract(parsed), nil

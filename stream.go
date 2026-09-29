@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -295,7 +294,7 @@ func (s *webServer) writeFrames(
 func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 	b, err := br.ReadByte()
 	if err != nil {
-		return false, pixy.Wrap(err, "stream.soi_read", "read byte")
+		return false, errorfamily.Wrap(err, errorfamily.Classify(err), "stream.soi_read", "read byte")
 	}
 
 	if b != jpegMarker {
@@ -304,7 +303,7 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 
 	next, nextErr := br.ReadByte()
 	if nextErr != nil {
-		return false, pixy.Wrap(nextErr, "stream.soi_next", "read soi next")
+		return false, errorfamily.Wrap(nextErr, errorfamily.Classify(nextErr), "stream.soi_next", "read soi next")
 	}
 
 	switch next {
@@ -315,7 +314,7 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 		return true, nil
 	case jpegMarker:
 		if unreadErr := br.UnreadByte(); unreadErr != nil {
-			return false, pixy.Wrap(unreadErr, "stream.soi_unread", "unread lone marker byte")
+			return false, errorfamily.Wrap(unreadErr, errorfamily.Classify(unreadErr), "stream.soi_unread", "unread lone marker byte")
 		}
 	}
 
@@ -352,7 +351,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 		b, err := br.ReadByte()
 		if err != nil {
-			return nil, pixy.Wrap(err, "stream.frame_read", "read byte")
+			return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "stream.frame_read", "read byte")
 		}
 
 		buf.WriteByte(b)
@@ -360,7 +359,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		if b == jpegMarker {
 			next, nextErr := br.ReadByte()
 			if nextErr != nil {
-				return nil, pixy.Wrap(nextErr, "stream.frame_eoi_next", "read eoi next")
+				return nil, errorfamily.Wrap(nextErr, errorfamily.Classify(nextErr), "stream.frame_eoi_next", "read eoi next")
 			}
 
 			buf.WriteByte(next)
@@ -374,8 +373,9 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		}
 	}
 
-	return nil, pixy.Wrapf(
+	return nil, errorfamily.Wrapf(
 		errJPEGMaxIterations,
+		errorfamily.Classify(errJPEGMaxIterations),
 		"stream.frame_scan_exhausted",
 		"max iterations (%d) reached scanning for JPEG frame",
 		maxIterations,

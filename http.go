@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // writeJSON encodes v as JSON and writes it with the given status and
@@ -22,7 +22,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 
 	err := json.MarshalWrite(&buf, v)
 	if err != nil {
-		return pixy.Wrapf(err, "http.encode_json", "encode JSON response (status %d)", status)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "http.encode_json", "encode JSON response (status %d)", status)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The battery/charge read surface (TODO #139). Heads are from the extracted
@@ -114,18 +115,18 @@ func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []b
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return nil, pixy.Wrap(pixy.ErrPIXYNotConnected, "battery.read_nodevice", "v2Read (no device)")
+		return nil, errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "battery.read_nodevice", "v2Read (no device)")
 	}
 
 	if circuitOpen {
-		return nil, pixy.Wrap(pixy.ErrPIXYNotConnected, "battery.read_circuit", "v2Read")
+		return nil, errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "battery.read_circuit", "v2Read")
 	}
 
 	query := append(head.Bytes(), payload...)
 
 	resp, err := hidDev.SendRecv(ctx, query)
 	if err != nil {
-		return nil, pixy.Wrapf(err, "battery.read", "v2Read %x", head)
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "battery.read", "v2Read %x", head)
 	}
 
 	return resp, nil

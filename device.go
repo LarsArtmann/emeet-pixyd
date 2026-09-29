@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func (d *Daemon) setDeviceState(
@@ -20,23 +21,23 @@ func (d *Daemon) setDeviceState(
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return pixy.Wrap(pixy.ErrPIXYNotConnected, "device.set_state_nodevice", "setDeviceState (no device)")
+		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "device.set_state_nodevice", "setDeviceState (no device)")
 	}
 
 	if circuitOpen {
-		return pixy.Wrap(pixy.ErrPIXYNotConnected, "device.set_state_circuit", "setDeviceState")
+		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "device.set_state_circuit", "setDeviceState")
 	}
 
 	err := hidDev.Send(configBytes)
 	if err != nil {
 		d.recordHIDSendFailure(ctx)
 
-		return pixy.Wrap(err, "device.set_state_config", "setDeviceState send config")
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "device.set_state_config", "setDeviceState send config")
 	}
 
 	select {
 	case <-ctx.Done():
-		return pixy.Wrap(ctx.Err(), "device.set_state_ctx", "setDeviceState")
+		return errorfamily.Wrap(ctx.Err(), errorfamily.Classify(ctx.Err()), "device.set_state_ctx", "setDeviceState")
 	case <-time.After(hidCommandSleepMs * time.Millisecond):
 	}
 
@@ -52,7 +53,7 @@ func (d *Daemon) setDeviceState(
 		d.mu.Unlock()
 		d.broadcastStateChanged()
 
-		return pixy.Wrap(err, "device.set_state_commit", "setDeviceState send commit")
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "device.set_state_commit", "setDeviceState send commit")
 	}
 
 	d.mu.Lock()
@@ -101,7 +102,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
-		return pixy.Wrap(pixy.ErrPIXYNotConnected, "camera.center_nodevice", "centerCamera")
+		return errorfamily.Wrap(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "camera.center_nodevice", "centerCamera")
 	}
 
 	controls := map[string]string{
@@ -112,7 +113,7 @@ func (d *Daemon) centerCamera(ctx context.Context) error {
 	for ctrl, val := range controls {
 		err := d.deps.v4l2Set(ctx, videoDev, ctrl, val)
 		if err != nil {
-			return pixy.Wrapf(err, "camera.center_v4l2", "centerCamera %s=%s", ctrl, val)
+			return errorfamily.Wrapf(err, errorfamily.Classify(err), "camera.center_v4l2", "centerCamera %s=%s", ctrl, val)
 		}
 	}
 

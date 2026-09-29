@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -135,7 +135,7 @@ func (noopUeventListener) Listen(context.Context, chan<- struct{}) {}
 func unixSocketUevent() (*os.File, error) {
 	fd, err := unixOpenNetlinkKobjectUevent()
 	if err != nil {
-		return nil, pixy.Wrap(err, "uevent.socket", "uevent socket")
+		return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "uevent.socket", "uevent socket")
 	}
 
 	return os.NewFile(uintptr(fd), "uevent"), nil

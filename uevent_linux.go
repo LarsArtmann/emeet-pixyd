@@ -5,7 +5,7 @@ package main
 import (
 	"log/slog"
 
-	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/sys/unix"
 )
 
@@ -16,7 +16,7 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		unix.NETLINK_KOBJECT_UEVENT,
 	)
 	if err != nil {
-		return -1, pixy.Wrap(err, "uevent.netlink_socket", "netlink socket")
+		return -1, errorfamily.Wrap(err, errorfamily.Classify(err), "uevent.netlink_socket", "netlink socket")
 	}
 
 	//nolint:exhaustruct
@@ -31,7 +31,7 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 			slog.Debug("netlink fd close after bind failure failed", "err", closeErr)
 		}
 
-		return -1, pixy.Wrap(bindErr, "uevent.netlink_bind", "netlink bind")
+		return -1, errorfamily.Wrap(bindErr, errorfamily.Classify(bindErr), "uevent.netlink_bind", "netlink bind")
 	}
 
 	return fd, nil

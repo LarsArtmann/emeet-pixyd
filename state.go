@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // stateMutator is called by setDeviceState after a successful HID commit.
@@ -91,7 +92,7 @@ func (d *Daemon) loadState() bool {
 func (d *Daemon) ensureStateDir() error {
 	err := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if err != nil {
-		return pixy.Wrapf(err, "state.ensure_dir", "ensure state dir %s", d.config.StateDir)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "state.ensure_dir", "ensure state dir %s", d.config.StateDir)
 	}
 
 	return nil
@@ -105,19 +106,19 @@ func (d *Daemon) saveState() error {
 
 	data, err := json.Marshal(d.state)
 	if err != nil {
-		return pixy.Wrap(err, "state.marshal", "marshal state")
+		return errorfamily.Wrap(err, errorfamily.Classify(err), "state.marshal", "marshal state")
 	}
 
 	tmp := d.config.StateFile() + ".tmp"
 
 	writeErr := os.WriteFile(tmp, data, pixy.PermissionStateFile)
 	if writeErr != nil {
-		return pixy.Wrap(writeErr, "state.write_tmp", "write temp state")
+		return errorfamily.Wrap(writeErr, errorfamily.Classify(writeErr), "state.write_tmp", "write temp state")
 	}
 
 	renameErr := os.Rename(tmp, d.config.StateFile())
 	if renameErr != nil {
-		return pixy.Wrap(renameErr, "state.rename", "rename state")
+		return errorfamily.Wrap(renameErr, errorfamily.Classify(renameErr), "state.rename", "rename state")
 	}
 
 	return nil

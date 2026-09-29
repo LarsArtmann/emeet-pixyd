@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const socketIOTimeout = 5 * time.Second
@@ -25,7 +26,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
-		return pixy.Wrapf(createErr, "socket.state_dir", "create state dir %s", d.config.StateDir)
+		return errorfamily.Wrapf(createErr, errorfamily.Classify(createErr), "socket.state_dir", "create state dir %s", d.config.StateDir)
 	}
 
 	//nolint:exhaustruct
@@ -33,7 +34,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	listener, err := lc.Listen(ctx, "unix", socketPath)
 	if err != nil {
-		return pixy.Wrapf(err, "socket.listen", "listen on %s", socketPath)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "socket.listen", "listen on %s", socketPath)
 	}
 
 	defer func() {
@@ -102,7 +103,7 @@ func (d *Daemon) serveUnixConn(ctx context.Context, conn net.Conn) {
 func sendCommand(cfg pixy.Config, cmd string) (string, error) {
 	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), cmd)
 	if err != nil {
-		return "", pixy.Wrapf(err, "socket.send", "sendCommand %q", cmd)
+		return "", errorfamily.Wrapf(err, errorfamily.Classify(err), "socket.send", "sendCommand %q", cmd)
 	}
 
 	return resp, nil

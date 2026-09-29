@@ -89,7 +89,7 @@ const (
 func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	err := cfg.Validate()
 	if err != nil {
-		return nil, pixy.Wrap(err, "daemon.validate_config", "validate config")
+		return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "daemon.validate_config", "validate config")
 	}
 
 	//nolint:exhaustruct // remaining fields set below or zero-valued

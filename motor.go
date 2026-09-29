@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The official V2 motor-command family (docs/hid-protocol-official-map.md
@@ -113,7 +114,7 @@ func (d *Daemon) reassertSpeedsLocked(ctx context.Context, axes ...pixy.Axis) er
 		}
 
 		if err := d.setMotorSpeed(ctx, motor, speed); err != nil {
-			return pixy.Wrapf(err, "motor.reassert_speed", "%s speed %g", axis, speed)
+			return errorfamily.Wrapf(err, errorfamily.Classify(err), "motor.reassert_speed", "%s speed %g", axis, speed)
 		}
 	}
 
@@ -167,18 +168,18 @@ func (d *Daemon) sendV2Set(ctx context.Context, operation string, report []byte)
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
-		return pixy.Wrapf(pixy.ErrPIXYNotConnected, "motor.set_nodevice", "%s (no device)", operation)
+		return errorfamily.Wrapf(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "motor.set_nodevice", "%s (no device)", operation)
 	}
 
 	if circuitOpen {
-		return pixy.Wrapf(pixy.ErrPIXYNotConnected, "motor.set_circuit", "%s", operation)
+		return errorfamily.Wrapf(pixy.ErrPIXYNotConnected, errorfamily.Classify(pixy.ErrPIXYNotConnected), "motor.set_circuit", "%s", operation)
 	}
 
 	err := hidDev.Send(report)
 	if err != nil {
 		d.recordHIDSendFailure(ctx)
 
-		return pixy.Wrapf(err, "motor.set_send", "%s send", operation)
+		return errorfamily.Wrapf(err, errorfamily.Classify(err), "motor.set_send", "%s send", operation)
 	}
 
 	d.mu.Lock()

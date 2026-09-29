@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -160,7 +161,7 @@ func procFDsOpenDevice(fdPath, videoDev string) bool {
 func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
-		return pixy.SourceID{}, pixy.Wrap(err, "audio.find_source", "findPixySource")
+		return pixy.SourceID{}, errorfamily.Wrap(err, errorfamily.Classify(err), "audio.find_source", "findPixySource")
 	}
 
 	for line := range strings.SplitSeq(string(out), "\n") {
@@ -176,7 +177,7 @@ func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 		}
 	}
 
-	return pixy.SourceID{}, pixy.Wrap(ErrAudioSourceNotFound, "audio.find_source_notfound", "findPixySource")
+	return pixy.SourceID{}, errorfamily.Wrap(ErrAudioSourceNotFound, errorfamily.Classify(ErrAudioSourceNotFound), "audio.find_source_notfound", "findPixySource")
 }
 
 func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
