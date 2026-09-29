@@ -16,7 +16,7 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		unix.NETLINK_KOBJECT_UEVENT,
 	)
 	if err != nil {
-		return -1, errorfamily.Wrap(err, errorfamily.Classify(err), "uevent.netlink_socket", "netlink socket")
+		return -1, errorfamily.WrapTransientf(err, "uevent.netlink_socket", "netlink socket")
 	}
 
 	//nolint:exhaustruct
@@ -31,7 +31,7 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 			slog.Debug("netlink fd close after bind failure failed", "err", closeErr)
 		}
 
-		return -1, errorfamily.Wrap(bindErr, errorfamily.Classify(bindErr), "uevent.netlink_bind", "netlink bind")
+		return -1, errorfamily.WrapTransientf(bindErr, "uevent.netlink_bind", "netlink bind")
 	}
 
 	return fd, nil
