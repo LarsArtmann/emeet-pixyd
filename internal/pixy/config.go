@@ -1,13 +1,13 @@
 package pixy
 
 import (
-	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Config holds daemon configuration parameters.
