@@ -23,3 +23,9 @@ Rejected. `--no-suppress` is for audits, not baselines, and a blanket "always ig
 ## Decision
 
 Pending Lars's sign-off on Option B. Follow-up: the sweep itself (new TODO row; also un-blocks plan M07's "apply M04-Q3 outcome" step and makes the buildflow gate trustworthy again).
+
+---
+
+## Addendum 2026-09-29 — SUPERSEDED by the construction migration
+
+Lars directed "accept nothing — make the error system as superb as possible instead", which replaces this ADR's premise (accept the 31, suppress at sites) with a fix-at-the-root migration: all error construction now goes through `go-error-family` (coded sentinels, family-inheriting per-family wraps, `Compose` joins), sentinels are widened to the `error` interface, and every previously discarded error is handled (logged, joined, or classified). Default-mode erraudit reports **0 violations** — this ADR's Option B sweep at the old 31 sites is moot and was never executed. The 21 residual maximal-audit `generic_return` advisories (warning severity only; `--no-suppress` bypasses directives by design) carry reasoned function-level `//nolint:erraudit` directives. Rationale and tool-behavior notes live in `AGENTS.md` (Gotchas, "Erraudit state").
