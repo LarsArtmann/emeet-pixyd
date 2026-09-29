@@ -167,7 +167,7 @@ func TestErrorFamilies_StdlibDefaults(t *testing.T) {
 func TestErrorFamilies_StreamErrorsAreInfrastructure(t *testing.T) {
 	t.Parallel()
 
-	streamErrs := []*errorfamily.Error{
+	streamErrs := []error{
 		errStreamNoFrame,
 		errStreamInUse,
 		errStreamNoDevice,
@@ -178,16 +178,18 @@ func TestErrorFamilies_StreamErrorsAreInfrastructure(t *testing.T) {
 	}
 
 	for _, err := range streamErrs {
+		code := errorfamily.Code(err)
+
 		if got := errorfamily.HTTPStatus(err); got != http.StatusServiceUnavailable {
-			t.Errorf("HTTPStatus(%v) = %d, want 503", err.ErrorCode(), got)
+			t.Errorf("HTTPStatus(%v) = %d, want 503", code, got)
 		}
 
 		if got := errorfamily.ExitCode(err); got != 69 {
-			t.Errorf("ExitCode(%v) = %d, want 69 (Infrastructure)", err.ErrorCode(), got)
+			t.Errorf("ExitCode(%v) = %d, want 69 (Infrastructure)", code, got)
 		}
 
 		if got := errorfamily.Classify(err); got != errorfamily.Infrastructure {
-			t.Errorf("Classify(%v) = %v, want Infrastructure", err.ErrorCode(), got)
+			t.Errorf("Classify(%v) = %v, want Infrastructure", code, got)
 		}
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -24,18 +25,18 @@ const (
 	streamBufSize         = 64 * 1024
 )
 
-var errJPEGMaxIterations = errors.New("max iterations reached scanning for JPEG frame")
+var errJPEGMaxIterations error = errorfamily.NewTransient("stream.jpeg_scan_exhausted", "max iterations reached scanning for JPEG frame")
 
 // Typed stream errors with Infrastructure classification.
 // errorfamily.HTTPStatus() derives 503 for all of these.
 var (
-	errStreamNoFrame      = errorfamily.NewInfrastructure("stream.no_frame", "no frame available")
-	errStreamInUse        = errorfamily.NewInfrastructure("stream.in_use", "stream already in use")
-	errStreamNoDevice     = errorfamily.NewInfrastructure("stream.no_device", "no camera device")
-	errStreamFFmpeg       = errorfamily.NewInfrastructure("stream.ffmpeg_missing", "ffmpeg not available")
-	errStreamNotSupported = errorfamily.NewInfrastructure("stream.not_supported", "streaming not supported")
-	errStreamPipe         = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
-	errStreamStart        = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
+	errStreamNoFrame error = errorfamily.NewInfrastructure("stream.no_frame", "no frame available")
+	errStreamInUse error = errorfamily.NewInfrastructure("stream.in_use", "stream already in use")
+	errStreamNoDevice error = errorfamily.NewInfrastructure("stream.no_device", "no camera device")
+	errStreamFFmpeg error = errorfamily.NewInfrastructure("stream.ffmpeg_missing", "ffmpeg not available")
+	errStreamNotSupported error = errorfamily.NewInfrastructure("stream.not_supported", "streaming not supported")
+	errStreamPipe error = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
+	errStreamStart error = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
 )
 
 const (
@@ -54,7 +55,9 @@ func (s *webServer) handleSnapshot(responseWriter http.ResponseWriter, _ *http.R
 
 	responseWriter.Header().Set("Content-Type", "image/jpeg")
 	responseWriter.Header().Set("Cache-Control", "no-store")
-	_, _ = responseWriter.Write(frame)
+	if _, writeErr := responseWriter.Write(frame); writeErr != nil {
+		slog.Debug("snapshot write failed", "err", writeErr)
+	}
 }
 
 func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
@@ -74,21 +77,34 @@ func ffmpegStreamCmd(ctx context.Context, device string) *exec.Cmd {
 
 func cleanupFFmpeg(cmd *exec.Cmd) {
 	if cmd.Process == nil {
-		_ = cmd.Wait()
+		if waitErr := cmd.Wait(); waitErr != nil {
+			slog.Debug("ffmpeg wait before start failed", "err", waitErr)
+		}
 
 		return
 	}
 
-	_ = cmd.Process.Signal(syscall.SIGTERM)
+	if sigErr := cmd.Process.Signal(syscall.SIGTERM); sigErr != nil {
+		slog.Warn("ffmpeg SIGTERM failed", "pid", cmd.Process.Pid, "err", sigErr)
+	}
 
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 
 	select {
-	case <-done:
+	case waitErr := <-done:
+		if waitErr != nil {
+			slog.Debug("ffmpeg exited nonzero", "err", waitErr)
+			return
+		}
 	case <-time.After(ffmpegShutdownTimeout):
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
+		if killErr := cmd.Process.Kill(); killErr != nil {
+			slog.Warn("ffmpeg kill after shutdown timeout failed", "pid", cmd.Process.Pid, "err", killErr)
+		}
+
+		if waitErr := cmd.Wait(); waitErr != nil {
+			slog.Debug("ffmpeg wait after kill failed", "err", waitErr)
+		}
 	}
 }
 
@@ -274,7 +290,7 @@ func (s *webServer) writeFrames(
 func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 	b, err := br.ReadByte()
 	if err != nil {
-		return false, fmt.Errorf("read byte: %w", err)
+		return false, pixy.Wrap(err, "stream.soi_read", "read byte")
 	}
 
 	if b != jpegMarker {
@@ -283,7 +299,7 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 
 	next, nextErr := br.ReadByte()
 	if nextErr != nil {
-		return false, fmt.Errorf("read soi next: %w", nextErr)
+		return false, pixy.Wrap(nextErr, "stream.soi_next", "read soi next")
 	}
 
 	switch next {
@@ -293,7 +309,9 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) {
 
 		return true, nil
 	case jpegMarker:
-		_ = br.UnreadByte()
+		if unreadErr := br.UnreadByte(); unreadErr != nil {
+			return false, pixy.Wrap(unreadErr, "stream.soi_unread", "unread lone marker byte")
+		}
 	}
 
 	return false, nil
@@ -329,7 +347,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 
 		b, err := br.ReadByte()
 		if err != nil {
-			return nil, fmt.Errorf("read byte: %w", err)
+			return nil, pixy.Wrap(err, "stream.frame_read", "read byte")
 		}
 
 		buf.WriteByte(b)
@@ -337,7 +355,7 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		if b == jpegMarker {
 			next, nextErr := br.ReadByte()
 			if nextErr != nil {
-				return nil, fmt.Errorf("read eoi next: %w", nextErr)
+				return nil, pixy.Wrap(nextErr, "stream.frame_eoi_next", "read eoi next")
 			}
 
 			buf.WriteByte(next)
@@ -351,9 +369,10 @@ func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) {
 		}
 	}
 
-	return nil, fmt.Errorf(
-		"max iterations (%d) reached scanning for JPEG frame: %w",
-		maxIterations,
+	return nil, pixy.Wrapf(
 		errJPEGMaxIterations,
+		"stream.frame_scan_exhausted",
+		"max iterations (%d) reached scanning for JPEG frame",
+		maxIterations,
 	)
 }

@@ -4,11 +4,10 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func (d *Daemon) handleCallStart(
@@ -28,7 +27,7 @@ func (d *Daemon) handleCallStart(
 		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			log.Error("failed to activate tracking", "error", trackErr)
-			errs = append(errs, fmt.Errorf("tracking: %w", trackErr))
+			errs = append(errs, pixy.Wrap(trackErr, "auto.track", "tracking"))
 		}
 	}
 
@@ -36,7 +35,7 @@ func (d *Daemon) handleCallStart(
 		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			log.Error("failed to set audio mode", "error", audioErr)
-			errs = append(errs, fmt.Errorf("audio: %w", audioErr))
+			errs = append(errs, pixy.Wrap(audioErr, "auto.audio", "audio"))
 		}
 	}
 
@@ -47,12 +46,12 @@ func (d *Daemon) handleCallStart(
 			log.Info("set PipeWire default source to PIXY", "id", src.Get())
 		} else {
 			log.Error("failed to find PIXY audio source", "error", srcErr)
-			errs = append(errs, fmt.Errorf("source: %w", srcErr))
+			errs = append(errs, pixy.Wrap(srcErr, "auto.source", "source"))
 		}
 	}
 
 	d.mu.Lock()
-	d.autoError = errors.Join(errs...)
+	d.autoError = errorfamily.Compose(errs...)
 	d.mu.Unlock()
 
 	d.broadcastStateChanged()
@@ -72,7 +71,7 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 		privacyErr := d.deps.setTracking(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
 			log.Error("failed to enter privacy mode", "error", privacyErr)
-			autoErr = fmt.Errorf("privacy: %w", privacyErr)
+			autoErr = pixy.Wrap(privacyErr, "auto.privacy", "privacy")
 		}
 
 		d.deps.notify(ctx, "EMEET PIXY", "Camera privacy mode — physically disabled")

@@ -123,12 +123,20 @@ func isCameraInUse(videoDev string) bool {
 
 		fdEntries, err := os.ReadDir(fdPath)
 		if err != nil {
+			if !os.IsNotExist(err) {
+				slog.Debug("proc fd scan failed", "path", fdPath, "err", err)
+			}
+
 			continue
 		}
 
 		for _, fd := range fdEntries {
 			link, err := os.Readlink(filepath.Join(fdPath, fd.Name()))
 			if err != nil {
+				if !os.IsNotExist(err) {
+					slog.Debug("proc fd readlink failed", "path", fdPath, "err", err)
+				}
+
 				continue
 			}
 
@@ -144,7 +152,7 @@ func isCameraInUse(videoDev string) bool {
 func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
-		return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", err)
+		return pixy.SourceID{}, pixy.Wrap(err, "audio.find_source", "findPixySource")
 	}
 
 	for line := range strings.SplitSeq(string(out), "\n") {
@@ -160,7 +168,7 @@ func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) {
 		}
 	}
 
-	return pixy.SourceID{}, fmt.Errorf("findPixySource: %w", ErrAudioSourceNotFound)
+	return pixy.SourceID{}, pixy.Wrap(ErrAudioSourceNotFound, "audio.find_source_notfound", "findPixySource")
 }
 
 func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {

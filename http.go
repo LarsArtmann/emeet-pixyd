@@ -21,12 +21,14 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 
 	err := json.MarshalWrite(&buf, v)
 	if err != nil {
-		return fmt.Errorf("encode JSON response (status %d): %w", status, err)
+		return pixy.Wrapf(err, "http.encode_json", "encode JSON response (status %d)", status)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, _ = buf.WriteTo(w)
+	if _, writeErr := buf.WriteTo(w); writeErr != nil {
+		slog.Debug("JSON response write failed", "status", status, "err", writeErr)
+	}
 
 	return nil
 }
