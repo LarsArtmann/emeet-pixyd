@@ -18,8 +18,7 @@ import (
 // Content-Type header. Buffers before writing headers so a failed encode
 // doesn't commit a success status.
 //
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func writeJSON(w http.ResponseWriter, status int, v any) error {
+func writeJSON(w http.ResponseWriter, status int, v any) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	var buf bytes.Buffer
 
 	err := json.MarshalWrite(&buf, v)

@@ -61,8 +61,7 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) {
+func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (string, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return "", errorfamily.Wrapf(err, errorfamily.Classify(err), "identity.string", "identity string %x", head)
@@ -72,8 +71,7 @@ func (d *Daemon) queryIdentityString(ctx context.Context, head pixy.V2Head) (str
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) {
+func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return 0, errorfamily.Wrapf(err, errorfamily.Classify(err), "identity.u16", "identity u16 %x", head)
@@ -83,8 +81,7 @@ func (d *Daemon) queryIdentityU16(ctx context.Context, head pixy.V2Head) (uint16
 }
 
 //nolint:wrapcheck // pixy parse errors are already domain-wrapped
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) {
+func (d *Daemon) queryIdentityU32(ctx context.Context, head pixy.V2Head) (uint32, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	resp, err := d.v2Read(ctx, head)
 	if err != nil {
 		return 0, errorfamily.Wrapf(err, errorfamily.Classify(err), "identity.u32", "identity u32 %x", head)

@@ -13,12 +13,11 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func (d *Daemon) setDeviceState(
 	ctx context.Context,
 	configBytes, commitBytes []byte,
 	mutator stateMutator,
-) error {
+) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
@@ -103,8 +102,7 @@ func (d *Daemon) setGesture(ctx context.Context, enabled bool) error {
 	)
 }
 
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (d *Daemon) centerCamera(ctx context.Context) error {
+func (d *Daemon) centerCamera(ctx context.Context) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {

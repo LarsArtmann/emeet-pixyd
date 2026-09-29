@@ -108,8 +108,7 @@ func newHIDRawDevice(path string) HIDDevice {
 	return &hidrawDevice{path: path}
 }
 
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (h *hidrawDevice) Send(report []byte) (err error) {
+func (h *hidrawDevice) Send(report []byte) (err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	if h.path == "" {
 		return errorfamily.WrapInfrastructuref(
 			pixy.ErrHIDDeviceNotAvailable,
@@ -142,8 +141,7 @@ func (h *hidrawDevice) Send(report []byte) (err error) {
 }
 
 //nolint:nonamedreturns // named err is required for the deferred close-error aggregation
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte, err error) {
+func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte, err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	if h.path == "" {
 		return nil, errorfamily.WrapInfrastructuref(
 			pixy.ErrHIDDeviceNotAvailable,
@@ -311,13 +309,12 @@ func pixyCommit(iface byte) []byte {
 	return []byte{cameraConfigPrefix, iface, cameraConfigMarker, iface}
 }
 
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 func queryHIDState[T any](
 	ctx context.Context,
 	dev HIDDevice,
 	payload []byte,
 	extract func(hidResponse) T,
-) (T, error) {
+) (T, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	var zero T
 
 	resp, err := dev.SendRecv(ctx, payload)

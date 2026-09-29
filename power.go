@@ -111,9 +111,7 @@ func (d *Daemon) v2Read(ctx context.Context, head pixy.V2Head) ([]byte, error) {
 // validated against it.
 //
 // LOCK CONTRACT: caller holds d.hidMu.
-//
-//nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
-func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []byte) ([]byte, error) {
+func (d *Daemon) v2ReadLocked(ctx context.Context, head pixy.V2Head, payload []byte) ([]byte, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	hidDev, circuitOpen := d.hidSendGuard()
 
 	if hidDev == nil {
