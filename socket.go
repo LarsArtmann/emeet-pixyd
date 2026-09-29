@@ -4,7 +4,8 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"io/fs"
 	"log/slog"
 	"net"
 	"os"
@@ -18,11 +19,13 @@ const socketIOTimeout = 5 * time.Second
 
 func (d *Daemon) listenUnix(ctx context.Context) error {
 	socketPath := d.config.SocketPath()
-	_ = os.Remove(socketPath)
+	if removeErr := os.Remove(socketPath); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
+		slog.Debug("failed to remove stale socket", "path", socketPath, "err", removeErr)
+	}
 
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
-		return fmt.Errorf("create state dir %s: %w", d.config.StateDir, createErr)
+		return pixy.Wrapf(createErr, "socket.state_dir", "create state dir %s", d.config.StateDir)
 	}
 
 	//nolint:exhaustruct
@@ -30,7 +33,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 	listener, err := lc.Listen(ctx, "unix", socketPath)
 	if err != nil {
-		return fmt.Errorf("listen on %s: %w", socketPath, err)
+		return pixy.Wrapf(err, "socket.listen", "listen on %s", socketPath)
 	}
 
 	defer func() {
@@ -61,7 +64,9 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 		buf := make([]byte, pixy.SocketBufSize)
 
-		_ = conn.SetReadDeadline(time.Now().Add(socketIOTimeout))
+		if deadlineErr := conn.SetReadDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
+			slog.Debug("socket read deadline not set", "err", deadlineErr)
+		}
 
 		n, readErr := conn.Read(buf)
 		if readErr == nil && n > 0 {
@@ -69,7 +74,9 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 
 			response := d.handleCommand(ctx, cmd).String() + "\n"
 
-			_ = conn.SetWriteDeadline(time.Now().Add(socketIOTimeout))
+			if deadlineErr := conn.SetWriteDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
+				slog.Debug("socket write deadline not set", "err", deadlineErr)
+			}
 
 			_, writeErr := conn.Write([]byte(response))
 			if writeErr != nil {
@@ -87,7 +94,7 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 func sendCommand(cfg pixy.Config, cmd string) (string, error) {
 	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), cmd)
 	if err != nil {
-		return "", fmt.Errorf("sendCommand %q: %w", cmd, err)
+		return "", pixy.Wrapf(err, "socket.send", "sendCommand %q", cmd)
 	}
 
 	return resp, nil

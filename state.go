@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/json/v2"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -31,7 +30,9 @@ func (d *Daemon) loadState() bool {
 				"error",
 				err,
 			)
-			_ = os.Remove(d.config.StateFile() + ".tmp")
+			if rmErr := os.Remove(d.config.StateFile() + ".tmp"); rmErr != nil && !os.IsNotExist(rmErr) {
+				slog.Debug("failed to remove stale state temp file", "err", rmErr)
+			}
 		}
 
 		return false
@@ -89,7 +90,7 @@ func (d *Daemon) loadState() bool {
 func (d *Daemon) ensureStateDir() error {
 	err := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if err != nil {
-		return fmt.Errorf("ensure state dir %s: %w", d.config.StateDir, err)
+		return pixy.Wrapf(err, "state.ensure_dir", "ensure state dir %s", d.config.StateDir)
 	}
 
 	return nil
@@ -103,19 +104,19 @@ func (d *Daemon) saveState() error {
 
 	data, err := json.Marshal(d.state)
 	if err != nil {
-		return fmt.Errorf("marshal state: %w", err)
+		return pixy.Wrap(err, "state.marshal", "marshal state")
 	}
 
 	tmp := d.config.StateFile() + ".tmp"
 
 	writeErr := os.WriteFile(tmp, data, pixy.PermissionStateFile)
 	if writeErr != nil {
-		return fmt.Errorf("write temp state: %w", writeErr)
+		return pixy.Wrap(writeErr, "state.write_tmp", "write temp state")
 	}
 
 	renameErr := os.Rename(tmp, d.config.StateFile())
 	if renameErr != nil {
-		return fmt.Errorf("rename state: %w", renameErr)
+		return pixy.Wrap(renameErr, "state.rename", "rename state")
 	}
 
 	return nil

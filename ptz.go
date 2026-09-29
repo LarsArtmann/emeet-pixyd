@@ -75,7 +75,7 @@ func ptzAxisValid(axis pixy.Axis) bool {
 func (d *Daemon) v4l2Set(ctx context.Context, dev, ctrl, value string) error {
 	err := d.deps.commander.Run(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value)
 	if err != nil {
-		return fmt.Errorf("v4l2Set %s=%s on %s: %w", ctrl, value, dev, err)
+		return pixy.Wrapf(err, "ptz.v4l2_set", "v4l2Set %s=%s on %s", ctrl, value, dev)
 	}
 
 	return nil
@@ -142,7 +142,7 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 
 	val, relative, parseErr := parsePTZValue(parts[1])
 	if parseErr != nil {
-		return errResult(string(axis), fmt.Errorf("%w: parse error", ErrInvalidValue))
+		return errResult(string(axis), pixy.Wrap(ErrInvalidValue, "ptz.parse_error", "parse error"))
 	}
 
 	d.mu.RLock()
@@ -225,7 +225,7 @@ func parsePTZValue(s string) (int, bool, error) {
 	if rest, ok := strings.CutPrefix(s, "rel"); ok {
 		v, err := strconv.Atoi(rest)
 		if err != nil {
-			return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+			return 0, false, pixy.Wrapf(err, "ptz.parse_rel", "%s %q", parsePTZValueErrStr, s)
 		}
 
 		return v, true, nil
@@ -233,7 +233,7 @@ func parsePTZValue(s string) (int, bool, error) {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, false, fmt.Errorf("%s %q: %w", parsePTZValueErrStr, s, err)
+		return 0, false, pixy.Wrapf(err, "ptz.parse_abs", "%s %q", parsePTZValueErrStr, s)
 	}
 
 	return v, false, nil

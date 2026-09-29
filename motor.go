@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
