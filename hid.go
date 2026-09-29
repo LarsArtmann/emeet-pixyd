@@ -108,7 +108,9 @@ func newHIDRawDevice(path string) HIDDevice {
 	return &hidrawDevice{path: path}
 }
 
-func (h *hidrawDevice) Send(report []byte) (err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (h *hidrawDevice) Send(
+	report []byte,
+) (err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	if h.path == "" {
 		return errorfamily.WrapInfrastructuref(
 			pixy.ErrHIDDeviceNotAvailable,
@@ -141,7 +143,10 @@ func (h *hidrawDevice) Send(report []byte) (err error) { //nolint:erraudit // fa
 }
 
 //nolint:nonamedreturns // named err is required for the deferred close-error aggregation
-func (h *hidrawDevice) SendRecv(ctx context.Context, report []byte) (data []byte, err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (h *hidrawDevice) SendRecv(
+	ctx context.Context,
+	report []byte,
+) (data []byte, err error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	if h.path == "" {
 		return nil, errorfamily.WrapInfrastructuref(
 			pixy.ErrHIDDeviceNotAvailable,

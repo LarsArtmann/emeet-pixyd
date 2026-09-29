@@ -291,7 +291,10 @@ func (s *webServer) writeFrames(
 // scanForSOI consumes bytes until a JPEG Start-of-Image marker pair is found.
 // On success the SOI bytes are written to buf (reset first) and true is
 // returned. A lone marker byte is unread so the caller can re-examine it.
-func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func scanForSOI(
+	br *bufio.Reader,
+	buf *bytes.Buffer,
+) (bool, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	b, err := br.ReadByte()
 	if err != nil {
 		return false, errorfamily.Wrap(err, errorfamily.Classify(err), "stream.soi_read", "read byte")
@@ -326,7 +329,10 @@ func scanForSOI(br *bufio.Reader, buf *bytes.Buffer) (bool, error) { //nolint:er
 	return false, nil
 }
 
-func extractJPEGFrame(br *bufio.Reader, buf *bytes.Buffer) ([]byte, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func extractJPEGFrame(
+	br *bufio.Reader,
+	buf *bytes.Buffer,
+) ([]byte, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	const maxIterations = 10 * 1024 * 1024
 
 	var soiFound bool

@@ -158,7 +158,9 @@ func procFDsOpenDevice(fdPath, videoDev string) bool {
 	return false
 }
 
-func (d *Daemon) findPixySource(ctx context.Context) (pixy.SourceID, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (d *Daemon) findPixySource(
+	ctx context.Context,
+) (pixy.SourceID, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
 		return pixy.SourceID{}, errorfamily.Wrap(err, errorfamily.Classify(err), "audio.find_source", "findPixySource")

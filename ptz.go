@@ -73,7 +73,10 @@ func ptzAxisValid(axis pixy.Axis) bool {
 	return ok
 }
 
-func (d *Daemon) v4l2Set(ctx context.Context, dev, ctrl, value string) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (d *Daemon) v4l2Set(
+	ctx context.Context,
+	dev, ctrl, value string,
+) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	err := d.deps.commander.Run(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value)
 	if err != nil {
 		return errorfamily.Wrapf(

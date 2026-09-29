@@ -18,7 +18,9 @@ import (
 
 const socketIOTimeout = 5 * time.Second
 
-func (d *Daemon) listenUnix(ctx context.Context) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (d *Daemon) listenUnix(
+	ctx context.Context,
+) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	socketPath := d.config.SocketPath()
 	if removeErr := os.Remove(socketPath); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
 		slog.Debug("failed to remove stale socket", "path", socketPath, "err", removeErr)
@@ -75,7 +77,10 @@ func (d *Daemon) listenUnix(ctx context.Context) error { //nolint:erraudit // fa
 
 // serveUnixConn handles a single socket command connection sequentially:
 // read one command, respond once, close.
-func (d *Daemon) serveUnixConn(ctx context.Context, conn net.Conn) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (d *Daemon) serveUnixConn(
+	ctx context.Context,
+	conn net.Conn,
+) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	defer func() {
 		if closeErr := conn.Close(); closeErr != nil {
 			slog.Debug("conn close error", "error", closeErr)
@@ -106,7 +111,10 @@ func (d *Daemon) serveUnixConn(ctx context.Context, conn net.Conn) { //nolint:er
 	}
 }
 
-func sendCommand(cfg pixy.Config, cmd string) (string, error) {
+func sendCommand(
+	cfg pixy.Config,
+	cmd string,
+) (string, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	resp, err := pixy.SendCommand(context.Background(), cfg.SocketPath(), cmd)
 	if err != nil {
 		return "", errorfamily.Wrapf(err, errorfamily.Classify(err), "socket.send", "sendCommand %q", cmd)

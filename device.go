@@ -102,7 +102,9 @@ func (d *Daemon) setGesture(ctx context.Context, enabled bool) error {
 	)
 }
 
-func (d *Daemon) centerCamera(ctx context.Context) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+func (d *Daemon) centerCamera(
+	ctx context.Context,
+) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
