@@ -3,8 +3,9 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 	"golang.org/x/sys/unix"
 )
 
@@ -15,7 +16,7 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		unix.NETLINK_KOBJECT_UEVENT,
 	)
 	if err != nil {
-		return -1, fmt.Errorf("netlink socket: %w", err)
+		return -1, pixy.Wrap(err, "uevent.netlink_socket", "netlink socket")
 	}
 
 	//nolint:exhaustruct
@@ -26,9 +27,11 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 
 	bindErr := unix.Bind(fd, sa)
 	if bindErr != nil {
-		_ = unix.Close(fd)
+		if closeErr := unix.Close(fd); closeErr != nil {
+			slog.Debug("netlink fd close after bind failure failed", "err", closeErr)
+		}
 
-		return -1, fmt.Errorf("netlink bind: %w", bindErr)
+		return -1, pixy.Wrap(bindErr, "uevent.netlink_bind", "netlink bind")
 	}
 
 	return fd, nil

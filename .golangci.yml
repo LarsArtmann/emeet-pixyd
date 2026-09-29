@@ -259,6 +259,7 @@ linters:
         - filepath\.
         - compress/gzip
         - \(context\.Context\)\.Err
+        - go-error-family
       ignore-sigs:
         - .Errorf(
         - errors.New(

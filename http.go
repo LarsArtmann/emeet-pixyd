@@ -5,12 +5,13 @@ package main
 import (
 	"bytes"
 	"encoding/json/v2"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
 	"time"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 // writeJSON encodes v as JSON and writes it with the given status and
@@ -26,6 +27,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+
 	if _, writeErr := buf.WriteTo(w); writeErr != nil {
 		slog.Debug("JSON response write failed", "status", status, "err", writeErr)
 	}

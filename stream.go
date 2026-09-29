@@ -25,18 +25,21 @@ const (
 	streamBufSize         = 64 * 1024
 )
 
-var errJPEGMaxIterations error = errorfamily.NewTransient("stream.jpeg_scan_exhausted", "max iterations reached scanning for JPEG frame")
+var errJPEGMaxIterations error = errorfamily.NewTransient(
+	"stream.jpeg_scan_exhausted",
+	"max iterations reached scanning for JPEG frame",
+)
 
 // Typed stream errors with Infrastructure classification.
 // errorfamily.HTTPStatus() derives 503 for all of these.
 var (
-	errStreamNoFrame error = errorfamily.NewInfrastructure("stream.no_frame", "no frame available")
-	errStreamInUse error = errorfamily.NewInfrastructure("stream.in_use", "stream already in use")
-	errStreamNoDevice error = errorfamily.NewInfrastructure("stream.no_device", "no camera device")
-	errStreamFFmpeg error = errorfamily.NewInfrastructure("stream.ffmpeg_missing", "ffmpeg not available")
+	errStreamNoFrame      error = errorfamily.NewInfrastructure("stream.no_frame", "no frame available")
+	errStreamInUse        error = errorfamily.NewInfrastructure("stream.in_use", "stream already in use")
+	errStreamNoDevice     error = errorfamily.NewInfrastructure("stream.no_device", "no camera device")
+	errStreamFFmpeg       error = errorfamily.NewInfrastructure("stream.ffmpeg_missing", "ffmpeg not available")
 	errStreamNotSupported error = errorfamily.NewInfrastructure("stream.not_supported", "streaming not supported")
-	errStreamPipe error = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
-	errStreamStart error = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
+	errStreamPipe         error = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
+	errStreamStart        error = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
 )
 
 const (

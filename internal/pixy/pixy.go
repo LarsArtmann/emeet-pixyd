@@ -47,7 +47,10 @@ var (
 	// ErrInvalidPresetName is returned when a preset name fails validation.
 	ErrInvalidPresetName error = errorfamily.NewRejection("preset.name_invalid", "invalid preset name")
 	// ErrHIDDeviceNotAvailable is returned when the HIDRAW device path is empty.
-	ErrHIDDeviceNotAvailable error = errorfamily.NewInfrastructure("hid.device_unavailable", "PIXY HID device not available")
+	ErrHIDDeviceNotAvailable error = errorfamily.NewInfrastructure(
+		"hid.device_unavailable",
+		"PIXY HID device not available",
+	)
 	// ErrPIXYNotConnected is returned when the V4L2 device path is empty.
 	ErrPIXYNotConnected error = errorfamily.NewInfrastructure("pixy.not_connected", "PIXY not connected")
 )
@@ -451,7 +454,12 @@ func ValidatePresetName(name string) error {
 
 	for _, r := range trimmed {
 		if r == '/' || r == '\\' || unicode.IsControl(r) {
-			return Wrapf(ErrInvalidPresetName, "preset.name_char", "preset name %q contains an illegal character", trimmed)
+			return Wrapf(
+				ErrInvalidPresetName,
+				"preset.name_char",
+				"preset name %q contains an illegal character",
+				trimmed,
+			)
 		}
 	}
 

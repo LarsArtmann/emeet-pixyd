@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -119,30 +118,39 @@ func isCameraInUse(videoDev string) bool {
 			continue
 		}
 
-		fdPath := filepath.Join("/proc", proc.Name(), "fd")
+		if procFDsOpenDevice(filepath.Join("/proc", proc.Name(), "fd"), videoDev) {
+			return true
+		}
+	}
 
-		fdEntries, err := os.ReadDir(fdPath)
+	return false
+}
+
+// procFDsOpenDevice reports whether any fd of the given /proc/<pid>/fd
+// directory links to videoDev. A vanished process (ENOENT mid-scan) is an
+// expected race and is skipped silently; other failures are debug-logged.
+func procFDsOpenDevice(fdPath, videoDev string) bool {
+	fdEntries, err := os.ReadDir(fdPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			slog.Debug("proc fd scan failed", "path", fdPath, "err", err)
+		}
+
+		return false
+	}
+
+	for _, fd := range fdEntries {
+		link, err := os.Readlink(filepath.Join(fdPath, fd.Name()))
 		if err != nil {
 			if !os.IsNotExist(err) {
-				slog.Debug("proc fd scan failed", "path", fdPath, "err", err)
+				slog.Debug("proc fd readlink failed", "path", fdPath, "err", err)
 			}
 
 			continue
 		}
 
-		for _, fd := range fdEntries {
-			link, err := os.Readlink(filepath.Join(fdPath, fd.Name()))
-			if err != nil {
-				if !os.IsNotExist(err) {
-					slog.Debug("proc fd readlink failed", "path", fdPath, "err", err)
-				}
-
-				continue
-			}
-
-			if link == videoDev {
-				return true
-			}
+		if link == videoDev {
+			return true
 		}
 	}
 

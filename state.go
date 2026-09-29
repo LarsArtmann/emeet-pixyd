@@ -30,6 +30,7 @@ func (d *Daemon) loadState() bool {
 				"error",
 				err,
 			)
+
 			if rmErr := os.Remove(d.config.StateFile() + ".tmp"); rmErr != nil && !os.IsNotExist(rmErr) {
 				slog.Debug("failed to remove stale state temp file", "err", rmErr)
 			}

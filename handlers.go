@@ -147,11 +147,13 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 		status = http.StatusServiceUnavailable
 	}
 
-	_ = writeJSON(responseWriter, status, healthResponse{
+	if err := writeJSON(responseWriter, status, healthResponse{
 		Status:  boolStr(online, "ok", "offline"),
 		Camera:  camera,
 		Version: buildVersion,
-	})
+	}); err != nil {
+		slog.Debug("health response write failed", "err", err)
+	}
 }
 
 type healthResponse struct {
@@ -202,7 +204,10 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 
 // patchPanel renders the status panel as a DataStar SSE element patch.
 func (s *webServer) patchPanel(sse *datastar.ServerSentEventGenerator, status webStatus) {
-	_ = sse.PatchElementTempl(statusPanel(status))
+	if err := sse.PatchElementTempl(statusPanel(status)); err != nil {
+		slog.Debug("status panel patch failed", "err", err)
+	}
+
 	sendToastScript(sse, &status)
 }
 
@@ -222,7 +227,9 @@ func sendToastScript(sse *datastar.ServerSentEventGenerator, status *webStatus) 
 	}
 
 	script := fmt.Sprintf("window.__showToast(%s, %s)", strconv.Quote(msg), strconv.Quote(string(tt)))
-	_ = sse.ExecuteScript(script)
+	if err := sse.ExecuteScript(script); err != nil {
+		slog.Debug("toast script dispatch failed", "err", err)
+	}
 }
 
 func (s *webServer) action(command string) http.HandlerFunc {
@@ -319,7 +326,9 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	}
 
 	status := s.getWebStatusWithPTZ(request.Context())
-	_ = sse.MarshalAndPatchSignals(status.PTZValues)
+	if err := sse.MarshalAndPatchSignals(status.PTZValues); err != nil {
+		slog.Debug("PTZ signal patch failed", "err", err)
+	}
 }
 
 // presetAction builds a handler for the preset commands that address a

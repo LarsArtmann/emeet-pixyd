@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	errNoHIDResponse error = errorfamily.NewTransient("hid.no_response", "no HID response")
+	errNoHIDResponse   error = errorfamily.NewTransient("hid.no_response", "no HID response")
 	errUnrecognizedHID error = errorfamily.NewTransient("hid.response_unrecognized", "unrecognized HID response")
-	errHIDWriteZero error = errorfamily.NewTransient("hid.write_zero", "wrote 0 bytes")
+	errHIDWriteZero    error = errorfamily.NewTransient("hid.write_zero", "wrote 0 bytes")
 )
 
 // HIDDevice abstracts HID communication for testability.

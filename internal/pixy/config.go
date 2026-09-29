@@ -146,7 +146,10 @@ var (
 	// ErrInvalidAutoMode is returned when Config.AutoMode is not a valid mode.
 	ErrInvalidAutoMode error = errorfamily.NewRejection("config.auto_mode", "invalid auto mode in config")
 	// ErrInvalidDefaultAudio is returned when Config.DefaultAudio is not a valid mode.
-	ErrInvalidDefaultAudio error = errorfamily.NewRejection("config.default_audio", "invalid default audio mode in config")
+	ErrInvalidDefaultAudio error = errorfamily.NewRejection(
+		"config.default_audio",
+		"invalid default audio mode in config",
+	)
 )
 
 // Validate checks that all required config fields are set and sane.

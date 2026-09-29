@@ -276,7 +276,9 @@ func warnInaccessibleDevicesLimited(r probeResult, limiter *warnLimiter) {
 
 		file, err := os.OpenFile(path, os.O_RDWR, 0)
 		if err == nil {
-			_ = file.Close()
+			if closeErr := file.Close(); closeErr != nil {
+				slog.Debug("probe file close failed", "path", path, "err", closeErr)
+			}
 
 			return
 		}

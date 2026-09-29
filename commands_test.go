@@ -16,7 +16,7 @@ func TestCommandError_Error(t *testing.T) {
 
 	err := &CommandError{Op: string(pixy.AxisPan), Err: ErrInvalidValue}
 
-	want := "error: pan: invalid value"
+	want := "error: pan: [rejection:ptz.value_invalid] invalid value"
 	if got := err.Error(); got != want {
 		t.Errorf("Error() = %q, want %q", got, want)
 	}

@@ -256,7 +256,12 @@ func ParseMotorSpeedResponse(head V2Head, resp []byte) (MotorSpeedReading, error
 
 	motor := MotorType(payload[0])
 	if !motor.Valid() {
-		return MotorSpeedReading{}, Wrapf(ErrInvalidMotorType, "motor.speed_byte", "motor speed payload byte %d", payload[0])
+		return MotorSpeedReading{}, Wrapf(
+			ErrInvalidMotorType,
+			"motor.speed_byte",
+			"motor speed payload byte %d",
+			payload[0],
+		)
 	}
 
 	return MotorSpeedReading{

@@ -71,7 +71,10 @@ func errStr(e error) string {
 
 var (
 	// ErrAudioSourceNotFound is returned when no PIXY audio source is found in PipeWire.
-	ErrAudioSourceNotFound error = errorfamily.NewInfrastructure("audio.source_not_found", "PIXY audio source not found")
+	ErrAudioSourceNotFound error = errorfamily.NewInfrastructure(
+		"audio.source_not_found",
+		"PIXY audio source not found",
+	)
 	// ErrInvalidValue is returned when a PTZ value is out of range.
 	ErrInvalidValue error = errorfamily.NewRejection("ptz.value_invalid", "invalid value")
 	// errDeviceNotFound is returned when the video device path is empty.

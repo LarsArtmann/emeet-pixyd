@@ -4,10 +4,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
 
 const (
@@ -78,7 +79,9 @@ func listenNetlinkUevents(ctx context.Context, ch chan<- struct{}) {
 		return
 	}
 
-	_ = f.Close()
+	if closeErr := f.Close(); closeErr != nil {
+		slog.Debug("uevent_seqnum close failed", "err", closeErr)
+	}
 
 	fd, err := unixSocketUevent()
 	if err != nil {
@@ -90,7 +93,9 @@ func listenNetlinkUevents(ctx context.Context, ch chan<- struct{}) {
 	go func() {
 		<-ctx.Done()
 
-		_ = fd.Close()
+		if closeErr := fd.Close(); closeErr != nil {
+			slog.Debug("uevent socket close failed", "err", closeErr)
+		}
 	}()
 
 	buf := make([]byte, ueventBufSize)
@@ -130,7 +135,7 @@ func (noopUeventListener) Listen(context.Context, chan<- struct{}) {}
 func unixSocketUevent() (*os.File, error) {
 	fd, err := unixOpenNetlinkKobjectUevent()
 	if err != nil {
-		return nil, fmt.Errorf("uevent socket: %w", err)
+		return nil, pixy.Wrap(err, "uevent.socket", "uevent socket")
 	}
 
 	return os.NewFile(uintptr(fd), "uevent"), nil

@@ -62,32 +62,40 @@ func (d *Daemon) listenUnix(ctx context.Context) error {
 			continue
 		}
 
-		buf := make([]byte, pixy.SocketBufSize)
+		d.serveUnixConn(ctx, conn)
+	}
+}
 
-		if deadlineErr := conn.SetReadDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
-			slog.Debug("socket read deadline not set", "err", deadlineErr)
-		}
-
-		n, readErr := conn.Read(buf)
-		if readErr == nil && n > 0 {
-			cmd := strings.TrimSpace(string(buf[:n]))
-
-			response := d.handleCommand(ctx, cmd).String() + "\n"
-
-			if deadlineErr := conn.SetWriteDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
-				slog.Debug("socket write deadline not set", "err", deadlineErr)
-			}
-
-			_, writeErr := conn.Write([]byte(response))
-			if writeErr != nil {
-				slog.Debug("socket write error", "error", writeErr)
-			}
-		}
-
-		closeErr := conn.Close()
-		if closeErr != nil {
+// serveUnixConn handles a single socket command connection sequentially:
+// read one command, respond once, close.
+func (d *Daemon) serveUnixConn(ctx context.Context, conn net.Conn) {
+	defer func() {
+		if closeErr := conn.Close(); closeErr != nil {
 			slog.Debug("conn close error", "error", closeErr)
 		}
+	}()
+
+	if deadlineErr := conn.SetReadDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
+		slog.Debug("socket read deadline not set", "err", deadlineErr)
+	}
+
+	buf := make([]byte, pixy.SocketBufSize)
+
+	n, readErr := conn.Read(buf)
+	if readErr != nil || n == 0 {
+		return
+	}
+
+	cmd := strings.TrimSpace(string(buf[:n]))
+
+	response := d.handleCommand(ctx, cmd).String() + "\n"
+
+	if deadlineErr := conn.SetWriteDeadline(time.Now().Add(socketIOTimeout)); deadlineErr != nil {
+		slog.Debug("socket write deadline not set", "err", deadlineErr)
+	}
+
+	if _, writeErr := conn.Write([]byte(response)); writeErr != nil {
+		slog.Debug("socket write error", "error", writeErr)
 	}
 }
 

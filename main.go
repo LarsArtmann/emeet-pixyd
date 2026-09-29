@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -261,11 +262,15 @@ func (d *Daemon) handleShutdown(cancel context.CancelFunc, httpSrv *http.Server)
 	d.mu.Unlock()
 	cancel()
 
-	_ = os.Remove(d.config.SocketPath())
+	if removeErr := os.Remove(d.config.SocketPath()); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
+		slog.Debug("stale socket removal on shutdown failed", "err", removeErr)
+	}
 
 	if httpSrv != nil {
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
-		_ = httpSrv.Shutdown(shutdownCtx)
+		if shutdownErr := httpSrv.Shutdown(shutdownCtx); shutdownErr != nil {
+			slog.Warn("web server shutdown failed", "err", shutdownErr)
+		}
 
 		shutdownCancel()
 	}
@@ -397,7 +402,9 @@ func handleFlag() bool {
 
 		return true
 	case "--help", "-h":
-		_, _ = fmt.Fprintln(os.Stdout, helpText)
+		if _, printErr := fmt.Fprintln(os.Stdout, helpText); printErr != nil {
+			slog.Debug("help print failed", "err", printErr)
+		}
 
 		return true
 	default:
