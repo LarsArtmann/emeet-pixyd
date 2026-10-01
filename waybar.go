@@ -44,6 +44,7 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 	if d.videoDev == "" {
 		camera = pixy.StateOffline
 	}
+
 	audio := d.state.Audio
 	inCall := d.state.InCall
 	autoMode := d.state.AutoMode

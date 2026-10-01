@@ -314,10 +314,13 @@ func testDaemonWithDevice(tb testing.TB, camera pixy.CameraState) *Daemon {
 	return newTestDaemon(tb, camera, testVideoDev, testHIDDev)
 }
 
+// testDaemonWithState builds a daemon with a video node present (so waybar
+// renders the requested camera mode) but no HID node (so the battery surface
+// fast-fails instead of touching a real device).
 func testDaemonWithState(tb testing.TB, camera pixy.CameraState, inCall bool) *Daemon {
 	tb.Helper()
 
-	return newTestDaemon(tb, camera, "", "", withInCall(inCall))
+	return newTestDaemon(tb, camera, testVideoDev, "", withInCall(inCall))
 }
 
 type parseTestCase[T comparable] struct {

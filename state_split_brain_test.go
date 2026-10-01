@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/v2"
 	"os"
 	"sync"
 	"testing"
@@ -187,6 +188,33 @@ func TestCircuitBreaker_ProbeResetsStrikesOnlyWhenPresent(t *testing.T) {
 
 	if absent != 2 {
 		t.Errorf("strike count after probe miss = %d, want 2 (miss must not clear strikes)", absent)
+	}
+}
+
+// TestWaybarProjectsOfflineWithoutDevice pins the human-surface collapse: the
+// bar shows offline when no video node is present, even though the persisted
+// intent is tracking (the machine /api/status keeps camera=intent).
+func TestWaybarProjectsOfflineWithoutDevice(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StateTracking, "", "")
+
+	var parsed map[string]string
+
+	if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &parsed); err != nil {
+		t.Fatalf("waybar output is not valid JSON: %v", err)
+	}
+
+	if parsed["class"] != "custom-camera offline" {
+		t.Errorf(
+			"class = %q, want %q (no video node must collapse to offline)",
+			parsed["class"],
+			"custom-camera offline",
+		)
+	}
+
+	if got := readCameraState(d); got != pixy.StateTracking {
+		t.Errorf("intent = %q, want %q (projection must not mutate belief)", got, pixy.StateTracking)
 	}
 }
 
