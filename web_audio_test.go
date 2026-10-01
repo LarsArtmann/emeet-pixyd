@@ -110,7 +110,7 @@ func TestWeb_GETEndpointsRejectPOST(t *testing.T) {
 	t.Parallel()
 	daemon := newIntegrationDaemon(t)
 	server := newTestWebServer(t, daemon)
-	endpoints := []string{"/", "/panel", "/api/snapshot", "/api/stream"}
+	endpoints := []string{"/", "/panel", "/api/snapshot", "/api/stream", "/api/status"}
 	assertEndpointsReturnNonOK(t, server.URL, "POST", endpoints)
 }
 
