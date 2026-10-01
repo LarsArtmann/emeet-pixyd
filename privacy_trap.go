@@ -60,8 +60,16 @@ func (d *Daemon) privacyTrapArmed() bool {
 func (d *Daemon) schedulePrivacyTrapReassert(ctx context.Context, mode pixy.CameraState) {
 	reassertCtx := context.WithoutCancel(ctx)
 
+	// Captured before the goroutine starts: unit tests shorten the delay
+	// and restore it at cleanup, so the goroutine must not read the var late.
+	delay := privacyTrapReassertDelay
+
+	d.trapReasserts.Add(1)
+
 	go func() {
-		timer := time.NewTimer(privacyTrapReassertDelay)
+		defer d.trapReasserts.Done()
+
+		timer := time.NewTimer(delay)
 		defer timer.Stop()
 
 		select {

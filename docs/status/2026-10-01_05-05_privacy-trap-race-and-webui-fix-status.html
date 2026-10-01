@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emeet-pixyd — Status Report 2026-10-01</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-10-01 · 05:05 CEST</span>
+      <span>emeet-pixyd</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">a) Fully Done</a>
+          <a href="#partial">b) Partially Done</a>
+          <a href="#notstarted">c) Not Started</a>
+          <a href="#fucked">d) Totally Fucked Up</a>
+          <a href="#improve">e) What We Should Improve</a>
+          <a href="#next">f) Top 25 Next</a>
+          <a href="#question">g) Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Snapshot</div>
+          <h1>emeet-pixyd — Project Status</h1>
+          <p class="hero-subtitle">
+            Point-in-time snapshot after a session that shipped two web-UI fixes
+            and watched a hardware-evidenced "privacy trap" feature land — which
+            left <code>go test -race ./...</code> red at HEAD. Everything below is
+            verified against the working tree at commit <code>a056395</code>.
+          </p>
+        </div>
+
+        <nav class="toc">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#summary">Summary</a></li>
+            <li><a href="#done">a) Fully Done</a></li>
+            <li><a href="#partial">b) Partially Done</a></li>
+            <li><a href="#notstarted">c) Not Started</a></li>
+            <li><a href="#fucked">d) Totally Fucked Up</a></li>
+            <li><a href="#improve">e) What We Should Improve</a></li>
+            <li><a href="#next">f) Top 25 Next</a></li>
+            <li><a href="#question">g) Top Question</a></li>
+          </ul>
+        </nav>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <p>
+          The daemon is functionally mature (81/84 feature rows
+          <code>FULLY_FUNCTIONAL</code> in <code>FEATURES.md</code>) and the
+          non-race test suite is green. This reporting period added a second
+          major in-flight workstream — a firmware <strong>privacy-trap</strong>
+          race mitigation born from real hardware — on top of the standing
+          hardware-verification backlog. The blocker is not product scope; it is
+          that the newest feature landed without its docs and with a data race
+          the CI command detects.
+        </p>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Fully Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Partial / In-Flight</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">11</div>
+            <div class="stat-label">Not Started (audit)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Fucked Up / Red</div>
+          </div>
+        </div>
+
+        <div class="callout callout-warning">
+          <strong>Headline</strong>
+          <code>GOWORK=off go test -race -count=1 ./...</code> — the exact CI
+          command in <code>AGENTS.md</code> — <strong>fails</strong> on the
+          committed tree (<code>TestSetTracking_ReassertSkippedAfterIntentChange</code>,
+          data race in <code>privacy_trap.go</code>). Plain <code>go test</code>
+          passes, which is why it went unnoticed.
+        </div>
+
+        <h2 id="done"><span class="num">01</span>a) Fully Done</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Web speed sliders no longer 400 on every move</strong>
+              <span>Signal-casing + <code>data-bind</code> bug fixed in
+              <code>templates.templ</code> (object-form <code>data-signals</code>,
+              bare-path <code>data-bind</code>). Pinned by
+              <code>TestWebSpeedEndpoint_BrowserSignalBody</code> +
+              <code>TestWebPanel_DataStarAttributes</code>. Documented in
+              <code>CHANGELOG.md</code> [Unreleased] Fixed.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Persistent SSE stream survives the 30s WriteTimeout</strong>
+              <span><code>handleEvents</code> now clears the connection write
+              deadline (<code>handlers.go:222</code>), matching the MJPEG path.
+              Pinned by <code>TestSSEEndpoint_SurvivesServerWriteTimeout</code>
+              (verified to fail without the fix).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Privacy-trap firmware race — mitigation shipped</strong>
+              <span>Hardware-evidenced: tilt ≤ −85° while tracking/idle covers the
+              lens and silently drops the mode write for ~1.5–3s. Fix re-asserts
+              the mode (tracking bounces through idle). <code>privacy_trap.go</code>,
+              <code>device.go</code> (<code>setTracking</code> → <code>writeTracking</code>),
+              <code>ptz.go</code> (arm on tilt + readback re-arm), <code>main.go</code>
+              (<code>trapArmedUntil</code>). Commit <code>a2bf34e</code> +
+              <code>privacy_trap_test.go</code> (7 tests).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Hardware diagnostic committed</strong>
+              <span><code>integration_privacy_hardware_test.go</code> (tag
+              <code>integration</code>) walks the tilt→privacy→track scenario on
+              real hardware, logging both mode-query surfaces + V4L2 readback.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Quickshell / DankMaterialShell status API</strong>
+              <span><code>GET /api/status</code> (<code>handlers.go:445</code>)
+              always answers 200 with camera/battery/auto/audio state; website
+              guide <code>guides/quickshell.mdx</code> shipped.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>State-bug / split-brain audit report</strong>
+              <span><code>docs/status/2026-10-01_04-21_state-bug-split-brain-audit.md</code>
+              — 11 findings, the four real bugs named, root cause (overloaded
+              <code>CameraState</code>) identified. Read-only; nothing filed yet.</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">02</span>b) Partially Done</h2>
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Works now (evidence)</th><th>Still open</th><th>Effort</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Privacy-trap feature</strong></td>
+              <td>Mitigation + 7 unit tests committed (<code>a2bf34e</code>..<code>6ed8bcd</code>); tests green without the race detector</td>
+              <td>CI <code>-race</code> fails (see §d); no CHANGELOG/AGENTS/FEATURES/TODO entry; not re-run on hardware after the fix; in-flight test refactor uncommitted</td>
+              <td>S</td>
+            </tr>
+            <tr>
+              <td><strong>Multi-device recognition</strong></td>
+              <td>Fixed-UVC EMEET PIDs classified, never get HID bytes; unsupported-device hint answers <code>device</code>/<code>probe</code></td>
+              <td>#173 surface hint in web UI + Waybar; #174 branch tests for hint paths</td>
+              <td>M / S</td>
+            </tr>
+            <tr>
+              <td><strong>PTZ motor speed / presets / tracking / battery</strong></td>
+              <td>CLI + web + persistence ship; simulator-verified byte-faithful</td>
+              <td>#138–#141 hardware verdicts (unit, limit, slot shape, enums) — all gated on the #166 wired session</td>
+              <td>S each</td>
+            </tr>
+            <tr>
+              <td><strong>Website</strong></td>
+              <td>Quickshell guide + Waybar page shipped; deploy job green</td>
+              <td>#129 online screenshots (blocked on PIXY session); #175 SEO/OG pass</td>
+              <td>S</td>
+            </tr>
+            <tr>
+              <td><strong>Error system (erraudit-zero)</strong></td>
+              <td>Strict erraudit reports 0 violations; 21 documented <code>generic_return</code> advisories</td>
+              <td>#181 mechanical nolint sweep; ROADMAP error-family rollout beyond init</td>
+              <td>M</td>
+            </tr>
+            <tr>
+              <td><strong>Test/lint gate</strong></td>
+              <td>Non-race suite green; lint down to 1 finding on the working tree</td>
+              <td>Race red; <code>privacy_trap_test.go</code> gofmt-unclean; watchgroup modernize finding</td>
+              <td>S</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="notstarted"><span class="num">03</span>c) Not Started</h2>
+        <p>
+          The 2026-10-01 state audit produced 11 findings that were never triaged
+          into <code>TODO_LIST.md</code>. They are the largest unstarted block:
+        </p>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Item</th><th>Why not started</th><th>Priority</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>c1</td><td>Decouple offline/connectivity from <code>CameraState</code> intent (Finding 1)</td><td>needs a data-model decision (audit §g2)</td><td>High</td></tr>
+            <tr><td>c2</td><td>Make <code>hadPersistedState</code> reflect reality at use-time (Finding 2)</td><td>not filed</td><td>High</td></tr>
+            <tr><td>c3</td><td>Serialize <code>syncState</code> HID access under <code>hidMu</code> (Finding 3)</td><td>needs intent confirmation</td><td>High</td></tr>
+            <tr><td>c4</td><td>Cache authoritative <code>powerStatus</code> failures, or fix the doc (Finding 4)</td><td>not filed</td><td>Medium</td></tr>
+            <tr><td>c5</td><td>Unify the three device-appear paths behind one reconcile entry</td><td>not filed</td><td>Medium</td></tr>
+            <tr><td>c6</td><td>Define <code>Online</code> vs "controllable" and align the four status projections</td><td>design call</td><td>Medium</td></tr>
+            <tr><td>c7–c11</td><td>ptzCache invalidation, offline gauge, ghost <code>ProcessInspector</code>, docs language, file findings into TODO</td><td>not filed</td><td>Low–Med</td></tr>
+            <tr><td>—</td><td>Privacy-trap ADR + <code>docs/DOMAIN_LANGUAGE.md</code> entry + hardware re-validation</td><td>feature just landed</td><td>Medium</td></tr>
+            <tr><td>#176</td><td>Gate the auto-commit daemon on a green pre-commit build</td><td>backlog</td><td>High</td></tr>
+            <tr><td>#172,#177–#181</td><td>V2 query helper, BuildFlow ruff scoping, benchmark delta, preset-name validation, LSP align, nolint sweep</td><td>backlog</td><td>Low–Med</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="fucked"><span class="num">04</span>d) Totally Fucked Up</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Blocking · CI red</span>
+          <h3>Data race makes <code>go test -race ./...</code> fail at HEAD</h3>
+          <div class="where">privacy_trap.go:64 ⟷ privacy_trap_test.go:22</div>
+          <p>
+            <code>schedulePrivacyTrapReassert</code> spawns a goroutine that reads
+            the package global <code>privacyTrapReassertDelay</code> when it
+            starts; the test helper <code>withShortReassertDelay</code> writes
+            that same global from <code>t.Cleanup</code>. When the goroutine is
+            scheduled after the test returns, the two accesses race. Reproduced
+            at the committed HEAD (not just the working tree):
+          </p>
+          <div class="callout">
+            <pre><code>WARNING: DATA RACE
+Write at ... by withShortReassertDelay.func1()  privacy_trap_test.go:22
+Previous read at ... by schedulePrivacyTrapReassert.func1()  privacy_trap.go:64
+--- FAIL: TestSetTracking_ReassertSkippedAfterIntentChange (race detected)</code></pre>
+          </div>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Stop mutating a package global for timing. Inject the delay (a
+            <code>Dependencies</code>/clock seam) or gate on the goroutine
+            finishing before cleanup; then re-run the full <code>-race</code>
+            command, not bare <code>go test</code>.
+          </div>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Process</span>
+          <h3>Privacy-trap feature shipped with zero documentation</h3>
+          <div class="where">privacy_trap.go · CHANGELOG.md · AGENTS.md · FEATURES.md · TODO_LIST.md</div>
+          <p>
+            A hardware-evidenced firmware behavior, a new daemon field, a new
+            code path, and 7 tests all landed via auto-commits — but
+            <code>grep</code> finds <strong>no</strong> mention in
+            <code>CHANGELOG.md</code>, <code>AGENTS.md</code>,
+            <code>FEATURES.md</code>, or <code>TODO_LIST.md</code>. The project's
+            own contract ("completed work lives in CHANGELOG.md") is violated, and
+            the next session must reverse-engineer intent from code.
+          </p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Lint / hygiene</span>
+          <h3>Working tree is not clean</h3>
+          <div class="where">privacy_trap.go:69 · privacy_trap_test.go · templates_templ.go</div>
+          <p>
+            <code>golangci-lint</code> reports 1 finding
+            (<code>modernize/waitgroupgo</code> at <code>privacy_trap.go:69</code>);
+            <code>gofmt -l</code> flags <code>privacy_trap_test.go</code>; and
+            <code>templates_templ.go</code> has an uncommitted regeneration diff
+            (import regrouping + <code>:=</code>) suggesting the <code>templ</code>
+            version drifts between sessions.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Debt</span>
+          <h3>11 audit findings never filed</h3>
+          <div class="where">docs/status/2026-10-01_04-21_*.md §f</div>
+          <p>
+            The state/split-brain audit's ranked 50-item list was written into a
+            timestamped file and never harvested into <code>TODO_LIST.md</code> /
+            <code>ROADMAP.md</code>. Untriaged, it will be re-discovered as a
+            fresh "new" finding next session.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">05</span>e) What We Should Improve</h2>
+        <div class="card card-warning">
+          <h4>Gate on the CI command, not a convenient one</h4>
+          <p>Every "done" claim must be measured with the exact CI invocation
+          (<code>-race</code>, <code>golangci-lint</code>) before it is stated.
+          Bare <code>go test</code> hid this race.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Make timing injectable, not global</h4>
+          <p>Package-level mutable timing vars are a recurring race/test-isolation
+          hazard. Prefer a <code>Dependencies</code> seam or a
+          <code>testClock</code>. Also lets <code>paralleltest</code> re-enable for
+          those tests.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Auto-commit daemon is the systemic risk</h4>
+          <p>Races, unformatted files and undocumented features land because the
+          daemon commits without the full gate. TODO #176 (gate it on a green
+          pre-commit build) is the highest-leverage fix on the board.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Docs-first for hardware-evidenced behavior</h4>
+          <p>The privacy trap is exactly the kind of non-obvious firmware quirk
+          AGENTS.md exists to carry. A CHANGELOG bullet + AGENTS gotcha + FEATURES
+          row should have been part of the same change.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Harvest the audit</h4>
+          <p>Run <code>docs-health</code> HARVEST over the 04-21 report so the 11
+          findings become tracked task IDs instead of prose.</p>
+        </div>
+
+        <h2 id="next"><span class="num">06</span>f) Top 25 Next Tasks</h2>
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Category</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Fix the privacy-trap data race (inject the re-assert delay) and make <code>go test -race ./...</code> green</td><td><span class="badge badge-critical">Critical</span></td><td>S</td><td>Bug</td></tr>
+            <tr><td>2</td><td>Add the privacy-trap CHANGELOG entry + AGENTS gotcha + FEATURES row</td><td><span class="badge badge-high">High</span></td><td>S</td><td>Documentation</td></tr>
+            <tr><td>3</td><td>Run <code>gofmt</code>/<code>golangci-lint</code> clean and resolve <code>privacy_trap.go:69</code> modernize</td><td><span class="badge badge-high">High</span></td><td>S</td><td>Quality</td></tr>
+            <tr><td>4</td><td>Commit or discard the <code>templates_templ.go</code> regeneration drift; pin the templ version</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Quality</td></tr>
+            <tr><td>5</td><td>Gate the auto-commit daemon on a green pre-commit build (#176)</td><td><span class="badge badge-critical">Critical</span></td><td>M</td><td>Cleanup</td></tr>
+            <tr><td>6</td><td>HARVEST the 04-21 audit findings into TODO_LIST/ROADMAP with IDs</td><td><span class="badge badge-high">High</span></td><td>S</td><td>Documentation</td></tr>
+            <tr><td>7</td><td>Reproduce + fix Finding 3 (syncState HID I/O without hidMu)</td><td><span class="badge badge-high">High</span></td><td>M</td><td>Bug</td></tr>
+            <tr><td>8</td><td>Reproduce + fix Finding 2 (stale <code>hadPersistedState</code>)</td><td><span class="badge badge-high">High</span></td><td>S</td><td>Bug</td></tr>
+            <tr><td>9</td><td>Decide the <code>CameraState</code> vs connectivity data-model split (Finding 1/5/6/11)</td><td><span class="badge badge-critical">Critical</span></td><td>M</td><td>Feature</td></tr>
+            <tr><td>10</td><td>Re-run privacy-trap hardware diagnostic after the fix (#166 session)</td><td><span class="badge badge-high">High</span></td><td>S</td><td>Bug</td></tr>
+            <tr><td>11</td><td>Write the privacy-trap ADR + DOMAIN_LANGUAGE entry</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Documentation</td></tr>
+            <tr><td>12</td><td>Add a lock-contract table/doc (entry point → locks held)</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Documentation</td></tr>
+            <tr><td>13</td><td>#173 surface the unsupported-device hint in web UI + Waybar</td><td><span class="badge badge-medium">Medium</span></td><td>M</td><td>Feature</td></tr>
+            <tr><td>14</td><td>#174 branch tests for <code>probe</code>/<code>device</code> hint paths</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Quality</td></tr>
+            <tr><td>15</td><td>Invalidate <code>ptzCache</code>/<code>powerCache</code> on device appear/removal (Finding 7)</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Bug</td></tr>
+            <tr><td>16</td><td>Unify the four status projections (getStatus/waybar/web/health)</td><td><span class="badge badge-medium">Medium</span></td><td>M</td><td>Feature</td></tr>
+            <tr><td>17</td><td>Fix or fix-the-doc for <code>powerStatus</code> failure caching (Finding 4)</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Bug</td></tr>
+            <tr><td>18</td><td>Add a compile-time guard so <code>StateOffline</code> cannot be persisted as intent</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Quality</td></tr>
+            <tr><td>19</td><td>Audit every HID/v4l2 caller for missing locks; add a defensive concurrency metric</td><td><span class="badge badge-medium">Medium</span></td><td>M</td><td>Quality</td></tr>
+            <tr><td>20</td><td>#181 mechanical nolint sweep post-refactor</td><td><span class="badge badge-low">Low</span></td><td>M</td><td>Cleanup</td></tr>
+            <tr><td>21</td><td>#177 scope BuildFlow ruff away from <code>tools/</code> so the dev gate greens for Go work</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Cleanup</td></tr>
+            <tr><td>22</td><td>#178 benchmark delta: confirm ttlCache + preset double-RLock perf-neutral</td><td><span class="badge badge-low">Low</span></td><td>S</td><td>Quality</td></tr>
+            <tr><td>23</td><td>Retire or wire the ghost <code>ProcessInspector</code> field (Finding 10)</td><td><span class="badge badge-low">Low</span></td><td>S</td><td>Cleanup</td></tr>
+            <tr><td>24</td><td>#129 + #175 website: online screenshots + SEO/OG pass</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td>Documentation</td></tr>
+            <tr><td>25</td><td>Schedule the #166 wired-hardware session (closes #138–#141/#150/#129)</td><td><span class="badge badge-high">High</span></td><td>M</td><td>Feature</td></tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h2 id="question"><span class="num">07</span>g) Top Question I Cannot Answer Myself</h2>
+        <div class="card card-problem">
+          <h4>Is the privacy-trap re-assert semantics safe to keep as-is, or does it need a product decision?</h4>
+          <p>
+            The mitigation deliberately re-issues the user's mode ~3s later and,
+            for tracking, bounces through <em>idle</em> first (the hardware only
+            recovers that way). I verified the code and the tests, but I cannot
+            decide from inside the repo whether a daemon silently re-writing the
+            camera mode after a click — and briefly passing through idle — is
+            acceptable behavior for users, or whether it should be gated,
+            configurable, or surfaced in the UI. This changes both the feature's
+            contract and how the fix's docs/ADR should read.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Tried first</strong>
+            Read <code>privacy_trap.go</code>, the hardware diagnostic, the 7 unit
+            tests, AGENTS.md and the ROADMAP — none states the intended user-facing
+            contract for the deferred re-assert.
+          </div>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-10-01 05:05 CEST &middot; tree at <code>a056395</code>
+          (branch <code>master</code>) &middot; test/lint claims verified live;
+          hardware behavior cited from committed diagnostic comments
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

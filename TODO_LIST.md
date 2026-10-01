@@ -1,6 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-09-19 (shipped #167 pull early-abort, #171 `preset pull --dry-run`, #169 collision property test, #168 simulator knobs + speed-query duality, #170 dprint vendored into the devShell — details in `CHANGELOG.md` [Unreleased]; #172 evaluated: trigger NOT met — still 3 production GET families, the 4th is speed readback and lands with #138/#166; no PIXY on the bus this session, hardware rows untouched)
+**Updated:** 2026-10-01 (PIXY attached — first wired session: privacy-trap bug reproduced, root-caused optically, and FIXED (see CHANGELOG [Unreleased]); BatteryProbe run: battery/charge/target-track/func/ver/device-ver heads time out, motor-speed/pos + device-mode + SN answer 32-byte echo frames, motor echo rewrites iface→0x63, V1 `09 01 01 01` answers constant 0x02 (0x03 in the trap) — full #166 checklist still open)
+
+**Previous:** 2026-09-19 (shipped #167 pull early-abort, #171 `preset pull --dry-run`, #169 collision property test, #168 simulator knobs + speed-query duality, #170 dprint vendored into the devShell — details in `CHANGELOG.md` [Unreleased]; #172 evaluated: trigger NOT met — still 3 production GET families, the 4th is speed readback and lands with #138/#166; no PIXY on the bus that session, hardware rows untouched)
 
 **Previous:** 2026-09-19 (rows shrunk to one-line open work for terminal readability — every shipped half already lives in `CHANGELOG.md` [Unreleased]; #166's thread list moved to a checklist under the table; new rows #167–#172 relabeled 🔶 PARTIAL → ◻ OPEN, they have no shipped code)
 
@@ -28,9 +30,11 @@
 
 ### #166 bundle checklist (run in one wired session)
 
-- Run `TestIntegration_BatteryProbe` — battery/charge verdict → #139
-- Pin `MotorType` + `DefaultPosMode` enum values, motor iface echo (0x63 vs 0x03), response bytes 4..7 → #150
-- Pin speed unit + real hardware limit → #138 clamp at command layer + web slider max
+- Run `TestIntegration_BatteryProbe` — battery/charge verdict → #139 — **PARTIAL 2026-10-01: dev-0x00 heads (battery/charge) and target-track/func/ver/devver all time out; motor-speed/pos, device-mode, SN answer echo frames with mostly-zero payloads**
+- Pin `MotorType` + `DefaultPosMode` enum values, motor iface echo (0x63 vs 0x03), response bytes 4..7 → #150 — **PARTIAL 2026-10-01: motor-pos echo rewrites the queried 0x03 iface to 0x63 on the wire; response [4..7] = `00 0X 00 0X` (NOT the assumed zero-reserved dword)**
+- Pin speed unit + real hardware limit → #138 clamp at command layer + web slider max — **PARTIAL 2026-10-01: GET_MOTOR_SPEED answers payload `0x20` (=32) — unit still unknown**
+- Decode the V1 mode-query semantics: `09 01 01 01` (= CMD_SET_DEVICE_MODE head, we SendRecv it as a GET) answers 0x02 constantly, 0x03 in the privacy-trap state — do NOT trust `sync`/reconcile mode reads until decoded
+- Decide panel honesty for the transient trap cover (lens covered while believed=tracking at tilt ≤ −85): re-assert fix hides the window, but a slow far-travel + fast click could still show Track with a black feed
 - Preset slot-count sweep + response-shape pin (mode-only GET vs full SET-echo) → #141
 - Live round-trip: `preset push` → `preset pull` → values match
 - Optional (Lars's Q3): Windows usbmon capture of the official app to settle `MotorType`

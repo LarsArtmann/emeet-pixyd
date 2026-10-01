@@ -54,6 +54,26 @@ func waitForCondition(t *testing.T, condition func() bool, msg string) {
 	t.Fatal(msg)
 }
 
+// waitForTrapReasserts blocks until every scheduled privacy-trap re-assert
+// goroutine for this daemon has finished, so tests never race their daemon's
+// in-flight HID writes.
+func waitForTrapReasserts(tb testing.TB, d *Daemon) {
+	tb.Helper()
+
+	done := make(chan struct{})
+
+	go func() {
+		d.trapReasserts.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		tb.Fatal("timed out waiting for privacy-trap re-assert goroutines")
+	}
+}
+
 // lastTrackingConfigIndex returns the index of the last 9-byte config
 // report for the tracking interface carrying the given mode byte, or -1.
 func lastTrackingConfigIndex(sim *pixySimulator, modeByte byte) int {
@@ -113,6 +133,8 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	if got := readCameraState(d); got != pixy.StateTracking {
 		t.Errorf("believed mode after re-assert = %s, want tracking", got)
 	}
+
+	waitForTrapReasserts(t, d)
 }
 
 // TestSetTracking_NoReassertOutsideTrapWindow: without an armed trap window
@@ -162,8 +184,7 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 	// privacy write (>=200ms config+commit) has completed and belief moved on.
 	time.Sleep(1200 * time.Millisecond)
 
-	if got := countTrackingConfigs(sim, hidByteTracking); got != 1 {
-		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
+	if got := countTrackingConfigs(sim, hidByteTracking); got != 1 {		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
 	}
 
 	if got := countTrackingConfigs(sim, hidByteIdle); got != 0 {
@@ -199,6 +220,8 @@ func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 	waitForCondition(t,
 		func() bool { return countTrackingConfigs(sim, hidByteIdle) == 2 },
 		"expected the idle re-assert write")
+
+	waitForTrapReasserts(t, d)
 
 	if got := countTrackingConfigs(sim, hidByteTracking); got != 0 {
 		t.Errorf("tracking config writes = %d, want 0 (idle re-assert needs no bounce)", got)
@@ -252,6 +275,8 @@ func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 
 	waitForCondition(t, bounceComplete,
 		"expected the re-assert bounce through the full command path")
+
+	waitForTrapReasserts(t, d)
 }
 
 // TestHandlePTZCommand_ArmsPrivacyTrap pins which moves arm the race window.

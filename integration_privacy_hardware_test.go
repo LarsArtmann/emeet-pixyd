@@ -223,12 +223,20 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	}
 
 	// Sanity: camera open and the room is lit — otherwise luma verdicts are
-	// meaningless.
+	// meaningless. One retry absorbs state left by whichever hardware test
+	// ran before this one.
 	runDaemonCommand(t, d, "tilt 0")
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
 
-	if baseline := frameLuma("baseline: tracking, tilt 0"); baseline < lumaBright {
+	baseline := frameLuma("baseline: tracking, tilt 0")
+	if baseline < lumaBright {
+		runDaemonCommand(t, d, "track")
+		time.Sleep(motorSettleWait)
+		baseline = frameLuma("baseline retry")
+	}
+
+	if baseline < lumaBright {
 		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
 	}
 

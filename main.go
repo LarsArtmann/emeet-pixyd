@@ -56,6 +56,10 @@ type Daemon struct {
 	// d.mu.
 	trapArmedUntil time.Time
 
+	// trapReasserts tracks in-flight privacy-trap re-assert goroutines so
+	// shutdown (and tests) can wait for their HID writes to finish.
+	trapReasserts sync.WaitGroup
+
 	// hadPersistedState records whether a valid state file existed at
 	// startup. It distinguishes "the user has expressed intent" (persisted
 	// camera mode wins over hardware on device re-appear) from "fresh
