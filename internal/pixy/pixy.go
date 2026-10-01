@@ -89,6 +89,8 @@ func (s CameraState) ValidDesired() bool {
 	switch s {
 	case StateIdle, StateTracking, StatePrivacy:
 		return true
+	case StateOffline:
+		return false
 	default:
 		return false
 	}
@@ -276,8 +278,8 @@ type State struct {
 	// InCall is a runtime observation (is a call in progress?), not intent.
 	// It is persisted for crash visibility but reset on daemon start: the
 	// daemon cannot be in a call before it begins observing /proc.
-	InCall   bool     `json:"inCall"`
-	AutoMode AutoMode `json:"autoMode"`
+	InCall   bool      `json:"inCall"`
+	AutoMode AutoMode  `json:"autoMode"`
 	Presets  PresetMap `json:"presets,omitempty"`
 
 	// TrackMode is the persisted tracking variant (TODO #140): the canonical
@@ -340,28 +342,12 @@ type SpeedValues struct {
 // Get returns the speed for the given axis and true if the axis is
 // recognized, or 0 and false if the axis is unknown.
 func (s SpeedValues) Get(axis Axis) (float32, bool) {
-	switch axis {
-	case AxisPan:
-		return s.Pan, true
-	case AxisTilt:
-		return s.Tilt, true
-	case AxisZoom:
-		return s.Zoom, true
-	default:
-		return 0, false
-	}
+	return axisGet(axis, s.Pan, s.Tilt, s.Zoom)
 }
 
 // Set returns a copy with the given axis set to speed.
 func (s SpeedValues) Set(axis Axis, speed float32) SpeedValues {
-	switch axis {
-	case AxisPan:
-		s.Pan = speed
-	case AxisTilt:
-		s.Tilt = speed
-	case AxisZoom:
-		s.Zoom = speed
-	}
+	axisSet(axis, speed, &s.Pan, &s.Tilt, &s.Zoom)
 
 	return s
 }
@@ -387,30 +373,43 @@ func (p PTZValues) Clamp() PTZValues {
 // Get returns the PTZ value for the given axis and true if the axis is
 // recognized, or 0 and false if the axis is unknown.
 func (p PTZValues) Get(axis Axis) (int, bool) {
+	return axisGet(axis, p.Pan, p.Tilt, p.Zoom)
+}
+
+// Set returns a copy with the given axis set to val.
+func (p PTZValues) Set(axis Axis, val int) PTZValues {
+	axisSet(axis, val, &p.Pan, &p.Tilt, &p.Zoom)
+
+	return p
+}
+
+// axisGet returns the value held for axis among the pan/tilt/zoom fields,
+// or the zero value and false when the axis is unrecognized. Shared by
+// SpeedValues and PTZValues so the axis mapping has one definition.
+func axisGet[V ~int | ~float32](axis Axis, pan, tilt, zoom V) (V, bool) {
 	switch axis {
 	case AxisPan:
-		return p.Pan, true
+		return pan, true
 	case AxisTilt:
-		return p.Tilt, true
+		return tilt, true
 	case AxisZoom:
-		return p.Zoom, true
+		return zoom, true
 	default:
 		return 0, false
 	}
 }
 
-// Set returns a copy with the given axis set to val.
-func (p PTZValues) Set(axis Axis, val int) PTZValues {
+// axisSet writes value into the pan/tilt/zoom field matching axis;
+// unrecognized axes are ignored.
+func axisSet[V ~int | ~float32](axis Axis, value V, pan, tilt, zoom *V) {
 	switch axis {
 	case AxisPan:
-		p.Pan = val
+		*pan = value
 	case AxisTilt:
-		p.Tilt = val
+		*tilt = value
 	case AxisZoom:
-		p.Zoom = val
+		*zoom = value
 	}
-
-	return p
 }
 
 // Range pairs a minimum and maximum limit for a PTZ axis.

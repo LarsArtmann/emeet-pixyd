@@ -197,11 +197,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 			return okResult("device found: " + dev)
 		}
 
-		if hint != "" {
-			return okResult(hint)
-		}
-
-		return okResult(respDeviceNotFound)
+		return deviceNotFoundResult(hint)
 
 	case cmdDevice:
 		d.mu.RLock()
@@ -229,14 +225,21 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 			return okResult(strings.Join(parts, " "))
 		}
 
-		if hint != "" {
-			return okResult(hint)
-		}
-
-		return okResult(respDeviceNotFound)
+		return deviceNotFoundResult(hint)
 	}
 
 	return errResultMsg("unknown query command: " + parts[0])
+}
+
+// deviceNotFoundResult answers a device query that found no controllable
+// device: the probe's unsupported-hint (why nothing was found) takes
+// precedence over the generic not-found response.
+func deviceNotFoundResult(hint string) CommandResult {
+	if hint != "" {
+		return okResult(hint)
+	}
+
+	return okResult(respDeviceNotFound)
 }
 
 func (d *Daemon) handleTogglePrivacy(ctx context.Context) CommandResult {
