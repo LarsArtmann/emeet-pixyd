@@ -72,26 +72,25 @@ type webServer struct {
 }
 
 func (s *webServer) getWebStatus(ctx context.Context) webStatus {
-	s.daemon.mu.RLock()
+	snap := s.daemon.snapshot()
 	//nolint:exhaustruct
 	status := webStatus{
-		Camera:       s.daemon.state.Camera,
-		Audio:        s.daemon.state.Audio,
-		Gesture:      s.daemon.state.Gesture,
-		InCall:       s.daemon.state.InCall,
-		Auto:         s.daemon.state.AutoMode,
-		Online:       s.daemon.videoDev != "",
-		Controllable: s.daemon.hidrawDev != "",
-		Device:       s.daemon.videoDev,
-		Model:        string(s.daemon.model),
-		Error:        errStr(s.daemon.autoError),
-		LastSynced:   formatLastSynced(s.daemon.lastSyncedAt),
+		Camera:       snap.Camera,
+		Audio:        snap.Audio,
+		Gesture:      snap.Gesture,
+		InCall:       snap.InCall,
+		Auto:         snap.Auto,
+		Online:       snap.Online,
+		Controllable: snap.Controllable,
+		Device:       snap.Device,
+		Model:        string(snap.Model),
+		Error:        snap.Error,
+		LastSynced:   formatLastSynced(snap.LastSynced),
 		Version:      buildVersion,
-		PresetNames:  s.daemon.state.Presets.SortedNames(),
-		TrackMode:    s.daemon.state.EffectiveTrackMode().String(),
-		Speeds:       s.daemon.state.Speeds,
+		PresetNames:  snap.Presets,
+		TrackMode:    snap.TrackMode,
+		Speeds:       snap.Speeds,
 	}
-	s.daemon.mu.RUnlock()
 
 	if status.Online {
 		status.PTZValues = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}
@@ -138,19 +137,16 @@ func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *htt
 }
 
 func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Request) {
-	s.daemon.mu.RLock()
-	online := s.daemon.videoDev != ""
-	camera := s.daemon.state.Camera
-	s.daemon.mu.RUnlock()
+	snap := s.daemon.snapshot()
 
 	status := http.StatusOK
-	if !online {
+	if !snap.Online {
 		status = http.StatusServiceUnavailable
 	}
 
 	if err := writeJSON(responseWriter, status, healthResponse{
-		Status:  boolStr(online, "ok", "offline"),
-		Camera:  camera,
+		Status:  boolStr(snap.Online, "ok", "offline"),
+		Camera:  snap.Camera,
 		Version: buildVersion,
 	}); err != nil {
 		slog.Debug("health response write failed", "err", err)

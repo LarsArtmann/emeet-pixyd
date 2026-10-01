@@ -188,6 +188,53 @@ func (d *Daemon) presenceLocked() devicePresence {
 	}
 }
 
+// statusSnapshot is the canonical, lock-consistent view of the daemon that
+// every status surface (CLI, Waybar, web panel, health, /api/status) reads
+// from — one place where the field set is defined, so a surface cannot drift
+// from the others. Camera is desired intent; Online/Controllable are the
+// connectivity observation. Each surface chooses its own display collapse
+// (the human surfaces render offline when !Online; the machine surface keeps
+// camera=intent and reports Online separately).
+type statusSnapshot struct {
+	Camera       pixy.CameraState
+	Online       bool
+	Controllable bool
+	Audio        pixy.AudioMode
+	Gesture      bool
+	InCall       bool
+	Auto         pixy.AutoMode
+	Device       string
+	Model        pixy.Model
+	Error        string
+	LastSynced   time.Time
+	Presets      []string
+	TrackMode    string
+	Speeds       pixy.SpeedValues
+}
+
+// snapshot captures the canonical status view under a single read lock.
+func (d *Daemon) snapshot() statusSnapshot {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	return statusSnapshot{
+		Camera:       d.state.Camera,
+		Online:       d.videoDev != "",
+		Controllable: d.hidrawDev != "",
+		Audio:        d.state.Audio,
+		Gesture:      d.state.Gesture,
+		InCall:       d.state.InCall,
+		Auto:         d.state.AutoMode,
+		Device:       d.videoDev,
+		Model:        d.model,
+		Error:        errStr(d.autoError),
+		LastSynced:   d.lastSyncedAt,
+		Presets:      d.state.Presets.SortedNames(),
+		TrackMode:    d.state.EffectiveTrackMode().String(),
+		Speeds:       d.state.Speeds,
+	}
+}
+
 func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
 	return queryHIDState(
 		ctx, d.hidDevice(),
@@ -415,42 +462,35 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 }
 
 func (d *Daemon) getStatus(ctx context.Context) string {
-	d.mu.RLock()
-	videoDev := d.videoDev
-	camera := d.state.Camera
-	audio := d.state.Audio
-	gesture := d.state.Gesture
-	inCall := d.state.InCall
-	autoMode := d.state.AutoMode
-	d.mu.RUnlock()
+	s := d.snapshot()
 
-	if videoDev == "" {
+	if !s.Online {
 		return fmt.Sprintf(
 			"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=",
 			pixy.StateOffline,
-			audio,
-			gesture,
+			s.Audio,
+			s.Gesture,
 			0,
 			0,
 			0,
-			boolStr(inCall, "yes", "no"),
-			autoMode,
+			boolStr(s.InCall, "yes", "no"),
+			s.Auto,
 		)
 	}
 
-	ptz := d.deps.parsePTZ(ctx, videoDev)
+	ptz := d.deps.parsePTZ(ctx, s.Device)
 
 	base := fmt.Sprintf(
 		"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=%s",
-		camera,
-		audio,
-		gesture,
+		s.Camera,
+		s.Audio,
+		s.Gesture,
 		ptz.Pan,
 		ptz.Tilt,
 		ptz.Zoom,
-		boolStr(inCall, "yes", "no"),
-		autoMode,
-		videoDev,
+		boolStr(s.InCall, "yes", "no"),
+		s.Auto,
+		s.Device,
 	)
 
 	// Battery is best-effort (TODO #139): the line appears only when the

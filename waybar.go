@@ -35,26 +35,21 @@ var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
 }
 
 func (d *Daemon) waybarOutput(ctx context.Context) string {
-	d.mu.RLock()
+	s := d.snapshot()
+
 	// The bar is a human surface: collapse to offline when no video node is
 	// present (the same collapse the CLI `status` line does), rather than
 	// showing the desired mode for a camera that is not there. The machine
 	// surface (/api/status) keeps camera=intent + online=false instead.
-	camera := d.state.Camera
-	if d.videoDev == "" {
+	camera := s.Camera
+	if !s.Online {
 		camera = pixy.StateOffline
 	}
-
-	audio := d.state.Audio
-	inCall := d.state.InCall
-	autoMode := d.state.AutoMode
-	model := d.model
-	d.mu.RUnlock()
 
 	info := waybarCameraStates[camera]
 	class := info.class
 
-	if inCall {
+	if s.InCall {
 		class += " in-call"
 	}
 
@@ -62,20 +57,20 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 	tooltip.Grow(tooltipInitSize)
 	tooltip.WriteString("EMEET PIXY")
 
-	if model != "" {
+	if s.Model != "" {
 		tooltip.WriteString(" (")
-		tooltip.WriteString(string(model))
+		tooltip.WriteString(string(s.Model))
 		tooltip.WriteString(")")
 	}
 
 	tooltip.WriteString(": ")
 	tooltip.WriteString(string(camera))
 	tooltip.WriteString("\nAudio: ")
-	tooltip.WriteString(string(audio))
+	tooltip.WriteString(string(s.Audio))
 	tooltip.WriteString("\nAuto: ")
-	tooltip.WriteString(autoMode.String())
+	tooltip.WriteString(s.Auto.String())
 
-	if inCall {
+	if s.InCall {
 		tooltip.WriteString("\nIn call: yes")
 	}
 
@@ -105,7 +100,7 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 		Text:    info.icon + " " + info.text,
 		Tooltip: tooltip.String(),
 		Class:   "custom-camera " + class,
-		Model:   string(model),
+		Model:   string(s.Model),
 		Battery: battery,
 	}
 
