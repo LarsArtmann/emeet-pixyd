@@ -264,15 +264,19 @@ func TestHasPixyProduct(t *testing.T) {
 	}
 }
 
-func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
+// TestProbeDevices_PreservesIntent pins the connectivity-vs-intent split: a
+// probe (hit or miss) updates device presence only. It must never rewrite the
+// desired camera mode, so a transient probe miss cannot clobber the user's
+// choice (Finding 1).
+func TestProbeDevices_PreservesIntent(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
 		name          string
 		initialCamera pixy.CameraState
 	}{
-		{"from non-offline state", pixy.StatePrivacy},
-		{"from offline state", pixy.StateOffline},
+		{"from privacy state", pixy.StatePrivacy},
+		{"from tracking state", pixy.StateTracking},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -280,15 +284,12 @@ func TestProbeDevices_SetsStateToOfflineWhenNoVideo(t *testing.T) {
 			d := newTestDaemon(t, tc.initialCamera, "", "")
 			d.applyProbeResultLocked(probeDevices(nil))
 
-			hasDev := d.videoDev != ""
-
-			isOffline := d.state.Camera == pixy.StateOffline
-			if hasDev && isOffline {
-				t.Error("camera should not be offline when video device is found")
+			if d.state.Camera != tc.initialCamera {
+				t.Errorf("probe miss changed intent: got %s, want %s", d.state.Camera, tc.initialCamera)
 			}
 
-			if !hasDev && !isOffline {
-				t.Errorf("expected offline when no video device, got %s", d.state.Camera)
+			if got, want := d.presence().Online, d.videoDev != ""; got != want {
+				t.Errorf("presence().Online = %v, want %v (videoDev=%q)", got, want, d.videoDev)
 			}
 		})
 	}

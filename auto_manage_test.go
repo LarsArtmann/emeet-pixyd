@@ -49,7 +49,7 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 	}
 }
 
-func TestAutoManage_NoDevice_Returns(t *testing.T) {
+func TestAutoManage_NoDevice_PreservesIntent(t *testing.T) {
 	t.Parallel()
 
 	if dev, _, _ := probeVideo4linux("/sys/class/video4linux", nil); dev != "" {
@@ -59,8 +59,10 @@ func TestAutoManage_NoDevice_Returns(t *testing.T) {
 	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
 	d.autoManage(context.Background())
 
-	if camera := readCameraState(d); camera != pixy.StateOffline {
-		t.Errorf("expected offline with no device, got %s", camera)
+	// Connectivity is not intent: a missing device must not rewrite the
+	// persisted desired mode.
+	if camera := readCameraState(d); camera != pixy.StatePrivacy {
+		t.Errorf("auto-manage clobbered intent: got %s, want privacy", camera)
 	}
 }
 

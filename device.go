@@ -421,7 +421,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 	if videoDev == "" {
 		return fmt.Sprintf(
 			"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=",
-			camera,
+			pixy.StateOffline,
 			audio,
 			gesture,
 			0,
