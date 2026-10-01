@@ -36,7 +36,14 @@ var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
 
 func (d *Daemon) waybarOutput(ctx context.Context) string {
 	d.mu.RLock()
+	// The bar is a human surface: collapse to offline when no video node is
+	// present (the same collapse the CLI `status` line does), rather than
+	// showing the desired mode for a camera that is not there. The machine
+	// surface (/api/status) keeps camera=intent + online=false instead.
 	camera := d.state.Camera
+	if d.videoDev == "" {
+		camera = pixy.StateOffline
+	}
 	audio := d.state.Audio
 	inCall := d.state.InCall
 	autoMode := d.state.AutoMode
