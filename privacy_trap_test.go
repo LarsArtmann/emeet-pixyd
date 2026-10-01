@@ -58,6 +58,7 @@ func waitForCondition(t *testing.T, timeout time.Duration, condition func() bool
 // write issued while the privacy-trap window is armed gets ONE deferred
 // re-assert, so the user's click lands even when the firmware eats the
 // original write mid-transition.
+//nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -86,6 +87,7 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 // TestSetTracking_NoReassertOutsideTrapWindow: without an armed trap window
 // a mode write goes out exactly once — the re-assert never fires for normal
 // clicks.
+//nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -106,8 +108,9 @@ func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 // TestSetTracking_ReassertSkippedAfterIntentChange: when the user's intent
 // moves on before the re-assert fires (privacy clicked meanwhile), the stale
 // re-assert is dropped instead of fighting the newer command.
+//nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
-	withShortReassertDelay(t, 120*time.Millisecond)
+	withShortReassertDelay(t, 500*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
@@ -122,7 +125,9 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 		t.Fatalf("setTracking(privacy): %v", err)
 	}
 
-	time.Sleep(400 * time.Millisecond)
+	// The re-assert fires 500ms after the tracking write — by then the
+	// privacy write (>=200ms config+commit) has completed and belief moved on.
+	time.Sleep(1200 * time.Millisecond)
 
 	if got := countTrackingConfigs(sim, hidByteTracking); got != 1 {
 		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
@@ -140,6 +145,7 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 // TestSetTracking_PrivacyWriteNeverReasserts: entering privacy is never
 // racing the trap cover — the deferred re-assert applies to uncovering
 // writes only.
+//nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -163,6 +169,7 @@ func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 // routing: the web UI's POST /api/track lands in handleCommand, whose
 // hidMu-scoped write must not deadlock against the re-assert goroutine taking
 // hidMu afterwards.
+//nolint:paralleltest // mutates the package-level re-assert delay
 func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -183,6 +190,8 @@ func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 
 // TestHandlePTZCommand_ArmsPrivacyTrap pins which moves arm the race window.
 func TestHandlePTZCommand_ArmsPrivacyTrap(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		name string
 		cmd  string
@@ -197,6 +206,8 @@ func TestHandlePTZCommand_ArmsPrivacyTrap(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev,
 				withCaptureV4L2(&[]v4l2Call{}), withNoopParsePTZ())
 
@@ -215,6 +226,8 @@ func TestHandlePTZCommand_ArmsPrivacyTrap(t *testing.T) {
 // re-arms the window when the head actually landed in the trap zone — slow
 // travels from far positions keep the protection alive.
 func TestSchedulePTZReadback_RearmsTrapOnArrival(t *testing.T) {
+	t.Parallel()
+
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
 
 	d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
@@ -230,6 +243,8 @@ func TestSchedulePTZReadback_RearmsTrapOnArrival(t *testing.T) {
 // TestPrivacyTrapArmedWindowExpiry pins that the armed state is a window,
 // not a latch.
 func TestPrivacyTrapArmedWindowExpiry(t *testing.T) {
+	t.Parallel()
+
 	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
 
 	d.armPrivacyTrap()

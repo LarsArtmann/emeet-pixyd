@@ -298,10 +298,11 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	frameLuma("cleanup: tilt 0, tracking")
 }
 
-// TestIntegration_PrivacyTrapTimingRace probes WHEN a direct track write
-// recovers the trapped lens as a function of the delay after the tilt command:
-// the reported bug is only reproducible if the write lands inside a window
-// (motor mid-travel / firmware mid-transition into privacy).
+// TestIntegration_PrivacyTrapTimingRace verifies the fix for the reported
+// bug on real hardware: a track write landing inside the firmware's trap
+// transition is eaten, and the daemon's deferred re-assert (privacy_trap.go)
+// must recover the lens within the measurement window. Before the fix every
+// delay round below stayed covered (luma 12-34).
 func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 	probeResult := probeDevices(nil)
 
@@ -355,7 +356,7 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 				return
 			}
 
-			t.Errorf("delay %s: track did not recover the trapped lens (luma=%.1f) — race window confirmed", delay, recovered)
+			t.Errorf("delay %s: neither the write nor the trap re-assert recovered the lens (luma=%.1f)", delay, recovered)
 
 			// Cleanup for the next round: settled double-write.
 			runDaemonCommand(t, d, "tilt 0")
