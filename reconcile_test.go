@@ -178,6 +178,7 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 	second.config.StateDir = stateDir
 
 	second.persistedIntent.Store(second.loadState())
+
 	if !second.persistedIntent.Load() {
 		t.Fatal("loadState = false, want true (state file was just written)")
 	}

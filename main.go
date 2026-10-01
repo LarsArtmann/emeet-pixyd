@@ -131,6 +131,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	// only on first run (no valid state file present). This way EMEET_PIXYD_AUTO
 	// and EMEET_PIXYD_DEFAULT_AUDIO seed initial state, then the daemon takes over.
 	d.persistedIntent.Store(d.loadState())
+
 	if !d.persistedIntent.Load() {
 		d.state.AutoMode = cfg.AutoMode
 		d.state.Audio = cfg.DefaultAudio

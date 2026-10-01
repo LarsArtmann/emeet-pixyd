@@ -309,9 +309,9 @@ func warnInaccessibleDevicesLimited(r probeResult, limiter *warnLimiter) {
 // keeps the lock contract in one place and lets the race detector verify it.
 //
 // Camera mode is user intent and is never touched here: connectivity is a
-// runtime observation, projected at read time via devicePresence.camera
-// (see displayCamera). The old code wrote StateOffline on every probe miss
-// and clobbered the persisted choice — do not reintroduce that.
+// runtime observation, read separately via devicePresence. The old code wrote
+// StateOffline on every probe miss and clobbered the persisted choice — do not
+// reintroduce that.
 func (d *Daemon) applyProbeResultLocked(r probeResult) {
 	wasOnline := d.videoDev != ""
 	wasControllable := d.hidrawDev != ""

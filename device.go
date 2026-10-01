@@ -188,7 +188,6 @@ func (d *Daemon) presenceLocked() devicePresence {
 	}
 }
 
-
 func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
 	return queryHIDState(
 		ctx, d.hidDevice(),

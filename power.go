@@ -61,9 +61,12 @@ func (d *Daemon) powerStatus(ctx context.Context) (powerReading, bool) {
 
 	reading, err := d.queryPower(ctx)
 	if err != nil {
-		d.powerCache.Set(powerCacheEntry{reading: powerReading{}, available: false}, powerFailureCacheTTL)
+		d.powerCache.Set(
+			powerCacheEntry{reading: powerReading{Level: 0, Charging: false}, available: false},
+			powerFailureCacheTTL,
+		)
 
-		return powerReading{}, false
+		return powerReading{Level: 0, Charging: false}, false
 	}
 
 	d.powerCache.Set(powerCacheEntry{reading: reading, available: true}, powerCacheTTL)
