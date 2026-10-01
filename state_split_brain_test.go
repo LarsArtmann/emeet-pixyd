@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -215,6 +216,67 @@ func TestWaybarProjectsOfflineWithoutDevice(t *testing.T) {
 
 	if got := readCameraState(d); got != pixy.StateTracking {
 		t.Errorf("intent = %q, want %q (projection must not mutate belief)", got, pixy.StateTracking)
+	}
+}
+
+// TestStatusMatrix_DisconnectReplug pins the machine-surface contract across a
+// device outage: /api/status always reports the desired intent for `camera`
+// and exposes connectivity via `online`/`controllable`.
+func TestStatusMatrix_DisconnectReplug(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withNoopParsePTZ())
+	srv := &webServer{daemon: d}
+
+	applyProbe(d, probeResult{})
+
+	offline := srv.getWebStatus(context.Background())
+	if offline.Camera != pixy.StatePrivacy || offline.Online || offline.Controllable {
+		t.Errorf("offline status = {camera:%q online:%v controllable:%v}, want {privacy false false}",
+			offline.Camera, offline.Online, offline.Controllable)
+	}
+
+	applyProbe(d, probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev})
+
+	online := srv.getWebStatus(context.Background())
+	if online.Camera != pixy.StatePrivacy || !online.Online || !online.Controllable {
+		t.Errorf("online status = {camera:%q online:%v controllable:%v}, want {privacy true true}",
+			online.Camera, online.Online, online.Controllable)
+	}
+}
+
+// TestNewDaemon_ResetsInCallButKeepsIntent pins the InCall lifecycle decision:
+// a persisted "in call" observation is dropped on start (the daemon cannot
+// already be in a call before it observes /proc), while the desired camera
+// mode is preserved.
+func TestNewDaemon_ResetsInCallButKeepsIntent(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	seed := `{"v":2,"camera":"privacy","audio":"nc","gesture":false,"inCall":true,"autoMode":"full"}`
+
+	if err := os.WriteFile(dir+"/state.json", []byte(seed), 0o600); err != nil {
+		t.Fatalf("seed state: %v", err)
+	}
+
+	d, err := NewDaemon(pixy.Config{
+		StateDir:      dir,
+		PollInterval:  2 * time.Second,
+		DebounceCount: 3,
+		WebAddr:       "127.0.0.1:0",
+		AutoMode:      pixy.AutoFull,
+		DefaultAudio:  pixy.AudioNC,
+	})
+	if err != nil {
+		t.Fatalf("NewDaemon: %v", err)
+	}
+
+	if d.state.InCall {
+		t.Error("InCall = true after NewDaemon, want false (runtime observation reset on start)")
+	}
+
+	if got := readCameraState(d); got != pixy.StatePrivacy {
+		t.Errorf("Camera after NewDaemon = %q, want %q (intent preserved)", got, pixy.StatePrivacy)
 	}
 }
 
