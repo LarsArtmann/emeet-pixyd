@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1020
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/go-branded-id v0.6.0
+	github.com/larsartmann/go-branded-id v0.7.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/prometheus/client_golang v1.24.1
 	github.com/starfederation/datastar-go v1.2.2
@@ -19,7 +19,7 @@ require (
 
 require (
 	github.com/CAFxX/httpcompression v0.0.9 // indirect
-	github.com/andybalholm/brotli v1.2.5 // indirect
+	github.com/andybalholm/brotli v1.2.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect

@@ -184,13 +184,21 @@ func meanFrameLuma(t *testing.T, videoDev string) (float64, error) {
 // errNoJPEGFrame marks a capture that produced no decodable frame.
 var errNoJPEGFrame error = errorfamily.NewTransient("test.no_jpeg_frame", "no JPEG frame in capture")
 
-// lumaDark / lumaBright split the optical verdicts: a covered lens reads near
-// zero, an open one reads room-light levels (measured 115-126 on the wired
-// unit). The gap is wide enough that these bounds are conservative.
+// Optical verdict thresholds, RELATIVE to each run's open-lens baseline:// a covered lens reads well under half of an open one (measured 7-48 vs
+// 130-180 as ambient light varies), so ratios stay robust where absolute
+// numbers drift with the room. The absolute floor below is only the sanity
+// gate that the room is lit at all.
 const (
-	lumaDark   = 30.0
-	lumaBright = 60.0
+	trapCoveredRatio = 0.5
+	lensOpenRatio    = 0.6
+	lumaMinBaseline  = 60.0
 )
+
+// trapEngaged reports whether the lens reads covered relative to baseline.
+func trapEngaged(luma, baseline float64) bool { return luma < baseline*trapCoveredRatio }
+
+// lensOpen reports whether the lens reads open relative to baseline.
+func lensOpen(luma, baseline float64) bool { return luma >= baseline*lensOpenRatio }
 
 // TestIntegration_PrivacyTrapRecovery measures privacy optically (a covered
 // lens is dark) and answers the reported bug with clean sequencing: NO HID
@@ -230,13 +238,13 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	time.Sleep(motorSettleWait)
 
 	baseline := frameLuma("baseline: tracking, tilt 0")
-	if baseline < lumaBright {
+	if baseline < lumaMinBaseline {
 		runDaemonCommand(t, d, "track")
 		time.Sleep(motorSettleWait)
 		baseline = frameLuma("baseline retry")
 	}
 
-	if baseline < lumaBright {
+	if baseline < lumaMinBaseline {
 		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
 	}
 
@@ -244,14 +252,14 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	runDaemonCommand(t, d, "privacy")
 	time.Sleep(motorSettleWait)
 
-	if dark := frameLuma("privacy commanded"); dark >= lumaBright {
+	if dark := frameLuma("privacy commanded"); lensOpen(dark, baseline) {
 		t.Errorf("privacy commanded but frame stays bright (luma=%.1f) — mode write did not cover the lens", dark)
 	}
 
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
 
-	if open := frameLuma("track commanded"); open < lumaBright {
+	if open := frameLuma("track commanded"); !lensOpen(open, baseline) {
 		t.Errorf("track commanded but frame stays dark (luma=%.1f) — mode write did not uncover the lens", open)
 	}
 
@@ -260,7 +268,7 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 		runDaemonCommand(t, d, "tilt "+strconv.Itoa(tiltDeg))
 		time.Sleep(motorSettleWait)
 
-		if dark := frameLuma("tilt " + strconv.Itoa(tiltDeg) + " (trap)"); dark >= lumaDark {
+		if dark := frameLuma("tilt " + strconv.Itoa(tiltDeg) + " (trap)"); !trapEngaged(dark, baseline) {
 			t.Logf("tilt %d did NOT engage privacy optically (luma=%.1f) — no trap at this angle on this unit", tiltDeg, dark)
 
 			continue
@@ -271,10 +279,16 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 		time.Sleep(motorSettleWait)
 
 		recovered := frameLuma("track commanded while trapped")
+
+		// Let this round's scheduled re-assert (fix) fire before the next
+		// round starts, so its idle bounce doesn't bleed into the next
+		// measurement.
+		time.Sleep(privacyTrapReassertDelay + 500*time.Millisecond)
+
 		switch {
-		case recovered >= lumaBright:
+		case lensOpen(recovered, baseline):
 			t.Logf("tilt %d: direct track RECOVERED the lens (luma=%.1f)", tiltDeg, recovered)
-		case recovered >= lumaDark:
+		case !trapEngaged(recovered, baseline):
 			t.Logf("tilt %d: direct track left the lens HALF recovered (luma=%.1f)", tiltDeg, recovered)
 		default:
 			t.Errorf("tilt %d: direct track did NOT recover the lens (luma=%.1f) — the reported bug reproduces", tiltDeg, recovered)
@@ -339,7 +353,8 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
 
-	if baseline := frameLuma("baseline"); baseline < lumaBright {
+	baseline := frameLuma("baseline")
+	if baseline < lumaMinBaseline {
 		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
 	}
 
@@ -358,7 +373,7 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 			time.Sleep(2 * motorSettleWait)
 
 			recovered := frameLuma("track after " + delay.String() + " delay")
-			if recovered >= lumaBright {
+			if lensOpen(recovered, baseline) {
 				t.Logf("delay %s: RECOVERED", delay)
 
 				return
@@ -409,6 +424,10 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 		return luma
 	}
 
+	// baseline captures the run's open-lens luma; filled once below, before
+	// the first rearm() call — verdicts are relative to it.
+	var baseline float64
+
 	rearm := func() {
 		t.Helper()
 
@@ -416,16 +435,13 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 		runDaemonCommand(t, d, "track")
 		time.Sleep(motorSettleWait)
 
-		if open := frameLuma("re-arm check"); open < lumaBright {
+		if open := frameLuma("re-arm check"); !lensOpen(open, baseline) {
 			t.Fatalf("re-arm failed: lens not open (luma=%.1f)", open)
 		}
 	}
 
-	runDaemonCommand(t, d, "tilt 0")
-	runDaemonCommand(t, d, "track")
-	time.Sleep(motorSettleWait)
-
-	if baseline := frameLuma("baseline"); baseline < lumaBright {
+	baseline = frameLuma("baseline")
+	if baseline < lumaMinBaseline {
 		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
 	}
 
@@ -436,7 +452,7 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 	time.Sleep(5 * time.Second)
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	if a := frameLuma("A: second track at +5s"); a >= lumaBright {
+	if a := frameLuma("A: second track at +5s"); lensOpen(a, baseline) {
 		t.Log("A: late same-mode write RECOVERS — window extension model")
 	} else {
 		t.Log("A: late same-mode write does NOT recover — state latching model")
@@ -451,7 +467,7 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	if b := frameLuma("B: privacy→track bounce"); b >= lumaBright {
+	if b := frameLuma("B: privacy→track bounce"); lensOpen(b, baseline) {
 		t.Log("B: privacy→track bounce RECOVERS the poisoned state")
 	} else {
 		t.Log("B: privacy→track bounce does NOT recover")
@@ -464,7 +480,7 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	runDaemonCommand(t, d, "idle")
 	time.Sleep(motorSettleWait)
-	if c := frameLuma("C: idle as recovery"); c >= lumaBright {
+	if c := frameLuma("C: idle as recovery"); lensOpen(c, baseline) {
 		t.Log("C: idle write RECOVERS the poisoned state")
 	} else {
 		t.Log("C: idle write does NOT recover")
@@ -479,7 +495,7 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 	time.Sleep(motorSettleWait)
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	if dd := frameLuma("D: idle then track"); dd >= lumaBright {
+	if dd := frameLuma("D: idle then track"); lensOpen(dd, baseline) {
 		t.Log("D: idle→track sequence RECOVERS into tracking — the full bounce fix")
 	} else {
 		t.Log("D: idle→track ends covered — tracking cannot stick in the zone once poisoned")
@@ -524,7 +540,8 @@ func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
 
-	if baseline := frameLuma("baseline: tracking, tilt 0"); baseline < lumaBright {
+	baseline := frameLuma("baseline: tracking, tilt 0")
+	if baseline < lumaMinBaseline {
 		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
 	}
 
@@ -535,7 +552,7 @@ func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
 
 	runDaemonCommand(t, d, "tilt 0")
 	time.Sleep(motorSettleWait)
-	if up := frameLuma("tilt 0 after trap (no mode write)"); up >= lumaBright {
+	if up := frameLuma("tilt 0 after trap (no mode write)"); lensOpen(up, baseline) {
 		t.Log("leaving the tilt zone re-opens the lens on its own")
 	} else {
 		t.Log("leaving the tilt zone does NOT re-open the lens — a mode write is required")
@@ -547,7 +564,7 @@ func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
 
 	runDaemonCommand(t, d, "idle")
 	time.Sleep(motorSettleWait)
-	if idle := frameLuma("idle from open"); idle >= lumaBright {
+	if idle := frameLuma("idle from open"); lensOpen(idle, baseline) {
 		t.Log("idle leaves the lens open")
 	} else {
 		t.Log("idle covers the lens")
@@ -561,7 +578,7 @@ func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
 
 	runDaemonCommand(t, d, "idle")
 	time.Sleep(motorSettleWait)
-	if idle := frameLuma("idle while trapped"); idle >= lumaBright {
+	if idle := frameLuma("idle while trapped"); lensOpen(idle, baseline) {
 		t.Log("settled idle write recovers the trapped lens")
 	} else {
 		t.Log("settled idle write does NOT recover the trapped lens")
