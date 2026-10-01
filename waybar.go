@@ -36,7 +36,7 @@ var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
 
 func (d *Daemon) waybarOutput(ctx context.Context) string {
 	d.mu.RLock()
-	camera := displayCamera(d.videoDev != "", d.state.Camera)
+	camera := d.state.Camera
 	audio := d.state.Audio
 	inCall := d.state.InCall
 	autoMode := d.state.AutoMode

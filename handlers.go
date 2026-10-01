@@ -75,7 +75,7 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	s.daemon.mu.RLock()
 	//nolint:exhaustruct
 	status := webStatus{
-		Camera:       displayCamera(s.daemon.videoDev != "", s.daemon.state.Camera),
+		Camera:       s.daemon.state.Camera,
 		Audio:        s.daemon.state.Audio,
 		Gesture:      s.daemon.state.Gesture,
 		InCall:       s.daemon.state.InCall,
@@ -140,7 +140,7 @@ func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *htt
 func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Request) {
 	s.daemon.mu.RLock()
 	online := s.daemon.videoDev != ""
-	camera := displayCamera(s.daemon.videoDev != "", s.daemon.state.Camera)
+	camera := s.daemon.state.Camera
 	s.daemon.mu.RUnlock()
 
 	status := http.StatusOK

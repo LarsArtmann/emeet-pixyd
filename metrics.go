@@ -18,6 +18,7 @@ type daemonMetrics struct {
 	inCall         metric.Float64Gauge
 	autoMode       metric.Float64Gauge
 	cameraState    metric.Float64Gauge
+	online         metric.Float64Gauge
 	commands       metric.Int64Counter
 	uevents        metric.Int64Counter
 	probes         metric.Int64Counter
@@ -64,7 +65,12 @@ func registerMetrics() {
 			cameraState: mustFloat64Gauge(
 				meter,
 				"emeet_pixyd_camera_state",
-				"Current camera state as a gauge per state label (1=active)",
+				"Desired camera state as a gauge per state label (1=active)",
+			),
+			online: mustFloat64Gauge(
+				meter,
+				"emeet_pixyd_online",
+				"Whether a video device is currently present (1=online, 0=offline)",
 			),
 			commands: mustInt64Counter(meter, "emeet_pixyd_commands_total", "Total number of commands processed"),
 			uevents: mustInt64Counter(
@@ -170,8 +176,8 @@ func recordUevent(action, subsystem string) {
 }
 
 // updateMetrics records the current state gauges. online is the runtime
-// connectivity snapshot: camera_state is the projected display state, so an
-// absent camera reports offline regardless of the persisted desired mode.
+// connectivity snapshot: it feeds the dedicated online gauge, while
+// camera_state reports the persisted desired mode (which is never offline).
 func updateMetrics(state pixy.State, online bool) {
 	if metricsInstance == nil {
 		return
@@ -190,11 +196,15 @@ func updateMetrics(state pixy.State, online bool) {
 		metricsInstance.autoMode.Record(ctx, 1)
 	}
 
-	camera := displayCamera(online, state.Camera)
+	if online {
+		metricsInstance.online.Record(ctx, 1)
+	} else {
+		metricsInstance.online.Record(ctx, 0)
+	}
 
-	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle, pixy.StateOffline} {
+	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
-		if camera == s {
+		if state.Camera == s {
 			metricsInstance.cameraState.Record(ctx, 1, stateAttr)
 		} else {
 			metricsInstance.cameraState.Record(ctx, 0, stateAttr)

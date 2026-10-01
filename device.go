@@ -188,24 +188,6 @@ func (d *Daemon) presenceLocked() devicePresence {
 	}
 }
 
-// displayCamera projects persisted intent through connectivity: an absent
-// camera always reads offline regardless of the stored mode. This is the one
-// canonical projection used by status, waybar, the web panel, and metrics.
-func displayCamera(online bool, desired pixy.CameraState) pixy.CameraState {
-	if !online {
-		return pixy.StateOffline
-	}
-
-	return desired
-}
-
-// displayCamera returns the camera mode to show for the current hardware.
-func (d *Daemon) displayCamera() pixy.CameraState {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	return displayCamera(d.videoDev != "", d.state.Camera)
-}
 
 func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
 	return queryHIDState(
@@ -429,7 +411,7 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 func (d *Daemon) getStatus(ctx context.Context) string {
 	d.mu.RLock()
 	videoDev := d.videoDev
-	camera := displayCamera(d.videoDev != "", d.state.Camera)
+	camera := d.state.Camera
 	audio := d.state.Audio
 	gesture := d.state.Gesture
 	inCall := d.state.InCall
