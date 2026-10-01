@@ -18,23 +18,24 @@ func formatSpeed(v float32) string {
 type webStatus struct {
 	pixy.PTZValues
 
-	Camera      pixy.CameraState
-	Audio       pixy.AudioMode
-	Gesture     bool
-	InCall      bool
-	Auto        pixy.AutoMode
-	Online      bool
-	Device      string
-	Model       string
-	Error       string
-	LastSynced  string
-	Toast       string
-	ToastType   toastType
-	Version     string
-	PresetNames []string
-	Battery     string // "" when the device does not answer battery queries
-	TrackMode   string // active tracking variant (none/face/halfbody/fullbody)
-	Speeds      pixy.SpeedValues
+	Camera       pixy.CameraState
+	Audio        pixy.AudioMode
+	Gesture      bool
+	InCall       bool
+	Auto         pixy.AutoMode
+	Online       bool
+	Controllable bool
+	Device       string
+	Model        string
+	Error        string
+	LastSynced   string
+	Toast        string
+	ToastType    toastType
+	Version      string
+	PresetNames  []string
+	Battery      string // "" when the device does not answer battery queries
+	TrackMode    string // active tracking variant (none/face/halfbody/fullbody)
+	Speeds       pixy.SpeedValues
 }
 
 // toastType is a branded type for toast notification kinds (success, info, error).

@@ -153,11 +153,11 @@ templ statusPanel(s webStatus) {
 			</div>
 		}
 		<div class="mode-grid">
-			@cameraModeCard("track", "/api/track", "Track", "Follows movement", "T", s.Camera == pixy.StateTracking, s.Online)
-			@cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Online)
-			@cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Online)
+			@cameraModeCard("track", "/api/track", "Track", "Follows movement", "T", s.Camera == pixy.StateTracking, s.Controllable)
+			@cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Controllable)
+			@cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Controllable)
 		</div>
-		if s.Online && s.Camera == pixy.StateTracking {
+		if s.Controllable && s.Camera == pixy.StateTracking {
 			<div class="segmented tracking-variants" role="group" aria-label="Tracking variant">
 				@trackingSegment("none", "None", s.TrackMode == pixy.TrackNone.String())
 				@trackingSegment("face", "Face", s.TrackMode == pixy.TrackFace.String())
@@ -170,9 +170,9 @@ templ statusPanel(s webStatus) {
 				<div class="card">
 					<div class="card-title">Audio</div>
 					<div class="segmented">
-						@audioSegment("nc", "Noise Cancel", s.Audio == pixy.AudioNC, s.Online)
-						@audioSegment("live", "Live", s.Audio == pixy.AudioLive, s.Online)
-						@audioSegment("org", "Original", s.Audio == pixy.AudioOriginal, s.Online)
+						@audioSegment("nc", "Noise Cancel", s.Audio == pixy.AudioNC, s.Controllable)
+						@audioSegment("live", "Live", s.Audio == pixy.AudioLive, s.Controllable)
+						@audioSegment("org", "Original", s.Audio == pixy.AudioOriginal, s.Controllable)
 					</div>
 				</div>
 				<div class="card">
@@ -190,7 +190,7 @@ templ statusPanel(s webStatus) {
 							aria-labelledby="gesture-label"
 							role="switch"
 							aria-checked={ fmt.Sprintf("%t", s.Gesture) }
-							if !s.Online {
+							if !s.Controllable {
 								disabled=""
 							}
 						></button>
@@ -284,7 +284,7 @@ templ statusPanel(s webStatus) {
 // ---------------------------------------------------------------------------
 // Camera Mode Card
 // ---------------------------------------------------------------------------
-templ cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, online bool) {
+templ cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, enabled bool) {
 	<button
 		class={ "mode-card", "mode-" + mode, templ.KV("active", active) }
 		data-on:click={ fmt.Sprintf("@post('%s')", endpoint) }
@@ -294,7 +294,7 @@ templ cameraModeCard(mode string, endpoint string, name string, desc string, sho
 		if active {
 			aria-current="true"
 		}
-		if !online {
+		if !enabled {
 			disabled=""
 		}
 	>
@@ -316,14 +316,14 @@ templ cameraModeCard(mode string, endpoint string, name string, desc string, sho
 // ---------------------------------------------------------------------------
 // Audio Segment (segmented control button)
 // ---------------------------------------------------------------------------
-templ audioSegment(mode string, label string, active bool, online bool) {
+templ audioSegment(mode string, label string, active bool, enabled bool) {
 	<button
 		class={ "segment", templ.KV("active", active) }
 		data-on:click={ fmt.Sprintf("@post('/api/audio/%s')", mode) }
 		data-indicator="loading"
 		data-class:btn-loading="$loading"
 		aria-label={ label }
-		if !online {
+		if !enabled {
 			disabled=""
 		}
 	>

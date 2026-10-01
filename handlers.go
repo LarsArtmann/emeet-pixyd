@@ -75,20 +75,21 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	s.daemon.mu.RLock()
 	//nolint:exhaustruct
 	status := webStatus{
-		Camera:      s.daemon.state.Camera,
-		Audio:       s.daemon.state.Audio,
-		Gesture:     s.daemon.state.Gesture,
-		InCall:      s.daemon.state.InCall,
-		Auto:        s.daemon.state.AutoMode,
-		Online:      s.daemon.videoDev != "",
-		Device:      s.daemon.videoDev,
-		Model:       string(s.daemon.model),
-		Error:       errStr(s.daemon.autoError),
-		LastSynced:  formatLastSynced(s.daemon.lastSyncedAt),
-		Version:     buildVersion,
-		PresetNames: s.daemon.state.Presets.SortedNames(),
-		TrackMode:   s.daemon.state.EffectiveTrackMode().String(),
-		Speeds:      s.daemon.state.Speeds,
+		Camera:       displayCamera(s.daemon.videoDev != "", s.daemon.state.Camera),
+		Audio:        s.daemon.state.Audio,
+		Gesture:      s.daemon.state.Gesture,
+		InCall:       s.daemon.state.InCall,
+		Auto:         s.daemon.state.AutoMode,
+		Online:       s.daemon.videoDev != "",
+		Controllable: s.daemon.hidrawDev != "",
+		Device:       s.daemon.videoDev,
+		Model:        string(s.daemon.model),
+		Error:        errStr(s.daemon.autoError),
+		LastSynced:   formatLastSynced(s.daemon.lastSyncedAt),
+		Version:      buildVersion,
+		PresetNames:  s.daemon.state.Presets.SortedNames(),
+		TrackMode:    s.daemon.state.EffectiveTrackMode().String(),
+		Speeds:       s.daemon.state.Speeds,
 	}
 	s.daemon.mu.RUnlock()
 
@@ -139,7 +140,7 @@ func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *htt
 func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Request) {
 	s.daemon.mu.RLock()
 	online := s.daemon.videoDev != ""
-	camera := s.daemon.state.Camera
+	camera := displayCamera(s.daemon.videoDev != "", s.daemon.state.Camera)
 	s.daemon.mu.RUnlock()
 
 	status := http.StatusOK
@@ -170,16 +171,17 @@ type healthResponse struct {
 // "daemon down" (connection refused) apart from "camera offline" (`online`
 // false) without parsing error bodies.
 type statusResponse struct {
-	Camera  pixy.CameraState `json:"camera"`
-	Device  string           `json:"device"`
-	Model   string           `json:"model"`
-	Online  bool             `json:"online"`
-	InCall  bool             `json:"inCall"`
-	Auto    pixy.AutoMode    `json:"auto"`
-	Audio   pixy.AudioMode   `json:"audio"`
-	Gesture bool             `json:"gesture"`
-	Battery string           `json:"battery,omitzero"`
-	Version string           `json:"version"`
+	Camera       pixy.CameraState `json:"camera"`
+	Device       string           `json:"device"`
+	Model        string           `json:"model"`
+	Online       bool             `json:"online"`
+	Controllable bool             `json:"controllable"`
+	InCall       bool             `json:"inCall"`
+	Auto         pixy.AutoMode    `json:"auto"`
+	Audio        pixy.AudioMode   `json:"audio"`
+	Gesture      bool             `json:"gesture"`
+	Battery      string           `json:"battery,omitzero"`
+	Version      string           `json:"version"`
 }
 
 // handleStatusJSON serves the widget-facing status contract. It reuses
@@ -189,16 +191,17 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 	status := s.getWebStatus(request.Context())
 
 	resp := statusResponse{
-		Camera:  status.Camera,
-		Device:  status.Device,
-		Model:   status.Model,
-		Online:  status.Online,
-		InCall:  status.InCall,
-		Auto:    status.Auto,
-		Audio:   status.Audio,
-		Gesture: status.Gesture,
-		Battery: status.Battery,
-		Version: status.Version,
+		Camera:       status.Camera,
+		Device:       status.Device,
+		Model:        status.Model,
+		Online:       status.Online,
+		Controllable: status.Controllable,
+		InCall:       status.InCall,
+		Auto:         status.Auto,
+		Audio:        status.Audio,
+		Gesture:      status.Gesture,
+		Battery:      status.Battery,
+		Version:      status.Version,
 	}
 
 	if err := writeJSON(responseWriter, http.StatusOK, resp); err != nil {

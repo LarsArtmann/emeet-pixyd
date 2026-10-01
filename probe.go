@@ -307,7 +307,15 @@ func warnInaccessibleDevicesLimited(r probeResult, limiter *warnLimiter) {
 // probe result. The caller MUST hold d.mu (write lock) for the duration of
 // the call; all field writes are unsynchronized. Centralizing the write here
 // keeps the lock contract in one place and lets the race detector verify it.
+//
+// Camera mode is user intent and is never touched here: connectivity is a
+// runtime observation, projected at read time via devicePresence.camera
+// (see displayCamera). The old code wrote StateOffline on every probe miss
+// and clobbered the persisted choice — do not reintroduce that.
 func (d *Daemon) applyProbeResultLocked(r probeResult) {
+	wasOnline := d.videoDev != ""
+	wasControllable := d.hidrawDev != ""
+
 	d.videoDev = r.VideoDev
 	d.hidrawDev = r.HidrawDev
 	d.model = r.Model
@@ -319,12 +327,25 @@ func (d *Daemon) applyProbeResultLocked(r probeResult) {
 		d.hidDev = nil
 	}
 
-	if r.VideoDev != "" && r.HidrawDev != "" {
+	nowOnline := r.VideoDev != ""
+	nowControllable := r.HidrawDev != ""
+
+	if nowOnline && nowControllable {
+		// A reachable device is a success signal for the breaker's
+		// consecutive-failure accounting (config-send failures re-probe and
+		// reset; only commit failures accumulate — see circuitbreaker.go).
 		d.hidFailCount = 0
-		if d.state.Camera == pixy.StateOffline {
-			d.state.Camera = pixy.StatePrivacy
+	}
+
+	if wasOnline != nowOnline || wasControllable != nowControllable {
+		// Connectivity changed: cached PTZ/battery readings belong to the
+		// previous device (position and battery reset on replug), and a
+		// stale MJPEG frame must not be served for a camera that is gone.
+		d.ptzCache.Invalidate()
+		d.powerCache.Invalidate()
+
+		if !nowOnline {
+			d.lastFrame.Clear()
 		}
-	} else {
-		d.state.Camera = pixy.StateOffline
 	}
 }

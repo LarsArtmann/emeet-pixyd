@@ -158,6 +158,55 @@ func (d *Daemon) videoDevice() string {
 	return dev
 }
 
+// devicePresence is a runtime connectivity snapshot. It is observed, never
+// persisted: Online means the video node exists (frames can be produced),
+// Controllable means the HID node exists (vendor commands can be delivered).
+// Keeping this separate from pixy.CameraState is the whole point — the
+// camera mode is user intent, presence is a fact about the hardware.
+type devicePresence struct {
+	Online       bool
+	Controllable bool
+	VideoDev     string
+	HidrawDev    string
+}
+
+// presence snapshots connectivity under d.mu (acquire → copy → release).
+func (d *Daemon) presence() devicePresence {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	return d.presenceLocked()
+}
+
+// presenceLocked is presence for callers already holding d.mu.
+func (d *Daemon) presenceLocked() devicePresence {
+	return devicePresence{
+		Online:       d.videoDev != "",
+		Controllable: d.hidrawDev != "",
+		VideoDev:     d.videoDev,
+		HidrawDev:    d.hidrawDev,
+	}
+}
+
+// displayCamera projects persisted intent through connectivity: an absent
+// camera always reads offline regardless of the stored mode. This is the one
+// canonical projection used by status, waybar, the web panel, and metrics.
+func displayCamera(online bool, desired pixy.CameraState) pixy.CameraState {
+	if !online {
+		return pixy.StateOffline
+	}
+
+	return desired
+}
+
+// displayCamera returns the camera mode to show for the current hardware.
+func (d *Daemon) displayCamera() pixy.CameraState {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	return displayCamera(d.videoDev != "", d.state.Camera)
+}
+
 func (d *Daemon) queryTracking(ctx context.Context) (pixy.CameraState, error) {
 	return queryHIDState(
 		ctx, d.hidDevice(),
@@ -196,7 +245,33 @@ func (d *Daemon) hidDevice() HIDDevice {
 	return dev
 }
 
+// syncState reads camera/audio/gesture from hardware and adopts them into
+// daemon belief (the explicit `sync` command). HID access is serialized under
+// d.hidMu: a multi-step open/write/read on the shared hidraw node racing
+// another HID path could pair a response with the wrong request and be
+// silently accepted (parseHIDResponse routes by the response's own byte).
 func (d *Daemon) syncState(ctx context.Context) CommandResult {
+	d.hidMu.Lock()
+	defer d.hidMu.Unlock()
+
+	return d.syncStateLocked(ctx)
+}
+
+// syncStateLocked is syncState for callers that already hold d.hidMu (the
+// device-reconcile path).
+//
+// LOCK CONTRACT: caller holds d.hidMu.
+func (d *Daemon) syncStateLocked(ctx context.Context) CommandResult {
+	hidDev, circuitOpen := d.hidSendGuard()
+
+	if hidDev == nil {
+		return errResult(cmdSync, pixy.ErrHIDDeviceNotAvailable)
+	}
+
+	if circuitOpen {
+		return errResult(cmdSync, pixy.ErrPIXYNotConnected)
+	}
+
 	videoDev := d.videoDevice()
 
 	if videoDev == "" {
@@ -275,9 +350,10 @@ func (d *Daemon) adoptSecondaryStateLocked(
 }
 
 // reconcileOnDeviceAppear aligns daemon belief and hardware when the device
-// becomes reachable (daemon startup or hotplug re-appear).
+// becomes reachable (daemon startup, hotplug re-appear, or the auto-manager
+// noticing a device it had been missing).
 //
-// Fresh install (no persisted state existed at startup): hardware is the
+// Fresh install (no persisted state has ever been written): hardware is the
 // source of truth, belief is adopted from it, so a fresh daemon tells the
 // truth about the lens instead of assuming privacy while the camera is on.
 //
@@ -295,12 +371,11 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 	}
 
 	d.mu.RLock()
-	hadPersistedState := d.hadPersistedState
 	believed := d.state.Camera
 	d.mu.RUnlock()
 
-	if !hadPersistedState {
-		_ = d.syncState(ctx)
+	if !d.persistedIntent.Load() {
+		_ = d.syncStateLocked(ctx)
 
 		return
 	}
@@ -354,7 +429,7 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 func (d *Daemon) getStatus(ctx context.Context) string {
 	d.mu.RLock()
 	videoDev := d.videoDev
-	camera := d.state.Camera
+	camera := displayCamera(d.videoDev != "", d.state.Camera)
 	audio := d.state.Audio
 	gesture := d.state.Gesture
 	inCall := d.state.InCall
@@ -364,7 +439,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 	if videoDev == "" {
 		return fmt.Sprintf(
 			"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=",
-			pixy.StateOffline,
+			camera,
 			audio,
 			gesture,
 			0,

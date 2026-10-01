@@ -32,6 +32,14 @@ func (f *lastFrameCache) Set(data []byte) {
 	f.mu.Unlock()
 }
 
+// Clear drops the cached frame. Called when the camera disappears so a
+// snapshot cannot serve a stale image from a device that is no longer there.
+func (f *lastFrameCache) Clear() {
+	f.mu.Lock()
+	f.data = nil
+	f.mu.Unlock()
+}
+
 // ttlCache is a tiny generic TTL cache: Get reports whether the entry is
 // still fresh, Set stores a value with a fresh deadline, Invalidate forces a
 // miss. The zero value is ready to use.
