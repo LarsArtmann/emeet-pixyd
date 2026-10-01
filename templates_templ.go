@@ -5,12 +5,13 @@ package main
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
+
 import (
 	"fmt"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
 )
 
 //go:generate templ generate
@@ -427,15 +428,15 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = cameraModeCard("track", "/api/track", "Track", "Follows movement", "T", s.Camera == pixy.StateTracking, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = cameraModeCard("track", "/api/track", "Track", "Follows movement", "T", s.Camera == pixy.StateTracking, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = cameraModeCard("idle", "/api/idle", "Idle", "Standing by", "I", s.Camera == pixy.StateIdle, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = cameraModeCard("privacy", "/api/privacy", "Privacy", "Lens covered", "P", s.Camera == pixy.StatePrivacy, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -443,7 +444,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if s.Online && s.Camera == pixy.StateTracking {
+		if s.Controllable && s.Camera == pixy.StateTracking {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"segmented tracking-variants\" role=\"group\" aria-label=\"Tracking variant\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -473,15 +474,15 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = audioSegment("nc", "Noise Cancel", s.Audio == pixy.AudioNC, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = audioSegment("nc", "Noise Cancel", s.Audio == pixy.AudioNC, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = audioSegment("live", "Live", s.Audio == pixy.AudioLive, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = audioSegment("live", "Live", s.Audio == pixy.AudioLive, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = audioSegment("org", "Original", s.Audio == pixy.AudioOriginal, s.Online).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = audioSegment("org", "Original", s.Audio == pixy.AudioOriginal, s.Controllable).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -489,7 +490,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var14 := []any{"toggle", templ.KV("on", s.Gesture)}
+		var templ_7745c5c3_Var14 = []any{"toggle", templ.KV("on", s.Gesture)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var14...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -524,7 +525,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !s.Online {
+		if !s.Controllable {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " disabled=\"\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -580,7 +581,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var19 := []any{"toggle", templ.KV("on", !s.Auto.IsOff())}
+		var templ_7745c5c3_Var19 = []any{"toggle", templ.KV("on", !s.Auto.IsOff())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var19...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -781,7 +782,7 @@ func statusPanel(s webStatus) templ.Component {
 // ---------------------------------------------------------------------------
 // Camera Mode Card
 // ---------------------------------------------------------------------------
-func cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, online bool) templ.Component {
+func cameraModeCard(mode string, endpoint string, name string, desc string, shortcut string, active bool, enabled bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -802,7 +803,7 @@ func cameraModeCard(mode string, endpoint string, name string, desc string, shor
 			templ_7745c5c3_Var27 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var28 := []any{"mode-card", "mode-" + mode, templ.KV("active", active)}
+		var templ_7745c5c3_Var28 = []any{"mode-card", "mode-" + mode, templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -856,7 +857,7 @@ func cameraModeCard(mode string, endpoint string, name string, desc string, shor
 				return templ_7745c5c3_Err
 			}
 		}
-		if !online {
+		if !enabled {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, " disabled=\"\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -932,7 +933,7 @@ func cameraModeCard(mode string, endpoint string, name string, desc string, shor
 // ---------------------------------------------------------------------------
 // Audio Segment (segmented control button)
 // ---------------------------------------------------------------------------
-func audioSegment(mode string, label string, active bool, online bool) templ.Component {
+func audioSegment(mode string, label string, active bool, enabled bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -953,7 +954,7 @@ func audioSegment(mode string, label string, active bool, online bool) templ.Com
 			templ_7745c5c3_Var35 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var36 := []any{"segment", templ.KV("active", active)}
+		var templ_7745c5c3_Var36 = []any{"segment", templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var36...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1001,7 +1002,7 @@ func audioSegment(mode string, label string, active bool, online bool) templ.Com
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !online {
+		if !enabled {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, " disabled=\"\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -1049,7 +1050,7 @@ func trackingSegment(variant, label string, active bool) templ.Component {
 			templ_7745c5c3_Var41 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var42 := []any{"segment", templ.KV("active", active)}
+		var templ_7745c5c3_Var42 = []any{"segment", templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var42...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
