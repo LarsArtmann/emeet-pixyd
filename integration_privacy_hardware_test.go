@@ -372,6 +372,88 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 	frameLuma("cleanup: tilt 0, tracking")
 }
 
+// TestIntegration_PrivacyTrapBoundaries pins the remaining trap semantics:
+// does leaving the tilt zone re-open the lens on its own, and how does idle
+// interact with the cover. All verdicts optical, all writes settled.
+func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
+	probeResult := probeDevices(nil)
+
+	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
+		t.Skip("no PIXY device found — connect hardware to run this test")
+	}
+
+	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+
+	frameLuma := func(step string) float64 {
+		t.Helper()
+
+		luma, err := meanFrameLuma(t, probeResult.VideoDev)
+		if err != nil {
+			t.Logf("[%-34s] frame: capture failed: %v", step, err)
+
+			return -1
+		}
+
+		values := d.deps.parsePTZ(t.Context(), probeResult.VideoDev)
+		tilt, _ := values.Get(pixy.AxisTilt)
+		t.Logf("[%-34s] frame: mean luma=%.1f tilt=%d believed=%s", step, luma, tilt, readCameraState(d))
+
+		return luma
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+
+	if baseline := frameLuma("baseline: tracking, tilt 0"); baseline < lumaBright {
+		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
+	}
+
+	// Trap, then leave the zone with NO mode write in between.
+	runDaemonCommand(t, d, "tilt -85")
+	time.Sleep(motorSettleWait)
+	frameLuma("tilt -85 (trap engaged)")
+
+	runDaemonCommand(t, d, "tilt 0")
+	time.Sleep(motorSettleWait)
+	if up := frameLuma("tilt 0 after trap (no mode write)"); up >= lumaBright {
+		t.Log("leaving the tilt zone re-opens the lens on its own")
+	} else {
+		t.Log("leaving the tilt zone does NOT re-open the lens — a mode write is required")
+	}
+
+	// Idle behavior: from open, and from trapped.
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+
+	runDaemonCommand(t, d, "idle")
+	time.Sleep(motorSettleWait)
+	if idle := frameLuma("idle from open"); idle >= lumaBright {
+		t.Log("idle leaves the lens open")
+	} else {
+		t.Log("idle covers the lens")
+	}
+
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	runDaemonCommand(t, d, "tilt -85")
+	time.Sleep(motorSettleWait)
+	frameLuma("tilt -85 (trap re-engaged)")
+
+	runDaemonCommand(t, d, "idle")
+	time.Sleep(motorSettleWait)
+	if idle := frameLuma("idle while trapped"); idle >= lumaBright {
+		t.Log("settled idle write recovers the trapped lens")
+	} else {
+		t.Log("settled idle write does NOT recover the trapped lens")
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	frameLuma("cleanup: tilt 0, tracking")
+}
+
 // luma returns the mean luma (0-255) of an image. YCbCr JPEGs are averaged
 // over the Y plane directly; anything else falls back to At() sampling.
 func luma(img image.Image) float64 {

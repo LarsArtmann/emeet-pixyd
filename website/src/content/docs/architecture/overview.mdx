@@ -82,6 +82,7 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | `/panel`                    | GET    | Status panel (DataStar SSE partial)    |
 | `/api/events`               | GET    | SSE stream for live updates            |
 | `/api/health`               | GET    | JSON health check                      |
+| `/api/status`               | GET    | JSON status for shell widgets          |
 | `/api/snapshot`             | GET    | Capture still frame                    |
 | `/api/stream`               | GET    | MJPEG stream                           |
 | `/api/track`                | POST   | Enable tracking                        |
@@ -95,9 +96,13 @@ All external interactions (HID, v4l2, PipeWire, notifications) are function fiel
 | `/api/sync`                 | POST   | Sync state from hardware               |
 | `/api/probe`                | POST   | Re-probe device                        |
 | `/api/ptz/{axis}`           | POST   | Set PTZ value (pan, tilt, zoom)        |
+| `/api/speed/{axis}`         | POST   | Set motor speed (pan, tilt, zoom)      |
+| `/api/tracking/{variant}`   | POST   | Set tracking variant (face/halfbody/fullbody) |
 | `/api/preset/save/{name}`   | POST   | Save preset                            |
 | `/api/preset/load/{name}`   | POST   | Load preset                            |
 | `/api/preset/delete/{name}` | POST   | Delete preset                          |
+| `/api/preset/push/{name}`   | POST   | Push preset to hardware slots (moves camera) |
+| `/api/preset/pull`          | POST   | Sweep hardware slots into `hw-*` presets |
 | `/metrics`                  | GET    | Prometheus metrics                     |
 | `/static/*`                 | GET    | Embedded assets (JS, CSS, DataStar)    |
 | `/debug/pprof/*`            | GET    | pprof endpoints (only when debug=true) |

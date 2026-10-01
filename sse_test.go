@@ -185,6 +185,67 @@ func TestSSEEndpoint_BroadcastsPatchOnStateChange(t *testing.T) {
 	}
 }
 
+// TestSSEEndpoint_SurvivesServerWriteTimeout pins that the events handler clears
+// the global http.Server WriteTimeout. Without it the persistent stream is
+// force-closed at the timeout, so the DataStar client reconnects in a loop
+// (observed as ERR_HTTP2_PROTOCOL_ERROR behind a reverse proxy).
+func TestSSEEndpoint_SurvivesServerWriteTimeout(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonNoDevice(t)
+	mux := newWebMux(&webServer{daemon: d})
+
+	server := httptest.NewUnstartedServer(mux)
+	server.Config.WriteTimeout = 150 * time.Millisecond
+	server.Start()
+	t.Cleanup(server.Close)
+
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
+	reader := bufio.NewReader(resp.Body)
+
+	// Consume the whole initial event (lines until the blank separator) so the
+	// later scan only matches a post-timeout broadcast.
+	for {
+		if readSSELine(t, reader) == "\n" {
+			break
+		}
+	}
+
+	time.Sleep(100 * time.Millisecond) // let the handler enter its subscribe loop
+
+	// Sleep past the server WriteTimeout, then broadcast. A stream that still
+	// honors the deadline is already dead here and this event never arrives.
+	time.Sleep(250 * time.Millisecond)
+
+	d.broadcastStateChanged()
+
+	found := make(chan bool, 1)
+
+	go func() {
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				found <- false
+				return
+			}
+
+			if strings.Contains(line, "datastar-patch-elements") {
+				found <- true
+				return
+			}
+		}
+	}()
+
+	select {
+	case ok := <-found:
+		if !ok {
+			t.Fatal("SSE stream died at the server WriteTimeout")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout waiting for post-timeout broadcast event")
+	}
+}
+
 func TestBroadcaster_SubscribeBroadcastReceive(t *testing.T) {
 	t.Parallel()
 
