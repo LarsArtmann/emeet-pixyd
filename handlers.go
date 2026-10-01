@@ -348,12 +348,24 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
 }
 
-func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
+// axisFromRequest parses the {axis} path segment and validates it as a PTZ
+// axis, writing a 400 response and reporting false when it is missing or
+// invalid. Shared by the web endpoints that route on an axis.
+func axisFromRequest(responseWriter http.ResponseWriter, request *http.Request) (pixy.Axis, bool) {
 	axis := pixy.Axis(request.PathValue("axis"))
 
 	if string(axis) == "" || !ptzAxisValid(axis) {
 		http.Error(responseWriter, "invalid axis", http.StatusBadRequest)
 
+		return "", false
+	}
+
+	return axis, true
+}
+
+func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.Request) {
+	axis, valid := axisFromRequest(responseWriter, request)
+	if !valid {
 		return
 	}
 
@@ -509,11 +521,8 @@ func (s speedSignals) get(axis pixy.Axis) float64 {
 // dispatched through the same `speed` command path as the CLI, so validation
 // and device behavior have a single definition.
 func (s *webServer) handleSpeed(responseWriter http.ResponseWriter, request *http.Request) {
-	axis := pixy.Axis(request.PathValue("axis"))
-
-	if string(axis) == "" || !ptzAxisValid(axis) {
-		http.Error(responseWriter, "invalid axis", http.StatusBadRequest)
-
+	axis, valid := axisFromRequest(responseWriter, request)
+	if !valid {
 		return
 	}
 
