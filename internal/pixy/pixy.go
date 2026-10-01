@@ -82,6 +82,18 @@ func (s CameraState) Valid() bool {
 	}
 }
 
+// ValidDesired reports whether s is a mode the user can actually choose.
+// StateOffline is excluded: it is a connectivity observation projected at
+// read time, never a persisted intent (see State.Camera).
+func (s CameraState) ValidDesired() bool {
+	switch s {
+	case StateIdle, StateTracking, StatePrivacy:
+		return true
+	default:
+		return false
+	}
+}
+
 // AudioMode represents the noise cancellation mode of the PIXY camera microphone.
 type AudioMode string
 
@@ -242,17 +254,31 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 // CurrentSchemaVersion is the state file format version. Increment when
 // the JSON schema changes. Old state files with a lower version are
 // logged as stale but still loaded (best-effort backward compatibility).
-const CurrentSchemaVersion = 1
+//
+// v2 (2026-10-01): State.Camera is defined as *desired* mode only — the
+// connectivity value StateOffline is no longer persisted (it was a
+// split-brain with user intent). v1 files carrying "offline" are normalized
+// to privacy on load.
+const CurrentSchemaVersion = 2
 
 // State holds the current runtime state of the PIXY daemon.
 type State struct {
-	SchemaVersion int         `json:"v"`
-	Camera        CameraState `json:"camera"`
-	Audio         AudioMode   `json:"audio"`
-	Gesture       bool        `json:"gesture"`
-	InCall        bool        `json:"inCall"`
-	AutoMode      AutoMode    `json:"autoMode"`
-	Presets       PresetMap   `json:"presets,omitempty"`
+	SchemaVersion int `json:"v"`
+
+	// Camera is the user's desired operating mode — one of idle, tracking,
+	// or privacy. It is NEVER "offline": connectivity is observed at runtime
+	// (a probe/device snapshot) and projected onto the display, so unplugging
+	// the camera can never overwrite (or persist) the user's choice.
+	Camera  CameraState `json:"camera"`
+	Audio   AudioMode   `json:"audio"`
+	Gesture bool        `json:"gesture"`
+
+	// InCall is a runtime observation (is a call in progress?), not intent.
+	// It is persisted for crash visibility but reset on daemon start: the
+	// daemon cannot be in a call before it begins observing /proc.
+	InCall   bool     `json:"inCall"`
+	AutoMode AutoMode `json:"autoMode"`
+	Presets  PresetMap `json:"presets,omitempty"`
 
 	// TrackMode is the persisted tracking variant (TODO #140): the canonical
 	// TargetTrackMode string ("none"/"face"/"halfbody"/"fullbody"). Empty

@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -60,11 +61,14 @@ type Daemon struct {
 	// shutdown (and tests) can wait for their HID writes to finish.
 	trapReasserts sync.WaitGroup
 
-	// hadPersistedState records whether a valid state file existed at
-	// startup. It distinguishes "the user has expressed intent" (persisted
-	// camera mode wins over hardware on device re-appear) from "fresh
-	// install" (hardware is the source of truth).
-	hadPersistedState bool
+	// persistedIntent is true once the daemon has established authoritative
+	// state on disk — either a valid file was loaded at startup or state was
+	// saved during this session. It distinguishes "the user has expressed
+	// intent" (persisted camera mode wins over hardware on device re-appear)
+	// from "fresh install" (hardware is the source of truth). Deriving it
+	// from any successful save (not a one-shot startup snapshot) is what
+	// keeps a mid-session choice from being forgotten on the next replug.
+	persistedIntent atomic.Bool
 
 	lastFrame lastFrameCache
 
@@ -127,11 +131,17 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	// Persisted state wins on subsequent restarts; env-configured defaults apply
 	// only on first run (no valid state file present). This way EMEET_PIXYD_AUTO
 	// and EMEET_PIXYD_DEFAULT_AUDIO seed initial state, then the daemon takes over.
-	d.hadPersistedState = d.loadState()
-	if !d.hadPersistedState {
+	d.persistedIntent.Store(d.loadState())
+	if !d.persistedIntent.Load() {
 		d.state.AutoMode = cfg.AutoMode
 		d.state.Audio = cfg.DefaultAudio
 	}
+
+	// InCall is a runtime observation, not intent: a freshly started daemon
+	// cannot be in a call before it begins watching /proc. Dropping any
+	// persisted value prevents a stale "in call: yes" from surviving a
+	// restart forever when auto-management is off (the monitor never runs).
+	d.state.InCall = false
 
 	registerMetrics()
 	registerErrorFamilies()

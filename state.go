@@ -71,6 +71,22 @@ func (d *Daemon) loadState() bool {
 		return false
 	}
 
+	// v1 compatibility: "offline" used to be persisted as the camera mode
+	// when no device was seen. It is a connectivity value, not intent, so
+	// normalize it (a persisted outage must never masquerade as the user's
+	// chosen mode). See CurrentSchemaVersion.
+	if !loaded.Camera.ValidDesired() {
+		slog.Warn(
+			"state file carried a non-intent camera mode — normalizing to privacy",
+			"path",
+			d.config.StateFile(),
+			"camera",
+			loaded.Camera,
+		)
+
+		loaded.Camera = pixy.StatePrivacy
+	}
+
 	d.state = loaded
 
 	if loaded.SchemaVersion != pixy.CurrentSchemaVersion {
@@ -126,6 +142,11 @@ func (d *Daemon) saveState() error { //nolint:erraudit // family-inheriting erro
 	if renameErr != nil {
 		return errorfamily.Wrap(renameErr, errorfamily.Classify(renameErr), "state.rename", "rename state")
 	}
+
+	// The moment state lands on disk the user's intent becomes authoritative:
+	// reconcileOnDeviceAppear must re-assert it on the next re-appear instead
+	// of adopting the camera's boot mode as a "fresh install" would.
+	d.persistedIntent.Store(true)
 
 	return nil
 }
