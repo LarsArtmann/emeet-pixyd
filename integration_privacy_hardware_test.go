@@ -373,6 +373,100 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 	frameLuma("cleanup: tilt 0, tracking")
 }
 
+// TestIntegration_TrapRecoveryMatrix finds which write sequence actually
+// recovers the lens AFTER a first track write was eaten by the trap race.
+// Candidates: (A) a later same-mode write at +5s — distinguishes window
+// extension from state latching; (B) privacy then track — a mode bounce.
+func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
+	probeResult := probeDevices(nil)
+
+	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
+		t.Skip("no PIXY device found — connect hardware to run this test")
+	}
+
+	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+
+	frameLuma := func(step string) float64 {
+		t.Helper()
+
+		luma, err := meanFrameLuma(t, probeResult.VideoDev)
+		if err != nil {
+			t.Logf("[%-34s] frame: capture failed: %v", step, err)
+
+			return -1
+		}
+
+		t.Logf("[%-34s] frame: mean luma=%.1f believed=%s", step, luma, readCameraState(d))
+
+		return luma
+	}
+
+	rearm := func() {
+		t.Helper()
+
+		runDaemonCommand(t, d, "tilt 0")
+		runDaemonCommand(t, d, "track")
+		time.Sleep(motorSettleWait)
+
+		if open := frameLuma("re-arm check"); open < lumaBright {
+			t.Fatalf("re-arm failed: lens not open (luma=%.1f)", open)
+		}
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+
+	if baseline := frameLuma("baseline"); baseline < lumaBright {
+		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
+	}
+
+	// Round A: eaten write, then same-mode write at +5s.
+	rearm()
+	runDaemonCommand(t, d, "tilt -85")
+	runDaemonCommand(t, d, "track") // eaten by the race
+	time.Sleep(5 * time.Second)
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	if a := frameLuma("A: second track at +5s"); a >= lumaBright {
+		t.Log("A: late same-mode write RECOVERS — window extension model")
+	} else {
+		t.Log("A: late same-mode write does NOT recover — state latching model")
+	}
+
+	// Round B: eaten write, then privacy→track bounce.
+	rearm()
+	runDaemonCommand(t, d, "tilt -85")
+	runDaemonCommand(t, d, "track") // eaten by the race
+	time.Sleep(3 * time.Second)
+	runDaemonCommand(t, d, "privacy")
+	time.Sleep(500 * time.Millisecond)
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	if b := frameLuma("B: privacy→track bounce"); b >= lumaBright {
+		t.Log("B: privacy→track bounce RECOVERS the poisoned state")
+	} else {
+		t.Log("B: privacy→track bounce does NOT recover")
+	}
+
+	// Round C: eaten write, then idle as the second mode.
+	rearm()
+	runDaemonCommand(t, d, "tilt -85")
+	runDaemonCommand(t, d, "track") // eaten by the race
+	time.Sleep(3 * time.Second)
+	runDaemonCommand(t, d, "idle")
+	time.Sleep(motorSettleWait)
+	if c := frameLuma("C: idle as recovery"); c >= lumaBright {
+		t.Log("C: idle write RECOVERS the poisoned state")
+	} else {
+		t.Log("C: idle write does NOT recover")
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	frameLuma("cleanup: tilt 0, tracking")
+}
 // TestIntegration_PrivacyTrapBoundaries pins the remaining trap semantics:
 // does leaving the tilt zone re-open the lens on its own, and how does idle
 // interact with the cover. All verdicts optical, all writes settled.
