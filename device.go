@@ -241,6 +241,13 @@ func (d *Daemon) syncState(ctx context.Context) CommandResult {
 // syncStateLocked is syncState for callers that already hold d.hidMu (the
 // device-reconcile path).
 //
+// Coverage (M13): reconciles camera/audio/gesture only. Speeds and TrackMode
+// are NOT re-read: the wired firmware's readback for those surfaces is still
+// unverified (TODO #166 — the motor-speed GET answers a payload whose unit is
+// unknown, and the mode query is unreliable), so trusting a readback would risk
+// overwriting good persisted intent with garbage. They stay write-only intent
+// until the hardware session pins the readback.
+//
 // LOCK CONTRACT: caller holds d.hidMu.
 func (d *Daemon) syncStateLocked(ctx context.Context) CommandResult {
 	hidDev, circuitOpen := d.hidSendGuard()

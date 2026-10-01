@@ -334,6 +334,11 @@ func (d *Daemon) applyProbeResultLocked(r probeResult) {
 		// A reachable device is a success signal for the breaker's
 		// consecutive-failure accounting (config-send failures re-probe and
 		// reset; only commit failures accumulate — see circuitbreaker.go).
+		// Policy (deliberate, see CHANGELOG): a probe that finds the device
+		// present clears the strike count, including strikes accrued by failed
+		// commits — the re-probe is itself the "the device is back" evidence,
+		// so the breaker gets a fresh budget rather than latching on stale
+		// failures. Pinned by TestCircuitBreaker_ProbeResetsStrikesOnlyWhenPresent.
 		d.hidFailCount = 0
 	}
 

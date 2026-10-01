@@ -1,6 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-10-01 (PIXY attached — first wired session: privacy-trap bug reproduced, root-caused optically, and FIXED (see CHANGELOG [Unreleased]); BatteryProbe run: battery/charge/target-track/func/ver/device-ver heads time out, motor-speed/pos + device-mode + SN answer 32-byte echo frames, motor echo rewrites iface→0x63, V1 `09 01 01 01` answers constant 0x02 (0x03 in the trap) — full #166 checklist still open)
+**Updated:** 2026-10-01b (state/split-brain remediation: camera intent decoupled from connectivity (ADR `2026-10-01_camera-intent-vs-connectivity`, schema v2), `syncState` under `hidMu`, `powerStatus` negative cache, ghost `ProcessInspector` retired, metrics `online` gauge, lock-contract table — see `CHANGELOG.md` [Unreleased]; findings 1/2/3/4/5/6/7/10/11 fixed; new row #182)
+
+**Previous:** 2026-10-01 (PIXY attached — first wired session: privacy-trap bug reproduced, root-caused optically, and FIXED (see CHANGELOG [Unreleased]); BatteryProbe run: battery/charge/target-track/func/ver/device-ver heads time out, motor-speed/pos + device-mode + SN answer 32-byte echo frames, motor echo rewrites iface→0x63, V1 `09 01 01 01` answers constant 0x02 (0x03 in the trap) — full #166 checklist still open)
 
 **Previous:** 2026-09-19 (shipped #167 pull early-abort, #171 `preset pull --dry-run`, #169 collision property test, #168 simulator knobs + speed-query duality, #170 dprint vendored into the devShell — details in `CHANGELOG.md` [Unreleased]; #172 evaluated: trigger NOT met — still 3 production GET families, the 4th is speed readback and lands with #138/#166; no PIXY on the bus that session, hardware rows untouched)
 
@@ -62,6 +64,7 @@
 | 179 | ◻ OPEN     | Decide: always `ValidatePresetName` in the web preset action (400 for garbage names vs today's passthrough to the command layer) | LOW | S | `handlers.go` `presetAction`; report `2026-09-28_23-47` b4 |
 | 180 | ◻ OPEN     | Align `.crushrc` LSP lint config with `.golangci.yml` (drop golines/wsl_v5 noise the repo does not gate on) | LOW | S | `.crushrc`; report `2026-09-28_23-47` f15 |
 | 181 | ◻ OPEN     | Mechanical nolint sweep post-refactor (nolintlint- or grep-driven): remove directives whose suppressing rationale rotted | MED | M | AGENTS.md lint gotcha; report `2026-09-28_23-47` f16 |
+| 182 | 🚫 BLOCKED | Make `sync` reconcile `Speeds`/`TrackMode` (re-read hardware) — blocked on #166 pinning the readback: the motor-speed GET payload unit is unknown and the mode query is unreliable, so a readback would risk clobbering good intent | LOW | S | `device.go` `syncStateLocked` (M13); ADR `2026-10-01_camera-intent-vs-connectivity` |
 
 ---
 

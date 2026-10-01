@@ -152,6 +152,44 @@ func TestProbeResultInvalidatesCachesOnPresenceChange(t *testing.T) {
 	}
 }
 
+// TestCircuitBreaker_ProbeResetsStrikesOnlyWhenPresent pins the documented
+// breaker policy (Finding 10 / M14, accepted as intentional in CHANGELOG): a
+// probe that finds the device present clears the consecutive-failure count, a
+// probe miss leaves it untouched.
+func TestCircuitBreaker_ProbeResetsStrikesOnlyWhenPresent(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+
+	d.mu.Lock()
+	d.hidFailCount = 2
+	d.mu.Unlock()
+
+	applyProbe(d, probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev})
+
+	d.mu.RLock()
+	present := d.hidFailCount
+	d.mu.RUnlock()
+
+	if present != 0 {
+		t.Errorf("strike count after present probe = %d, want 0 (reachable device clears strikes)", present)
+	}
+
+	d.mu.Lock()
+	d.hidFailCount = 2
+	d.mu.Unlock()
+
+	applyProbe(d, probeResult{})
+
+	d.mu.RLock()
+	absent := d.hidFailCount
+	d.mu.RUnlock()
+
+	if absent != 2 {
+		t.Errorf("strike count after probe miss = %d, want 2 (miss must not clear strikes)", absent)
+	}
+}
+
 // TestSimulatorInFlightDetection guards the concurrency proof against being
 // vacuous: the high-water mark must rise on overlap and never fall back.
 func TestSimulatorInFlightDetection(t *testing.T) {
