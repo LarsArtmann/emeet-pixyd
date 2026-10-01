@@ -13,6 +13,7 @@ import (
 type Dependencies struct {
 	commander      CommandRunner
 	ueventListener UeventListener
+	probeDevices   func(extraProductIDs []int64) probeResult
 	isCameraInUse  func(videoDev string) bool
 	findSource     func(ctx context.Context) (pixy.SourceID, error)
 	setSource      func(ctx context.Context, sourceID pixy.SourceID)

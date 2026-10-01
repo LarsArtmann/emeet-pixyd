@@ -33,7 +33,7 @@ func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	recordHIDFailure(ctx)
 
 	if d.hidFailCount < hidCircuitBreakerThreshold {
-		d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
+		d.applyProbeResultLocked(d.deps.probeDevices(d.config.ExtraProductIDs))
 	}
 	d.mu.Unlock()
 	d.broadcastStateChanged()

@@ -23,7 +23,8 @@
 | a11 | M20: ADR written (connectivity vs intent) | `docs/adr/2026-10-01_camera-intent-vs-connectivity.md` |
 | a12 | M21: `AGENTS.md` state/architecture/concurrency/testing bullets + `docs/DOMAIN_LANGUAGE.md` glossary updated | both files |
 | a13 | M23: `lastFrameCache` invalidation audited — cleared on device removal, deliberately retained on stream stop (snapshot feature) | `probe.go:348`, `cache.go` `Clear()` |
-| a14 | Regression suite added (10 tests) incl. the simulator concurrency high-water detector | `state_split_brain_test.go`, `pixy_simulator_test.go` (`MaxInFlight`) |
+| a14 | Regression suite added (11 tests) incl. the simulator concurrency high-water detector and an injectable-probe autoManage-appear test | `state_split_brain_test.go`, `pixy_simulator_test.go` (`MaxInFlight`) |
+| a15 | M7: probing made injectable (`Dependencies.probeDevices`) so every device-appear path is testable; autoManage-appear reconcile pinned | `deps.go`, `auto.go`, `TestAutoManage_DeviceAppearsRunsReconcile` |
 
 ## b) PARTIALLY DONE / DELIBERATELY SCOPED
 

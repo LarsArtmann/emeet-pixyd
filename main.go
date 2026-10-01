@@ -116,6 +116,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	d.deps = Dependencies{
 		commander:      realCommandRunner{},
 		ueventListener: netlinkUeventListener{},
+		probeDevices:   probeDevices,
 		isCameraInUse:  isCameraInUse,
 		findSource:     d.findPixySource,
 		setSource:      d.setDefaultSource,
@@ -147,7 +148,7 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	registerErrorFamilies()
 	// NewDaemon runs before any goroutines exist, so we can call the
 	// _Locked variant directly without taking d.mu.
-	probe := probeDevices(cfg.ExtraProductIDs)
+	probe := d.deps.probeDevices(cfg.ExtraProductIDs)
 	d.applyProbeResultLocked(probe)
 	warnInaccessibleDevices(probe)
 	checkExternalDeps(d.deps.commander)
@@ -332,7 +333,7 @@ func (d *Daemon) eventLoop(
 			d.hidMu.Lock()
 			d.mu.Lock()
 			oldVideo := d.videoDev
-			probe := probeDevices(d.config.ExtraProductIDs) //nolint:contextcheck // sysfs I/O, ctx not threaded
+			probe := d.deps.probeDevices(d.config.ExtraProductIDs)
 			d.applyProbeResultLocked(probe)
 			newVideo := d.videoDev
 			d.mu.Unlock()

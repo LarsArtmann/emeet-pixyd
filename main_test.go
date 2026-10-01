@@ -216,6 +216,7 @@ func noopDependencies() Dependencies {
 	return Dependencies{
 		commander:      noopCommandRunner{},
 		ueventListener: noopUeventListener{},
+		probeDevices:   func([]int64) probeResult { return probeResult{} },
 		isCameraInUse:  cameraNotInUseFn,
 		findSource:     noopFindSourceFn,
 		setSource:      noopSetSourceFn,
@@ -276,6 +277,7 @@ func newTestDaemon(
 		broadcaster:   NewBroadcaster(),
 		deps: Dependencies{
 			commander:     realCommandRunner{},
+			probeDevices:  probeDevices,
 			isCameraInUse: func(string) bool { return false },
 			findSource:    noopFindSourceFn,
 			setSource:     noopSetSourceFn,

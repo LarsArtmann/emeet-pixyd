@@ -101,7 +101,7 @@ main() → NewDaemon() → Run()
 
 ### Dependency injection
 
-`NewDaemon()` wires real implementations; tests override via functional options. DI fields: `commander`, `ueventListener`, `isCameraInUse`, `findSource`, `setSource`, `notify`, `setTracking`, `setAudio`, `setGesture`, `centerCamera`, `v4l2Set`, `parsePTZ`. Auto-manage paths call the `*Fn` fields, never the methods directly. (The `ProcessInspector` interface/`procInspector` field was retired — call detection is the plain `ppidOf`/`isDescendantOf`/`isCameraInUse` functions behind `isCameraInUse`.)
+`NewDaemon()` wires real implementations; tests override via functional options. DI fields: `commander`, `ueventListener`, `probeDevices`, `isCameraInUse`, `findSource`, `setSource`, `notify`, `setTracking`, `setAudio`, `setGesture`, `centerCamera`, `v4l2Set`, `parsePTZ`. Auto-manage paths call the `*Fn`/dep fields, never the package functions directly. (The `ProcessInspector` interface/`procInspector` field was retired — call detection is the plain `ppidOf`/`isDescendantOf`/`isCameraInUse` functions behind `isCameraInUse`.)
 
 ## Testing
 

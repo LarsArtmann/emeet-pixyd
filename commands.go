@@ -187,7 +187,7 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 
 	case cmdProbe:
 		d.mu.Lock()
-		d.applyProbeResultLocked(probeDevices(d.config.ExtraProductIDs)) //nolint:contextcheck
+		d.applyProbeResultLocked(d.deps.probeDevices(d.config.ExtraProductIDs))
 		dev := d.videoDev
 		hint := d.unsupportedHint
 		d.mu.Unlock()

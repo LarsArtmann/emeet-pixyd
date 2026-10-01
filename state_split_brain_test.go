@@ -280,6 +280,46 @@ func TestNewDaemon_ResetsInCallButKeepsIntent(t *testing.T) {
 	}
 }
 
+// TestAutoManage_DeviceAppearsRunsReconcile pins M7: the auto-manager's
+// re-probe, when it finds a device that had been missing, routes through the
+// same reconcile entry the startup and uevent paths use (not the probe alone).
+// lastSyncedAt is only set by the reconcile path, so it proves reconcile ran.
+func TestAutoManage_DeviceAppearsRunsReconcile(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+	d.persistedIntent.Store(false)
+
+	probes := 0
+	d.deps.probeDevices = func([]int64) probeResult {
+		probes++
+
+		return probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev}
+	}
+
+	d.autoManage(context.Background())
+
+	if probes != 1 {
+		t.Errorf("autoManage probed %d times, want 1", probes)
+	}
+
+	if !d.presence().Online {
+		t.Error("autoManage re-probe did not adopt the appeared device")
+	}
+
+	d.mu.RLock()
+	synced := !d.lastSyncedAt.IsZero()
+	d.mu.RUnlock()
+
+	if !synced {
+		t.Error("reconcile did not run after the device appeared (lastSyncedAt unset)")
+	}
+
+	if got := readCameraState(d); got != pixy.StatePrivacy {
+		t.Errorf("intent = %q, want %q", got, pixy.StatePrivacy)
+	}
+}
+
 // TestSimulatorInFlightDetection guards the concurrency proof against being
 // vacuous: the high-water mark must rise on overlap and never fall back.
 func TestSimulatorInFlightDetection(t *testing.T) {
