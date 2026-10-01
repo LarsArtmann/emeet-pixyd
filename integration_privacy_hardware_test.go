@@ -462,11 +462,27 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 		t.Log("C: idle write does NOT recover")
 	}
 
+	// Round D: eaten write → idle recovery → track again while still parked.
+	rearm()
+	runDaemonCommand(t, d, "tilt -85")
+	runDaemonCommand(t, d, "track") // eaten by the race
+	time.Sleep(3 * time.Second)
+	runDaemonCommand(t, d, "idle")
+	time.Sleep(motorSettleWait)
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	if dd := frameLuma("D: idle then track"); dd >= lumaBright {
+		t.Log("D: idle→track sequence RECOVERS into tracking — the full bounce fix")
+	} else {
+		t.Log("D: idle→track ends covered — tracking cannot stick in the zone once poisoned")
+	}
+
 	runDaemonCommand(t, d, "tilt 0")
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
 	frameLuma("cleanup: tilt 0, tracking")
 }
+
 // TestIntegration_PrivacyTrapBoundaries pins the remaining trap semantics:
 // does leaving the tilt zone re-open the lens on its own, and how does idle
 // interact with the cover. All verdicts optical, all writes settled.

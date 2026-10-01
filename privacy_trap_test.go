@@ -54,10 +54,26 @@ func waitForCondition(t *testing.T, timeout time.Duration, condition func() bool
 	t.Fatal(msg)
 }
 
-// TestSetTracking_ReassertsModeAfterTrapRace pins the core fix: a track/idle
+// lastTrackingConfigIndex returns the index of the last 9-byte config
+// report for the tracking interface carrying the given mode byte, or -1.
+func lastTrackingConfigIndex(sim *pixySimulator, modeByte byte) int {
+	last := -1
+
+	for i, report := range sim.SentReports() {
+		if len(report) == hidMinLen &&
+			report[0] == cameraConfigPrefix && report[1] == hidInterfaceTracking &&
+			report[8] == modeByte {
+			last = i
+		}
+	}
+
+	return last
+}
+// TestSetTracking_ReassertsModeAfterTrapRace pins the core fix: a track
 // write issued while the privacy-trap window is armed gets ONE deferred
-// re-assert, so the user's click lands even when the firmware eats the
-// original write mid-transition.
+// re-assert, and the re-assert bounces through idle — the sequence that
+// clears the firmware's poisoned mode state — before re-entering tracking.
+//
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
@@ -74,6 +90,15 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	waitForCondition(t, 2*time.Second,
 		func() bool { return countTrackingConfigs(sim, hidByteTracking) == 2 },
 		"expected exactly one deferred re-assert write after the trap race")
+
+	if got := countTrackingConfigs(sim, hidByteIdle); got != 1 {
+		t.Errorf("idle bounce writes = %d, want 1 (tracking re-enters via idle)", got)
+	}
+
+	if idleAt, trackAt := lastTrackingConfigIndex(sim, hidByteIdle),
+		lastTrackingConfigIndex(sim, hidByteTracking); idleAt > trackAt {
+		t.Errorf("bounce order wrong: idle config at %d after tracking config at %d", idleAt, trackAt)
+	}
 
 	if got := sim.Tracking(); got != pixy.StateTracking {
 		t.Errorf("simulator mode after re-assert = %s, want tracking", got)
@@ -133,6 +158,10 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
 	}
 
+	if got := countTrackingConfigs(sim, hidByteIdle); got != 0 {
+		t.Errorf("idle bounce writes = %d, want 0 (re-assert must be skipped)", got)
+	}
+
 	if got := countTrackingConfigs(sim, hidBytePrivacy); got != 1 {
 		t.Errorf("privacy config writes = %d, want 1", got)
 	}
@@ -145,6 +174,28 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 // TestSetTracking_PrivacyWriteNeverReasserts: entering privacy is never
 // racing the trap cover — the deferred re-assert applies to uncovering
 // writes only.
+//nolint:paralleltest // mutates the package-level re-assert delay
+func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
+	withShortReassertDelay(t, 30*time.Millisecond)
+
+	sim, withSim := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withSim)
+
+	d.armPrivacyTrap()
+
+	if err := d.setTracking(context.Background(), pixy.StateIdle); err != nil {
+		t.Fatalf("setTracking(idle): %v", err)
+	}
+
+	waitForCondition(t, 2*time.Second,
+		func() bool { return countTrackingConfigs(sim, hidByteIdle) == 2 },
+		"expected the idle re-assert write")
+
+	if got := countTrackingConfigs(sim, hidByteTracking); got != 0 {
+		t.Errorf("tracking config writes = %d, want 0 (idle re-assert needs no bounce)", got)
+	}
+}
+
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)

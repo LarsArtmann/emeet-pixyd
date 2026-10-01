@@ -13,11 +13,13 @@ import (
 // Hardware-evidenced privacy trap on the wired PIXY (2026-10-01 session, see
 // integration_privacy_hardware_test.go): arriving at tilt <= -85° while in
 // tracking or idle covers the lens (mean frame luma drops to ~7-24 vs ~130+
-// open). The cover is transient and positional — leaving the tilt zone, or
-// any camera-mode write that lands after the firmware's ~1.5-3s transition,
-// re-opens the lens even while still parked in the zone. The failure users
-// see: a track/idle write sent within the transition is ACKed but silently
-// dropped, so clicking Track right after tilting down appears to do nothing.
+// open). The cover is positional — leaving the tilt zone re-opens the lens.
+// The failure users see: a tracking/idle write landing within ~1.5-3s of the
+// arrival is ACKed but silently dropped, AND it poisons the mode interface:
+// every later tracking write stays dropped while parked in the zone (a
+// privacy→track bounce does not help). An idle write always clears the
+// poison, and tracking sticks again afterwards — so the re-assert bounces
+// through idle.
 const (
 	// privacyTrapTilt is the tilt angle at (or below) which the trap engages.
 	privacyTrapTilt = -85
@@ -80,9 +82,30 @@ func (d *Daemon) schedulePrivacyTrapReassert(ctx context.Context, mode pixy.Came
 		}
 
 		d.hidMu.Lock()
-		err := d.writeTracking(reassertCtx, mode)
-		d.hidMu.Unlock()
+		defer d.hidMu.Unlock()
 
+		// Tracking re-enters via an idle bounce: a tracking write eaten by
+		// the trap transition poisons the mode interface (later tracking
+		// writes stay dropped while parked — even a privacy→track bounce
+		// fails), but an idle write always clears the poison and tracking
+		// sticks again afterwards. Hardware recovery matrix rounds A-D,
+		// integration_privacy_hardware_test.go.
+		if mode == pixy.StateTracking {
+			bounceErr := d.writeTracking(reassertCtx, pixy.StateIdle)
+			if bounceErr != nil {
+				slog.Warn("privacy trap idle bounce failed", "error", bounceErr)
+
+				return
+			}
+
+			select {
+			case <-reassertCtx.Done():
+				return
+			case <-time.After(hidCommandSleepMs * time.Millisecond):
+			}
+		}
+
+		err := d.writeTracking(reassertCtx, mode)
 		if err != nil {
 			slog.Warn("privacy trap re-assert failed", "mode", mode, "error", err)
 
