@@ -38,10 +38,10 @@ func countTrackingConfigs(sim *pixySimulator, modeByte byte) int {
 	return count
 }
 
-func waitForCondition(t *testing.T, timeout time.Duration, condition func() bool, msg string) {
+func waitForCondition(t *testing.T, condition func() bool, msg string) {
 	t.Helper()
 
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().Add(2 * time.Second)
 
 	for time.Now().Before(deadline) {
 		if condition() {
@@ -69,6 +69,7 @@ func lastTrackingConfigIndex(sim *pixySimulator, modeByte byte) int {
 
 	return last
 }
+
 // TestSetTracking_ReassertsModeAfterTrapRace pins the core fix: a track
 // write issued while the privacy-trap window is armed gets ONE deferred
 // re-assert, and the re-assert bounces through idle — the sequence that
@@ -87,12 +88,17 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 		t.Fatalf("setTracking: %v", err)
 	}
 
-	waitForCondition(t, 2*time.Second,
-		func() bool { return countTrackingConfigs(sim, hidByteTracking) == 2 },
-		"expected exactly one deferred re-assert write after the trap race")
+	bounceComplete := func() bool {
+		return countTrackingConfigs(sim, hidByteIdle) == 1 &&
+			lastTrackingConfigIndex(sim, hidByteTracking) > lastTrackingConfigIndex(sim, hidByteIdle) &&
+			sim.Tracking() == pixy.StateTracking
+	}
 
-	if got := countTrackingConfigs(sim, hidByteIdle); got != 1 {
-		t.Errorf("idle bounce writes = %d, want 1 (tracking re-enters via idle)", got)
+	waitForCondition(t, bounceComplete,
+		"expected the idle bounce to complete and tracking to stick")
+
+	if got := countTrackingConfigs(sim, hidByteTracking); got != 2 {
+		t.Errorf("tracking config writes = %d, want 2 (original + re-assert)", got)
 	}
 
 	if idleAt, trackAt := lastTrackingConfigIndex(sim, hidByteIdle),
@@ -112,6 +118,7 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 // TestSetTracking_NoReassertOutsideTrapWindow: without an armed trap window
 // a mode write goes out exactly once — the re-assert never fires for normal
 // clicks.
+//
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
@@ -133,6 +140,7 @@ func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 // TestSetTracking_ReassertSkippedAfterIntentChange: when the user's intent
 // moves on before the re-assert fires (privacy clicked meanwhile), the stale
 // re-assert is dropped instead of fighting the newer command.
+//
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 	withShortReassertDelay(t, 500*time.Millisecond)
@@ -174,6 +182,7 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 // TestSetTracking_PrivacyWriteNeverReasserts: entering privacy is never
 // racing the trap cover — the deferred re-assert applies to uncovering
 // writes only.
+//
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
@@ -187,7 +196,7 @@ func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 		t.Fatalf("setTracking(idle): %v", err)
 	}
 
-	waitForCondition(t, 2*time.Second,
+	waitForCondition(t,
 		func() bool { return countTrackingConfigs(sim, hidByteIdle) == 2 },
 		"expected the idle re-assert write")
 
@@ -220,6 +229,7 @@ func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 // routing: the web UI's POST /api/track lands in handleCommand, whose
 // hidMu-scoped write must not deadlock against the re-assert goroutine taking
 // hidMu afterwards.
+//
 //nolint:paralleltest // mutates the package-level re-assert delay
 func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
@@ -234,9 +244,14 @@ func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 		t.Fatalf("track command failed: %v", result)
 	}
 
-	waitForCondition(t, 2*time.Second,
-		func() bool { return countTrackingConfigs(sim, hidByteTracking) == 2 },
-		"expected the re-assert write through the full command path")
+	bounceComplete := func() bool {
+		return countTrackingConfigs(sim, hidByteIdle) == 1 &&
+			lastTrackingConfigIndex(sim, hidByteTracking) > lastTrackingConfigIndex(sim, hidByteIdle) &&
+			sim.Tracking() == pixy.StateTracking
+	}
+
+	waitForCondition(t, bounceComplete,
+		"expected the re-assert bounce through the full command path")
 }
 
 // TestHandlePTZCommand_ArmsPrivacyTrap pins which moves arm the race window.
@@ -287,7 +302,7 @@ func TestSchedulePTZReadback_RearmsTrapOnArrival(t *testing.T) {
 
 	d.schedulePTZReadback(context.Background(), testVideoDev)
 
-	waitForCondition(t, 2*time.Second, d.privacyTrapArmed,
+	waitForCondition(t, d.privacyTrapArmed,
 		"expected the readback to re-arm the trap window for tilt -88")
 }
 

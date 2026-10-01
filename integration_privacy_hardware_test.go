@@ -188,7 +188,7 @@ var errNoJPEGFrame error = errorfamily.NewTransient("test.no_jpeg_frame", "no JP
 // zero, an open one reads room-light levels (measured 115-126 on the wired
 // unit). The gap is wide enough that these bounds are conservative.
 const (
-	lumaDark  = 30.0
+	lumaDark   = 30.0
 	lumaBright = 60.0
 )
 
