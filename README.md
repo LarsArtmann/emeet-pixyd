@@ -53,7 +53,7 @@ No setup per app. No browser extension. Works with anything that opens `/dev/vid
 - **Linux users with an EMEET PIXY** who want face tracking and privacy to "just work" on every call.
 - **Remote workers** tired of manually enabling tracking before meetings and remembering privacy mode after.
 - **NixOS users** who want a declarative, reproducible setup via a single module option.
-- **Waybar / tiling-WM users** who want live camera status (mode, PTZ, in-call) in their bar.
+- **Waybar / Quickshell users** who want live camera status (mode, PTZ, in-call) in their bar.
 - **Privacy-conscious users** who want a guaranteed physical lens block whenever no call is active.
 
 ## When NOT to use this
@@ -127,6 +127,7 @@ camera's intelligence underneath it.
 | **Audio switching**    | Auto-switches PipeWire default source to PIXY on call start                                      |
 | **Web UI**             | Dark-themed DataStar control panel with live MJPEG preview, PTZ sliders, and toast notifications |
 | **Waybar integration** | JSON output for a custom Waybar module                                                           |
+| **Status API**         | `GET /api/status` JSON for Quickshell / DankMaterialShell bar widgets                            |
 | **Hotplug**            | Netlink uevent listener detects USB plug/unplug, auto-re-probes                                  |
 | **Prometheus metrics** | OTel-based metrics at `/metrics` for monitoring                                                  |
 | **NixOS module**       | Systemd user service, udev rules, tmpfiles.d — one option to enable                              |

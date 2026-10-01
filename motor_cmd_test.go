@@ -203,6 +203,48 @@ func TestWebSpeedEndpoint(t *testing.T) {
 	}
 }
 
+// TestWebSpeedEndpoint_BrowserSignalBody posts the exact signal body DataStar
+// serializes from the panel (all declared signals, camelCase). Regression for
+// the camelCase signal names being HTML-lowercased into stray empty-string
+// signals, which made the strict float64 decode reject every speed POST.
+func TestWebSpeedEndpoint_BrowserSignalBody(t *testing.T) {
+	t.Parallel()
+
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	server := newTestWebServer(t, d)
+
+	body := `{"loading":false,"pan":0,"tilt":0,"zoom":100,` +
+		`"speedPan":42,"speedTilt":0,"speedZoom":0,"presetName":"Desk"}`
+
+	request, err := http.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		server.URL+"/api/speed/pan",
+		strings.NewReader(body),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := server.Client().Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() { _ = response.Body.Close() }()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+
+	if got := sim.MotorSpeed(pixy.MotorPan); got != 42 {
+		t.Errorf("simulator pan speed = %v, want 42", got)
+	}
+}
+
 func TestWebSpeedEndpoint_InvalidAxis(t *testing.T) {
 	t.Parallel()
 

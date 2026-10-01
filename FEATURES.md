@@ -127,6 +127,7 @@
 | Prometheus Metrics  | 🟢 `FULLY_FUNCTIONAL` | OTel gauges/counters at `/metrics`: in_call, auto_mode, camera_state, commands_total, probes_total, uevents_total, hid_failures_total, stream_duration, frames_total. |
 | pprof Debug         | 🟢 `FULLY_FUNCTIONAL` | `/debug/pprof/*` gated behind `EMEET_PIXYD_DEBUG=true`.                                                                                                               |
 | Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/api/health` JSON; 503 when device offline, 200 online.                                                                                                              |
+| Status API          | 🟢 `FULLY_FUNCTIONAL` | `/api/status` JSON for shell widgets (Quickshell / DankMaterialShell): camera state, device, model, online, in-call, auto/audio, gesture, battery (omitted when absent), version. Always 200 while the daemon runs. |
 | systemd Integration | 🟢 `FULLY_FUNCTIONAL` | `sd_notify` READY=1 + WATCHDOG=1 each poll tick.                                                                                                                      |
 
 ## Error Handling

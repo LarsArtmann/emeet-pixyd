@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // v1TrackingQuery is our classic SET-head mode query (hid.go queryTracking).
@@ -141,9 +142,11 @@ func TestIntegration_TiltPrivacyTrap(t *testing.T) {
 	logHardwareSnapshot(t, d, dev, "cleanup: tilt 0, privacy")
 }
 
-// meanFrameLuma grabs one MJPEG frame via v4l2-ctl and returns its mean luma
-// (0-255). A covered lens (privacy) reads far darker than an open one — the
-// physical ground truth the mode queries cannot provide.
+// meanFrameLuma grabs a few MJPEG frames via v4l2-ctl and returns the mean
+// luma (0-255) of the LAST one. A covered lens (privacy) reads far darker
+// than an open one — the physical ground truth the mode queries cannot
+// provide. Later frames are used so auto-exposure can settle after a lens
+// state change; the buffer's last JPEG is extracted directly.
 func meanFrameLuma(t *testing.T, videoDev string) (float64, error) {
 	t.Helper()
 
@@ -155,7 +158,7 @@ func meanFrameLuma(t *testing.T, videoDev string) (float64, error) {
 	cmd := exec.CommandContext(
 		ctx, v4l2ctl, "-d", videoDev,
 		"--set-fmt-video=width=640,height=360,pixelformat=MJPG",
-		"--stream-mmap", "--stream-count=1", "--stream-to=/dev/stdout",
+		"--stream-mmap", "--stream-count=4", "--stream-to=/dev/stdout",
 	)
 	cmd.Stdout = &buf
 
@@ -163,7 +166,14 @@ func meanFrameLuma(t *testing.T, videoDev string) (float64, error) {
 		return 0, err
 	}
 
-	img, err := jpeg.Decode(&buf)
+	data := buf.Bytes()
+
+	idx := bytes.LastIndex(data, []byte{jpegMarker, jpegSOI, 0xFF})
+	if idx < 0 || idx+2 >= len(data) {
+		return 0, errNoJPEGFrame
+	}
+
+	img, err := jpeg.Decode(bytes.NewReader(data[idx:]))
 	if err != nil {
 		return 0, err
 	}
@@ -171,25 +181,22 @@ func meanFrameLuma(t *testing.T, videoDev string) (float64, error) {
 	return luma(img), nil
 }
 
-func logFrameTruth(t *testing.T, d *Daemon, step string) {
-	t.Helper()
+// errNoJPEGFrame marks a capture that produced no decodable frame.
+var errNoJPEGFrame error = errorfamily.NewTransient("test.no_jpeg_frame", "no JPEG frame in capture")
 
-	luma, err := meanFrameLuma(t, d.videoDevice())
-	if err != nil {
-		t.Logf("[%-34s] frame: capture failed: %v", step, err)
+// lumaDark / lumaBright split the optical verdicts: a covered lens reads near
+// zero, an open one reads room-light levels (measured 115-126 on the wired
+// unit). The gap is wide enough that these bounds are conservative.
+const (
+	lumaDark  = 30.0
+	lumaBright = 60.0
+)
 
-		return
-	}
-
-	values := d.deps.parsePTZ(t.Context(), d.videoDevice())
-	tilt, _ := values.Get(pixy.AxisTilt)
-	t.Logf("[%-34s] frame: mean luma=%.1f tilt=%d believed=%s", step, luma, tilt, readCameraState(d))
-}
-
-// TestIntegration_PrivacyGroundTruth measures privacy optically: a covered
-// lens is dark, an open one is not. This decouples the investigation from the
-// mode-query surfaces, which answer constant bytes on the wired firmware.
-func TestIntegration_PrivacyGroundTruth(t *testing.T) {
+// TestIntegration_PrivacyTrapRecovery measures privacy optically (a covered
+// lens is dark) and answers the reported bug with clean sequencing: NO HID
+// queries run between the trap and the recovery attempts, so nothing pokes
+// the mode interface and contaminates the result.
+func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	probeResult := probeDevices(nil)
 
 	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
@@ -197,39 +204,98 @@ func TestIntegration_PrivacyGroundTruth(t *testing.T) {
 	}
 
 	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
-	dev := newHIDRawDevice(probeResult.HidrawDev)
 
+	frameLuma := func(step string) float64 {
+		t.Helper()
+
+		luma, err := meanFrameLuma(t, probeResult.VideoDev)
+		if err != nil {
+			t.Logf("[%-34s] frame: capture failed: %v", step, err)
+
+			return -1
+		}
+
+		values := d.deps.parsePTZ(t.Context(), probeResult.VideoDev)
+		tilt, _ := values.Get(pixy.AxisTilt)
+		t.Logf("[%-34s] frame: mean luma=%.1f tilt=%d believed=%s", step, luma, tilt, readCameraState(d))
+
+		return luma
+	}
+
+	// Sanity: camera open and the room is lit — otherwise luma verdicts are
+	// meaningless.
 	runDaemonCommand(t, d, "tilt 0")
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "baseline: tracking, tilt 0")
 
+	if baseline := frameLuma("baseline: tracking, tilt 0"); baseline < lumaBright {
+		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
+	}
+
+	// Confirm the mode write path optically before judging the trap.
 	runDaemonCommand(t, d, "privacy")
 	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "privacy commanded")
+
+	if dark := frameLuma("privacy commanded"); dark >= lumaBright {
+		t.Errorf("privacy commanded but frame stays bright (luma=%.1f) — mode write did not cover the lens", dark)
+	}
 
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "track commanded")
 
-	runDaemonCommand(t, d, "tilt -85")
-	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "tilt -85 (the reported trap)")
-	logHardwareSnapshot(t, d, dev, "tilt -85 (the reported trap)")
+	if open := frameLuma("track commanded"); open < lumaBright {
+		t.Errorf("track commanded but frame stays dark (luma=%.1f) — mode write did not uncover the lens", open)
+	}
 
+	// The reported trap: tilt to -85 while tracking.
+	for _, tiltDeg := range []int{-85, -90} {
+		runDaemonCommand(t, d, "tilt "+strconv.Itoa(tiltDeg))
+		time.Sleep(motorSettleWait)
+
+		if dark := frameLuma("tilt " + strconv.Itoa(tiltDeg) + " (trap)"); dark >= lumaDark {
+			t.Logf("tilt %d did NOT engage privacy optically (luma=%.1f) — no trap at this angle on this unit", tiltDeg, dark)
+
+			continue
+		}
+
+		// THE reported failure: direct privacy→tracking switch while parked.
+		runDaemonCommand(t, d, "track")
+		time.Sleep(motorSettleWait)
+
+		recovered := frameLuma("track commanded while trapped")
+		switch {
+		case recovered >= lumaBright:
+			t.Logf("tilt %d: direct track RECOVERED the lens (luma=%.1f)", tiltDeg, recovered)
+		case recovered >= lumaDark:
+			t.Logf("tilt %d: direct track left the lens HALF recovered (luma=%.1f)", tiltDeg, recovered)
+		default:
+			t.Errorf("tilt %d: direct track did NOT recover the lens (luma=%.1f) — the reported bug reproduces", tiltDeg, recovered)
+
+			// Recovery fallbacks for the stuck case.
+			runDaemonCommand(t, d, "track")
+			time.Sleep(motorSettleWait)
+			frameLuma("second track")
+
+			runDaemonCommand(t, d, "privacy")
+			time.Sleep(motorSettleWait)
+			runDaemonCommand(t, d, "track")
+			time.Sleep(motorSettleWait)
+			frameLuma("privacy then track")
+
+			runDaemonCommand(t, d, "tilt 0")
+			time.Sleep(motorSettleWait)
+			frameLuma("tilt 0 (v4l2 only)")
+			runDaemonCommand(t, d, "track")
+			time.Sleep(motorSettleWait)
+			frameLuma("tilt 0 then track")
+		}
+	}
+
+	// Leave the camera open, centered, consistent with the running daemon.
+	runDaemonCommand(t, d, "tilt 0")
 	runDaemonCommand(t, d, "track")
 	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "track commanded while trapped")
-
-	runDaemonCommand(t, d, "tilt 0")
-	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "tilt 0 recovery (v4l2 only)")
-
-	runDaemonCommand(t, d, "privacy")
-	time.Sleep(motorSettleWait)
-	runDaemonCommand(t, d, "tilt 0")
-	time.Sleep(motorSettleWait)
-	logFrameTruth(t, d, "cleanup: privacy + tilt 0")
+	frameLuma("cleanup: tilt 0, tracking")
 }
 
 // luma returns the mean luma (0-255) of an image. YCbCr JPEGs are averaged

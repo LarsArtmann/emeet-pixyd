@@ -31,6 +31,10 @@ Real-time audio effects for PipeWire. Complements the PIXY's built-in noise canc
 
 Highly customizable Wayland status bar. emeet-pixyd provides JSON output (`emeet-pixy waybar`) for custom modules with camera state, tooltip, and CSS classes.
 
+### Quickshell / DankMaterialShell
+
+QtQuick-based Wayland desktop shells. emeet-pixyd exposes a `GET /api/status` JSON endpoint that shell widgets poll for live camera state, the HTTP equivalent of the Waybar integration. See the [Quickshell integration guide](/guides/quickshell/).
+
 ### systemd
 
 emeet-pixyd integrates with systemd via `sd_notify` (READY=1, WATCHDOG=1) and ships as a systemd user service in the NixOS module.
