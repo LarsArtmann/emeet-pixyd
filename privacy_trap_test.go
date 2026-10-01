@@ -184,7 +184,8 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 	// privacy write (>=200ms config+commit) has completed and belief moved on.
 	time.Sleep(1200 * time.Millisecond)
 
-	if got := countTrackingConfigs(sim, hidByteTracking); got != 1 {		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
+	if got := countTrackingConfigs(sim, hidByteTracking); got != 1 {
+		t.Errorf("tracking config writes = %d, want 1 (re-assert must be skipped)", got)
 	}
 
 	if got := countTrackingConfigs(sim, hidByteIdle); got != 0 {

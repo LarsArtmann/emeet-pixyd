@@ -64,11 +64,7 @@ func (d *Daemon) schedulePrivacyTrapReassert(ctx context.Context, mode pixy.Came
 	// and restore it at cleanup, so the goroutine must not read the var late.
 	delay := privacyTrapReassertDelay
 
-	d.trapReasserts.Add(1)
-
-	go func() {
-		defer d.trapReasserts.Done()
-
+	d.trapReasserts.Go(func() {
 		timer := time.NewTimer(delay)
 		defer timer.Stop()
 
@@ -121,5 +117,5 @@ func (d *Daemon) schedulePrivacyTrapReassert(ctx context.Context, mode pixy.Came
 		}
 
 		slog.Info("privacy trap re-asserted camera mode", "mode", mode)
-	}()
+	})
 }
