@@ -218,6 +218,15 @@ func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, reques
 // data-init="@get('/api/events', {openWhenHidden: true})". It sends the current
 // panel on connect, then patches on every state-change broadcast.
 func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *http.Request) {
+	// The server's global WriteTimeout would cut this persistent stream at 30s;
+	// clear it so the connection lives until the client disconnects (mirrors the
+	// MJPEG path in stream.go). An abandoned client still ends the handler via
+	// sse.Context().Done().
+	rc := http.NewResponseController(responseWriter)
+	if dlErr := rc.SetWriteDeadline(time.Time{}); dlErr != nil {
+		slog.Warn("could not clear write deadline; SSE may be cut off by server timeout", "error", dlErr)
+	}
+
 	sse := datastar.NewSSE(responseWriter, request)
 
 	// Send initial panel state

@@ -298,6 +298,80 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 	frameLuma("cleanup: tilt 0, tracking")
 }
 
+// TestIntegration_PrivacyTrapTimingRace probes WHEN a direct track write
+// recovers the trapped lens as a function of the delay after the tilt command:
+// the reported bug is only reproducible if the write lands inside a window
+// (motor mid-travel / firmware mid-transition into privacy).
+func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
+	probeResult := probeDevices(nil)
+
+	if probeResult.VideoDev == "" || probeResult.HidrawDev == "" {
+		t.Skip("no PIXY device found — connect hardware to run this test")
+	}
+
+	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+
+	frameLuma := func(step string) float64 {
+		t.Helper()
+
+		luma, err := meanFrameLuma(t, probeResult.VideoDev)
+		if err != nil {
+			t.Logf("[%-34s] frame: capture failed: %v", step, err)
+
+			return -1
+		}
+
+		t.Logf("[%-34s] frame: mean luma=%.1f believed=%s", step, luma, readCameraState(d))
+
+		return luma
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+
+	if baseline := frameLuma("baseline"); baseline < lumaBright {
+		t.Skipf("baseline luma %.1f too dark to judge privacy optically — light the room", baseline)
+	}
+
+	for _, delay := range []time.Duration{0, 300 * time.Millisecond, 800 * time.Millisecond, 1500 * time.Millisecond} {
+		t.Run("delay_"+delay.String(), func(t *testing.T) {
+			// Re-arm: open, centered, settled.
+			runDaemonCommand(t, d, "tilt 0")
+			runDaemonCommand(t, d, "track")
+			time.Sleep(motorSettleWait)
+
+			runDaemonCommand(t, d, "tilt -85")
+			time.Sleep(delay)
+			runDaemonCommand(t, d, "track")
+
+			// Let both the motor travel and the lens mechanism finish.
+			time.Sleep(2 * motorSettleWait)
+
+			recovered := frameLuma("track after " + delay.String() + " delay")
+			if recovered >= lumaBright {
+				t.Logf("delay %s: RECOVERED", delay)
+
+				return
+			}
+
+			t.Errorf("delay %s: track did not recover the trapped lens (luma=%.1f) — race window confirmed", delay, recovered)
+
+			// Cleanup for the next round: settled double-write.
+			runDaemonCommand(t, d, "tilt 0")
+			time.Sleep(motorSettleWait)
+			runDaemonCommand(t, d, "track")
+			time.Sleep(motorSettleWait)
+			frameLuma("round cleanup")
+		})
+	}
+
+	runDaemonCommand(t, d, "tilt 0")
+	runDaemonCommand(t, d, "track")
+	time.Sleep(motorSettleWait)
+	frameLuma("cleanup: tilt 0, tracking")
+}
+
 // luma returns the mean luma (0-255) of an image. YCbCr JPEGs are averaged
 // over the Y plane directly; anything else falls back to At() sampling.
 func luma(img image.Image) float64 {
