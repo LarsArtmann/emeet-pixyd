@@ -162,6 +162,50 @@ type healthResponse struct {
 	Version string           `json:"version"`
 }
 
+// statusResponse is the JSON contract served at GET /api/status for
+// status-bar and desktop-shell widgets (Quickshell / DankMaterialShell, or any
+// HTTP client). The field names are a stable public interface chosen by widget
+// authors — rename with care. Unlike /api/health it always answers 200 while
+// the daemon runs, even with the camera unplugged, so a widget can tell
+// "daemon down" (connection refused) apart from "camera offline" (`online`
+// false) without parsing error bodies.
+type statusResponse struct {
+	Camera  pixy.CameraState `json:"camera"`
+	Device  string           `json:"device"`
+	Model   string           `json:"model"`
+	Online  bool             `json:"online"`
+	InCall  bool             `json:"inCall"`
+	Auto    pixy.AutoMode    `json:"auto"`
+	Audio   pixy.AudioMode   `json:"audio"`
+	Gesture bool             `json:"gesture"`
+	Battery string           `json:"battery,omitzero"`
+	Version string           `json:"version"`
+}
+
+// handleStatusJSON serves the widget-facing status contract. It reuses
+// getWebStatus so the payload carries the same state (and the TTL-cached
+// battery reading) the web panel and Waybar already show.
+func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request *http.Request) {
+	status := s.getWebStatus(request.Context())
+
+	resp := statusResponse{
+		Camera:  status.Camera,
+		Device:  status.Device,
+		Model:   status.Model,
+		Online:  status.Online,
+		InCall:  status.InCall,
+		Auto:    status.Auto,
+		Audio:   status.Audio,
+		Gesture: status.Gesture,
+		Battery: status.Battery,
+		Version: status.Version,
+	}
+
+	if err := writeJSON(responseWriter, http.StatusOK, resp); err != nil {
+		slog.Debug("status response write failed", "err", err)
+	}
+}
+
 // handleStatusPanel renders the panel as plain HTML for testing and direct access.
 // The DataStar UI receives panel updates via SSE patches from handleEvents and
 // action handlers.
@@ -389,6 +433,7 @@ func newWebMux(server *webServer) *http.ServeMux {
 	mux.HandleFunc("GET /panel", server.handleStatusPanel)
 	mux.HandleFunc("GET /api/events", server.handleEvents)
 	mux.HandleFunc("GET /api/health", server.handleHealth)
+	mux.HandleFunc("GET /api/status", server.handleStatusJSON)
 	mux.HandleFunc("POST /api/track", server.action(cmdTrack))
 	mux.HandleFunc("POST /api/"+cmdIdle, server.action(cmdIdle))
 	mux.HandleFunc("POST /api/privacy", server.action(cmdPrivacy))

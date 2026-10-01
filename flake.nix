@@ -222,6 +222,7 @@
               pkgs.templ
               pkgs.dprint
               pkgs.git
+              pkgs.v4l-utils
             ];
 
             GOWORK = "off";

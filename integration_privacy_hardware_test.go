@@ -36,11 +36,19 @@ const motorSettleWait = 3 * time.Second
 func logHardwareSnapshot(t *testing.T, d *Daemon, dev HIDDevice, step string) {
 	t.Helper()
 
-	mode, err := d.queryTracking(t.Context())
-	if err != nil {
-		t.Logf("[%-34s] v1 query 09 01 01 01: error: %v", step, err)
-	} else {
-		t.Logf("[%-34s] v1 query 09 01 01 01: tracking=%s", step, mode)
+	raw, rawErr := dev.SendRecv(t.Context(), v1TrackingQuery)
+	switch {
+	case rawErr != nil:
+		t.Logf("[%-34s] v1 query 09 01 01 01: error: %v", step, rawErr)
+	case len(raw) == 0:
+		t.Logf("[%-34s] v1 query 09 01 01 01: no response (timeout)", step)
+	default:
+		mode, err := d.queryTracking(t.Context())
+		if err != nil {
+			t.Logf("[%-34s] v1 query 09 01 01 01: %x → parse error: %v", step, raw, err)
+		} else {
+			t.Logf("[%-34s] v1 query 09 01 01 01: %x → tracking=%s", step, raw, mode)
+		}
 	}
 
 	resp, err := dev.SendRecv(t.Context(), v2DeviceModeQuery)
