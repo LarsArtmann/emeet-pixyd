@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
@@ -281,6 +282,13 @@ type pixySimulator struct {
 	sentReports    [][]byte
 	sentTimestamps []time.Time
 	queries        [][]byte
+
+	// inFlight/maxInFlight track overlapping transport calls. The real hidraw
+	// node is single-client: two concurrent open/write/read sequences can pair
+	// a response with the wrong request. Any overlap is a serialization bug,
+	// so tests assert MaxInFlight() <= 1.
+	inFlight    atomic.Int32
+	maxInFlight atomic.Int32
 }
 
 func newPixySimulator() *pixySimulator {
@@ -290,6 +298,24 @@ func newPixySimulator() *pixySimulator {
 }
 
 func (s *pixySimulator) String() string { return "pixy-simulator" }
+
+// trackEnter marks the start of a transport call and raises the concurrency
+// high-water mark (see maxInFlight).
+func (s *pixySimulator) trackEnter() {
+	current := s.inFlight.Add(1)
+	for {
+		high := s.maxInFlight.Load()
+		if current <= high || s.maxInFlight.CompareAndSwap(high, current) {
+			return
+		}
+	}
+}
+
+func (s *pixySimulator) trackExit() { s.inFlight.Add(-1) }
+
+// MaxInFlight returns the highest number of transport calls observed running
+// simultaneously. A correctly serialized daemon keeps this at 1.
+func (s *pixySimulator) MaxInFlight() int32 { return s.maxInFlight.Load() }
 
 // isCommitReport distinguishes commit reports from config reports.
 // Commit reports have the interface byte repeated at position 3.
@@ -640,6 +666,9 @@ func putF32LE(b []byte, f float32) {
 }
 
 func (s *pixySimulator) Send(report []byte) error {
+	s.trackEnter()
+	defer s.trackExit()
+
 	s.mu.Lock()
 	s.sentReports = append(s.sentReports, append([]byte(nil), report...))
 	s.sentTimestamps = append(s.sentTimestamps, time.Now())
@@ -672,6 +701,9 @@ func (s *pixySimulator) Send(report []byte) error {
 }
 
 func (s *pixySimulator) SendRecv(_ context.Context, report []byte) ([]byte, error) {
+	s.trackEnter()
+	defer s.trackExit()
+
 	s.mu.Lock()
 	s.queries = append(s.queries, append([]byte(nil), report...))
 	s.mu.Unlock()
