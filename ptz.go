@@ -181,6 +181,13 @@ func (d *Daemon) handlePTZCommand(ctx context.Context, parts []string) CommandRe
 	// a missing/failing HID path must not block the V4L2 move itself.
 	d.reassertSpeeds(ctx, axis)
 
+	// Arriving in the bottom tilt zone triggers the firmware's privacy-trap
+	// cover while tracking/idle — arm the race protection so mode writes
+	// issued next get re-asserted past the transition (privacy_trap.go).
+	if axis == pixy.AxisTilt && val <= privacyTrapTilt {
+		d.armPrivacyTrap()
+	}
+
 	v4l2Err := d.deps.v4l2Set(
 		ctx,
 		videoDev,
@@ -228,6 +235,14 @@ func (d *Daemon) schedulePTZReadback(ctx context.Context, videoDev string) {
 		actual := d.deps.parsePTZ(readbackCtx, videoDev)
 		clamped := actual.Clamp()
 		d.ptzCache.Set(clamped, ptzCacheTTL)
+
+		// Re-arm the privacy-trap window on arrival: the readback reflects
+		// where the head actually landed, so slow travels from far positions
+		// keep the race protection alive until the firmware settles.
+		if tilt, _ := clamped.Get(pixy.AxisTilt); tilt <= privacyTrapTilt {
+			d.armPrivacyTrap()
+		}
+
 		d.broadcastStateChanged()
 	}()
 }

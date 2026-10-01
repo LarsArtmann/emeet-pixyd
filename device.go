@@ -71,6 +71,23 @@ func (d *Daemon) setDeviceState(
 }
 
 func (d *Daemon) setTracking(ctx context.Context, mode pixy.CameraState) error {
+	err := d.writeTracking(ctx, mode)
+	if err != nil {
+		return err
+	}
+
+	// A track/idle write racing the firmware's privacy-trap transition is
+	// ACKed but silently dropped (hardware-evidenced, privacy_trap.go).
+	// When the head just arrived in the trap zone, re-assert the mode once
+	// past the transition window so the user's click always lands.
+	if mode != pixy.StatePrivacy && d.privacyTrapArmed() {
+		d.schedulePrivacyTrapReassert(ctx, mode)
+	}
+
+	return nil
+}
+
+func (d *Daemon) writeTracking(ctx context.Context, mode pixy.CameraState) error {
 	return d.setDeviceState(
 		ctx,
 		pixyConfig(hidInterfaceTracking, cameraHIDByte(mode)),

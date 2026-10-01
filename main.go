@@ -51,6 +51,11 @@ type Daemon struct {
 	autoError     error
 	lastSyncedAt  time.Time
 
+	// trapArmedUntil timestamps the firmware privacy-trap race window after
+	// a tilt arrival in the bottom zone (see privacy_trap.go). Guarded by
+	// d.mu.
+	trapArmedUntil time.Time
+
 	// hadPersistedState records whether a valid state file existed at
 	// startup. It distinguishes "the user has expressed intent" (persisted
 	// camera mode wins over hardware on device re-appear) from "fresh

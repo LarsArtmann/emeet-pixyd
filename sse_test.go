@@ -205,10 +205,7 @@ func TestSSEEndpoint_SurvivesServerWriteTimeout(t *testing.T) {
 
 	// Consume the whole initial event (lines until the blank separator) so the
 	// later scan only matches a post-timeout broadcast.
-	for {
-		if readSSELine(t, reader) == "\n" {
-			break
-		}
+	for line := readSSELine(t, reader); line != "\n"; line = readSSELine(t, reader) {
 	}
 
 	time.Sleep(100 * time.Millisecond) // let the handler enter its subscribe loop
@@ -226,11 +223,13 @@ func TestSSEEndpoint_SurvivesServerWriteTimeout(t *testing.T) {
 			line, err := reader.ReadString('\n')
 			if err != nil {
 				found <- false
+
 				return
 			}
 
 			if strings.Contains(line, "datastar-patch-elements") {
 				found <- true
+
 				return
 			}
 		}
