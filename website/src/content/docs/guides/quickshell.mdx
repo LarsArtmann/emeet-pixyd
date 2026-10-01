@@ -1,0 +1,195 @@
+---
+title: Quickshell Integration
+description: Live camera status in Quickshell and DankMaterialShell bars
+---
+
+emeet-pixyd exposes a JSON status endpoint, `GET /api/status`, designed for
+desktop-shell widgets. [Quickshell](https://quickshell.org/) bars — including
+[DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) — poll it
+to show camera state and details, the HTTP analogue of the
+[Waybar integration](/guides/waybar/).
+
+## The endpoint
+
+```bash
+curl -s http://127.0.0.1:8090/api/status
+```
+
+```json
+{
+  "camera": "tracking",
+  "device": "/dev/video0",
+  "model": "PIXY 2K",
+  "online": true,
+  "inCall": true,
+  "auto": "full",
+  "audio": "nc",
+  "gesture": false,
+  "battery": "87% (charging)",
+  "version": "v0.4.0"
+}
+```
+
+| Field     | Type    | Notes                                                                                   |
+| --------- | ------- | --------------------------------------------------------------------------------------- |
+| `camera`  | string  | `tracking`, `idle`, `privacy`, or `offline`                                             |
+| `device`  | string  | Video device path (`/dev/videoX`); empty when no camera is present                      |
+| `model`   | string  | `PIXY` or `PIXY 2K`; empty when unknown                                                 |
+| `online`  | bool    | `false` when the daemon runs but no camera is attached                                  |
+| `inCall`  | bool    | Call detection is active                                                                |
+| `auto`    | string  | Auto-manage mode (`off`, `full`, `tracking-only`, `privacy-only`)                       |
+| `audio`   | string  | Audio mode (`nc`, `live`, `original`)                                                   |
+| `gesture` | bool    | Gesture control enabled                                                                 |
+| `battery` | string  | Battery + charge, omitted entirely when the device does not answer the battery queries  |
+| `version` | string  | Daemon build version                                                                    |
+
+Unlike [`/api/health`](/guides/metrics/), which answers `503` when the camera
+is unplugged, `/api/status` always answers `200` while the daemon is running.
+A widget can therefore tell "daemon down" (connection refused) apart from
+"camera offline" (`online` is `false`) without parsing error bodies. The field
+names are a stable interface — they are safe to depend on.
+
+## DankMaterialShell widget
+
+DankMaterialShell plugins live under
+`~/.config/DankMaterialShell/plugins/<id>/`. Create a plugin with a manifest and
+a widget component:
+
+`plugin.json`
+
+```json
+{
+  "id": "emeet-pixy-camera",
+  "name": "EMEET PIXY Camera",
+  "description": "Shows emeet-pixyd camera state in the bar",
+  "version": "1.0.0",
+  "author": "you",
+  "icon": "camera",
+  "type": "widget",
+  "component": "./CameraWidget.qml",
+  "settings": "./CameraSettings.qml",
+  "permissions": ["settings_read", "settings_write"]
+}
+```
+
+`CameraSettings.qml`
+
+```qml
+import QtQuick
+import qs.Modules.Plugins
+import qs.Widgets
+
+PluginSettings {
+    id: root
+    pluginId: "emeet-pixy-camera"
+
+    StringSetting {
+        settingKey: "daemonUrl"
+        label: "emeet-pixyd daemon URL"
+        defaultValue: "http://127.0.0.1:8090"
+    }
+}
+```
+
+`CameraWidget.qml`
+
+```qml
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.Common
+import qs.Modules.Plugins
+import qs.Widgets
+
+PluginComponent {
+    id: root
+
+    property string daemonUrl: pluginData.daemonUrl || "http://127.0.0.1:8090"
+    property bool daemonUp: false
+    property string camera: "offline"
+
+    // "off" means the daemon itself is unreachable (connection refused),
+    // which is distinct from the camera reporting the "offline" state.
+    readonly property string statusLabel: root.daemonUp ? root.camera : "off"
+    readonly property color stateColor: {
+        if (!root.daemonUp) return Theme.outline;
+        if (root.camera === "privacy") return Theme.error;
+        if (root.camera === "idle") return Theme.warning;
+        if (root.camera === "tracking") return Theme.primary;
+        return Theme.outline;
+    }
+
+    Process {
+        id: statusProcess
+        command: ["curl", "-sf", "--connect-timeout", "2", root.daemonUrl + "/api/status"]
+        running: true
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var data = JSON.parse(this.text);
+                    root.daemonUp = true;
+                    root.camera = data.camera || "offline";
+                } catch (e) {
+                    root.daemonUp = false;
+                    root.camera = "offline";
+                }
+            }
+        }
+    }
+
+    Timer {
+        interval: 8000
+        running: true
+        repeat: true
+        onTriggered: statusProcess.running = true
+    }
+
+    horizontalBarPill: Component {
+        Row {
+            spacing: Theme.spacingS
+            DankIcon { name: "camera"; size: root.iconSize; color: root.stateColor }
+            StyledText {
+                text: root.statusLabel
+                color: root.stateColor
+                font.pixelSize: Theme.fontSizeSmall
+            }
+        }
+    }
+
+    verticalBarPill: Component {
+        DankIcon { name: "camera"; size: root.iconSize; color: root.stateColor }
+    }
+}
+```
+
+## Declarative (Home Manager)
+
+If you manage DankMaterialShell declaratively, register the plugin directory
+with an inline `settings.daemonUrl` (see the `systemnix-camera` plugin pattern
+below) instead of editing files under `~/.config`:
+
+```nix
+programs.dank-material-shell.plugins.emeet-pixy-camera = {
+  src = ./plugins/emeet-pixy-camera;
+  settings.daemonUrl = "http://127.0.0.1:8090";
+};
+```
+
+## Click actions
+
+Bind the widget to the daemon's command surface with the same commands the
+[CLI reference](/guides/cli-reference/) documents:
+
+| Action       | Command / request                             |
+| ------------ | --------------------------------------------- |
+| Left click   | `emeet-pixy toggle-privacy` (or `POST /api/toggle-privacy`) |
+| Right click  | `emeet-pixy toggle-auto` (or `POST /api/auto`)              |
+| Middle click | `emeet-pixy center` (or `POST /api/center`)                 |
+
+## Where to go next
+
+- [CLI Reference](/guides/cli-reference/) — commands to bind to clicks
+- [Web UI](/guides/web-ui/) — the full control panel
+- [Waybar Integration](/guides/waybar/) — the text-bar equivalent
+- [Auto Modes](/guides/auto-modes/) — what `toggle-auto` does

@@ -293,11 +293,32 @@ func TestWebPanel_DataStarAttributes(t *testing.T) {
 		t.Errorf("expected at least 8 data-class:btn-loading attributes, got %d", loadingClassCount)
 	}
 
+	// data-bind takes a bare signal path (no "$" prefix): a "$"-prefixed value
+	// binds a distinct stray signal and leaves the real one unset.
 	assertContainsAll(t, body, []string{
-		`data-bind="$pan"`,
-		`data-bind="$tilt"`,
-		`data-bind="$zoom"`,
+		`data-bind="pan"`,
+		`data-bind="tilt"`,
+		`data-bind="zoom"`,
+		`data-bind="speedPan"`,
+		`data-bind="speedTilt"`,
+		`data-bind="speedZoom"`,
+		`data-bind="presetName"`,
 	})
+
+	// camelCase signal names must ride the object form; the per-signal
+	// `data-signals:speedPan` attribute form is HTML-lowercased to
+	// `speedpan`, so the sliders' `$speedPan` reference would miss it.
+	assertContainsAll(t, body, []string{
+		`data-signals="{pan:`,
+		`speedPan:`,
+		`speedTilt:`,
+		`speedZoom:`,
+		`presetName:`,
+	})
+
+	if strings.Contains(body, "data-signals:speedPan") {
+		t.Error("camelCase signal declared via a per-signal attribute (HTML lowercases it); use the object form")
+	}
 }
 
 func TestWebPanelGolden_ModelRendered(t *testing.T) {

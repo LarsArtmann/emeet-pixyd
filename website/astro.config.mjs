@@ -81,6 +81,7 @@ export default defineConfig({
             { label: "PTZ Control", slug: "guides/ptz-control" },
             { label: "Presets", slug: "guides/presets" },
             { label: "Waybar Integration", slug: "guides/waybar" },
+            { label: "Quickshell Integration", slug: "guides/quickshell" },
             { label: "Prometheus Metrics", slug: "guides/metrics" },
           ],
         },

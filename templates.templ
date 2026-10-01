@@ -232,12 +232,7 @@ templ statusPanel(s webStatus) {
 				if s.Online {
 					<div
 						class="card"
-						data-signals:pan={ fmt.Sprintf("%d", s.Pan) }
-						data-signals:tilt={ fmt.Sprintf("%d", s.Tilt) }
-						data-signals:zoom={ fmt.Sprintf("%d", s.Zoom) }
-						data-signals:speedPan={ formatSpeed(s.Speeds.Pan) }
-						data-signals:speedTilt={ formatSpeed(s.Speeds.Tilt) }
-						data-signals:speedZoom={ formatSpeed(s.Speeds.Zoom) }
+						data-signals={ fmt.Sprintf("{pan:%d,tilt:%d,zoom:%d,speedPan:%s,speedTilt:%s,speedZoom:%s,presetName:''}", s.Pan, s.Tilt, s.Zoom, formatSpeed(s.Speeds.Pan), formatSpeed(s.Speeds.Tilt), formatSpeed(s.Speeds.Zoom)) }
 					>
 						<div class="card-title">Position</div>
 						<div class="ptz-layout">
@@ -402,7 +397,7 @@ templ presetSection(names []string) {
 				maxlength="32"
 				autocomplete="off"
 				list="preset-names-list"
-				data-bind:presetName=""
+				data-bind="presetName"
 				data-on:keydown="evt.key === 'Enter' && document.getElementById('preset-save-btn').click()"
 			/>
 			<button
@@ -469,7 +464,7 @@ templ ptzSlider(label, axis string, min, max, value int, unit string) {
 			min={ fmt.Sprintf("%d", min) }
 			max={ fmt.Sprintf("%d", max) }
 			value={ fmt.Sprintf("%d", value) }
-			data-bind={ fmt.Sprintf("$%s", axis) }
+			data-bind={ axis }
 			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", axis) }
 			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/ptz/%s')", axis) }
 		/>
@@ -519,7 +514,7 @@ templ speedSlider(label, axis, signal, value string) {
 			max="100"
 			step="1"
 			value={ value }
-			data-bind={ fmt.Sprintf("$%s", signal) }
+			data-bind={ signal }
 			data-on:input={ fmt.Sprintf("$%s = Number(evt.target.value)", signal) }
 			data-on:input__debounce.300ms={ fmt.Sprintf("@post('/api/speed/%s')", axis) }
 		/>
