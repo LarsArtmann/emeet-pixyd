@@ -64,16 +64,43 @@ func TestBatteryCommand_NoDevice(t *testing.T) {
 	}
 }
 
-func TestPowerStatus_AbsenceIsNotCachedForever(t *testing.T) {
+// TestPowerStatus_FailureIsCached pins the negative-cache contract: a device
+// that does not answer battery queries must not be re-probed on every status
+// call (the HID-read storm Finding 5 described). Absence is not cached
+// forever — it expires after powerFailureCacheTTL.
+func TestPowerStatus_FailureIsCached(t *testing.T) {
 	t.Parallel()
 
-	// nil hidDev: every query fails fast (no device), so the power cache
-	// must never claim a reading — the TTL expiry path for failures is a
-	// no-op by construction because failures are simply not cached.
-	d := testDaemonNoDevice(t)
+	sim, opt := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+
+	sim.sendRecvErr = errors.New("simulated battery query failure")
 
 	if _, ok := d.powerStatus(t.Context()); ok {
-		t.Fatal("powerStatus reported a reading without a device")
+		t.Fatal("powerStatus reported a reading on a failing device")
+	}
+
+	queriesAfterFirst := len(sim.Queries())
+
+	if _, ok := d.powerStatus(t.Context()); ok {
+		t.Fatal("powerStatus reported a reading from cache")
+	}
+
+	if got := len(sim.Queries()); got != queriesAfterFirst {
+		t.Errorf("second powerStatus issued %d queries, want 0 (failure must be cached)", got-queriesAfterFirst)
+	}
+
+	// A device change clears the negative cache so a freshly attached
+	// battery-capable camera is probed immediately.
+	d.mu.Lock()
+	d.videoDev = ""
+	d.hidrawDev = ""
+	d.powerCache.Set(powerCacheEntry{available: false}, powerFailureCacheTTL)
+	d.applyProbeResultLocked(probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev})
+	d.mu.Unlock()
+
+	if _, ok := d.powerCache.Get(); ok {
+		t.Error("power cache should be empty after a device-presence change")
 	}
 }
 
@@ -121,16 +148,16 @@ func TestPowerCache_Expiry(t *testing.T) {
 		t.Fatal("empty cache returned a reading")
 	}
 
-	c.Set(powerReading{Level: 5}, -time.Second)
+	c.Set(powerCacheEntry{reading: powerReading{Level: 5}, available: true}, -time.Second)
 
 	if _, ok := c.Get(); ok {
 		t.Fatal("expired entry returned a reading")
 	}
 
-	c.Set(powerReading{Level: 5}, time.Minute)
+	c.Set(powerCacheEntry{reading: powerReading{Level: 5}, available: true}, time.Minute)
 
-	if reading, ok := c.Get(); !ok || reading.Level != 5 {
-		t.Fatalf("fresh entry: reading=%v ok=%v", reading, ok)
+	if entry, ok := c.Get(); !ok || entry.reading.Level != 5 || !entry.available {
+		t.Fatalf("fresh entry: entry=%v ok=%v", entry, ok)
 	}
 }
 

@@ -22,34 +22,51 @@ import (
 // macOS build only, so absence is an expected outcome, not an error condition.
 
 // powerCacheTTL bounds how often status/waybar reads hit the HID device for
-// battery data. One failed query per TTL is the steady-state cost on devices
-// without battery-over-HID; successful readings cost the same.
+// battery data. One successful query per TTL is the steady-state cost on
+// devices with battery-over-HID.
 const powerCacheTTL = time.Minute
+
+// powerFailureCacheTTL bounds how long an unanswered battery probe is
+// remembered. Shorter than powerCacheTTL: a structural absence (no
+// battery-over-HID) must not cost a HID query per status call, but a
+// transient failure must not pin "unavailable" for a full minute.
+const powerFailureCacheTTL = 10 * time.Second
 
 type powerReading struct {
 	Level    int  // percent, 0..100 (u8 on the wire)
 	Charging bool // pixy.ChargeStatus.Charging() — {1,2} per the Beta.25 consumer-code decode
 }
 
+// powerCacheEntry memoizes one battery probe outcome: a successful reading,
+// or an unavailable verdict (which the cache must also remember — otherwise a
+// device that never answers is re-probed on every SSE refresh).
+type powerCacheEntry struct {
+	reading   powerReading
+	available bool
+}
+
 // powerCache memoizes the last battery/charge reading (TODO #139) behind the
 // shared generic TTL cache.
-type powerCache = ttlCache[powerReading]
+type powerCache = ttlCache[powerCacheEntry]
 
-// powerStatus returns the cached reading if fresh, otherwise queries the
-// device once and caches the result (successes AND authoritative failures —
-// a device that does not answer battery queries would otherwise be re-probed
-// on every status call). The bool reports whether a reading is available.
+// powerStatus returns the cached outcome if fresh, otherwise queries the
+// device once and caches it. Both successes and authoritative failures are
+// cached (a device that does not answer battery queries would otherwise be
+// re-probed on every status call); failures use a shorter TTL so a transient
+// hiccup clears quickly. The bool reports whether a reading is available.
 func (d *Daemon) powerStatus(ctx context.Context) (powerReading, bool) {
-	if reading, ok := d.powerCache.Get(); ok {
-		return reading, true
+	if entry, ok := d.powerCache.Get(); ok {
+		return entry.reading, entry.available
 	}
 
 	reading, err := d.queryPower(ctx)
 	if err != nil {
-		return powerReading{Level: 0, Charging: false}, false
+		d.powerCache.Set(powerCacheEntry{reading: powerReading{}, available: false}, powerFailureCacheTTL)
+
+		return powerReading{}, false
 	}
 
-	d.powerCache.Set(reading, powerCacheTTL)
+	d.powerCache.Set(powerCacheEntry{reading: reading, available: true}, powerCacheTTL)
 
 	return reading, true
 }

@@ -215,7 +215,6 @@ func readAudioState(d *Daemon) pixy.AudioMode {
 func noopDependencies() Dependencies {
 	return Dependencies{
 		commander:      noopCommandRunner{},
-		procInspector:  noopProcessInspector{},
 		ueventListener: noopUeventListener{},
 		isCameraInUse:  cameraNotInUseFn,
 		findSource:     noopFindSourceFn,

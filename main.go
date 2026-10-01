@@ -115,7 +115,6 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
 	d.deps = Dependencies{
 		commander:      realCommandRunner{},
-		procInspector:  procInspector{},
 		ueventListener: netlinkUeventListener{},
 		isCameraInUse:  isCameraInUse,
 		findSource:     d.findPixySource,

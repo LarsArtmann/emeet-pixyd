@@ -213,7 +213,7 @@ func TestReconcile_ReassertsPersistedSpeeds(t *testing.T) {
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0", withSim)
-	d.hadPersistedState = true
+	d.persistedIntent.Store(true)
 
 	d.mu.Lock()
 	d.state.Speeds = pixy.SpeedValues{}.Set(pixy.AxisPan, 55)

@@ -18,7 +18,7 @@ func TestReconcile_FreshStateAdoptsHardware(t *testing.T) {
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0", withSim)
-	d.hadPersistedState = false
+	d.persistedIntent.Store(false)
 
 	d.reconcileOnDeviceAppear(context.Background())
 
@@ -48,7 +48,7 @@ func TestReconcile_PersistedModeReasserted(t *testing.T) {
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StatePrivacy, "/dev/video0", "/dev/hidraw0", withSim)
-	d.hadPersistedState = true
+	d.persistedIntent.Store(true)
 
 	if hw := sim.Tracking(); hw == pixy.StatePrivacy {
 		t.Fatalf("test setup: hardware already in privacy, want different (got %q)", hw)
@@ -76,7 +76,7 @@ func TestReconcile_MatchingHardwareNoWrite(t *testing.T) {
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0", withSim)
-	d.hadPersistedState = true
+	d.persistedIntent.Store(true)
 
 	d.reconcileOnDeviceAppear(context.Background())
 
@@ -93,7 +93,7 @@ func TestReconcile_QueryFailureKeepsBelief(t *testing.T) {
 
 	sim, withSim := withPixySimulator()
 	d := newTestDaemon(t, pixy.StatePrivacy, "/dev/video0", "/dev/hidraw0", withSim)
-	d.hadPersistedState = true
+	d.persistedIntent.Store(true)
 
 	sim.sendRecvErr = errors.New("simulated query failure")
 
@@ -177,8 +177,8 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 	second := newTestDaemon(t, pixy.StateOffline, "", "")
 	second.config.StateDir = stateDir
 
-	second.hadPersistedState = second.loadState()
-	if !second.hadPersistedState {
+	second.persistedIntent.Store(second.loadState())
+	if !second.persistedIntent.Load() {
 		t.Fatal("loadState = false, want true (state file was just written)")
 	}
 
@@ -190,7 +190,7 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 		t.Errorf("auto mode after restart = %q, want %q", second.state.AutoMode, pixy.AutoOff)
 	}
 
-	if !second.hadPersistedState {
+	if !second.persistedIntent.Load() {
 		t.Error("loadState did not report persisted state")
 	}
 }

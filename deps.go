@@ -12,7 +12,6 @@ import (
 // Tests override individual fields; production wiring happens in NewDaemon.
 type Dependencies struct {
 	commander      CommandRunner
-	procInspector  ProcessInspector
 	ueventListener UeventListener
 	isCameraInUse  func(videoDev string) bool
 	findSource     func(ctx context.Context) (pixy.SourceID, error)

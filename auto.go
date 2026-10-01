@@ -105,6 +105,12 @@ func (d *Daemon) autoManage(ctx context.Context) {
 		if videoDev == "" {
 			return
 		}
+
+		// The re-probe found the device it had been missing: run the same
+		// reconcile the startup and uevent paths run, instead of trusting
+		// the probe alone (which leaves a power-cycled camera on its boot
+		// mode). autoManage already holds hidMu, so this is the locked path.
+		d.reconcileOnDeviceAppear(ctx)
 	}
 
 	if autoMode.IsOff() {
@@ -168,6 +174,6 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	}
 
 	d.mu.RLock()
-	updateMetrics(d.state) //nolint:contextcheck
+	updateMetrics(d.state, d.videoDev != "") //nolint:contextcheck
 	d.mu.RUnlock()
 }

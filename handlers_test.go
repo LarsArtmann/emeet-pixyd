@@ -74,12 +74,12 @@ func TestUpdateMetrics(t *testing.T) {
 		AutoMode: pixy.AutoOff,
 	}
 
-	updateMetrics(state)
+	updateMetrics(state, true)
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 1)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 0)
 
-	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
+	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle, pixy.StateOffline} {
 		want := 0.0
 		if state.Camera == s {
 			want = 1.0
@@ -92,8 +92,12 @@ func TestUpdateMetrics(t *testing.T) {
 		Camera:   pixy.StatePrivacy,
 		InCall:   false,
 		AutoMode: pixy.AutoFull,
-	})
+	}, false)
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 0)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)
+	// Offline projection: an absent camera reports offline even though the
+	// persisted desired mode is privacy.
+	requireGaugeValue(t, "emeet_pixyd_camera_state", 1, attribute.String("state", string(pixy.StateOffline)))
+	requireGaugeValue(t, "emeet_pixyd_camera_state", 0, attribute.String("state", string(pixy.StatePrivacy)))
 }

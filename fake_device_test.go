@@ -48,54 +48,17 @@ func (f *fakeHIDDevice) SendRecv(_ context.Context, report []byte) ([]byte, erro
 	return resp, nil
 }
 
-// fakeProcInspector is a configurable ProcessInspector for testing
-// call-detection and process-tree traversal without real /proc access.
-type fakeProcInspector struct {
+// fakeCameraInUse is a configurable camera-usage predicate for testing
+// call detection without real /proc access.
+type fakeCameraInUse struct {
 	cameraInUse bool
-	ppidMap     map[int]int // pid → ppid
 }
 
-func newFakeProcInspector() *fakeProcInspector {
-	return &fakeProcInspector{
-		ppidMap: make(map[int]int),
-	}
+func newFakeCameraInUse() *fakeCameraInUse {
+	return &fakeCameraInUse{}
 }
 
-func (f *fakeProcInspector) PPIDOf(pid pixy.PID) pixy.PID {
-	if ppid, ok := f.ppidMap[pid.Get()]; ok {
-		return pixy.NewPID(ppid)
-	}
-
-	return pixy.PID{}
-}
-
-func (f *fakeProcInspector) IsDescendantOf(pid, ancestor pixy.PID) bool {
-	visited := make(map[int]bool)
-
-	for range maxDescendantDepth {
-		id := pid.Get()
-		if visited[id] || pid.IsZero() || pid.Equal(ancestor) {
-			break
-		}
-
-		visited[id] = true
-
-		ppid := f.PPIDOf(pid)
-		if ppid.Equal(ancestor) {
-			return true
-		}
-
-		if ppid.IsZero() || ppid.Equal(pid) {
-			return false
-		}
-
-		pid = ppid
-	}
-
-	return false
-}
-
-func (f *fakeProcInspector) IsCameraInUse(_ string) bool {
+func (f *fakeCameraInUse) IsCameraInUse(_ string) bool {
 	return f.cameraInUse
 }
 
@@ -114,12 +77,11 @@ func (f *fakeUeventListener) Listen(_ context.Context, ch chan<- struct{}) {
 func withFakeDevices() testDaemonOption {
 	return func(d *Daemon) {
 		fakeHID := newFakeHIDDevice()
-		fakeProc := newFakeProcInspector()
+		fakeUsage := newFakeCameraInUse()
 
 		d.hidDev = fakeHID
-		d.deps.procInspector = fakeProc
 		d.deps.ueventListener = noopUeventListener{}
-		d.deps.isCameraInUse = fakeProc.IsCameraInUse
+		d.deps.isCameraInUse = fakeUsage.IsCameraInUse
 		d.deps.commander = noopCommandRunner{}
 		d.deps.parsePTZ = func(context.Context, string) pixy.PTZValues {
 			return pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: pixy.ZoomDefault}

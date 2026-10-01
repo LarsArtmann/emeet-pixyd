@@ -819,7 +819,6 @@ func withPixySimulator(opts ...simulatorOption) (*pixySimulator, testDaemonOptio
 
 	return sim, func(d *Daemon) {
 		d.hidDev = sim
-		d.deps.procInspector = newFakeProcInspector()
 		d.deps.ueventListener = noopUeventListener{}
 		d.deps.isCameraInUse = func(string) bool { return false }
 		d.deps.commander = noopCommandRunner{}

@@ -169,7 +169,10 @@ func recordUevent(action, subsystem string) {
 	)
 }
 
-func updateMetrics(state pixy.State) {
+// updateMetrics records the current state gauges. online is the runtime
+// connectivity snapshot: camera_state is the projected display state, so an
+// absent camera reports offline regardless of the persisted desired mode.
+func updateMetrics(state pixy.State, online bool) {
 	if metricsInstance == nil {
 		return
 	}
@@ -187,9 +190,11 @@ func updateMetrics(state pixy.State) {
 		metricsInstance.autoMode.Record(ctx, 1)
 	}
 
-	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
+	camera := displayCamera(online, state.Camera)
+
+	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle, pixy.StateOffline} {
 		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
-		if state.Camera == s {
+		if camera == s {
 			metricsInstance.cameraState.Record(ctx, 1, stateAttr)
 		} else {
 			metricsInstance.cameraState.Record(ctx, 0, stateAttr)
