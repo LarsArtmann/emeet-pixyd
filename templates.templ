@@ -132,7 +132,7 @@ templ page(s webStatus) {
 			@shortcutLegend()
 			<button class="shortcut-fab" id="shortcut-fab" type="button" aria-label="Show keyboard shortcuts">?</button>
 			<div id="toast-container"></div>
-			<script type="module" src="/static/datastar.js"></script>
+			<script type="module" src={ fmt.Sprintf("/static/datastar.js?v=%s", s.Version) }></script>
 			<script src={ fmt.Sprintf("/static/app.js?v=%s", s.Version) }></script>
 		</body>
 	</html>
