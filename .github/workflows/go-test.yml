@@ -46,7 +46,9 @@ jobs:
         with:
           # Pinned to the nix devShell version — dev/CI drift on a
           # config-sensitive v2 linter silently changes the signal.
-          version: v2.13.2
+          # v2.13.2 broke on go1.27.2 (export data v5 > supported v4);
+          # v2.14.0 verified green against go1.27.2 locally.
+          version: v2.14.0
           args: --timeout 2m
 
       - name: Vulnerability check
