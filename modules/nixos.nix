@@ -24,6 +24,8 @@ in
 
     port = lib.mkOption {
       type = lib.types.port;
+      # Keep in lockstep with pixy.DefaultWebAddr in internal/pixy/pixy.go
+      # (the Go default 127.0.0.1:8090) — change both or neither.
       default = 8090;
       description = ''
         TCP port for the web UI and control API. The daemon binds
@@ -32,6 +34,10 @@ in
         privacy), so anything beyond loopback must go through an
         authenticating reverse proxy. This option changes the port,
         never the loopback bind.
+
+        See https://emeet-pixyd.lars.software/guides/monitoring/ for the
+        monitoring semantics of the exposed endpoints and the
+        reverse-proxy security model.
       '';
     };
 

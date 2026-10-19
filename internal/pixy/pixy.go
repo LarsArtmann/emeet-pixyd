@@ -19,7 +19,10 @@ const (
 	DefaultPollInterval = 2 * time.Second
 	// DefaultDebounceCount is the number of consecutive polls before triggering a state change.
 	DefaultDebounceCount = 3
-	// DefaultWebAddr is the default listen address for the web UI.
+	// DefaultWebAddr is the default listen address for the web UI. The port
+	// (8090) must stay in lockstep with the NixOS module's
+	// hardware.emeet-pixy.port default in modules/nixos.nix — change both or
+	// neither.
 	DefaultWebAddr = "127.0.0.1:8090"
 
 	// DefaultSocketTimeout is the connect timeout for the Unix control socket client.
