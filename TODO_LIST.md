@@ -1,6 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-10-01b (state/split-brain remediation: camera intent decoupled from connectivity (ADR `2026-10-01_camera-intent-vs-connectivity`, schema v2), `syncState` under `hidMu`, `powerStatus` negative cache, ghost `ProcessInspector` retired, metrics `online` gauge, lock-contract table — see `CHANGELOG.md` [Unreleased]; findings 1/2/3/4/5/6/7/10/11 fixed; new row #182)
+**Updated:** 2026-10-19 (SystemNix extraction follow-ups harvested from plan `docs/planning/2026-10-19_04-29_SUPERB-systemnix-closeout-and-backlog-pareto-plan.md`: new rows #183–#189; b109788 non-authored hunks audited = benign templ-regen churn, see plan errata)
+
+**Previous:** 2026-10-01b (state/split-brain remediation: camera intent decoupled from connectivity (ADR `2026-10-01_camera-intent-vs-connectivity`, schema v2), `syncState` under `hidMu`, `powerStatus` negative cache, ghost `ProcessInspector` retired, metrics `online` gauge, lock-contract table — see `CHANGELOG.md` [Unreleased]; findings 1/2/3/4/5/6/7/10/11 fixed; new row #182)
 
 **Previous:** 2026-10-01 (PIXY attached — first wired session: privacy-trap bug reproduced, root-caused optically, and FIXED (see CHANGELOG [Unreleased]); BatteryProbe run: battery/charge/target-track/func/ver/device-ver heads time out, motor-speed/pos + device-mode + SN answer 32-byte echo frames, motor echo rewrites iface→0x63, V1 `09 01 01 01` answers constant 0x02 (0x03 in the trap) — full #166 checklist still open)
 
@@ -65,6 +67,13 @@
 | 180 | ◻ OPEN     | Align `.crushrc` LSP lint config with `.golangci.yml` (drop golines/wsl_v5 noise the repo does not gate on) | LOW | S | `.crushrc`; report `2026-09-28_23-47` f15 |
 | 181 | ◻ OPEN     | Mechanical nolint sweep post-refactor (nolintlint- or grep-driven): remove directives whose suppressing rationale rotted | MED | M | AGENTS.md lint gotcha; report `2026-09-28_23-47` f16 |
 | 182 | 🚫 BLOCKED | Make `sync` reconcile `Speeds`/`TrackMode` (re-read hardware) — blocked on #166 pinning the readback: the motor-speed GET payload unit is unknown and the mode query is unreliable, so a readback would risk clobbering good intent | LOW | S | `device.go` `syncStateLocked` (M13); ADR `2026-10-01_camera-intent-vs-connectivity` |
+| 183 | ◻ OPEN | SystemNix wrapper: wire `hardware.emeet-pixy.port = ports.emeet-pixyd` + bump this repo's lock there + runbook note — cross-repo, needs Lars's go-ahead | HIGH | S | plan `2026-10-19_04-29` P3; port option shipped in `modules/nixos.nix` |
+| 184 | ◻ OPEN | Document `hardware.emeet-pixy.port` in the website configuration guide + monitoring-guide URL in the option description | MED | S | plan P2/P6; report `2026-10-19_04-19` §b |
+| 185 | ◻ OPEN | Prove website CI gates post-lockfile-regen: `pnpm install --frozen-lockfile` + `tsc --strict` | MED | S | plan P2-9/10; lockfile repaired 2026-10-19, proof pending |
+| 186 | ◻ OPEN | vmTest default-port pin: assert unset-port renders `EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090` (second node or `nix eval` assertion) | LOW/MED | S | plan P5; non-default pin already green |
+| 187 | ◻ OPEN | Cross-link guides: metrics→monitoring, quickshell→monitoring (shared stale-binary trap) | LOW | S | plan P2-7/8 |
+| 188 | ◻ OPEN | aarch64 eval coverage: try `nix flake check --no-build --all-systems`, wire into nix.yml or record the accepted gap | LOW | S | plan P8-40 |
+| 189 | ◻ OPEN | Lockstep cross-refs: comment pair module port default ↔ `pixy.DefaultWebAddr` so drift is loud | LOW | S | plan P6-22 |
 
 ---
 
