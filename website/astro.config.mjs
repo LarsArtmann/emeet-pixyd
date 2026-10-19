@@ -83,6 +83,7 @@ export default defineConfig({
             { label: "Waybar Integration", slug: "guides/waybar" },
             { label: "Quickshell Integration", slug: "guides/quickshell" },
             { label: "Prometheus Metrics", slug: "guides/metrics" },
+            { label: "Monitoring & Health", slug: "guides/monitoring" },
           ],
         },
         {
