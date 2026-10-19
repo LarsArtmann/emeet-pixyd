@@ -167,6 +167,26 @@
             vmTest = pkgs.testers.nixosTest {
               name = "emeet-pixy-module";
 
+              nodes.defaults =
+                { pkgs, ... }:
+                {
+                  imports = [ self.nixosModules.default ];
+
+                  users.users.pixy = {
+                    isNormalUser = true;
+                    extraGroups = [ "video" ];
+                  };
+
+                  # port deliberately UNSET: this node pins the default that
+                  # pixy.DefaultWebAddr (internal/pixy/pixy.go) and downstream
+                  # port registries (SystemNix's ports.emeet-pixyd) couple to.
+                  hardware.emeet-pixy = {
+                    enable = true;
+                    package = self.packages.${pkgs.system}.emeet-pixyd;
+                    user = "pixy";
+                  };
+                };
+
               nodes.machine =
                 { pkgs, ... }:
                 {
