@@ -22,6 +22,19 @@ in
       '';
     };
 
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 8090;
+      description = ''
+        TCP port for the web UI and control API. The daemon binds
+        127.0.0.1 only — deliberately: the API has no authentication
+        and exposes webcam control endpoints (tracking, PTZ, presets,
+        privacy), so anything beyond loopback must go through an
+        authenticating reverse proxy. This option changes the port,
+        never the loopback bind.
+      '';
+    };
+
     auto = lib.mkOption {
       type = lib.types.enum [
         "off"
@@ -87,6 +100,7 @@ in
           envVars = {
             EMEET_PIXYD_AUTO = cfg.auto;
             EMEET_PIXYD_DEFAULT_AUDIO = cfg.defaultAudio;
+            EMEET_PIXYD_WEB_ADDR = "127.0.0.1:${toString cfg.port}";
           }
           // lib.optionalAttrs cfg.debug {
             EMEET_PIXYD_DEBUG = "true";

@@ -182,6 +182,7 @@
                     package = self.packages.${pkgs.system}.emeet-pixyd;
                     user = "pixy";
                     auto = "off";
+                    port = 8091;
                   };
                 };
 
@@ -212,6 +213,10 @@
                     assert "ProtectSystem=strict" in unit
                     assert "EMEET_PIXYD_AUTO=off" in unit
                     assert "EMEET_PIXYD_DEFAULT_AUDIO=nc" in unit
+                    # The port option must flow into the rendered unit as a
+                    # loopback WEB_ADDR — downstream port registries couple
+                    # to this knob, a silent convention match is not enough.
+                    assert "EMEET_PIXYD_WEB_ADDR=127.0.0.1:8091" in unit
 
                 machine.shutdown()
               '';

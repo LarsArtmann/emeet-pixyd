@@ -1,0 +1,82 @@
+---
+title: Monitoring & Health Checks
+description: Health endpoints, Gatus/Uptime-Kuma check calibration, and the security model for remote exposure
+---
+
+emeet-pixyd exposes several HTTP surfaces with deliberately different monitoring semantics. Picking the right one for an alert is the difference between a useful check and one that pages on every reboot.
+
+## The surfaces
+
+| Endpoint    | Answers                                                                                     | Use for                                            |
+| ----------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `/api/health` | `200 {"status":"ok"}` when the camera is reachable; **`503` `{"status":"offline"}`** while the daemon runs but no camera is present | Liveness of the *camera path* — see calibration below |
+| `/api/status`  | **Always `200`** while the daemon runs, with the full [status JSON](/guides/quickshell/) (`camera`, `online`, `controllable`, `battery`, `version`, …) | Telling *daemon down* (connection refused) from *camera offline* (`online: false`) |
+| `/panel`       | `200` with the web UI HTML                                                                  | Functional check that rendering itself is not broken |
+| `/metrics`     | Prometheus text format                                                                      | Scraping — see [Prometheus Metrics](/guides/metrics/) |
+
+All of them live on the loopback bind (`127.0.0.1:8090` by default).
+
+## Calibrating the liveness check
+
+`/api/health` returning `503` means **the daemon is alive but the webcam is unplugged** — an expected laptop-dock/unplug state, not an outage. A check that requires `200` will flap red every time the camera leaves the desk.
+
+Treat any answer `< 500` as "daemon reachable":
+
+```yaml
+# Gatus
+- name: "EMEET PIXY Daemon"
+  path: /api/health
+  interval: 60s
+  conditions:
+    - "[STATUS] < 500"
+    - "[RESPONSE_TIME] < 2000"
+    - "[BODY] == pat(*\"status\"*)"
+```
+
+Pair it with a cheap functional check so a broken render path cannot hide behind a green liveness probe:
+
+```yaml
+- name: "EMEET PIXY Panel Renders"
+  path: /panel
+  interval: 5m
+  conditions:
+    - "[STATUS] == 200"
+    - "[BODY] == pat(*<html*)"
+```
+
+## The stale-binary trap
+
+A daemon build that predates `/api/status` answers `404` on it. Widgets polling that endpoint read the failure as *daemon down* and show an offline pill forever, while the systemd unit, reverse proxy, and health checks all look perfectly healthy.
+
+The `version` field in `/api/status` is the proof a restart landed on the new binary:
+
+```bash
+curl -s 127.0.0.1:8090/api/status | jq -r .version
+```
+
+If a deploy "did nothing", check that the graphical-session user unit actually restarted onto the new generation, then compare `version` against the build you shipped.
+
+## It is a user unit — alert accordingly
+
+`emeet-pixyd.service` is a **systemd user unit bound to the graphical session** (`partOf` / `wantedBy` `graphical-session.target`). Two consequences:
+
+- It is **expected to be down** during reboots and SSH-only periods. An HTTP check that pages on downtime will false-page on every restart. Keep endpoint checks silent and page on a *session-aware* condition instead — e.g. alert only when the graphical session (compositor) is running but the daemon is not.
+- Node-level exporters watching the **system** bus (node_exporter's systemd collector) never see user units. A "monitored unit" row for it sits absent or red forever; derive unit state from the user session or from the HTTP surfaces above.
+
+## Remote exposure: authenticate or don't
+
+The API has **no native authentication** and exposes full webcam control (`POST /api/track`, `/api/ptz/...`, presets, privacy). That is why the daemon binds loopback only and the NixOS module's `hardware.emeet-pixy.port` option changes the port, never the bind.
+
+If you want the panel reachable from other machines, put an authenticating reverse proxy in front (oauth2-proxy, authelia, basic auth in your proxy of choice) and have it forward to the loopback port:
+
+```nix
+# sketch: LAN-facing vHost behind auth, forwarding to the daemon
+services.nginx.virtualHosts."emeet-pixyd.home.lan" = {
+  locations."/" = {
+    proxyPass = "http://127.0.0.1:8090";
+    # ...your auth layer here...
+  };
+};
+```
+
+Do not lift the loopback bind itself (`EMEET_PIXYD_WEB_ADDR` in a unit override) unless the listener sits on a network you fully trust — anyone on it can steer your camera.
