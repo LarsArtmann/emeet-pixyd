@@ -39,11 +39,18 @@ All configuration is via environment variables. The daemon does not use CLI flag
 | ---------------------------------- | ------ | -------- | --------------------------------------- |
 | `hardware.emeet-pixy.enable`       | bool   | `false`  | Enable the daemon                       |
 | `hardware.emeet-pixy.user`         | string | `"lars"` | User owning the runtime state directory |
+| `hardware.emeet-pixy.port`         | port   | `8090`   | Web UI/API listen port (loopback-only)  |
 | `hardware.emeet-pixy.auto`         | enum   | `"full"` | Auto-management strategy                |
 | `hardware.emeet-pixy.defaultAudio` | enum   | `"nc"`   | Default audio mode                      |
 | `hardware.emeet-pixy.debug`        | bool   | `false`  | Enable debug mode                       |
 
 The NixOS module passes all options as `Environment=` vars. The `auto` option maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` to `EMEET_PIXYD_DEFAULT_AUDIO`, and `debug` to `EMEET_PIXYD_DEBUG`.
+
+### Web Port
+
+`hardware.emeet-pixy.port` sets the TCP port for the web UI and control API and renders `EMEET_PIXYD_WEB_ADDR=127.0.0.1:<port>` in the unit. It deliberately has no host counterpart: the API has no authentication and exposes full webcam control (tracking, PTZ, presets, privacy), so the daemon binds loopback only. Anything beyond localhost goes through an authenticating reverse proxy — see [Monitoring & Health](/guides/monitoring/) for the security model and a proxy sketch.
+
+Running without the NixOS module? `EMEET_PIXYD_WEB_ADDR` accepts any `host:port` — but keep it on `127.0.0.1` unless the listener sits behind auth.
 
 ## State Persistence
 

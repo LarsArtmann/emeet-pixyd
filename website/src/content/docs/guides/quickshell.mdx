@@ -49,6 +49,12 @@ A widget can therefore tell "daemon down" (connection refused) apart from
 "camera offline" (`online` is `false`) without parsing error bodies. The field
 names are a stable interface — they are safe to depend on.
 
+One trap to know: a stale daemon build that predates `/api/status` answers
+`404` on it, and a widget reads that as *daemon down* forever. The `version`
+field is the proof a restart landed on the binary you deployed — see the
+[stale-binary trap](/guides/monitoring/#the-stale-binary-trap) in
+Monitoring & Health.
+
 ## DankMaterialShell widget
 
 DankMaterialShell plugins live under
