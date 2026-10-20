@@ -207,6 +207,16 @@
                 };
 
               testScript = ''
+                defaults.start()
+
+                with subtest("unset port renders the daemon's loopback default"):
+                    unit = defaults.succeed(
+                        "cat /etc/systemd/user/emeet-pixyd.service"
+                    )
+                    assert "EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090" in unit, \
+                        "default port drifted from the 8090 convention"
+
+                defaults.shutdown()
                 machine.start()
 
                 with subtest("udev rules cover both PIXY product IDs"):
