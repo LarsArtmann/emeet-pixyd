@@ -60,10 +60,12 @@
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       # Inline systems: nixpkgs 26.11 dropped x86_64-darwin, which github:nix-systems/default still lists.
+      # Linux-only daemon (package.nix sets lib.platforms.linux): aarch64-darwin
+      # would make every eval of packages.aarch64-darwin.* refuse — keeping it
+      # listed was why `nix flake check --all-systems` could never pass.
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "aarch64-darwin"
       ];
 
       imports = [
