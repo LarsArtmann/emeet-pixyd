@@ -80,14 +80,11 @@ func TestParseUevent(t *testing.T) {
 
 func TestIsRelevantUevent(t *testing.T) {
 	t.Parallel()
-	// ueventCase returns a complete uevent for isRelevantUevent tests.
-	// The nolint suppresses exhaustruct warnings: test cases intentionally
-	// omit DevPath since isRelevantUevent only inspects Action and Subsys.
+	// ueventCase returns a partial uevent: isRelevantUevent only inspects
+	// Action and Subsys (exhaustruct_v5 is excluded in test files).
 	ueventCase := func(action, subsys string) uevent {
 		return uevent{Action: action, Subsys: subsys}
 	}
-	// ueventCaseEmpty returns an empty uevent, suppressing the exhaustruct warning
-	// for intentionally partial struct literals in tests.
 	ueventCaseEmpty := func() uevent {
 		return uevent{}
 	}

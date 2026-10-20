@@ -11,4 +11,43 @@ BenchmarkWaybarOutput-32              	 1983133	       607.1 ns/op
 BenchmarkWaybarOutput-32              	 2007106	       607.6 ns/op
 BenchmarkWaybarOutput-32              	 1980880	       611.2 ns/op
 BenchmarkWaybarOutput-32              	 1986859	       619.5 ns/op
-BenchmarkWaybarOutput-32              	
+BenchmarkWaybarOutput-32              	 2014344	       735.0 ns/op
+BenchmarkHandleCommand_Query-32       	  801780	      1486 ns/op
+BenchmarkHandleCommand_Query-32       	  742909	      1500 ns/op
+BenchmarkHandleCommand_Query-32       	  689535	      1493 ns/op
+BenchmarkHandleCommand_Query-32       	  896464	      1490 ns/op
+BenchmarkHandleCommand_Query-32       	  880668	      1522 ns/op
+BenchmarkHandleCommand_Mutating-32    	  127689	      9861 ns/op
+BenchmarkHandleCommand_Mutating-32    	  115812	     10000 ns/op
+BenchmarkHandleCommand_Mutating-32    	  121476	      8314 ns/op
+BenchmarkHandleCommand_Mutating-32    	  199875	      6517 ns/op
+BenchmarkHandleCommand_Mutating-32    	  187869	      7382 ns/op
+BenchmarkGetWebStatus-32              	13089027	        89.86 ns/op
+BenchmarkGetWebStatus-32              	13170100	        91.86 ns/op
+BenchmarkGetWebStatus-32              	13100299	        95.61 ns/op
+BenchmarkGetWebStatus-32              	13436406	        87.85 ns/op
+BenchmarkGetWebStatus-32              	14262686	        85.77 ns/op
+BenchmarkSimulatorRoundTrip-32        	  605497	      1662 ns/op
+BenchmarkSimulatorRoundTrip-32        	  768733	      1591 ns/op
+BenchmarkSimulatorRoundTrip-32        	  752582	      1542 ns/op
+BenchmarkSimulatorRoundTrip-32        	  757306	      1579 ns/op
+BenchmarkSimulatorRoundTrip-32        	  767967	      1582 ns/op
+BenchmarkExtractJPEGFrame-32          	  835068	      1269 ns/op
+BenchmarkExtractJPEGFrame-32          	  858656	      1192 ns/op
+BenchmarkExtractJPEGFrame-32          	  951585	      1261 ns/op
+BenchmarkExtractJPEGFrame-32          	 1022724	      1130 ns/op
+BenchmarkExtractJPEGFrame-32          	 1000000	      1259 ns/op
+BenchmarkFormatLastSynced-32          	17609884	        70.71 ns/op
+BenchmarkFormatLastSynced-32          	18428251	        68.93 ns/op
+BenchmarkFormatLastSynced-32          	18403112	        71.89 ns/op
+BenchmarkFormatLastSynced-32          	17833920	        70.62 ns/op
+BenchmarkFormatLastSynced-32          	17738364	        69.25 ns/op
+BenchmarkBroadcasterBroadcast-32      	34506212	        36.02 ns/op
+BenchmarkBroadcasterBroadcast-32      	31176272	        36.37 ns/op
+BenchmarkBroadcasterBroadcast-32      	35089489	        35.87 ns/op
+BenchmarkBroadcasterBroadcast-32      	34241739	        35.39 ns/op
+BenchmarkBroadcasterBroadcast-32      	33142165	        36.75 ns/op
+PASS
+ok  	github.com/LarsArtmann/emeet-pixyd	54.262s
+PASS
+ok  	github.com/LarsArtmann/emeet-pixyd/internal/pixy	0.003s
