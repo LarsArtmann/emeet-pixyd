@@ -1,0 +1,14 @@
+goos: linux
+goarch: amd64
+pkg: github.com/LarsArtmann/emeet-pixyd
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkParseHIDResponse-32          	26962994	        39.97 ns/op
+BenchmarkParseHIDResponse-32          	32691430	        39.02 ns/op
+BenchmarkParseHIDResponse-32          	32581636	        39.05 ns/op
+BenchmarkParseHIDResponse-32          	27844179	        38.71 ns/op
+BenchmarkParseHIDResponse-32          	26990550	        39.41 ns/op
+BenchmarkWaybarOutput-32              	 1983133	       607.1 ns/op
+BenchmarkWaybarOutput-32              	 2007106	       607.6 ns/op
+BenchmarkWaybarOutput-32              	 1980880	       611.2 ns/op
+BenchmarkWaybarOutput-32              	 1986859	       619.5 ns/op
+BenchmarkWaybarOutput-32              	
