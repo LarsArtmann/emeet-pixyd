@@ -1,0 +1,12 @@
+# Ruff runs on this repo via BuildFlow's Python detection. The Python here
+# is RESEARCH ARTIFACTS (tools/inno661/, tools/emhid/): one-shot reverse-
+# engineering extractors whose byte-exact outputs are verified against
+# committed specimen data — refactoring them for lint style would
+# invalidate that verification. The tripped rules are all style-only for
+# frozen artifacts: SIM115 (open without context manager), EXE001
+# (shebang on scripts invoked via `python3 x.py` — it documents the
+# interpreter, not an exec contract), F841 (assignments that NAME parsed
+# fields per the format spec). Suppress them for the artifacts only,
+# keep ruff fully on everywhere else.
+[lint.per-file-ignores]
+"tools/**" = ["SIM115", "EXE001", "F841"]
