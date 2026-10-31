@@ -196,20 +196,20 @@ func (d *Daemon) presenceLocked() devicePresence {
 // (the human surfaces render offline when !Online; the machine surface keeps
 // camera=intent and reports Online separately).
 type statusSnapshot struct {
-	Camera       pixy.CameraState
-	Online       bool
-	Controllable bool
-	Audio        pixy.AudioMode
-	Gesture      bool
-	InCall       bool
-	Auto         pixy.AutoMode
-	Device       string
-	Model        pixy.Model
-	Error        string
-	LastSynced   time.Time
-	Presets      []string
-	TrackMode    string
-	Speeds       pixy.SpeedValues
+	Camera          pixy.CameraState
+	Online          bool
+	Controllable    bool
+	Audio           pixy.AudioMode
+	Gesture         bool
+	InCall          bool
+	Auto            pixy.AutoMode
+	Device          string
+	Model           pixy.Model
+	Error           string
+	LastSynced      time.Time
+	Presets         []string
+	TrackMode       string
+	Speeds          pixy.SpeedValues
 	UnsupportedHint string // why a recognized-but-unsupported EMEET device is not controllable ("" when unset)
 
 	DegradedReasons []string
@@ -221,20 +221,20 @@ func (d *Daemon) snapshot() statusSnapshot {
 	defer d.mu.RUnlock()
 
 	return statusSnapshot{
-		Camera:       d.state.Camera,
-		Online:       d.videoDev != "",
-		Controllable: d.hidrawDev != "",
-		Audio:        d.state.Audio,
-		Gesture:      d.state.Gesture,
-		InCall:       d.state.InCall,
-		Auto:         d.state.AutoMode,
-		Device:       d.videoDev,
-		Model:        d.model,
-		Error:        errStr(d.autoError),
-		LastSynced:   d.lastSyncedAt,
-		Presets:      d.state.Presets.SortedNames(),
-		TrackMode:    d.state.EffectiveTrackMode().String(),
-		Speeds:       d.state.Speeds,
+		Camera:          d.state.Camera,
+		Online:          d.videoDev != "",
+		Controllable:    d.hidrawDev != "",
+		Audio:           d.state.Audio,
+		Gesture:         d.state.Gesture,
+		InCall:          d.state.InCall,
+		Auto:            d.state.AutoMode,
+		Device:          d.videoDev,
+		Model:           d.model,
+		Error:           errStr(d.autoError),
+		LastSynced:      d.lastSyncedAt,
+		Presets:         d.state.Presets.SortedNames(),
+		TrackMode:       d.state.EffectiveTrackMode().String(),
+		Speeds:          d.state.Speeds,
 		UnsupportedHint: d.unsupportedHint,
 
 		DegradedReasons: d.degradedReasonsSortedLocked(),

@@ -33,6 +33,8 @@ func newDaemonWithDevice(t *testing.T) *Daemon {
 func getBody(t *testing.T, resp *http.Response) string {
 	t.Helper()
 
+	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("read body: %v", err)
