@@ -58,6 +58,7 @@ func TestHandleQueryCommand_Probe_DeviceFoundWinsOverHint(t *testing.T) {
 	resp := d.handleQueryCommand(context.Background(), []string{cmdProbe})
 
 	assertStatusPrefix(t, resp.String(), "device found: /dev/video9", "probe with device")
+
 	if strings.Contains(resp.String(), "C960") {
 		t.Errorf("hint leaked into the found-device response: %s", resp.String())
 	}
@@ -71,6 +72,7 @@ func TestLogUnsupportedHintLimited_RateLimitedPerHint(t *testing.T) { //nolint:p
 	var buf bytes.Buffer
 
 	prev := slog.Default()
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
 	t.Cleanup(func() { slog.SetDefault(prev) })
 
@@ -82,7 +84,7 @@ func TestLogUnsupportedHintLimited_RateLimitedPerHint(t *testing.T) { //nolint:p
 
 	now = now.Add(time.Minute)
 
-	logUnsupportedHintLimited(testUnsupportedHint, limiter) // within interval: suppressed
+	logUnsupportedHintLimited(testUnsupportedHint, limiter)  // within interval: suppressed
 	logUnsupportedHintLimited("other EMEET device", limiter) // different key: logged
 
 	now = now.Add(unsupportedWarnInterval)
@@ -91,7 +93,11 @@ func TestLogUnsupportedHintLimited_RateLimitedPerHint(t *testing.T) { //nolint:p
 
 	got := strings.Count(buf.String(), "recognized without daemon support")
 	if got != 3 {
-		t.Fatalf("expected exactly 3 hint logs (first, other key, post-interval), got %d (buffer: %q)", got, buf.String())
+		t.Fatalf(
+			"expected exactly 3 hint logs (first, other key, post-interval), got %d (buffer: %q)",
+			got,
+			buf.String(),
+		)
 	}
 }
 
