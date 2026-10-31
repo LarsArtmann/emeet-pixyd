@@ -85,7 +85,7 @@ jobs:
       # changelog is restructured, update this sentinel alongside it.
       - name: Verify changelog content
         if: steps.secret.outputs.present == 'true'
-        run: grep -q "Corrections from official-app evidence" dist/changelog/index.html
+        run: grep -q "v0.5.0 (2026-10-31)" dist/changelog/index.html
 
       - name: Deploy to Firebase Hosting
         if: steps.secret.outputs.present == 'true'

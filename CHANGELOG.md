@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [0.5.0] - 2026-10-31
+
+### Added
+
 - **NixOS module `port` option (`hardware.emeet-pixy.port`)**: wires `EMEET_PIXYD_WEB_ADDR` on the unit as `127.0.0.1:<port>` (default 8090, matching the daemon). Downstream port registries previously coupled to the daemon default by convention with no knob on the module side — a registry re-allocation would have silently proxied to a dead port. The loopback bind is deliberate and NOT configurable through the module: the API has no native auth and exposes webcam control, so anything beyond loopback must go through an authenticating reverse proxy. The vmTest sets a non-default port and asserts the rendered unit env.
 - **[Monitoring & Health guide](website/src/content/docs/guides/monitoring.mdx)**: codifies the HTTP monitoring contract — `/api/health` answers 503 while the daemon runs camera-less (so external checks must use `[STATUS] < 500`, not `== 200`), `/panel` as the functional render check, `/api/status`'s always-200 semantics plus the `version`-field stale-binary trap, the systemd user-unit alerting doctrine (expected down outside graphical sessions; invisible to system-bus exporters — page session-aware, not on downtime), and the remote-exposure security model (no native auth; authenticate at a reverse proxy, never lift the loopback bind). Distilled from the downstream SystemNix integration so every consumer stops re-deriving it.
 - **Quickshell / DankMaterialShell status API (`GET /api/status`)**: a widget-facing JSON endpoint returning camera state (`tracking`/`idle`/`privacy`/`offline`), device path, model, online flag, in-call, auto/audio modes, gesture, the TTL-cached battery reading (omitted when unavailable), and the build version. Unlike `/api/health`, it always answers 200 while the daemon runs, so a bar widget can tell "daemon down" (connection refused) from "camera offline" (`online` false) without parsing error bodies. The website gains a [Quickshell integration guide](website/src/content/docs/guides/quickshell.mdx) with a ready-to-paste widget and declarative wiring.
