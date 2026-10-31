@@ -210,6 +210,8 @@ type statusSnapshot struct {
 	Presets      []string
 	TrackMode    string
 	Speeds       pixy.SpeedValues
+
+	DegradedReasons []string
 }
 
 // snapshot captures the canonical status view under a single read lock.
@@ -231,7 +233,9 @@ func (d *Daemon) snapshot() statusSnapshot {
 		LastSynced:   d.lastSyncedAt,
 		Presets:      d.state.Presets.SortedNames(),
 		TrackMode:    d.state.EffectiveTrackMode().String(),
-		Speeds:       d.state.Speeds,
+		Speeds:      d.state.Speeds,
+
+		DegradedReasons: d.degradedReasonsSortedLocked(),
 	}
 }
 

@@ -41,7 +41,13 @@ type Daemon struct {
 	// cannot control (e.g. a fixed C960); empty when a PIXY-family device
 	// was found. Set only under d.mu via applyProbeResultLocked.
 	unsupportedHint string
-	hidDev          HIDDevice
+
+	// degradedReasons tracks daemon-level degradations (dead web listener,
+	// accept-loop failure ceiling) surfaced by /api/health, /api/status and
+	// the web panel. Guarded by d.mu; initialized lazily by markDegraded.
+	degradedReasons map[string]struct{}
+
+	hidDev HIDDevice
 
 	// Debounce counters: number of consecutive polls observing a stable
 	// in-use or idle state. Both clamp to config.DebounceCount so the
@@ -274,8 +280,11 @@ func (d *Daemon) startHTTPServer() *http.Server {
 		slog.Info("web UI starting", "addr", d.config.WebAddr)
 
 		listenErr := httpSrv.ListenAndServe()
-		if listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
+		switch {
+		case listenErr == nil, errors.Is(listenErr, http.ErrServerClosed):
+		default:
 			slog.Error("web server error", "error", listenErr)
+			d.markDegraded(degradedWebServer)
 		}
 	}()
 

@@ -90,6 +90,9 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 		PresetNames:  snap.Presets,
 		TrackMode:    snap.TrackMode,
 		Speeds:       snap.Speeds,
+
+		Degraded:        len(snap.DegradedReasons) > 0,
+		DegradedReasons: snap.DegradedReasons,
 	}
 
 	if status.Online {
@@ -145,18 +148,22 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 	}
 
 	if err := writeJSON(responseWriter, status, healthResponse{
-		Status:  boolStr(snap.Online, "ok", "offline"),
-		Camera:  snap.Camera,
-		Version: buildVersion,
+		Status:   boolStr(snap.Online, "ok", "offline"),
+		Camera:   snap.Camera,
+		Version:  buildVersion,
+		Degraded: len(snap.DegradedReasons) > 0,
+		Reasons:  snap.DegradedReasons,
 	}); err != nil {
 		slog.Debug("health response write failed", "err", err)
 	}
 }
 
 type healthResponse struct {
-	Status  string           `json:"status"`
-	Camera  pixy.CameraState `json:"camera"`
-	Version string           `json:"version"`
+	Status   string           `json:"status"`
+	Camera   pixy.CameraState `json:"camera"`
+	Version  string           `json:"version"`
+	Degraded bool             `json:"degraded"`
+	Reasons  []string         `json:"reasons,omitempty"`
 }
 
 // statusResponse is the JSON contract served at GET /api/status for
@@ -178,6 +185,8 @@ type statusResponse struct {
 	Gesture      bool             `json:"gesture"`
 	Battery      string           `json:"battery,omitzero"`
 	Version      string           `json:"version"`
+	Degraded     bool             `json:"degraded"`
+	Reasons      []string         `json:"reasons,omitempty"`
 }
 
 // handleStatusJSON serves the widget-facing status contract. It reuses
@@ -198,6 +207,8 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 		Gesture:      status.Gesture,
 		Battery:      status.Battery,
 		Version:      status.Version,
+		Degraded:     status.Degraded,
+		Reasons:      status.DegradedReasons,
 	}
 
 	if err := writeJSON(responseWriter, http.StatusOK, resp); err != nil {

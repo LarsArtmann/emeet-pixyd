@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -106,6 +107,12 @@ templ page(s webStatus) {
 					<span class="offline-dot"></span>
 					<span>Connection lost — reconnecting…</span>
 				</div>
+				if s.Degraded {
+					<div id="degraded-banner" class="degraded-banner" role="alert">
+						<span class="offline-dot"></span>
+						<span>Daemon degraded — some surfaces may be unavailable (restart fixes it): { strings.Join(s.DegradedReasons, ", ") }</span>
+					</div>
+				}
 				<section class="preview-wrap">
 					<div class="preview-container" id="preview">
 						if s.Online && s.Device != "" {

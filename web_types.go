@@ -36,6 +36,9 @@ type webStatus struct {
 	Battery      string // "" when the device does not answer battery queries
 	TrackMode    string // active tracking variant (none/face/halfbody/fullbody)
 	Speeds       pixy.SpeedValues
+
+	Degraded        bool     // daemon-level degradation (dead listener, accept ceiling)
+	DegradedReasons []string // stable reason keys (see degraded.go)
 }
 
 // toastType is a branded type for toast notification kinds (success, info, error).

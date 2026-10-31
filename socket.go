@@ -54,9 +54,16 @@ func (d *Daemon) newUnixListener() (net.Listener, error) {
 	return listener, nil
 }
 
+// acceptFailureCeiling is the number of consecutive accept errors that
+// marks the daemon degraded (socket-accept). The loop itself never exits —
+// a degraded daemon that still serves HTTP can be diagnosed and its state
+// read; killing the loop would take away the CLI surface entirely.
+const acceptFailureCeiling = 10
+
 // acceptUnixLoop serves CLI connections until the context is cancelled.
 // Transient accept errors are logged and retried — the loop never exits on
-// its own (#191b marks it degraded instead).
+// its own; hitting the ceiling marks the daemon degraded instead (#191b)
+// and one healthy accept clears the mark again.
 func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 	defer func() {
 		closeErr := listener.Close()
@@ -64,6 +71,8 @@ func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 			slog.Debug("listener close error", "error", closeErr)
 		}
 	}()
+
+	consecutiveFailures := 0
 
 	for {
 		conn, err := listener.Accept()
@@ -74,9 +83,23 @@ func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 			default:
 			}
 
-			slog.Error("socket accept error", "error", err)
+			consecutiveFailures++
+
+			if consecutiveFailures >= acceptFailureCeiling {
+				d.markDegraded(degradedSocketAccept)
+				slog.Error("socket accept consecutive failures hit ceiling", "consecutive", consecutiveFailures)
+
+				consecutiveFailures = 0
+			} else {
+				slog.Error("socket accept error", "error", err, "consecutive", consecutiveFailures)
+			}
 
 			continue
+		}
+
+		if consecutiveFailures > 0 {
+			consecutiveFailures = 0
+			d.clearDegraded(degradedSocketAccept)
 		}
 
 		d.serveUnixConn(ctx, conn)
