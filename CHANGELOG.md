@@ -12,7 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Nothing yet.
+- **Startup socket bind failures are fatal (fail-fast, #191a)**: the CLI socket now binds synchronously in `Run()` — a bind failure (unwritable state dir, occupied path) logs, sends `STOPPING=1`, and exits non-zero via the error-family exit code instead of the old behavior of staying `READY=1` with a dead command surface until the watchdog noticed. `systemd Restart=on-failure` recovers as designed. The accept loop itself still never exits on transient errors (runtime accept failures are a `degraded` condition, not a crash).
+- **Every subprocess is bounded by a timeout (#190)**: `v4l2Set`/`parsePTZValues` (5s), `findPixySource`/`setDefaultSource` (wpctl, 5s), `notifyCmd` (notify-send, 5s), and the MJPEG stream's first-frame wait (5s, new `stream.no_first_frame` Transient error) — a wedged external binary can no longer hold `v4l2Mu`/the stream semaphore until the systemd watchdog kills the daemon. Deadline errors classify as Transient through the existing stdlib registry entry. Pinned by `subprocess_timeout_test.go` (hung-commander double, fake ffmpeg via PATH) and `failfast_test.go`.
 
 ## [0.5.0] - 2026-10-31
 

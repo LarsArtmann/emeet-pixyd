@@ -3,21 +3,19 @@
 package main
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TestNewUnixListener_FailsFastOnUnlistenablePath pins #191a: a startup
 // socket bind failure must surface as an error (Run refuses to run READY=1
 // with a dead CLI surface; systemd Restart=on-failure recovers) with a
-// non-zero exit code.
+// non-zero exit code. The healthy path is covered end-to-end by
+// startSocketDaemon in socket_test.go, which now binds synchronously.
 func TestNewUnixListener_FailsFastOnUnlistenablePath(t *testing.T) {
 	t.Parallel()
 
@@ -39,34 +37,5 @@ func TestNewUnixListener_FailsFastOnUnlistenablePath(t *testing.T) {
 
 	if code := errorfamily.ExitCode(err); code == 0 {
 		t.Errorf("expected non-zero exit code for startup listen failure, got %d", code)
-	}
-}
-
-// TestNewUnixListener_HealthyBindRoundTrips proves the split kept the
-// healthy path: bind, permissions, then a client connects and speaks one
-// command through the accept loop.
-func TestNewUnixListener_HealthyBindRoundTrips(t *testing.T) {
-	t.Parallel()
-
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev)
-	d.config.StateDir = t.TempDir()
-
-	listener, err := d.newUnixListener()
-	if err != nil {
-		t.Fatalf("expected healthy bind, got: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	t.Cleanup(cancel)
-
-	go d.acceptUnixLoop(ctx, listener)
-
-	resp, err := pixy.SendCommand(ctx, d.config.SocketPath(), "status")
-	if err != nil {
-		t.Fatalf("send command over bound socket: %v", err)
-	}
-
-	if resp == "" {
-		t.Error("expected non-empty status response")
 	}
 }

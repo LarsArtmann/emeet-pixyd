@@ -42,21 +42,15 @@ func startSocketDaemon(t *testing.T) (*Daemon, pixy.Config) {
 		t.Fatalf("NewDaemon: %v", daemonErr)
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
-		defer cancel()
-
-		_ = daemon.listenUnix(ctx)
-	}()
-
-	for range 50 {
-		if _, statErr := os.Stat(cfg.SocketPath()); statErr == nil {
-			break
-		}
-
-		time.Sleep(20 * time.Millisecond)
+	listener, listenErr := daemon.newUnixListener()
+	if listenErr != nil {
+		t.Fatalf("newUnixListener: %v", listenErr)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	go daemon.acceptUnixLoop(ctx, listener)
 
 	return daemon, cfg
 }
