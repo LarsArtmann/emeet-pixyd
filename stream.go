@@ -39,6 +39,7 @@ var (
 	errStreamNotSupported error = errorfamily.NewInfrastructure("stream.not_supported", "streaming not supported")
 	errStreamPipe         error = errorfamily.NewInfrastructure("stream.pipe_error", "stream pipe error")
 	errStreamStart        error = errorfamily.NewInfrastructure("stream.start_error", "stream start error")
+	errStreamSilent       error = errorfamily.NewTransient("stream.no_first_frame", "ffmpeg produced no frame in time")
 )
 
 const (
@@ -223,13 +224,38 @@ func (s *webServer) setupStream(
 		return streamResult{}
 	}
 
+	reader := bufio.NewReaderSize(stdOut, streamBufSize)
+
+	// Bound the wait for the first frame (#190): a wedged ffmpeg that never
+	// writes a byte would otherwise block writeFrames — and hold the stream
+	// semaphore — until the client hangs up. Killing the process on expiry
+	// unblocks the read with EOF.
+	firstFrameKiller := time.AfterFunc(ffmpegFirstFrameTimeout, func() {
+		if killErr := cmd.Process.Kill(); killErr != nil {
+			slog.Debug("ffmpeg first-frame timeout kill failed", "pid", cmd.Process.Pid, "err", killErr)
+		}
+	})
+
+	var probeBuf bytes.Buffer
+
+	_, probeErr := extractJPEGFrame(reader, &probeBuf)
+	firstFrameKiller.Stop()
+
+	if probeErr != nil {
+		cleanupFFmpeg(cmd)
+		slog.Warn("ffmpeg produced no frame within the first-frame timeout", "device", status.Device, "error", probeErr)
+		http.Error(responseWriter, errStreamSilent.Error(), errorfamily.HTTPStatus(errStreamSilent))
+
+		return streamResult{}
+	}
+
 	responseWriter.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	responseWriter.Header().Set("Cache-Control", "no-store")
 	responseWriter.WriteHeader(http.StatusOK)
 	flusher.Flush()
 
 	return streamResult{
-		reader:  bufio.NewReaderSize(stdOut, streamBufSize),
+		reader:  reader,
 		cmd:     cmd,
 		flusher: flusher,
 		ok:      true,

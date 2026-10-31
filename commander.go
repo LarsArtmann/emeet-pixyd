@@ -9,6 +9,19 @@ import (
 	"time"
 )
 
+// Subprocess timeout policy (#190): every external binary the daemon execs is
+// bounded, so a wedged v4l2-ctl/wpctl/notify-send/ffmpeg can never hold
+// v4l2Mu, hidMu, or the stream semaphore until the systemd watchdog kills the
+// daemon. HID I/O carries its own 500ms deadline (hid.go). When a deadline
+// fires the commander kills the subprocess and the resulting
+// context.DeadlineExceeded classifies as Transient (stdlib registry entry).
+const (
+	v4l2CommandTimeout      = 5 * time.Second
+	wpctlCommandTimeout     = 5 * time.Second
+	notifyCommandTimeout    = 5 * time.Second
+	ffmpegFirstFrameTimeout = 5 * time.Second
+)
+
 // CommandRunner abstracts subprocess execution for testability and
 // centralized logging/metrics.
 //

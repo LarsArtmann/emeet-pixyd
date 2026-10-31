@@ -77,6 +77,9 @@ func (d *Daemon) v4l2Set(
 	ctx context.Context,
 	dev, ctrl, value string,
 ) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+	ctx, cancel := context.WithTimeout(ctx, v4l2CommandTimeout)
+	defer cancel()
+
 	err := d.deps.commander.Run(ctx, v4l2ctl, "-d", dev, "--set-ctrl="+ctrl+"="+value)
 	if err != nil {
 		return errorfamily.Wrapf(
@@ -104,6 +107,9 @@ func v4l2GetCtrlList() string {
 }
 
 func (d *Daemon) parsePTZValues(ctx context.Context, dev string) pixy.PTZValues {
+	ctx, cancel := context.WithTimeout(ctx, v4l2CommandTimeout)
+	defer cancel()
+
 	out, err := d.deps.commander.Output(
 		ctx, v4l2ctl, "-d", dev,
 		"--get-ctrl="+v4l2GetCtrlList(),

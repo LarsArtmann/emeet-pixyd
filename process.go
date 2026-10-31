@@ -133,6 +133,9 @@ func procFDsOpenDevice(fdPath, videoDev string) bool {
 func (d *Daemon) findPixySource(
 	ctx context.Context,
 ) (pixy.SourceID, error) { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+	ctx, cancel := context.WithTimeout(ctx, wpctlCommandTimeout)
+	defer cancel()
+
 	out, err := d.deps.commander.Output(ctx, wpctl, "status")
 	if err != nil {
 		return pixy.SourceID{}, errorfamily.Wrap(err, errorfamily.Classify(err), "audio.find_source", "findPixySource")
@@ -159,6 +162,9 @@ func (d *Daemon) findPixySource(
 }
 
 func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
+	ctx, cancel := context.WithTimeout(ctx, wpctlCommandTimeout)
+	defer cancel()
+
 	err := d.deps.commander.Run(ctx, wpctl, "set-default", sourceID.Get())
 	if err != nil {
 		slog.Error("failed to set default audio source", "id", sourceID.Get(), "error", err)
@@ -166,6 +172,9 @@ func (d *Daemon) setDefaultSource(ctx context.Context, sourceID pixy.SourceID) {
 }
 
 func (d *Daemon) notifyCmd(ctx context.Context, title, body string) {
+	ctx, cancel := context.WithTimeout(ctx, notifyCommandTimeout)
+	defer cancel()
+
 	err := d.deps.commander.Run(ctx, notifySend, "-a", "emeet-pixyd", title, body)
 	if err != nil {
 		slog.Warn("notification failed", "error", err)
