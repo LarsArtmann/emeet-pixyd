@@ -137,6 +137,38 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	waitForTrapReasserts(t, d)
 }
 
+// TestHandleShutdown_DrainsInFlightTrapReassert pins #192: shutdown waits
+// for a pending privacy-trap re-assert before saving state — by the time
+// handleShutdown returns, the idle bounce and the mode re-write have both
+// landed on the device, never been cut off mid-HID-write.
+//
+//nolint:paralleltest // mutates the package-level re-assert delay
+func TestHandleShutdown_DrainsInFlightTrapReassert(t *testing.T) {
+	withShortReassertDelay(t, 250*time.Millisecond)
+
+	sim, withSim := withPixySimulator()
+	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+
+	d.armPrivacyTrap()
+
+	if err := d.setTracking(context.Background(), pixy.StateTracking); err != nil {
+		t.Fatalf("setTracking: %v", err)
+	}
+
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	d.handleShutdown(cancel, nil)
+
+	if got := countTrackingConfigs(sim, hidByteTracking); got != 2 {
+		t.Errorf("tracking config writes after shutdown = %d, want 2 (shutdown must drain the re-assert)", got)
+	}
+
+	if got := countTrackingConfigs(sim, hidByteIdle); got != 1 {
+		t.Errorf("idle bounce writes after shutdown = %d, want 1 (drained re-assert bounces through idle)", got)
+	}
+}
+
 // TestSetTracking_NoReassertOutsideTrapWindow: without an armed trap window
 // a mode write goes out exactly once — the re-assert never fires for normal
 // clicks.

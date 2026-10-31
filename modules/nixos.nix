@@ -117,6 +117,13 @@ in
           ExecStart = lib.getExe cfg.package;
           Restart = "on-failure";
           RestartSec = 3;
+          # The daemon pets the watchdog once per poll cycle (main.go
+          # eventLoop ticker -> sdNotify("WATCHDOG=1"); POLL_INTERVAL
+          # defaults to 2s). Invariant: WatchdogSec must stay well above
+          # the configured poll interval (>= 10x the 2s default) or an
+          # operator who raises EMEET_PIXYD_POLL_INTERVAL via an override
+          # would get watchdog kills between pings. Keep this in lockstep
+          # with the sdNotify site when changing either side.
           WatchdogSec = "30";
           OOMScoreAdjust = -100;
 

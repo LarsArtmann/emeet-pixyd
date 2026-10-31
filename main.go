@@ -294,6 +294,14 @@ func (d *Daemon) startHTTPServer() *http.Server {
 func (d *Daemon) handleShutdown(cancel context.CancelFunc, httpSrv *http.Server) {
 	sdNotify("STOPPING=1")
 	slog.Info("shutting down")
+
+	// Drain in-flight privacy-trap re-asserts BEFORE the final state save
+	// (#192): re-assert goroutines are deliberately context-uncancellable
+	// (WithoutCancel) so a pending mode write always completes, and they
+	// take d.mu briefly — waiting here (with no lock held) both prevents
+	// exiting mid-HID-write and lets the save see a settled belief.
+	d.trapReasserts.Wait()
+
 	d.mu.Lock()
 	d.saveStateOrLog("failed to save state on shutdown")
 	d.mu.Unlock()
@@ -370,6 +378,10 @@ func (d *Daemon) eventLoop(
 			d.v4l2Mu.Unlock()
 		case <-ticker.C:
 			d.autoManage(ctx)
+			// The ONLY watchdog ping: systemd's WatchdogSec (30s in
+			// modules/nixos.nix) must stay well above PollInterval
+			// (default 2s) or the unit gets killed between pings — see
+			// the lockstep comment on WatchdogSec there.
 			sdNotify("WATCHDOG=1")
 		}
 	}
