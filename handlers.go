@@ -90,6 +90,7 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 		PresetNames:  snap.Presets,
 		TrackMode:    snap.TrackMode,
 		Speeds:       snap.Speeds,
+		UnsupportedHint: snap.UnsupportedHint,
 
 		Degraded:        len(snap.DegradedReasons) > 0,
 		DegradedReasons: snap.DegradedReasons,
@@ -187,6 +188,9 @@ type statusResponse struct {
 	Version      string           `json:"version"`
 	Degraded     bool             `json:"degraded"`
 	Reasons      []string         `json:"reasons,omitempty"`
+	// UnsupportedHint is additive and absent when nothing is recognized on
+	// the bus — widget consumers keep working unchanged (ADR 2026-09-28).
+	UnsupportedHint string `json:"unsupportedHint,omitempty"`
 }
 
 // handleStatusJSON serves the widget-facing status contract. It reuses
@@ -209,6 +213,7 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 		Version:      status.Version,
 		Degraded:     status.Degraded,
 		Reasons:      status.DegradedReasons,
+		UnsupportedHint: status.UnsupportedHint,
 	}
 
 	if err := writeJSON(responseWriter, http.StatusOK, resp); err != nil {

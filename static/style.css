@@ -1180,6 +1180,19 @@ input[type="range"]:focus-visible {
   gap: 0.5rem;
 }
 
+/* Unsupported-device note (ADR 2026-09-28): muted informational styling —
+   the device is recognized, it just is not a PIXY. Not an error. */
+.unsupported-hint {
+  background: var(--bg-muted, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.65));
+  cursor: help;
+}
+
 .offline-dot {
   width: 8px;
   height: 8px;

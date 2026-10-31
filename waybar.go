@@ -16,6 +16,10 @@ type waybarJSON struct {
 	Class   string `json:"class"`
 	Model   string `json:"model,omitzero"`
 	Battery string `json:"battery,omitzero"`
+	// UnsupportedHint is additive (ADR 2026-09-28): absent when no
+	// unsupported EMEET device was recognized, so existing consumers keep
+	// parsing unchanged.
+	UnsupportedHint string `json:"unsupportedHint,omitzero"`
 }
 
 const tooltipInitSize = 64
@@ -74,6 +78,13 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 		tooltip.WriteString("\nIn call: yes")
 	}
 
+	// Unsupported-device hint (ADR 2026-09-28): one short line in the
+	// tooltip so a C960 owner immediately sees WHY the camera shows offline.
+	if s.UnsupportedHint != "" {
+		tooltip.WriteString("\nUnsupported: ")
+		tooltip.WriteString(unsupportedHintShort(s.UnsupportedHint))
+	}
+
 	// Battery line (TODO #139) appears only when the device answers the
 	// official HID battery queries; waybar output stays stable otherwise.
 	// A reading additionally tags the class with charging/discharging so
@@ -102,6 +113,8 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 		Class:   "custom-camera " + class,
 		Model:   string(s.Model),
 		Battery: battery,
+
+		UnsupportedHint: s.UnsupportedHint,
 	}
 
 	data, err := json.Marshal(out)

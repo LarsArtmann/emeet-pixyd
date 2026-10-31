@@ -4,6 +4,7 @@ package main
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -36,6 +37,10 @@ type webStatus struct {
 	Battery      string // "" when the device does not answer battery queries
 	TrackMode    string // active tracking variant (none/face/halfbody/fullbody)
 	Speeds       pixy.SpeedValues
+	// UnsupportedHint explains a recognized-but-unsupported EMEET device
+	// ("" = nothing to show). Long-form text; space-constrained surfaces
+	// render unsupportedHintShort of it.
+	UnsupportedHint string
 
 	Degraded        bool     // daemon-level degradation (dead listener, accept ceiling)
 	DegradedReasons []string // stable reason keys (see degraded.go)
@@ -49,3 +54,16 @@ const (
 	toastTypeInfo    toastType = "info"
 	toastTypeError   toastType = "error"
 )
+
+// unsupportedHintShort reduces the long-form CLI/log hint to a one-line
+// label for space-constrained surfaces (web panel, Waybar tooltip): the
+// clause before the first colon carries device + verdict ("EMEET C960
+// (USB product ID 0x003f) is recognized but not controllable"); the full
+// why-and-how text stays available in the panel tooltip and the CLI/log.
+func unsupportedHintShort(hint string) string {
+	if short, _, found := strings.Cut(hint, ":"); found {
+		return short
+	}
+
+	return hint
+}

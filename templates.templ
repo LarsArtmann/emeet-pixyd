@@ -153,6 +153,11 @@ templ statusPanel(s webStatus) {
 		if s.Error != "" {
 			<div class="error-banner" role="alert">{ s.Error }</div>
 		}
+		if s.UnsupportedHint != "" && !s.Online {
+			<div class="unsupported-hint" role="note" title={ s.UnsupportedHint }>
+				{ unsupportedHintShort(s.UnsupportedHint) } — hover for details
+			</div>
+		}
 		if s.InCall {
 			<div class="status-strip">
 				<span class="status-call-dot"></span>

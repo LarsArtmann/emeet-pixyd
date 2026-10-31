@@ -210,6 +210,7 @@ type statusSnapshot struct {
 	Presets      []string
 	TrackMode    string
 	Speeds       pixy.SpeedValues
+	UnsupportedHint string // why a recognized-but-unsupported EMEET device is not controllable ("" when unset)
 
 	DegradedReasons []string
 }
@@ -234,6 +235,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 		Presets:      d.state.Presets.SortedNames(),
 		TrackMode:    d.state.EffectiveTrackMode().String(),
 		Speeds:       d.state.Speeds,
+		UnsupportedHint: d.unsupportedHint,
 
 		DegradedReasons: d.degradedReasonsSortedLocked(),
 	}
