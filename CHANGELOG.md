@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Self-health observability (#194)**: new `emeet_pixyd_breaker_state` gauge (1=tripped — recorded immediately on the third strike, re-derived from the strike count on every poll tick), `emeet_pixyd_auto_errors_total` counter with an `op` label (track/audio/source/privacy) on every failed auto-manage operation, and `emeet_pixyd_socket_accept_failures_total` counting each CLI-socket accept failure. A missing optional helper binary (ffmpeg, v4l2-ctl, wpctl, notify-send) now also marks the daemon degraded with an `extdep:<binary>` reason surfaced in `/api/health` + `/api/status` and the panel banner.
 
 ### Fixed
 

@@ -73,7 +73,7 @@ func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	d.mu.Unlock()
 
 	d.mu.RLock()
-	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold) //nolint:contextcheck
+	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold)
 	d.mu.RUnlock()
 
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 0)

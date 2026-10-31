@@ -171,14 +171,14 @@ func recordBreakerState(tripped bool) {
 }
 
 // recordAutoError counts one failed auto-manage operation by its op label.
-func recordAutoError(ctx context.Context, op string) {
+func recordAutoError(ctx context.Context, operation string) {
 	if metricsInstance == nil {
 		return
 	}
 
 	metricsInstance.autoErrors.Add(
 		ctx, 1,
-		metric.WithAttributes(attribute.String("op", op)),
+		metric.WithAttributes(attribute.String("op", operation)),
 	)
 }
 

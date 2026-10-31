@@ -27,9 +27,11 @@ scrape_configs:
 
 | Metric                     | Type         | Description                                                        |
 | -------------------------- | ------------ | ------------------------------------------------------------------ |
-| `emeet_pixyd_camera_state` | Float64Gauge | Current camera state (0=offline, 1=tracking, 2=idle, 3=privacy)    |
+| `emeet_pixyd_camera_state` | Float64Gauge | Desired camera state as a per-state label (1=active for `state="tracking"/"idle"/"privacy"`; intent, never offline) |
+| `emeet_pixyd_online`       | Float64Gauge | Whether a video device is present (1=online, 0=offline) — connectivity, distinct from camera_state intent |
 | `emeet_pixyd_in_call`      | Float64Gauge | Whether a call is detected (1=yes, 0=no)                           |
 | `emeet_pixyd_auto_mode`    | Float64Gauge | Current auto mode (0=off, 1=full, 2=tracking-only, 3=privacy-only) |
+| `emeet_pixyd_breaker_state` | Float64Gauge | HID circuit breaker (1=tripped, 0=closed); trips immediately on the third consecutive commit failure, re-derives from the strike count on every poll tick |
 
 ### Counters
 
@@ -40,6 +42,8 @@ scrape_configs:
 | `emeet_pixyd_probes_total`       | Int64Counter | Total device probes              |
 | `emeet_pixyd_hid_failures_total` | Int64Counter | Total HID communication failures |
 | `emeet_pixyd_frames_total`       | Int64Counter | Total MJPEG frames served        |
+| `emeet_pixyd_auto_errors_total`  | Int64Counter | Failed auto-manage operations, by `op` label (track, audio, source, privacy) |
+| `emeet_pixyd_socket_accept_failures_total` | Int64Counter | CLI socket accept failures (10 consecutive mark the daemon degraded) |
 
 ### Histograms
 

@@ -28,6 +28,7 @@ func (d *Daemon) hidSendGuard() (HIDDevice, bool) {
 // change is broadcast after the lock is released.
 func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	d.mu.Lock()
+
 	d.hidFailCount++
 	if d.hidFailCount >= hidCircuitBreakerThreshold {
 		recordBreakerState(true) //nolint:contextcheck // immediate trip visibility; updateMetrics derives it thereafter
