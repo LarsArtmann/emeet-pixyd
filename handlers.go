@@ -407,15 +407,15 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 }
 
 // presetAction builds a handler for the preset commands that address a
-// preset by name path segment (save additionally validates the name, see
-// handlePresetSave): it rejects an empty name, dispatches
-// `preset <verb> <name>` through the command path, and patches the panel
-// with the outcome.
+// preset by name path segment: it validates the name (same rules as
+// handlePresetSave, so every preset route has one validation surface),
+// dispatches `preset <verb> <name>` through the command path, and patches
+// the panel with the outcome.
 func (s *webServer) presetAction(verb string) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		name := request.PathValue("name")
-		if name == "" {
-			http.Error(responseWriter, "missing preset name", http.StatusBadRequest)
+		if err := pixy.ValidatePresetName(name); err != nil {
+			http.Error(responseWriter, err.Error(), errorfamily.HTTPStatus(err))
 
 			return
 		}

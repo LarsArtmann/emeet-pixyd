@@ -350,6 +350,50 @@ func TestWeb_PresetSaveRejectsInvalidName(t *testing.T) {
 	assertStatusCode(t, resp, http.StatusBadRequest)
 }
 
+func TestWeb_PresetActionRejectsInvalidName(t *testing.T) {
+	t.Parallel()
+
+	daemon := newDaemonWithDevice(t)
+	srv := newTestWebServer(t, daemon)
+
+	verbs := map[string]bool{"load": true, "delete": true, "push": true}
+	badNames := []string{
+		"",
+		strings.Repeat("a", pixy.MaxPresetNameLength+1),
+		"name/with/slash",
+		"control\x00char",
+	}
+
+	for verb := range verbs {
+		for _, name := range badNames {
+			resp := post(t, srv.URL+"/api/preset/"+verb+"/"+name, "application/json", nil)
+			assertStatusCode(t, resp, http.StatusBadRequest)
+			resp.Body.Close()
+		}
+	}
+}
+
+func TestWeb_PresetActionAcceptsValidName(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(
+		t,
+		pixy.StateTracking,
+		testVideoDev,
+		testHIDDev,
+		withConfig(t.TempDir()),
+		withNoopV4L2(),
+		withSeededPTZCache(),
+	)
+	srv := newTestWebServer(t, d)
+
+	for _, verb := range []string{"load", "delete", "push"} {
+		resp := post(t, srv.URL+"/api/preset/"+verb+"/testpreset", "application/json", strings.NewReader("{}"))
+		assertStatusCode(t, resp, http.StatusOK)
+		resp.Body.Close()
+	}
+}
+
 func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 	t.Parallel()
 
