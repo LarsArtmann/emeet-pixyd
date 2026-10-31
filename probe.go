@@ -240,12 +240,20 @@ func probeDevices(extraProductIDs []int64) probeResult {
 	case result.VideoDev == "" && result.HidrawDev != "":
 		slog.Warn("partial PIXY device: hidraw found but no video", "model", result.Model, "hidraw", result.HidrawDev)
 	case result.UnsupportedHint != "":
-		if unsupportedWarnLimiter.allow(result.UnsupportedHint) {
-			slog.Info("EMEET device recognized without daemon support", "hint", result.UnsupportedHint)
-		}
+		logUnsupportedHintLimited(result.UnsupportedHint, unsupportedWarnLimiter)
 	}
 
 	return result
+}
+
+// logUnsupportedHintLimited emits the recognized-but-unsupported hint at
+// most once per interval per hint text; the limiter is injectable so tests
+// do not touch the package-level limiter (same seam as
+// warnInaccessibleDevicesLimited).
+func logUnsupportedHintLimited(hint string, limiter *warnLimiter) {
+	if limiter.allow(hint) {
+		slog.Info("EMEET device recognized without daemon support", "hint", hint)
+	}
 }
 
 // warnInaccessibleDevices checks that the probed device nodes are actually
