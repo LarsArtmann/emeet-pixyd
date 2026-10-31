@@ -19,10 +19,13 @@ type daemonMetrics struct {
 	autoMode       metric.Float64Gauge
 	cameraState    metric.Float64Gauge
 	online         metric.Float64Gauge
+	breakerState   metric.Float64Gauge
 	commands       metric.Int64Counter
 	uevents        metric.Int64Counter
 	probes         metric.Int64Counter
 	hidFailures    metric.Int64Counter
+	autoErrors     metric.Int64Counter
+	acceptFailures metric.Int64Counter
 	streamDuration metric.Float64Histogram
 	framesTotal    metric.Int64Counter
 }
@@ -72,6 +75,11 @@ func registerMetrics() {
 				"emeet_pixyd_online",
 				"Whether a video device is currently present (1=online, 0=offline)",
 			),
+			breakerState: mustFloat64Gauge(
+				meter,
+				"emeet_pixyd_breaker_state",
+				"HID circuit breaker state (1=tripped, 0=closed)",
+			),
 			commands: mustInt64Counter(meter, "emeet_pixyd_commands_total", "Total number of commands processed"),
 			uevents: mustInt64Counter(
 				meter,
@@ -83,6 +91,16 @@ func registerMetrics() {
 				meter,
 				"emeet_pixyd_hid_failures_total",
 				"Total number of HID send failures",
+			),
+			autoErrors: mustInt64Counter(
+				meter,
+				"emeet_pixyd_auto_errors_total",
+				"Total number of failed auto-manage operations (track, audio, source, privacy)",
+			),
+			acceptFailures: mustInt64Counter(
+				meter,
+				"emeet_pixyd_socket_accept_failures_total",
+				"Total number of CLI socket accept failures (10 consecutive mark the daemon degraded)",
 			),
 			streamDuration: mustFloat64Histogram(
 				meter,
@@ -135,6 +153,41 @@ func recordHIDFailure(ctx context.Context) {
 	}
 
 	metricsInstance.hidFailures.Add(ctx, 1)
+}
+
+// recordBreakerState mirrors the HID circuit breaker onto its gauge so the
+// tripped/closed state is scrapeable without inferring from failure counts.
+func recordBreakerState(tripped bool) {
+	if metricsInstance == nil {
+		return
+	}
+
+	value := 0.0
+	if tripped {
+		value = 1
+	}
+
+	metricsInstance.breakerState.Record(context.Background(), value)
+}
+
+// recordAutoError counts one failed auto-manage operation by its op label.
+func recordAutoError(op string) {
+	if metricsInstance == nil {
+		return
+	}
+
+	metricsInstance.autoErrors.Add(
+		context.Background(), 1,
+		metric.WithAttributes(attribute.String("op", op)),
+	)
+}
+
+func recordSocketAcceptFailure() {
+	if metricsInstance == nil {
+		return
+	}
+
+	metricsInstance.acceptFailures.Add(context.Background(), 1)
 }
 
 func recordProbe() {

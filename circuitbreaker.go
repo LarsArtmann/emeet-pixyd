@@ -29,6 +29,7 @@ func (d *Daemon) hidSendGuard() (HIDDevice, bool) {
 func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	d.mu.Lock()
 	d.hidFailCount++
+	recordBreakerState(d.hidFailCount >= hidCircuitBreakerThreshold)
 
 	recordHIDFailure(ctx)
 
@@ -37,4 +38,13 @@ func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	}
 	d.mu.Unlock()
 	d.broadcastStateChanged()
+}
+
+// resetHIDFailCountLocked clears the breaker's strike count and mirrors the
+// closed state onto the breaker gauge. Every hidFailCount reset site goes
+// through here so the gauge can never disagree with the counter. Callers
+// hold d.mu.
+func (d *Daemon) resetHIDFailCountLocked() {
+	d.hidFailCount = 0
+	recordBreakerState(false)
 }
