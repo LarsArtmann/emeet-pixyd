@@ -155,3 +155,46 @@ Harvested into `TODO_LIST.md` as #190-#193 (per docs-health HARVEST — roadmaps
 ---
 
 *Point-in-time snapshot. When superseded, annotate — do not rewrite. Findings harvested to `TODO_LIST.md` #190-#193.*
+
+---
+
+## Addendum (2026-10-31, session-hygiene pass F092–F097)
+
+### §6 re-scored against the assessment rubric (F094)
+
+The original §6 table scored four review-chosen dimensions. Re-scored against the architecture-review skill's seven-dimension rubric (1–5 each, evidence-cited):
+
+| Rubric dimension | Score | Justification | Delta vs original §6 |
+| --- | --- | --- | --- |
+| Coupling | **4** | Interfaces at every transport boundary (`HIDDevice`, `UeventListener`, `CommandRunner`, DI function fields); the `Daemon` struct is the one concrete hub all files share — by design for a single-process daemon, but it is concrete-dependence coupling | new |
+| Cohesion | **5** | Every file owns one concern (probe/HID/PTZ/stream/metrics each named for it); `internal/pixy` carries only domain types; no utils/common packages | new |
+| Modularity | **4** | Boundaries align with domain boundaries and are test-pinnable (lock-contract table, serialization tests); `templates_templ.go` is generated-into-the-package rather than isolated — minor | new |
+| Composability | **4.5** | same evidence as original ("163 test-override usages" — grep-sum of option-name occurrences, not distinct call sites; simulator; pure probe); minus F6 | 0 (was 4.5) |
+| Scalability | **4** | single-device daemon by design; new features extend via the command registry + DI without restructuring (speed/presets/tracking landed without refactors) | new |
+| Service orientation | **4.5** | same evidence as original; in-the-large N/A by documented design | 0 (was 4.5) |
+| Dependency direction | **4** | domain (`internal/pixy`) depends on nothing infrastructure; root package depends on domain — correct direction; HID/v4l2 access is behind interfaces the daemon injects | new |
+
+**Average: 4.29 — "Good" band (3.5–4.4), upper edge.** The rubric makes explicit what the original table implied: the architecture's strength is cohesion + service orientation; its ceiling is the concrete `Daemon` hub (coupling/modularity 4s), which is the accepted trade for a single-binary daemon.
+
+### June-review open TODOs — exhaustive audit (F097)
+
+The `2026-06-06_22-19_modularity.html` review left 13 open rows (the "17" figure in this report's header over-counted; audited against `TODO_LIST.md` at `e0db422`, 2026-06-07). One-line verdicts:
+
+- #14 log-levels audit — **absorbed** (leveled slog discipline throughout; no dedicated row survived)
+- #20 continuous fuzz in CI — **shipped** (`go-test.yml` fuzz targets + corpus cache + list-vs-CI assert)
+- #21 `CommandRunner` interface — **shipped** (`commander.go`/`deps.go`)
+- #23 `ProcessInspector` — **retired** (2026-10-01b: plain functions behind `isCameraInUse`)
+- #24 `UeventListener` — **shipped** (`uevent.go`)
+- #26 mobile-responsive layout — **shipped** (5 `@media` blocks, `static/style.css`)
+- #27 WebSocket live updates — **superseded** (DataStar SSE with `openWhenHidden` reconnect; WebSocket deliberately gone)
+- #30 camera presets — **shipped** (full preset family + hardware mirroring)
+- #31 fake-device test harness — **shipped** (`pixySimulator`, byte-faithful)
+- #32 stream/process/hid coverage — **shipped** (fuzz + simulator + timeout tests)
+- #34 MJPEG reconnection — **shipped differently** (client retry with `STREAM_MAX_RETRIES` + connection-lost banner)
+- #35 real-hardware integration tests — **shipped** (`-tags=integration` suite)
+- #42 PTZ readback accuracy — **shipped** (readback scheduling, `ptz.go`)
+- (#59 `encoding/json/v2` SKIP — **landed anyway** with Go 1.27; the codebase imports it today)
+
+### Health-layers diagram (F096)
+
+The five-layer model of §2 is now a D2 diagram in the series directory: `2026-10-31_14-17_health-layers.d2` (+ `.svg`), including the F2/F5 gap note and its #191 closure.

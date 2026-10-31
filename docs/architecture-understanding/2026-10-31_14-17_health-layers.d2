@@ -1,0 +1,38 @@
+# Health layers of emeet-pixyd — the five deliberate layers (see
+# 2026-10-31_14-17_service-orientation-resilience-self-health.md §2).
+# Each layer answers a DIFFERENT question; no layer substitutes another.
+
+direction: down
+
+supervisor: "1. Supervisor" {
+  q1: "Is the process alive and looping?" {shape: text}
+  systemd: "systemd Type=notify | WATCHDOG=1 every poll tick | Restart=on-failure" {shape: rectangle; style.multiple: true}
+}
+
+liveness: "2. Liveness probe" {
+  q2: "Is the CAMERA usable?" {shape: text}
+  endpoint: "GET /api/health — 200 online / 503 camera-less" {shape: rectangle; style.multiple: true}
+}
+
+contract: "3. Daemon-alive contract" {
+  q3: "Is the DAEMON up, regardless of camera?" {shape: text}
+  status: "GET /api/status — always 200 while running | online/controllable + degraded/reasons" {shape: rectangle; style.multiple: true}
+}
+
+metrics: "4. Metrics" {
+  q4: "What has it been doing?" {shape: text}
+  otel: "OTel instruments on /metrics | online, breaker_state, hid_failures_total | auto_errors_total, accept_failures_total" {shape: rectangle; style.multiple: true}
+}
+
+omission: "5. Degradation by omission" {
+  q5: "What still works?" {shape: text}
+  degrade: "battery/PTZ lines vanish when unanswered | extdep:* + degraded reasons | short hint surfaces, never a lie" {shape: rectangle; style.multiple: true}
+}
+
+supervisor -> liveness: process alive ≠ camera usable
+liveness -> contract: 503 semantics separate from daemon liveness
+contract -> metrics: state contract feeds instruments
+metrics -> omission: counters explain silent omissions
+
+omission -> F2_note: closed 2026-10-31 (#191)
+F2_note: "F2/F5 gap: layers observed the camera, not daemon components — closed by fail-fast socket bind + degraded dimension (socket-accept, web-server, extdep:*)" {style.stroke-dash: 3}

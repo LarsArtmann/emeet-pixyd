@@ -1,6 +1,7 @@
 # Status: Architecture Review Session — samber/do Premise, Self-Health, Resilience
 
 **Date:** 2026-10-31 14:30
+**Format note:** .md per requester's explicit instruction; the series default is HTML (html-report-kit) — the series directory deliberately mixes both.
 **Session scope:** User asked "Are we using samber/do v2 with Health Checks superbly? Do we have a PROPER Service Oriented, composable, resilient, self-health architecture?" → deep review + detailed .md report. This status covers ONLY this session's run and what I noticed during it, plus the self-review the user now demands.
 
 **Artifacts produced this session:**
@@ -34,7 +35,7 @@
 | b1 | Prior-review (2026-06-06) cross-reference | Spot-checked its sections and 3 of its recommendations (CommandRunner/UeventListener shipped, DataStar shipped); its "17 open TODOs" list declared stale from sampling, not exhaustively re-audited row by row |
 | b2 | Skill methodology compliance | `architecture-review` SKILL.md read and its process followed in substance (map → dependencies → domain alignment → pain points → scores → roadmap), but its `references/assessment-rubric.md` and `references/review-methodology.md` were NOT loaded — my 1-5/4.5 scoring scale was self-invented, not the skill's rubric |
 | b3 | Output-format decision | User explicitly demanded .md; skill default is HTML via html-report-kit template. Override is legitimate but the deviation was never explicitly flagged, and the series directory now mixes .html (1 review) and .md (1 review) formats |
-| b4 | F1 (subprocess timeouts) evidence chain | The daemon-side claim is source-verified (`commander.go` has no timeout wrapper; socket path passes daemon-lifetime ctx). The HTTP-side claim ("request contexts carry no handler deadline") rests on net/http semantics knowledge, not an in-repo empirical check |
+| b4 | F1 (subprocess timeouts) evidence chain | The daemon-side claim is source-verified (`commander.go` has no timeout wrapper; socket path passes daemon-lifetime ctx). The HTTP-side claim ("request contexts carry no handler deadline") ⚠ **inferred** — rests on net/http semantics knowledge, not an in-repo empirical check |
 | b5 | TODO_LIST header update | New "Updated:" line written, but the old one was compressed into a parenthetical "Prior:" instead of being demoted to a separate `**Previous:**` line — mild format drift from the file's established convention |
 
 ## c) NOT STARTED (deliberately out of this session's scope)
@@ -55,7 +56,7 @@ Nothing catastrophically broken — no code touched, no tests regressed (none ap
 | --- | --- | --- |
 | d1 | Did not read the two reference files the architecture-review skill points to for scoring + methodology (b2) — risk: my scores are not calibrated against the rubric the series' HTML review used, so cross-review score comparisons are approximate | Medium |
 | d2 | TODO_LIST "Previous:" demotion convention bent (b5) — I authored format drift in a file whose conventions are explicit | Low |
-| d3 | Report asserts "read/write deadlines" for the CLI client from the `SetDeadline` call name without opening the function body — if `SetDeadline` were narrowly scoped the claim would overreach (it isn't; stdlib sets both, but I didn't look) | Low |
+| d3 | Report asserts "read/write deadlines" for the CLI client from the `SetDeadline` call name without opening the function body — if `SetDeadline` were narrowly scoped the claim would overreach (it isn't; stdlib sets both, but I didn't look). **DE-INFERED 2026-10-31:** read the body — `internal/pixy/ipc.go:14` calls `conn.SetDeadline(now+timeout)`, the stdlib call that sets BOTH read and write deadlines; the claim is source-verified now (nuance: the one absolute deadline set before the write also bounds the subsequent read, so `DefaultWriteTimeout` is effectively the whole round-trip bound) | Low |
 | d4 | No explicit note in the report that the deliverable deviates from the series' HTML format by user instruction | Low |
 
 ## e) WHAT WE SHOULD IMPROVE (session-derived)

@@ -1,6 +1,10 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-10-31 (Pareto plan `docs/planning/2026-10-31_14-33_SUPERB-v05-release-first-pareto-plan.md` — full 80/20 ranking of all open rows, 27 medium + 104 fine tasks, release-first recommendation for #155; NEW row #194 observability additions. Earlier: arch review `2026-10-31_14-17` harvested #190–#193. Prior: 2026-10-20 Pareto plan P1/P2/P5/P6 executed + CI unblocked; #177/#180/#181-chunk-1/#178-baseline resolved in-session; verdicts recorded into #155/#173/#179)
+**Updated:** 2026-10-31 (Pareto plan `docs/planning/2026-10-31_14-33_SUPERB-v05-release-first-pareto-plan.md` — full 80/20 ranking of all open rows, 27 medium + 104 fine tasks, release-first recommendation for #155; NEW row #194 observability additions; plan execution the same day: #184–#188, #173, #174, #179, #181-chunk-2, #192–#195 DONE, v0.5.0 cut)
+
+**Previous:** 2026-10-31 (arch review `2026-10-31_14-17` harvested #190–#193; session-hygiene rows #186/#187/#188 carried into the Pareto plan)
+
+**Previous:** 2026-10-20 (Pareto plan P1/P2/P5/P6 executed + CI unblocked; #177/#180/#181-chunk-1/#178-baseline resolved in-session; verdicts recorded into #155/#173/#179)
 
 **Previous:** 2026-10-01b (state/split-brain remediation: camera intent decoupled from connectivity (ADR `2026-10-01_camera-intent-vs-connectivity`, schema v2), `syncState` under `hidMu`, `powerStatus` negative cache, ghost `ProcessInspector` retired, metrics `online` gauge, lock-contract table — see `CHANGELOG.md` [Unreleased]; findings 1/2/3/4/5/6/7/10/11 fixed; new row #182)
 
