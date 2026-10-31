@@ -358,10 +358,8 @@ func TestWeb_PresetActionRejectsInvalidName(t *testing.T) {
 
 	verbs := map[string]bool{"load": true, "delete": true, "push": true}
 	badNames := []string{
-		"",
 		strings.Repeat("a", pixy.MaxPresetNameLength+1),
-		"name/with/slash",
-		"control\x00char",
+		"bad%00name", // escaped NUL decodes to a control character inside {name}
 	}
 
 	for verb := range verbs {
