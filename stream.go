@@ -239,6 +239,7 @@ func (s *webServer) setupStream(
 	var probeBuf bytes.Buffer
 
 	_, probeErr := extractJPEGFrame(reader, &probeBuf)
+
 	firstFrameKiller.Stop()
 
 	if probeErr != nil {
