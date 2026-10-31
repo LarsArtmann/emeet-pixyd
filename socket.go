@@ -60,6 +60,11 @@ func (d *Daemon) newUnixListener() (net.Listener, error) {
 // read; killing the loop would take away the CLI surface entirely.
 const acceptFailureCeiling = 10
 
+// acceptRetryDelay spaces out accept retries so a persistently failing
+// listener produces ~10 attempts/second instead of a busy loop (and bounds
+// the ceiling episode to roughly one second).
+const acceptRetryDelay = 100 * time.Millisecond
+
 // acceptUnixLoop serves CLI connections until the context is cancelled.
 // Transient accept errors are logged and retried — the loop never exits on
 // its own; hitting the ceiling marks the daemon degraded instead (#191b)
@@ -94,11 +99,18 @@ func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 				slog.Error("socket accept error", "error", err, "consecutive", consecutiveFailures)
 			}
 
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(acceptRetryDelay):
+			}
+
 			continue
 		}
 
 		if consecutiveFailures > 0 {
 			consecutiveFailures = 0
+
 			d.clearDegraded(degradedSocketAccept)
 		}
 

@@ -233,7 +233,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 		LastSynced:   d.lastSyncedAt,
 		Presets:      d.state.Presets.SortedNames(),
 		TrackMode:    d.state.EffectiveTrackMode().String(),
-		Speeds:      d.state.Speeds,
+		Speeds:       d.state.Speeds,
 
 		DegradedReasons: d.degradedReasonsSortedLocked(),
 	}

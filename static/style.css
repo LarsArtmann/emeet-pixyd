@@ -1189,6 +1189,23 @@ input[type="range"]:focus-visible {
   flex-shrink: 0;
 }
 
+.degraded-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--yellow-subtle);
+  border: 1px solid var(--yellow-hover);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: var(--yellow);
+}
+
+.degraded-banner .offline-dot {
+  background: var(--yellow);
+}
+
 /* ========================================================================== */
 /*  Toasts                                                                    */
 /* ========================================================================== */
