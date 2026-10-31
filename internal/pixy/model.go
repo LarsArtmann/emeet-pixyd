@@ -59,7 +59,7 @@ type DeviceProfile struct {
 
 // pixyFamilyProfiles are the controllable PIXY-family products.
 //
-//nolint:gochecknoglobals // static device registry
+//x
 var pixyFamilyProfiles = map[int64]DeviceProfile{
 	ProductIDOriginal: {Model: ModelOriginal, Family: FamilyPIXY},
 	ProductID2K:       {Model: Model2K, Family: FamilyPIXY},
@@ -67,7 +67,7 @@ var pixyFamilyProfiles = map[int64]DeviceProfile{
 
 // fixedUVCProfiles are recognized fixed-lens EMEET webcams.
 //
-//nolint:gochecknoglobals // static device registry
+//x
 var fixedUVCProfiles = map[int64]DeviceProfile{
 	ProductIDC960:    {Model: "EMEET C960", Family: FamilyFixedUVC},
 	ProductIDC960Old: {Model: "EMEET C960", Family: FamilyFixedUVC},

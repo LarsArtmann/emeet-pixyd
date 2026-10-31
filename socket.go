@@ -39,7 +39,7 @@ func (d *Daemon) newUnixListener() (net.Listener, error) {
 		)
 	}
 
-	//nolint:exhaustruct
+	//x
 	lc := net.ListenConfig{}
 
 	listener, err := lc.Listen(context.Background(), "unix", socketPath)

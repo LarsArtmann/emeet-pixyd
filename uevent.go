@@ -24,7 +24,7 @@ type uevent struct {
 }
 
 func parseUevent(data string) uevent {
-	//nolint:exhaustruct
+	//x
 	evt := uevent{}
 
 	for line := range strings.SplitSeq(data, "\n") {
@@ -117,7 +117,7 @@ func listenNetlinkUevents(ctx context.Context, ch chan<- struct{}) {
 		}
 
 		slog.Debug("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
-		recordUevent(evt.Action, evt.Subsys) //nolint:contextcheck // uevent goroutine has no inherited context
+		recordUevent(evt.Action, evt.Subsys) //x
 
 		select {
 		case ch <- struct{}{}:

@@ -22,9 +22,9 @@ func SetDeadline(conn net.Conn, timeout time.Duration) error {
 
 // SendCommand sends a command string over a Unix socket and returns the response.
 //
-//nolint:nonamedreturns // named err is required for the deferred close-error aggregation
+//x
 func SendCommand(ctx context.Context, socketPath, cmd string) (resp string, err error) {
-	//nolint:exhaustruct
+	//x
 	dialer := net.Dialer{Timeout: DefaultSocketTimeout}
 
 	conn, dialErr := dialer.DialContext(ctx, "unix", socketPath)

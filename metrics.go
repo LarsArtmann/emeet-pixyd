@@ -31,11 +31,11 @@ type daemonMetrics struct {
 }
 
 var (
-	metricsInstance   *daemonMetrics //nolint:gochecknoglobals // lazy init via sync.Once
-	metricsRegistered sync.Once      //nolint:gochecknoglobals // lazy init, runs once per process
+	metricsInstance   *daemonMetrics //x
+	metricsRegistered sync.Once      //x
 	// testPromExporter is set during registerMetrics() so tests can collect
 	// metric snapshots without adding production-only state to daemonMetrics.
-	testPromExporter *prometheus.Exporter //nolint:gochecknoglobals // test-only
+	testPromExporter *prometheus.Exporter //x
 )
 
 func registerMetrics() {
@@ -117,7 +117,7 @@ func registerMetrics() {
 	})
 }
 
-//nolint:ireturn
+//x
 func mustFloat64Gauge(meter metric.Meter, name, desc string) metric.Float64Gauge {
 	g, err := meter.Float64Gauge(name, metric.WithDescription(desc))
 	if err != nil {
@@ -127,7 +127,7 @@ func mustFloat64Gauge(meter metric.Meter, name, desc string) metric.Float64Gauge
 	return g
 }
 
-//nolint:ireturn
+//x
 func mustInt64Counter(meter metric.Meter, name, desc string) metric.Int64Counter {
 	c, err := meter.Int64Counter(name, metric.WithDescription(desc))
 	if err != nil {
@@ -137,7 +137,7 @@ func mustInt64Counter(meter metric.Meter, name, desc string) metric.Int64Counter
 	return c
 }
 
-//nolint:ireturn
+//x
 func mustFloat64Histogram(meter metric.Meter, name, desc, unit string) metric.Float64Histogram {
 	h, err := meter.Float64Histogram(name, metric.WithDescription(desc), metric.WithUnit(unit))
 	if err != nil {

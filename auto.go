@@ -182,6 +182,6 @@ func (d *Daemon) autoManage(ctx context.Context) {
 	}
 
 	d.mu.RLock()
-	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold) //nolint:contextcheck
+	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold) //x
 	d.mu.RUnlock()
 }

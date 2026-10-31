@@ -31,7 +31,7 @@ func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 
 	d.hidFailCount++
 	if d.hidFailCount >= hidCircuitBreakerThreshold {
-		recordBreakerState(true) //nolint:contextcheck // immediate trip visibility; updateMetrics derives it thereafter
+		recordBreakerState(true) //x
 	}
 
 	recordHIDFailure(ctx)

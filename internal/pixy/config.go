@@ -33,7 +33,7 @@ type Config struct {
 func DefaultConfig() Config {
 	state := DefaultState()
 
-	//nolint:exhaustruct
+	//x
 	return Config{
 		StateDir:      DefaultStateDir,
 		PollInterval:  DefaultPollInterval,

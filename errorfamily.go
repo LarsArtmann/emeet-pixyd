@@ -8,7 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-var errorFamiliesRegistered sync.Once //nolint:gochecknoglobals // lazy init, runs once per process
+var errorFamiliesRegistered sync.Once //x
 
 // registerErrorFamilies registers stdlib defaults with go-error-family so
 // errorfamily.Classify(err), errorfamily.HTTPStatus(err), and

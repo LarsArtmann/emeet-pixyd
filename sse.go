@@ -18,7 +18,7 @@ type Broadcaster struct {
 
 // NewBroadcaster creates a broadcaster with no subscribers.
 //
-//nolint:exhaustruct
+//x
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{subscribers: make(map[chan struct{}]struct{})}
 }

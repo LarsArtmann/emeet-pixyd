@@ -18,11 +18,11 @@ func (c cachingFS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.handler.ServeHTTP(w, r)
 }
 
-//nolint:gochecknoglobals
+//x
 var loggingMiddleware = loggingMiddlewareFactory(slog.Default())
 
-//nolint:gochecknoglobals
+//x
 var securityHeaderMiddleware = securityHeadersMiddleware
 
-//nolint:gochecknoglobals
+//x
 var requestIDMW = requestIDMiddleware

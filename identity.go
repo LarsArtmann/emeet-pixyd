@@ -60,7 +60,7 @@ func (d *Daemon) identityStatus(ctx context.Context) (identityInfo, []bool) {
 	return info, ok
 }
 
-//nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//x
 func (d *Daemon) queryIdentityString(
 	ctx context.Context,
 	head pixy.V2Head,
@@ -73,7 +73,7 @@ func (d *Daemon) queryIdentityString(
 	return pixy.ParseString(head, resp)
 }
 
-//nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//x
 func (d *Daemon) queryIdentityU16(
 	ctx context.Context,
 	head pixy.V2Head,
@@ -86,7 +86,7 @@ func (d *Daemon) queryIdentityU16(
 	return pixy.ParseU16(head, resp)
 }
 
-//nolint:wrapcheck // pixy parse errors are already domain-wrapped
+//x
 func (d *Daemon) queryIdentityU32(
 	ctx context.Context,
 	head pixy.V2Head,

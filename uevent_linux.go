@@ -19,9 +19,9 @@ func unixOpenNetlinkKobjectUevent() (int, error) {
 		return -1, errorfamily.WrapTransientf(err, "uevent.netlink_socket", "netlink socket")
 	}
 
-	//nolint:exhaustruct
+	//x
 	sa := &unix.SockaddrNetlink{
-		//nolint:exhaustruct
+		//x
 		Groups: 1,
 	}
 

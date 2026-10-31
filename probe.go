@@ -28,7 +28,7 @@ const (
 // warnLimiter for the rationale. Package-level because probes are plain
 // functions on sysfs state.
 //
-//nolint:gochecknoglobals // package-level by design: probes are plain functions
+//x
 var ueventWarnLimiter = newWarnLimiter(ueventWarnInterval)
 
 func isPixyName(name string) bool {
@@ -213,7 +213,7 @@ const unsupportedWarnInterval = time.Hour
 
 // unsupportedWarnLimiter rate-limits the unsupported-device hint.
 //
-//nolint:gochecknoglobals // package-level by design: probes are plain functions
+//x
 var unsupportedWarnLimiter = newWarnLimiter(unsupportedWarnInterval)
 
 func probeDevices(extraProductIDs []int64) probeResult {
@@ -271,7 +271,7 @@ const deviceAccessWarnInterval = time.Hour
 
 // deviceAccessWarnLimiter rate-limits the hotplug-path accessibility warning.
 //
-//nolint:gochecknoglobals // package-level by design: probes are plain functions
+//x
 var deviceAccessWarnLimiter = newWarnLimiter(deviceAccessWarnInterval)
 
 // warnInaccessibleDevicesLimited is warnInaccessibleDevices with an optional

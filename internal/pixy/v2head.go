@@ -68,7 +68,7 @@ var (
 //   - Per-command payload layouts: map doc §3.5 call sites; graded per
 //     constant below where stronger evidence exists.
 //
-//nolint:gochecknoglobals // protocol constants; [4]byte cannot be Go consts
+//x
 var (
 	// V2SetMotorSpeed: payload [motorType:u8][speed:f32 LE].
 	V2SetMotorSpeed = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x03}

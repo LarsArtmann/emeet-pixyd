@@ -43,7 +43,7 @@ func errResult(op string, err error) CommandResult {
 func errResultMsg(msg string) CommandResult {
 	return CommandResult{
 		Message: "",
-		Err:     &CommandError{Op: msg}, //nolint:exhaustruct // leaf error — Err intentionally nil
+		Err:     &CommandError{Op: msg}, //x
 	}
 }
 

@@ -14,7 +14,7 @@ import (
 
 func shortSocketDir(t *testing.T) string {
 	t.Helper()
-	//nolint:usetesting // macOS t.TempDir() produces paths too long for Unix socket addresses
+	//x
 	dir, err := os.MkdirTemp("/tmp", "pxd-")
 	if err != nil {
 		t.Fatalf("create short temp dir: %v", err)

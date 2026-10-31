@@ -21,7 +21,7 @@ type warnLimiter struct {
 }
 
 func newWarnLimiter(interval time.Duration) *warnLimiter {
-	//nolint:exhaustruct // mu is a sync.Mutex — the zero value is the only valid initializer
+	//x
 	return &warnLimiter{
 		interval: interval,
 		last:     make(map[string]time.Time),

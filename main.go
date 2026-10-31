@@ -25,7 +25,7 @@ import (
 
 // Build info, overridden via -ldflags.
 //
-//nolint:gochecknoglobals
+//x
 var buildVersion = "dev"
 
 type Daemon struct {
@@ -111,14 +111,14 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "daemon.validate_config", "validate config")
 	}
 
-	//nolint:exhaustruct // remaining fields set below or zero-valued
+	//x
 	d := &Daemon{
 		config:      cfg,
 		state:       pixy.DefaultState(),
 		streamSema:  make(chan struct{}, 1),
 		broadcaster: NewBroadcaster(),
 	}
-	//nolint:exhaustruct // remaining deps set below (circular ref on d.setTracking etc)
+	//x
 	d.deps = Dependencies{
 		commander:      realCommandRunner{},
 		ueventListener: netlinkUeventListener{},
@@ -197,7 +197,7 @@ func sdNotify(state string) {
 func (d *Daemon) newHTTPServer() *http.Server {
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
-	//nolint:exhaustruct
+	//x
 	return &http.Server{
 		Addr: d.config.WebAddr,
 		Handler: chain(
@@ -351,7 +351,7 @@ func (d *Daemon) eventLoop(
 				continue
 			}
 
-			d.handleShutdown(cancel, httpSrv) //nolint:contextcheck // shutdown cancels the parent context
+			d.handleShutdown(cancel, httpSrv) //x
 
 			return
 		case <-ueventCh:
@@ -404,7 +404,7 @@ func exitWithDaemonError(err error) {
 
 // helpText is printed for --help. "preset" repeats as a command prefix.
 //
-//nolint:dupword // command help text naturally repeats the command prefix
+//x
 const helpText = `Usage: emeet-pixyd [command]
 
 Run without arguments to start the daemon.

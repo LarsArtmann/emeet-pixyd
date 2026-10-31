@@ -68,7 +68,7 @@ func TestHandleQueryCommand_Probe_DeviceFoundWinsOverHint(t *testing.T) {
 // once per hint text per interval (the condition is stable while the device
 // stays plugged; per-probe logging would flood the journal) and that
 // different hint texts rate-limit independently.
-func TestLogUnsupportedHintLimited_RateLimitedPerHint(t *testing.T) { //nolint:paralleltest // mutates global slog
+func TestLogUnsupportedHintLimited_RateLimitedPerHint(t *testing.T) { //x
 	var buf bytes.Buffer
 
 	prev := slog.Default()

@@ -95,7 +95,7 @@ func lastTrackingConfigIndex(sim *pixySimulator, modeByte byte) int {
 // re-assert, and the re-assert bounces through idle — the sequence that
 // clears the firmware's poisoned mode state — before re-entering tracking.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -142,7 +142,7 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 // handleShutdown returns, the idle bounce and the mode re-write have both
 // landed on the device, never been cut off mid-HID-write.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestHandleShutdown_DrainsInFlightTrapReassert(t *testing.T) {
 	withShortReassertDelay(t, 250*time.Millisecond)
 
@@ -173,7 +173,7 @@ func TestHandleShutdown_DrainsInFlightTrapReassert(t *testing.T) {
 // a mode write goes out exactly once — the re-assert never fires for normal
 // clicks.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -195,7 +195,7 @@ func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 // moves on before the re-assert fires (privacy clicked meanwhile), the stale
 // re-assert is dropped instead of fighting the newer command.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 	withShortReassertDelay(t, 500*time.Millisecond)
 
@@ -237,7 +237,7 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 // racing the trap cover — the deferred re-assert applies to uncovering
 // writes only.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -261,7 +261,7 @@ func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
@@ -286,7 +286,7 @@ func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 // hidMu-scoped write must not deadlock against the re-assert goroutine taking
 // hidMu afterwards.
 //
-//nolint:paralleltest // mutates the package-level re-assert delay
+//x
 func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 

@@ -44,7 +44,7 @@ type actionToastInfo struct {
 	kind toastType
 }
 
-//nolint:gochecknoglobals
+//x
 var actionToasts = map[string]actionToastInfo{
 	cmdTrack:         {toastTrackingEnabled, toastTypeSuccess},
 	cmdIdle:          {toastCameraIdle, toastTypeSuccess},
@@ -73,7 +73,7 @@ type webServer struct {
 
 func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	snap := s.daemon.snapshot()
-	//nolint:exhaustruct
+	//x
 	status := webStatus{
 		Camera:          snap.Camera,
 		Audio:           snap.Audio,
@@ -137,7 +137,7 @@ func (s *webServer) getWebStatusWithPTZ(ctx context.Context) webStatus {
 
 func (s *webServer) handleIndex(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
-	templ.Handler(page(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+	templ.Handler(page(status)).ServeHTTP(responseWriter, request) //x
 }
 
 func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Request) {
@@ -226,7 +226,7 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 // action handlers.
 func (s *webServer) handleStatusPanel(responseWriter http.ResponseWriter, request *http.Request) {
 	status := s.getWebStatusWithPTZ(request.Context())
-	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //nolint:contextcheck
+	templ.Handler(statusPanel(status)).ServeHTTP(responseWriter, request) //x
 }
 
 // handleEvents is the persistent SSE connection. DataStar establishes this via
@@ -246,7 +246,7 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 
 	// Send initial panel state
 	status := s.getWebStatusWithPTZ(request.Context())
-	if err := sse.PatchElementTempl(statusPanel(status)); err != nil { //nolint:contextcheck
+	if err := sse.PatchElementTempl(statusPanel(status)); err != nil { //x
 		return
 	}
 
@@ -263,7 +263,7 @@ func (s *webServer) handleEvents(responseWriter http.ResponseWriter, request *ht
 			}
 
 			refreshed := s.getWebStatusWithPTZ(request.Context())
-			if err := sse.PatchElementTempl(statusPanel(refreshed)); err != nil { //nolint:contextcheck
+			if err := sse.PatchElementTempl(statusPanel(refreshed)); err != nil { //x
 				return
 			}
 		}
@@ -313,7 +313,7 @@ func (s *webServer) action(command string) http.HandlerFunc {
 		applyResultToStatus(result, &status, toast, toastType)
 
 		sse := datastar.NewSSE(responseWriter, request)
-		s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+		s.patchPanel(sse, status) //x
 	}
 }
 
@@ -357,7 +357,7 @@ func (s *webServer) handleAudio(responseWriter http.ResponseWriter, request *htt
 	applyResultToStatus(result, &status, toast, toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPanel(sse, status) //x
 }
 
 // axisFromRequest parses the {axis} path segment and validates it as a PTZ
@@ -400,7 +400,7 @@ func (s *webServer) handlePTZ(responseWriter http.ResponseWriter, request *http.
 	if result.IsError() {
 		status := s.getWebStatusWithPTZ(request.Context())
 		applyResultToStatus(result, &status, "", "")
-		s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+		s.patchPanel(sse, status) //x
 
 		return
 	}
@@ -438,7 +438,7 @@ func (s *webServer) patchPresetResult(responseWriter http.ResponseWriter, reques
 	applyResultToStatus(result, &status, result.String(), toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPanel(sse, status) //x
 }
 
 func (s *webServer) handlePresetSave(responseWriter http.ResponseWriter, request *http.Request) {
@@ -556,7 +556,7 @@ func (s *webServer) handleSpeed(responseWriter http.ResponseWriter, request *htt
 	applyResultToStatus(result, &status, toastSpeedChanged, toastTypeSuccess)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPanel(sse, status) //x
 }
 
 // handleTrackingVariant implements POST /api/tracking/{variant} — the web
@@ -575,5 +575,5 @@ func (s *webServer) handleTrackingVariant(responseWriter http.ResponseWriter, re
 	applyResultToStatus(result, &status, toast, tt)
 
 	sse := datastar.NewSSE(responseWriter, request)
-	s.patchPanel(sse, status) //nolint:contextcheck // templ rendering handles context internally
+	s.patchPanel(sse, status) //x
 }

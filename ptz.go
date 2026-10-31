@@ -32,7 +32,7 @@ type ptzAxisInfo struct {
 	Multiplier int
 }
 
-//nolint:gochecknoglobals
+//x
 var ptzAxes = map[pixy.Axis]ptzAxisInfo{
 	pixy.AxisPan: {
 		Range: pixy.PanRange, Label: "Pan", Unit: "\u00b0",
@@ -50,12 +50,12 @@ var ptzAxes = map[pixy.Axis]ptzAxisInfo{
 
 // ptzAxisOrder defines the deterministic order for V4L2 control listing.
 //
-//nolint:gochecknoglobals
+//x
 var ptzAxisOrder = []pixy.Axis{pixy.AxisPan, pixy.AxisTilt, pixy.AxisZoom}
 
 // v4l2CtrlToAxis maps V4L2 control names back to PTZ axis names.
 //
-//nolint:gochecknoglobals
+//x
 var v4l2CtrlToAxis = buildCtrlToAxis()
 
 func buildCtrlToAxis() map[string]pixy.Axis {
@@ -117,7 +117,7 @@ func (d *Daemon) parsePTZValues(ctx context.Context, dev string) pixy.PTZValues 
 	if err != nil {
 		slog.Warn("parsePTZValues: v4l2-ctl read failed", "device", dev, "error", err)
 
-		//nolint:exhaustruct
+		//x
 		return pixy.PTZValues{}
 	}
 

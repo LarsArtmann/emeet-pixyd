@@ -73,7 +73,7 @@ type hidResponse struct {
 	Got      bool
 }
 
-//nolint:gochecknoglobals
+//x
 var cameraHIDBytes = map[pixy.CameraState]byte{
 	pixy.StateTracking: hidByteTracking,
 	pixy.StatePrivacy:  hidBytePrivacy,
@@ -89,7 +89,7 @@ func cameraHIDByte(s pixy.CameraState) byte {
 	return hidByteIdle
 }
 
-//nolint:gochecknoglobals
+//x
 var audioHIDBytes = map[pixy.AudioMode]byte{
 	pixy.AudioNC:       hidByteNC,
 	pixy.AudioLive:     hidByteLive,
@@ -142,7 +142,7 @@ func (h *hidrawDevice) Send(
 	return nil
 }
 
-//nolint:nonamedreturns // named err is required for the deferred close-error aggregation
+//x
 func (h *hidrawDevice) SendRecv(
 	ctx context.Context,
 	report []byte,
