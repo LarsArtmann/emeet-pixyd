@@ -1,6 +1,6 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-10-20 (Pareto plan `docs/planning/2026-10-19_04-29` P1/P2/P5/P6 executed + CI unblocked; #177/#180/#181-chunk-1/#178-baseline resolved in-session; verdicts recorded into #155/#173/#179. Prior: 2026-10-19 SystemNix follow-ups #183–#189)
+**Updated:** 2026-10-31 (Pareto plan `docs/planning/2026-10-31_14-33_SUPERB-v05-release-first-pareto-plan.md` — full 80/20 ranking of all open rows, 27 medium + 104 fine tasks, release-first recommendation for #155; NEW row #194 observability additions. Earlier: arch review `2026-10-31_14-17` harvested #190–#193. Prior: 2026-10-20 Pareto plan P1/P2/P5/P6 executed + CI unblocked; #177/#180/#181-chunk-1/#178-baseline resolved in-session; verdicts recorded into #155/#173/#179)
 
 **Previous:** 2026-10-01b (state/split-brain remediation: camera intent decoupled from connectivity (ADR `2026-10-01_camera-intent-vs-connectivity`, schema v2), `syncState` under `hidMu`, `powerStatus` negative cache, ghost `ProcessInspector` retired, metrics `online` gauge, lock-contract table — see `CHANGELOG.md` [Unreleased]; findings 1/2/3/4/5/6/7/10/11 fixed; new row #182)
 
@@ -74,6 +74,11 @@
 | 187 | ◻ OPEN | Cross-link guides: metrics→monitoring, quickshell→monitoring (shared stale-binary trap) | LOW | S | plan P2-7/8 |
 | 188 | ◻ OPEN | aarch64 eval coverage: try `nix flake check --no-build --all-systems`, wire into nix.yml or record the accepted gap | LOW | S | plan P8-40 |
 | 189 | ◻ OPEN | Lockstep cross-refs: comment pair module port default ↔ `pixy.DefaultWebAddr` so drift is loud | LOW | S | plan P6-22 |
+| 190 | ◻ OPEN | Per-subprocess timeouts: wrap `v4l2Set`/`parsePTZValues`/stream/notify in `context.WithTimeout` — a wedged `v4l2-ctl`/`ffmpeg` currently holds `v4l2Mu` until the watchdog restarts the daemon (HID is already bounded at 500ms; clients are deadline-bounded, so the residue is the mutex hold + restart blast radius) | MED | S | arch review `2026-10-31_14-17` F1; `commander.go:24-48` vs `hid.go:66` |
+| 191 | ◻ OPEN | Fail-fast on startup socket-listen failure (error out of `Run` → systemd `Restart=on-failure`) + `degraded` dimension in `/api/health` + `/api/status` for runtime listener losses — today the daemon stays READY=1 with a dead CLI/web surface, unobserved by any health layer | MED | S-M | arch review `2026-10-31_14-17` F2/F5; `main.go:212-217,265-272` |
+| 192 | ◻ OPEN | Drain `d.trapReasserts` in `handleShutdown` before the state save (or reclassify won't-do) — WaitGroup exists, only tests wait on it; known since the 2026-10-01 status report item 19, never harvested | LOW | S | arch review `2026-10-31_14-17` F3; `main.go:60-62`, `privacy_trap.go:67` |
+| 193 | ◻ OPEN | Document the watchdog invariant on `WatchdogSec` in `modules/nixos.nix`: must stay ≥ ~10 × `PollInterval` + worst-case `autoManage` (petting is coupled to the poll tick) | LOW | S | arch review `2026-10-31_14-17` F4; `main.go:354-356`, `modules/nixos.nix:116-120` |
+| 194 | ◻ OPEN | Self-health observability additions: `emeet_pixyd_breaker_state` gauge (open/tripped — today only the cumulative failure counter exists), `emeet_pixyd_auto_errors_total` counter (`autoError` reaches humans but not metrics), `checkExternalDeps` results feeding the degraded dimension, socket accept-loop consecutive-failure ceiling | LOW/MED | M | arch review `2026-10-31_14-17` §7 P3; status `2026-10-31_14-30` f15-19; pairs with #191 |
 
 ---
 
