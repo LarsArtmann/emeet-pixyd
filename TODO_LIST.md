@@ -79,6 +79,7 @@
 | 192 | ◻ OPEN | Drain `d.trapReasserts` in `handleShutdown` before the state save (or reclassify won't-do) — WaitGroup exists, only tests wait on it; known since the 2026-10-01 status report item 19, never harvested | LOW | S | arch review `2026-10-31_14-17` F3; `main.go:60-62`, `privacy_trap.go:67` |
 | 193 | ◻ OPEN | Document the watchdog invariant on `WatchdogSec` in `modules/nixos.nix`: must stay ≥ ~10 × `PollInterval` + worst-case `autoManage` (petting is coupled to the poll tick) | LOW | S | arch review `2026-10-31_14-17` F4; `main.go:354-356`, `modules/nixos.nix:116-120` |
 | 194 | ◻ OPEN | Self-health observability additions: `emeet_pixyd_breaker_state` gauge (open/tripped — today only the cumulative failure counter exists), `emeet_pixyd_auto_errors_total` counter (`autoError` reaches humans but not metrics), `checkExternalDeps` results feeding the degraded dimension, socket accept-loop consecutive-failure ceiling | LOW/MED | M | arch review `2026-10-31_14-17` §7 P3; status `2026-10-31_14-30` f15-19; pairs with #191 |
+| 195 | ◻ OPEN | Website dependabot sweep: 12 open npm alerts (5 high: vite, undici, source-map-js, sharp, http-cache-semantics; 7 moderate: vite ×3, undici, smol-toml, fast-uri) — build-chain only (static output ships none of it; Go side clean via CI govulncheck). `pnpm audit fix` + lockfile regen + `--frozen-lockfile`/`tsc --strict` proof (pairs with #185) | MED | S | GitHub dependabot, noticed 2026-10-31 push |
 
 ---
 
