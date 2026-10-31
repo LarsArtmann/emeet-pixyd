@@ -25,7 +25,7 @@ import (
 
 // Build info, overridden via -ldflags.
 //
-//x
+//nolint:gochecknoglobals
 var buildVersion = "dev"
 
 type Daemon struct {
@@ -351,7 +351,7 @@ func (d *Daemon) eventLoop(
 				continue
 			}
 
-			d.handleShutdown(cancel, httpSrv) //x
+			d.handleShutdown(cancel, httpSrv) //nolint:contextcheck // shutdown cancels the parent context
 
 			return
 		case <-ueventCh:
@@ -404,7 +404,7 @@ func exitWithDaemonError(err error) {
 
 // helpText is printed for --help. "preset" repeats as a command prefix.
 //
-//x
+//nolint:dupword // command help text naturally repeats the command prefix
 const helpText = `Usage: emeet-pixyd [command]
 
 Run without arguments to start the daemon.

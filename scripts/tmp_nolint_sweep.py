@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 NOLINT = re.compile(r"//\s*nolint(:[a-zA-Z0-9_,\s]+)?\s*(//.*)?$")
-ISSUE = re.compile(r"^(.+?):(\d+):\d+: (\w+):")
+ISSUE = re.compile(r"^(.+?):(\d+):\d+: .+\((\w+)\)\s*$")
 
 records = []  # (file, lineno, comment, stripped_line, original_line)
 
@@ -60,9 +60,8 @@ def main() -> None:
         text=True,
         cwd=ROOT,
         env={
-            "PATH": "/nix/store/wnjaiawf798z57if1yf59i73abakkxwk-golangci-lint-2.14.0/bin:/nix/store/pn86sk63a2lpmwx16vj4s5871slkyzfw-go-1.27.1/bin:/usr/bin:/bin",
+            **__import__("os").environ,
             "GOWORK": "off",
-            "HOME": str(Path.home()),
             "GOTMPDIR": str(Path.home() / ".cache/gotmp"),
             "TMPDIR": str(Path.home() / ".cache/gotmp"),
         },

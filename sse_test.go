@@ -54,7 +54,7 @@ func TestSSEEndpoint_SendsPatchElementsOnConnect(t *testing.T) {
 	d := testDaemonNoDevice(t)
 	server := newTestWebServer(t, d)
 
-	resp := openSSEStream(t, server) //x
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("status = %d, want %d", resp.StatusCode, http.StatusOK)
@@ -145,7 +145,7 @@ func TestSSEEndpoint_BroadcastsPatchOnStateChange(t *testing.T) {
 	d := testDaemonNoDevice(t)
 	server := newTestWebServer(t, d)
 
-	resp := openSSEStream(t, server) //x
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 	reader := bufio.NewReader(resp.Body)
 
 	// Consume the first patch event line (ignore data lines).
@@ -200,7 +200,7 @@ func TestSSEEndpoint_SurvivesServerWriteTimeout(t *testing.T) {
 	server.Start()
 	t.Cleanup(server.Close)
 
-	resp := openSSEStream(t, server) //x
+	resp := openSSEStream(t, server) //nolint:bodyclose // closed via t.Cleanup in openSSEStream
 	reader := bufio.NewReader(resp.Body)
 
 	// Consume the whole initial event (lines until the blank separator) so the

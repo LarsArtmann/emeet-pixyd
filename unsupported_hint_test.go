@@ -94,7 +94,7 @@ func TestUnsupportedHint_AbsentWhenUnset(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	body := getBody(t, doGet(t, ctx, srv.URL+"/panel")) //x
+	body := getBody(t, doGet(t, ctx, srv.URL+"/panel")) //nolint:bodyclose // getBody closes the body after reading
 	if strings.Contains(body, "unsupported-hint") {
 		t.Error("panel renders the unsupported-hint note without a hint")
 	}

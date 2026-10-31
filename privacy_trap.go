@@ -29,7 +29,7 @@ const (
 // the original write, safely past the measured ~1.5-3s transition window.
 // A var (not const) purely so unit tests can shorten it.
 //
-//x
+//nolint:gochecknoglobals
 var privacyTrapReassertDelay = 3 * time.Second
 
 // privacyTrapArmWindow is how long a tilt arrival in the trap zone keeps the

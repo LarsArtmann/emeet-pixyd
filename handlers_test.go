@@ -63,7 +63,7 @@ func matchAttrs(set attribute.Set, wanted []attribute.KeyValue) bool {
 	return true
 }
 
-//x
+//nolint:paralleltest
 func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()
 

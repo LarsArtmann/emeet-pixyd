@@ -30,7 +30,7 @@ type waybarCameraInfo struct {
 	text  string
 }
 
-//x
+//nolint:gochecknoglobals
 var waybarCameraStates = map[pixy.CameraState]waybarCameraInfo{
 	pixy.StateTracking: {icon: "\uf030", class: string(pixy.StateTracking), text: "CAM"},
 	pixy.StatePrivacy:  {icon: "\uf011", class: string(pixy.StatePrivacy), text: "OFF"},

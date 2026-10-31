@@ -73,7 +73,7 @@ type hidResponse struct {
 	Got      bool
 }
 
-//x
+//nolint:gochecknoglobals
 var cameraHIDBytes = map[pixy.CameraState]byte{
 	pixy.StateTracking: hidByteTracking,
 	pixy.StatePrivacy:  hidBytePrivacy,
@@ -89,7 +89,7 @@ func cameraHIDByte(s pixy.CameraState) byte {
 	return hidByteIdle
 }
 
-//x
+//nolint:gochecknoglobals
 var audioHIDBytes = map[pixy.AudioMode]byte{
 	pixy.AudioNC:       hidByteNC,
 	pixy.AudioLive:     hidByteLive,

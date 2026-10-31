@@ -117,7 +117,7 @@ func listenNetlinkUevents(ctx context.Context, ch chan<- struct{}) {
 		}
 
 		slog.Debug("uevent", "action", evt.Action, "subsys", evt.Subsys, "devpath", evt.DevPath)
-		recordUevent(evt.Action, evt.Subsys) //x
+		recordUevent(evt.Action, evt.Subsys) //nolint:contextcheck // uevent goroutine has no inherited context
 
 		select {
 		case ch <- struct{}{}:

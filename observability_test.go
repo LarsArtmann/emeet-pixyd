@@ -50,7 +50,7 @@ func counterValue(t *testing.T, name string, attrs ...attribute.KeyValue) int64 
 	return 0
 }
 
-//x
+//nolint:paralleltest // global metrics registry
 func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	registerMetrics()
 
@@ -102,7 +102,7 @@ func withFailingTracking() testDaemonOption {
 	}
 }
 
-//x
+//nolint:paralleltest // global metrics registry
 func TestCheckExternalDeps_MarksDegradedPerMissingBinary(t *testing.T) {
 	d := newTestDaemon(t, pixy.StateIdle, "", "", withConfig(t.TempDir()))
 	d.deps.commander = failingDepsCommander{}
@@ -131,7 +131,7 @@ func TestCheckExternalDeps_MarksDegradedPerMissingBinary(t *testing.T) {
 	}
 }
 
-//x
+//nolint:paralleltest // global metrics registry
 func TestAutoErrorsMetric_CountsFailedOperations(t *testing.T) {
 	registerMetrics()
 
@@ -158,7 +158,7 @@ func TestAutoErrorsMetric_CountsFailedOperations(t *testing.T) {
 	}
 }
 
-//x
+//nolint:paralleltest // global metrics registry
 func TestAcceptLoopFailureMetric_CountsEachFailure(t *testing.T) {
 	registerMetrics()
 
