@@ -74,7 +74,7 @@ func TestUpdateMetrics(t *testing.T) {
 		AutoMode: pixy.AutoOff,
 	}
 
-	updateMetrics(state, true)
+	updateMetrics(state, true, false)
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 1)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 0)
@@ -93,7 +93,7 @@ func TestUpdateMetrics(t *testing.T) {
 		Camera:   pixy.StatePrivacy,
 		InCall:   false,
 		AutoMode: pixy.AutoFull,
-	}, false)
+	}, false, false)
 
 	requireGaugeValue(t, "emeet_pixyd_in_call", 0)
 	requireGaugeValue(t, "emeet_pixyd_auto_mode", 1)

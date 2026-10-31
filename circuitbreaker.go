@@ -29,7 +29,9 @@ func (d *Daemon) hidSendGuard() (HIDDevice, bool) {
 func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	d.mu.Lock()
 	d.hidFailCount++
-	recordBreakerState(d.hidFailCount >= hidCircuitBreakerThreshold)
+	if d.hidFailCount >= hidCircuitBreakerThreshold {
+		recordBreakerState(true) //nolint:contextcheck // immediate trip visibility; updateMetrics derives it thereafter
+	}
 
 	recordHIDFailure(ctx)
 
@@ -40,12 +42,10 @@ func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 	d.broadcastStateChanged()
 }
 
-// resetHIDFailCountLocked clears the breaker's strike count and mirrors the
-// closed state onto the breaker gauge. Every hidFailCount reset site goes
-// through here so the gauge can never disagree with the counter. Callers
-// hold d.mu.
+// resetHIDFailCountLocked clears the breaker's strike count. The breaker
+// GAUGE is not touched here: it derives from hidFailCount on every
+// updateMetrics tick (and immediately at the trip site), so no ctx-less
+// metric recording is needed inside the locked path. Callers hold d.mu.
 func (d *Daemon) resetHIDFailCountLocked() {
 	d.hidFailCount = 0
-
-	recordBreakerState(false)
 }

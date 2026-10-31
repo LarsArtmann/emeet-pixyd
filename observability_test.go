@@ -61,14 +61,21 @@ func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	d.recordHIDSendFailure(context.Background())
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 0)
 
-	// The third strike trips it.
+	// The third strike trips it — recorded immediately.
 	d.recordHIDSendFailure(context.Background())
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 1)
 
-	// A probe that finds the device present resets the strikes (and the gauge).
+	// A probe that finds the device present resets the strikes; the gauge
+	// re-derives from the strike count on the next updateMetrics tick
+	// (the poll loop's shape — see autoManage).
 	d.mu.Lock()
 	d.applyProbeResultLocked(probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev})
 	d.mu.Unlock()
+
+	d.mu.RLock()
+	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold) //nolint:contextcheck
+	d.mu.RUnlock()
+
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 0)
 }
 

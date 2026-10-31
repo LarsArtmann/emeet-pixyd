@@ -171,23 +171,23 @@ func recordBreakerState(tripped bool) {
 }
 
 // recordAutoError counts one failed auto-manage operation by its op label.
-func recordAutoError(op string) {
+func recordAutoError(ctx context.Context, op string) {
 	if metricsInstance == nil {
 		return
 	}
 
 	metricsInstance.autoErrors.Add(
-		context.Background(), 1,
+		ctx, 1,
 		metric.WithAttributes(attribute.String("op", op)),
 	)
 }
 
-func recordSocketAcceptFailure() {
+func recordSocketAcceptFailure(ctx context.Context) {
 	if metricsInstance == nil {
 		return
 	}
 
-	metricsInstance.acceptFailures.Add(context.Background(), 1)
+	metricsInstance.acceptFailures.Add(ctx, 1)
 }
 
 func recordProbe() {
@@ -231,7 +231,10 @@ func recordUevent(action, subsystem string) {
 // updateMetrics records the current state gauges. online is the runtime
 // connectivity snapshot: it feeds the dedicated online gauge, while
 // camera_state reports the persisted desired mode (which is never offline).
-func updateMetrics(state pixy.State, online bool) {
+// breakerTripped derives the breaker gauge from the authoritative strike
+// count (hidFailCount >= threshold); the trip path also records immediately
+// so a scrape right after the third failure never sees the closed state.
+func updateMetrics(state pixy.State, online bool, breakerTripped bool) {
 	if metricsInstance == nil {
 		return
 	}
@@ -253,6 +256,12 @@ func updateMetrics(state pixy.State, online bool) {
 		metricsInstance.online.Record(ctx, 1)
 	} else {
 		metricsInstance.online.Record(ctx, 0)
+	}
+
+	if breakerTripped {
+		metricsInstance.breakerState.Record(ctx, 1)
+	} else {
+		metricsInstance.breakerState.Record(ctx, 0)
 	}
 
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
