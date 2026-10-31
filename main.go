@@ -199,7 +199,7 @@ func (d *Daemon) newHTTPServer() *http.Server {
 	}
 }
 
-func (d *Daemon) Run() {
+func (d *Daemon) Run() error {
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
 		slog.Error("failed to create state dir", "error", createErr)
@@ -208,13 +208,19 @@ func (d *Daemon) Run() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
+	// Bind the CLI socket synchronously: a startup bind failure is fatal
+	// (#191a) — READY=1 with a dead command surface hides the failure from
+	// every health layer. systemd Restart=on-failure picks the daemon back up.
+	listener, listenErr := d.newUnixListener()
+	if listenErr != nil {
+		slog.Error("unix socket listen failed; refusing to run degraded", "error", listenErr)
+		sdNotify("STOPPING=1")
+
+		return listenErr
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		listenErr := d.listenUnix(ctx)
-		if listenErr != nil {
-			slog.Error("unix socket error", "error", listenErr)
-		}
-	}()
+	go d.acceptUnixLoop(ctx, listener)
 
 	httpSrv := d.startHTTPServer()
 
@@ -246,6 +252,8 @@ func (d *Daemon) Run() {
 	}
 
 	d.eventLoop(ctx, cancel, sigs, httpSrv)
+
+	return nil
 }
 
 // broadcastStateChanged notifies all active SSE clients that they should
@@ -463,5 +471,8 @@ func main() {
 		os.Exit(errorfamily.ExitCode(err))
 	}
 
-	d.Run()
+	if runErr := d.Run(); runErr != nil {
+		errorfamily.LogError(runErr, slog.Default())
+		os.Exit(errorfamily.ExitCode(runErr))
+	}
 }

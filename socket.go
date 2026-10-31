@@ -18,9 +18,11 @@ import (
 
 const socketIOTimeout = 5 * time.Second
 
-func (d *Daemon) listenUnix(
-	ctx context.Context,
-) error { //nolint:erraudit // family-inheriting errorfamily.Wrap; a per-function concrete error type would add no errors.AsType consumer
+// newUnixListener binds the CLI socket and applies its permissions. Startup
+// bind failures return an error so Run can fail fast (#191a) — running
+// READY=1 with a dead command surface hides the failure from every health
+// layer until a human notices.
+func (d *Daemon) newUnixListener() (net.Listener, error) {
 	socketPath := d.config.SocketPath()
 	if removeErr := os.Remove(socketPath); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
 		slog.Debug("failed to remove stale socket", "path", socketPath, "err", removeErr)
@@ -28,7 +30,7 @@ func (d *Daemon) listenUnix(
 
 	createErr := os.MkdirAll(d.config.StateDir, pixy.PermissionStateDir)
 	if createErr != nil {
-		return errorfamily.Wrapf(
+		return nil, errorfamily.Wrapf(
 			createErr,
 			errorfamily.Classify(createErr),
 			"socket.state_dir",
@@ -40,11 +42,22 @@ func (d *Daemon) listenUnix(
 	//nolint:exhaustruct
 	lc := net.ListenConfig{}
 
-	listener, err := lc.Listen(ctx, "unix", socketPath)
+	listener, err := lc.Listen(context.Background(), "unix", socketPath)
 	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Classify(err), "socket.listen", "listen on %s", socketPath)
+		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "socket.listen", "listen on %s", socketPath)
 	}
 
+	if chmodErr := os.Chmod(socketPath, pixy.PermissionSocket); chmodErr != nil {
+		slog.Error("failed to set socket permissions", "error", chmodErr)
+	}
+
+	return listener, nil
+}
+
+// acceptUnixLoop serves CLI connections until the context is cancelled.
+// Transient accept errors are logged and retried — the loop never exits on
+// its own (#191b marks it degraded instead).
+func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 	defer func() {
 		closeErr := listener.Close()
 		if closeErr != nil {
@@ -52,17 +65,12 @@ func (d *Daemon) listenUnix(
 		}
 	}()
 
-	chmodErr := os.Chmod(socketPath, pixy.PermissionSocket)
-	if chmodErr != nil {
-		slog.Error("failed to set socket permissions", "error", chmodErr)
-	}
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			select {
 			case <-ctx.Done():
-				return nil
+				return
 			default:
 			}
 
