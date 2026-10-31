@@ -44,7 +44,7 @@ func (realCommandRunner) Run(ctx context.Context, name string, args ...string) e
 
 	logSubprocess(name, args, time.Since(start), err)
 
-	return err //x
+	return err //nolint:wrapcheck // caller wraps with context
 }
 
 func (realCommandRunner) Output(ctx context.Context, name string, args ...string) ([]byte, error) {
@@ -54,11 +54,11 @@ func (realCommandRunner) Output(ctx context.Context, name string, args ...string
 
 	logSubprocess(name, args, time.Since(start), err)
 
-	return out, err //x
+	return out, err //nolint:wrapcheck // caller wraps with context
 }
 
 func (realCommandRunner) LookPath(name string) (string, error) {
-	return exec.LookPath(name) //x
+	return exec.LookPath(name) //nolint:wrapcheck // caller handles error
 }
 
 func logSubprocess(name string, args []string, duration time.Duration, err error) {

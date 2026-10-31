@@ -111,14 +111,12 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		return nil, errorfamily.Wrap(err, errorfamily.Classify(err), "daemon.validate_config", "validate config")
 	}
 
-	//x
 	d := &Daemon{
 		config:      cfg,
 		state:       pixy.DefaultState(),
 		streamSema:  make(chan struct{}, 1),
 		broadcaster: NewBroadcaster(),
 	}
-	//x
 	d.deps = Dependencies{
 		commander:      realCommandRunner{},
 		ueventListener: netlinkUeventListener{},
@@ -197,7 +195,7 @@ func sdNotify(state string) {
 func (d *Daemon) newHTTPServer() *http.Server {
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
-	//x
+
 	return &http.Server{
 		Addr: d.config.WebAddr,
 		Handler: chain(

@@ -98,7 +98,7 @@ func loggingMiddlewareFactory(logger *slog.Logger) func(http.Handler) http.Handl
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			recorder := &statusRecorder{ResponseWriter: w} //x
+			recorder := &statusRecorder{ResponseWriter: w}
 
 			next.ServeHTTP(recorder, r)
 

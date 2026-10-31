@@ -93,7 +93,7 @@ func (d *Daemon) queryPower(ctx context.Context) (powerReading, error) {
 	return reading, nil
 }
 
-//x
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryBatteryLevel(ctx context.Context) (int, error) {
 	resp, err := d.v2Read(ctx, pixy.V2GetBatteryLevel)
 	if err != nil {
@@ -103,7 +103,7 @@ func (d *Daemon) queryBatteryLevel(ctx context.Context) (int, error) {
 	return pixy.ParseBatteryLevel(pixy.V2GetBatteryLevel, resp)
 }
 
-//x
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryChargeStatus(ctx context.Context) (pixy.ChargeStatus, error) {
 	resp, err := d.v2Read(ctx, pixy.V2GetChargeSta)
 	if err != nil {

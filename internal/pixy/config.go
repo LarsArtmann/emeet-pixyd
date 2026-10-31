@@ -33,7 +33,6 @@ type Config struct {
 func DefaultConfig() Config {
 	state := DefaultState()
 
-	//x
 	return Config{
 		StateDir:      DefaultStateDir,
 		PollInterval:  DefaultPollInterval,

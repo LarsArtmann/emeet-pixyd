@@ -150,7 +150,7 @@ func (d *Daemon) setMotorPresetPos(ctx context.Context, slot byte) error {
 // out with the motor-MCU iface byte followed by the 1-based slot byte; the
 // echo check validates against the head AS SENT.
 //
-//x
+//nolint:wrapcheck // pixy parse errors are already domain-wrapped
 func (d *Daemon) queryMotorPresetPos(ctx context.Context, slot byte) (pixy.MotorPresetReading, error) {
 	head := pixy.V2GetMotorPresetPosMode.WithIface(pixy.MotorMCUIface)
 

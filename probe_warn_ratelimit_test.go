@@ -16,7 +16,7 @@ import (
 // WARN fires exactly once per path across repeated probes: while the PIXY is
 // absent, autoManage re-probes every PollInterval and previously re-logged
 // the same ENOENT line on every tick (~160/day in production, 2026-09-02).
-func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //x
+func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //nolint:paralleltest // mutates global slog + limiter
 	var buf bytes.Buffer
 
 	prev := slog.Default()
@@ -58,7 +58,7 @@ func TestProbeVideo4linux_UeventWarnRateLimited(t *testing.T) { //x
 // TestWarnInaccessibleDevices_HintsOnPermissionDenied proves a device node
 // that exists but cannot be opened produces an actionable warning naming the
 // udev fix, instead of a later cryptic "Permission denied" HID error.
-func TestWarnInaccessibleDevices_HintsOnPermissionDenied(t *testing.T) { //x
+func TestWarnInaccessibleDevices_HintsOnPermissionDenied(t *testing.T) { //nolint:paralleltest // mutates global slog
 	if os.Geteuid() == 0 {
 		t.Skip("running as root — permission bits do not block opens")
 	}
@@ -91,7 +91,7 @@ func TestWarnInaccessibleDevices_HintsOnPermissionDenied(t *testing.T) { //x
 // uevent-appear path warns once per node per interval: a flapping USB
 // connection re-triggers the appear branch, and an un-limited warning would
 // flood the journal on replug storms.
-func TestWarnInaccessibleDevicesLimited_RateLimitsHotplug(t *testing.T) { //x
+func TestWarnInaccessibleDevicesLimited_RateLimitsHotplug(t *testing.T) { //nolint:paralleltest // mutates global slog
 	if os.Geteuid() == 0 {
 		t.Skip("running as root — permission bits do not block opens")
 	}

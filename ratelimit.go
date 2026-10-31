@@ -21,7 +21,6 @@ type warnLimiter struct {
 }
 
 func newWarnLimiter(interval time.Duration) *warnLimiter {
-	//x
 	return &warnLimiter{
 		interval: interval,
 		last:     make(map[string]time.Time),

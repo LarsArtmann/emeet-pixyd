@@ -73,7 +73,6 @@ type webServer struct {
 
 func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	snap := s.daemon.snapshot()
-	//x
 	status := webStatus{
 		Camera:          snap.Camera,
 		Audio:           snap.Audio,

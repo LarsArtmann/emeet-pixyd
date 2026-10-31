@@ -142,7 +142,7 @@ func (h *hidrawDevice) Send(
 	return nil
 }
 
-//x
+//nolint:nonamedreturns // named err is required for the deferred close-error aggregation
 func (h *hidrawDevice) SendRecv(
 	ctx context.Context,
 	report []byte,

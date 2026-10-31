@@ -117,7 +117,6 @@ func (d *Daemon) parsePTZValues(ctx context.Context, dev string) pixy.PTZValues 
 	if err != nil {
 		slog.Warn("parsePTZValues: v4l2-ctl read failed", "device", dev, "error", err)
 
-		//x
 		return pixy.PTZValues{}
 	}
 

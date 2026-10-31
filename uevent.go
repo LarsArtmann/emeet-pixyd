@@ -24,7 +24,6 @@ type uevent struct {
 }
 
 func parseUevent(data string) uevent {
-	//x
 	evt := uevent{}
 
 	for line := range strings.SplitSeq(data, "\n") {

@@ -39,7 +39,6 @@ func (d *Daemon) newUnixListener() (net.Listener, error) {
 		)
 	}
 
-	//x
 	lc := net.ListenConfig{}
 
 	listener, err := lc.Listen(context.Background(), "unix", socketPath)

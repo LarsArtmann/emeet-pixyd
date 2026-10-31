@@ -163,7 +163,6 @@ func (s *webServer) checkDevice(ctx context.Context, responseWriter http.Respons
 	return status, true
 }
 
-//x
 func (s *webServer) setupStream(
 	responseWriter http.ResponseWriter,
 	ctx context.Context,

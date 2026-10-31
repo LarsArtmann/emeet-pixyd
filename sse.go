@@ -17,8 +17,6 @@ type Broadcaster struct {
 }
 
 // NewBroadcaster creates a broadcaster with no subscribers.
-//
-//x
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{subscribers: make(map[chan struct{}]struct{})}
 }

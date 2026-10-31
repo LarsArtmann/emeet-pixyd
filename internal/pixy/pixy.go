@@ -429,7 +429,7 @@ func (r Range) Clamp(v int) int {
 // PTZ axis limits in user-facing units (degrees for pan/tilt, multiplier for zoom).
 // Hardware-verified against the EMEET PIXY V4L2 capabilities.
 //
-//x
+//nolint:gochecknoglobals,mnd // hardware constants, never mutated at runtime
 var (
 	PanRange  = Range{Min: -150, Max: 150}
 	TiltRange = Range{Min: -90, Max: 90}

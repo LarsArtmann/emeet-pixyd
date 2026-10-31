@@ -24,7 +24,6 @@ func SetDeadline(conn net.Conn, timeout time.Duration) error {
 //
 //nolint:nonamedreturns // named err is required for the deferred close-error aggregation
 func SendCommand(ctx context.Context, socketPath, cmd string) (resp string, err error) {
-	//x
 	dialer := net.Dialer{Timeout: DefaultSocketTimeout}
 
 	conn, dialErr := dialer.DialContext(ctx, "unix", socketPath)
