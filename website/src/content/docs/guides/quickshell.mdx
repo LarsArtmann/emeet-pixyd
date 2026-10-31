@@ -40,8 +40,10 @@ curl -s http://127.0.0.1:8090/api/status
 | `auto`    | string  | Auto-manage mode (`off`, `full`, `tracking-only`, `privacy-only`)                       |
 | `audio`   | string  | Audio mode (`nc`, `live`, `original`)                                                   |
 | `gesture` | bool    | Gesture control enabled                                                                 |
-| `battery` | string  | Battery + charge, omitted entirely when the device does not answer the battery queries  |
-| `version` | string  | Daemon build version                                                                    |
+| `battery`  | string  | Battery + charge, omitted entirely when the device does not answer the battery queries  |
+| `version`  | string  | Daemon build version                                                                    |
+| `degraded` | bool    | `true` when a daemon surface is degraded (dead web listener, CLI accept-loop failures)   |
+| `reasons`  | string[] | Stable reason keys (`web-server`, `socket-accept`); omitted when healthy                |
 
 Unlike [`/api/health`](/guides/metrics/), which answers `503` when the camera
 is unplugged, `/api/status` always answers `200` while the daemon is running.

@@ -16,6 +16,17 @@ emeet-pixyd exposes several HTTP surfaces with deliberately different monitoring
 
 All of them live on the loopback bind (`127.0.0.1:8090` by default).
 
+## The `degraded` dimension
+
+Both `/api/health` and `/api/status` carry two additive fields: `degraded` (bool) and `reasons` (string array, omitted when healthy). They report **daemon-level degradations** — runtime losses no liveness check could otherwise see:
+
+| Reason           | Meaning                                                                                  | Recovery                              |
+| ---------------- | ---------------------------------------------------------------------------------------- | ------------------------------------- |
+| `web-server`     | The HTTP listener died after startup (bind conflict, socket error) — the API is gone     | Daemon restart                         |
+| `socket-accept`  | The CLI socket accept loop hit its consecutive-failure ceiling — CLI commands may hang   | First healthy accept clears it         |
+
+Degradation does **not** flip the status code: `/api/health` stays driven by camera reachability, and if the web listener itself is dead you cannot ask it anyway — `socket-accept` is the case where the field earns its keep (the API answers, the CLI surface is broken). Alert on `"degraded": true` as a warning-level signal: the daemon is running with reduced surfaces, not down.
+
 ## Calibrating the liveness check
 
 `/api/health` returning `503` means **the daemon is alive but the webcam is unplugged** — an expected laptop-dock/unplug state, not an outage. A check that requires `200` will flap red every time the camera leaves the desk.

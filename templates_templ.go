@@ -5,14 +5,13 @@ package main
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
 import (
 	"fmt"
 	"strings"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 )
 
 //go:generate templ generate
@@ -514,7 +513,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var15 = []any{"toggle", templ.KV("on", s.Gesture)}
+		templ_7745c5c3_Var15 := []any{"toggle", templ.KV("on", s.Gesture)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var15...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -605,7 +604,7 @@ func statusPanel(s webStatus) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var20 = []any{"toggle", templ.KV("on", !s.Auto.IsOff())}
+		templ_7745c5c3_Var20 := []any{"toggle", templ.KV("on", !s.Auto.IsOff())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var20...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -827,7 +826,7 @@ func cameraModeCard(mode string, endpoint string, name string, desc string, shor
 			templ_7745c5c3_Var28 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var29 = []any{"mode-card", "mode-" + mode, templ.KV("active", active)}
+		templ_7745c5c3_Var29 := []any{"mode-card", "mode-" + mode, templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var29...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -978,7 +977,7 @@ func audioSegment(mode string, label string, active bool, enabled bool) templ.Co
 			templ_7745c5c3_Var36 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var37 = []any{"segment", templ.KV("active", active)}
+		templ_7745c5c3_Var37 := []any{"segment", templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var37...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1074,7 +1073,7 @@ func trackingSegment(variant, label string, active bool) templ.Component {
 			templ_7745c5c3_Var42 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var43 = []any{"segment", templ.KV("active", active)}
+		templ_7745c5c3_Var43 := []any{"segment", templ.KV("active", active)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var43...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
