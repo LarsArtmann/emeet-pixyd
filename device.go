@@ -61,7 +61,7 @@ func (d *Daemon) setDeviceState(
 	}
 
 	d.mu.Lock()
-	d.hidFailCount = 0
+	d.resetHIDFailCountLocked()
 	mutator(d)
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()

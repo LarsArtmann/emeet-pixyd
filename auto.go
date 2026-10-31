@@ -27,6 +27,8 @@ func (d *Daemon) handleCallStart(
 		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			log.Error("failed to activate tracking", "error", trackErr)
+			recordAutoError("track")
+
 			errs = append(errs, errorfamily.Wrap(trackErr, errorfamily.Classify(trackErr), "auto.track", "tracking"))
 		}
 	}
@@ -35,6 +37,8 @@ func (d *Daemon) handleCallStart(
 		audioErr := d.deps.setAudio(ctx, pixy.AudioNC)
 		if audioErr != nil {
 			log.Error("failed to set audio mode", "error", audioErr)
+			recordAutoError("audio")
+
 			errs = append(errs, errorfamily.Wrap(audioErr, errorfamily.Classify(audioErr), "auto.audio", "audio"))
 		}
 	}
@@ -46,6 +50,8 @@ func (d *Daemon) handleCallStart(
 			log.Info("set PipeWire default source to PIXY", "id", src.Get())
 		} else {
 			log.Error("failed to find PIXY audio source", "error", srcErr)
+			recordAutoError("source")
+
 			errs = append(errs, errorfamily.Wrap(srcErr, errorfamily.Classify(srcErr), "auto.source", "source"))
 		}
 	}
@@ -71,6 +77,8 @@ func (d *Daemon) handleCallEnd(ctx context.Context, autoMode pixy.AutoMode) {
 		privacyErr := d.deps.setTracking(ctx, pixy.StatePrivacy)
 		if privacyErr != nil {
 			log.Error("failed to enter privacy mode", "error", privacyErr)
+			recordAutoError("privacy")
+
 			autoErr = errorfamily.Wrap(privacyErr, errorfamily.Classify(privacyErr), "auto.privacy", "privacy")
 		}
 

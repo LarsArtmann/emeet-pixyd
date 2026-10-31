@@ -157,12 +157,17 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 	probe := d.deps.probeDevices(cfg.ExtraProductIDs)
 	d.applyProbeResultLocked(probe)
 	warnInaccessibleDevices(probe)
-	checkExternalDeps(d.deps.commander)
+	d.checkExternalDeps()
 
 	return d, nil
 }
 
-func checkExternalDeps(commander CommandRunner) {
+// checkExternalDeps verifies the optional helper binaries at startup and
+// feeds every miss into the degraded set (#194): a missing binary disables a
+// real capability (streaming, PTZ, source switching, notifications) and the
+// health surface must say so — not just the startup log. The check runs once
+// per process start; reasons clear only on restart with the binary present.
+func (d *Daemon) checkExternalDeps() {
 	for _, dep := range []struct {
 		binary string
 		impact string
@@ -172,8 +177,9 @@ func checkExternalDeps(commander CommandRunner) {
 		{wpctl, "PipeWire source switching unavailable"},
 		{notifySend, "desktop notifications unavailable"},
 	} {
-		_, err := commander.LookPath(dep.binary)
+		_, err := d.deps.commander.LookPath(dep.binary)
 		if err != nil {
+			d.markDegraded(degradedExternalDepPrefix + dep.binary)
 			slog.Warn("optional dependency not found", "binary", dep.binary, "impact", dep.impact)
 		}
 	}

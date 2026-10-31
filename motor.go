@@ -195,7 +195,7 @@ func (d *Daemon) sendV2Set(
 	}
 
 	d.mu.Lock()
-	d.hidFailCount = 0
+	d.resetHIDFailCountLocked()
 	d.mu.Unlock()
 
 	return nil

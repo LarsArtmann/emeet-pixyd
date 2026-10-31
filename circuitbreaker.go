@@ -46,5 +46,6 @@ func (d *Daemon) recordHIDSendFailure(ctx context.Context) {
 // hold d.mu.
 func (d *Daemon) resetHIDFailCountLocked() {
 	d.hidFailCount = 0
+
 	recordBreakerState(false)
 }

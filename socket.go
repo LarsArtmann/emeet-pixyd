@@ -90,6 +90,8 @@ func (d *Daemon) acceptUnixLoop(ctx context.Context, listener net.Listener) {
 
 			consecutiveFailures++
 
+			recordSocketAcceptFailure()
+
 			if consecutiveFailures >= acceptFailureCeiling {
 				d.markDegraded(degradedSocketAccept)
 				slog.Error("socket accept consecutive failures hit ceiling", "consecutive", consecutiveFailures)

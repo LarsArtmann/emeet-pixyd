@@ -339,7 +339,7 @@ func (d *Daemon) applyProbeResultLocked(r probeResult) {
 		// commits — the re-probe is itself the "the device is back" evidence,
 		// so the breaker gets a fresh budget rather than latching on stale
 		// failures. Pinned by TestCircuitBreaker_ProbeResetsStrikesOnlyWhenPresent.
-		d.hidFailCount = 0
+		d.resetHIDFailCountLocked()
 	}
 
 	if wasOnline != nowOnline || wasControllable != nowControllable {

@@ -17,6 +17,10 @@ const (
 	// consecutive-failure ceiling: the daemon lives, but CLI commands may
 	// not get served. Cleared again by a healthy accept.
 	degradedSocketAccept = "socket-accept"
+	// degradedExternalDepPrefix fronts one reason per optional helper
+	// binary missing at startup (e.g. "extdep:v4l2-ctl"): each miss disables
+	// a real capability until the binary is installed and the daemon restarts.
+	degradedExternalDepPrefix = "extdep:"
 )
 
 // markDegraded records a daemon-level degradation (guarded by d.mu). The map
