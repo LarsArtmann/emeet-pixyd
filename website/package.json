@@ -38,16 +38,16 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/starlight": "^0.42.5",
+    "@astrojs/starlight": "^0.42.8",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.3.5",
+    "astro": "^7.4.4",
     "astro-og-canvas": "^0.13.2",
     "tailwindcss": "^4.3.3",
     "canvaskit-wasm": "0.42.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
-    "html-validate": "^11.16.1",
+    "@astrojs/check": "^0.9.12",
+    "html-validate": "^11.17.0",
     "typescript": "~7.0.2"
   },
   "packageManager": "pnpm@11.20.0"

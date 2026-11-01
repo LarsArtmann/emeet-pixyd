@@ -1,7 +1,7 @@
 version: "2"
 run:
   timeout: 5m
-  go: 1.27.1
+  go: "1.27"
   build-tags:
     - goexperiment.arenas
     - goexperiment.goroutineleakprofile
@@ -123,8 +123,6 @@ linters:
     cyclop:
       max-complexity: 20
     exhaustruct_v5:
-      # This codebase constructs structs zero-value-first; partial literals
-      # are intentional for every type listed here.
       ignore-patterns:
         - os/exec\.Cmd
         - github.com/LarsArtmann/emeet-pixyd\.CommandResult
@@ -321,5 +319,5 @@ formatters:
       - _templ\.go$
       - fake_.*\.go$
 issues:
-  max-issues-per-linter: 50
-  max-same-issues: 10
+  max-issues-per-linter: 0
+  max-same-issues: 0
