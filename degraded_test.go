@@ -4,7 +4,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"io"
 	"net"
@@ -46,7 +46,7 @@ func getJSON(t *testing.T, url string, target any) {
 	resp := doGet(t, ctx, url)
 	defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+	if err := json.UnmarshalRead(resp.Body, target); err != nil {
 		t.Fatalf("decode %s: %v", url, err)
 	}
 }
