@@ -269,7 +269,11 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 		time.Sleep(motorSettleWait)
 
 		if dark := frameLuma("tilt " + strconv.Itoa(tiltDeg) + " (trap)"); !trapEngaged(dark, baseline) {
-			t.Logf("tilt %d did NOT engage privacy optically (luma=%.1f) — no trap at this angle on this unit", tiltDeg, dark)
+			t.Logf(
+				"tilt %d did NOT engage privacy optically (luma=%.1f) — no trap at this angle on this unit",
+				tiltDeg,
+				dark,
+			)
 
 			continue
 		}
@@ -291,7 +295,11 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 		case !trapEngaged(recovered, baseline):
 			t.Logf("tilt %d: direct track left the lens HALF recovered (luma=%.1f)", tiltDeg, recovered)
 		default:
-			t.Errorf("tilt %d: direct track did NOT recover the lens (luma=%.1f) — the reported bug reproduces", tiltDeg, recovered)
+			t.Errorf(
+				"tilt %d: direct track did NOT recover the lens (luma=%.1f) — the reported bug reproduces",
+				tiltDeg,
+				recovered,
+			)
 
 			// Recovery fallbacks for the stuck case.
 			runDaemonCommand(t, d, "track")
@@ -379,7 +387,11 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 				return
 			}
 
-			t.Errorf("delay %s: neither the write nor the trap re-assert recovered the lens (luma=%.1f)", delay, recovered)
+			t.Errorf(
+				"delay %s: neither the write nor the trap re-assert recovered the lens (luma=%.1f)",
+				delay,
+				recovered,
+			)
 
 			// Cleanup for the next round: settled double-write.
 			runDaemonCommand(t, d, "tilt 0")
