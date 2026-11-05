@@ -2,11 +2,11 @@
 
 **Scope:** Everything open after the 2026-10-19 SystemNix-extraction session (status report `docs/status/2026-10-19_04-19_systemnix-extraction-port-option-monitoring-guide.md`) merged with the living backlog (`TODO_LIST.md`, rows #129–#182). Point-in-time plan; the living truth stays in `TODO_LIST.md`.
 
-**Session recap (what already shipped, locally):** `hardware.emeet-pixy.port` option wiring `EMEET_PIXYD_WEB_ADDR` (loopback-fixed), vmTest pin (`port = 8091` + rendered-env assertion, ran green), website Monitoring & Health guide + sidebar, CHANGELOG + AGENTS.md entries, pre-existing `pnpm-lock.yaml` drift repaired. **Nothing is pushed yet** — local master is ahead with auto-commits (`b109788` newest).
+**Session recap (what already shipped, locally):** `hardware.emeet-pixy.port` option wiring `EMEET_PIXYD_WEB_ADDR` (loopback-fixed), vmTest pin (`port = 8091` + rendered-env assertion, ran green), website Monitoring & Health guide + sidebar, CHANGELOG + AGENTS.md entries, pre-existing `pnpm-lock.yaml` drift repaired. ~~**Nothing is pushed yet**~~ (SUPERSEDED: pushed 2026-10-20, CI green — report `2026-10-20_09-37`) — — local master is ahead with auto-commits (`b109788` newest).
 
 **Audit errata (closed questions from the status report):**
 - `b109788` non-authored hunks = **benign**: `templates_templ.go` is a newer templ-generator regeneration (`var x =` → `x :=`, import merge — no semantic change, generated file); `website/flake.nix` dropped one unused input. No action needed; recorded here so nobody re-audits.
-- Lockfile drift: fixed this session (plain `pnpm install` + green build); frozen-lockfile PROOF still pending → task P2-9.
+- Lockfile drift: fixed this session (plain `pnpm install` + green build); ~~frozen-lockfile PROOF still pending~~ (proven 2026-10-31: TODO #185) → task P2-9.
 
 ---
 
@@ -35,27 +35,27 @@ The unblocked backlog hygiene (#173/#174 hint surfacing + tests, #177 BuildFlow 
 
 | ID | Task | Impact | Effort | Est | Customer value | Gate |
 | -- | ---- | ------ | ------ | --- | -------------- | ---- |
-| M1 | Push master; watch all three workflows (go-test, nix, website) go green; verify monitoring guide live on emeet-pixyd.lars.software | HIGH | S | 45m | Docs shipped, CI-verified build | — |
-| M2 | Website polish bundle: `port` in configuration.mdx, metrics↔monitoring + quickshell↔monitoring cross-links, frozen-lockfile proof, `tsc --strict`, rebuild+grep, push | HIGH | S | 90m | Option documented where users search; CI gates proven | after M1 |
-| M3 | SystemNix: bump emeet-pixyd lock to pushed rev, set `hardware.emeet-pixy.port = ports.emeet-pixyd`, update runbook, eval-check | HIGH | S | 30m | Port registry becomes authoritative | **Lars go-ahead** (cross-repo) |
-| M4 | TODO_LIST harvest: rows #183–#189 + Updated header; commit | MED | S | 30m | Backlog truth; no entombed tasks | — (folded into this plan's commit) |
-| M5 | #176: gate auto-commit daemon on green pre-commit build (design → implement → test with a deliberately broken staged file) | HIGH | M | 100m | Kills red-at-HEAD commit class | design review |
-| M6 | vmTest default-port pin: second node (or `nix eval` assertion) proves unset-port renders `127.0.0.1:8090`; run vmTest | MED | S | 60m | 8090 convention pinned, not implied | — |
-| M7 | Lockstep cross-refs: comment pairs module default ↔ `pixy.DefaultWebAddr`; monitoring-guide URL into `port` option description; fmt + flake check | LOW | S | 30m | Drift between Go default and module default becomes loud | — |
-| M8 | #173: surface unsupported-device hint in web UI offline panel + Waybar (gated on ADR answer) | MED | M | 100m | Non-PIXY EMEET owners get answers in-product | ADR answer |
-| M9 | #174: branch tests for hint paths (`probe`/`device` output + rate-limited log branch) | MED | S | 60m | Hint behavior pinned | after M8 |
-| M10 | #177: scope BuildFlow ruff away from `tools/` (or ruff-clean, SIM115 ×20) so the dev gate is green for Go work | MED | S | 30m | Developer loop unblocked | — |
-| M11 | #178: benchmark delta — `ttlCache[T]` + preset double-RLock perf-neutral post-refactor | LOW | S | 30m | Refactor safety proven | — |
-| M12 | #179: decide + implement always-`ValidatePresetName` in web preset action (400 for garbage) | LOW | S | 30m | Consistent name validation | Lars decision |
-| M13 | #180: align `.crushrc` LSP lint config with `.golangci.yml` (drop golines/wsl_v5 noise) | LOW | S | 30m | LSP signal matches CI | — |
-| M14 | #181: mechanical nolint sweep (nolintlint- or grep-driven), remove rotted directives | MED | M | 100m | Honest suppression surface | — |
-| M15 | #148: send staged innoextract 6.6.1 upstream PR (draft body from `tools/inno661/UPSTREAM.md`) | MED | S | 30m | Upstream contribution lands | **Lars's call** |
-| M16 | #156: branch protection requiring the three workflows on master (GitHub settings) | MED | S | 20m | CI becomes load-bearing | **Lars only** (GitHub) |
-| M17 | #155: cut v0.4.1 (changelog cut, tag, verify proxy) vs v0.5 — cadence call | MED | S | 60m | Released increment | **Lars cadence call** |
-| M18 | aarch64 eval coverage: add `--all-systems` (or equivalent) to nix.yml check, or record accepted gap | LOW | S | 30m | Module eval verified on all shipped platforms | — |
-| M19 | #166 hardware bundle (one wired session): full checklist in TODO_LIST — closes #138/#139/#140/#141/#150 partials, #129 screenshots, #182 readback | HIGH | M+ | 100m+/session | Truth for 5+ shipped-but-unverified features | **PIXY attached** |
-| M20 | #154: close issue #6 after @zutto's real-hardware confirm | HIGH | S | 10m | Community loop closed | external confirm |
-| M21 | #182: `sync` reconciles Speeds/TrackMode from hardware readback | LOW | S | 30m | Sync completeness | blocked on #166 |
+| ~~M1~~ done — pushed + CI green 2026-10-20 | ~~Push master; watch all three workflows (go-test, nix, website) go green; verify monitoring guide live on emeet-pixyd.lars.software~~ | ~~HIGH~~ | ~~S~~ | ~~45m~~ | ~~Docs shipped, CI-verified build~~ | ~~—~~ |
+| ~~M2~~ done — P2 done (port docs, cross-links, lockfile/tsc proof) | ~~Website polish bundle: `port` in configuration.mdx, metrics↔monitoring + quickshell↔monitoring cross-links, frozen-lockfile proof, `tsc --strict`, rebuild+grep, push~~ | ~~HIGH~~ | ~~S~~ | ~~90m~~ | ~~Option documented where users search; CI gates proven~~ | ~~after M1~~ |
+| ~~M3~~ done — wired locally in SystemNix (`d0862d746`/`7ca1bd708`); push+switch pending — TODO_LIST #183 | ~~SystemNix: bump emeet-pixyd lock to pushed rev, set `hardware.emeet-pixy.port = ports.emeet-pixyd`, update runbook, eval-check~~ | ~~HIGH~~ | ~~S~~ | ~~30m~~ | ~~Port registry becomes authoritative~~ | ~~**Lars go-ahead** (cross-repo)~~ |
+| ~~M4~~ done — rows #183–#189 filed | ~~TODO_LIST harvest: rows #183–#189 + Updated header; commit~~ | ~~MED~~ | ~~S~~ | ~~30m~~ | ~~Backlog truth; no entombed tasks~~ | ~~— (folded into this plan's commit)~~ |
+| ~~M5~~ done — gate config landed; INERT until switch — TODO_LIST #176 | ~~#176: gate auto-commit daemon on green pre-commit build (design → implement → test with a deliberately broken staged file)~~ | ~~HIGH~~ | ~~M~~ | ~~100m~~ | ~~Kills red-at-HEAD commit class~~ | ~~design review~~ |
+| ~~M6~~ done — default-port pin verified by full VM run 2026-10-31 | ~~vmTest default-port pin: second node (or `nix eval` assertion) proves unset-port renders `127.0.0.1:8090`; run vmTest~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~8090 convention pinned, not implied~~ | ~~—~~ |
+| ~~M7~~ done — lockstep pair verified (TODO #189 DONE) | ~~Lockstep cross-refs: comment pairs module default ↔ `pixy.DefaultWebAddr`; monitoring-guide URL into `port` option description; fmt + flake check~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~Drift between Go default and module default becomes loud~~ | ~~—~~ |
+| ~~M8~~ done — TODO #173 DONE 2026-10-31 | ~~#173: surface unsupported-device hint in web UI offline panel + Waybar (gated on ADR answer)~~ | ~~MED~~ | ~~M~~ | ~~100m~~ | ~~Non-PIXY EMEET owners get answers in-product~~ | ~~ADR answer~~ |
+| ~~M9~~ done — TODO #174 DONE 2026-10-31 | ~~#174: branch tests for hint paths (`probe`/`device` output + rate-limited log branch)~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~Hint behavior pinned~~ | ~~after M8~~ |
+| ~~M10~~ done — TODO #177 DONE (ruff.toml) | ~~#177: scope BuildFlow ruff away from `tools/` (or ruff-clean, SIM115 ×20) so the dev gate is green for Go work~~ | ~~MED~~ | ~~S~~ | ~~30m~~ | ~~Developer loop unblocked~~ | ~~—~~ |
+| ~~M11~~ **NOT-DO — owned by TODO_LIST #178 (baseline stashed; comparison pending).** | ~~#178: benchmark delta — `ttlCache[T]` + preset double-RLock perf-neutral post-refactor~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~Refactor safety proven~~ | ~~—~~ |
+| ~~M12~~ done — TODO #179 DONE 2026-10-31 | ~~#179: decide + implement always-`ValidatePresetName` in web preset action (400 for garbage)~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~Consistent name validation~~ | ~~Lars decision~~ |
+| ~~M13~~ **Superseded — TODO #180 OBSOLETE — .crushrc carries no lint list.** | ~~#180: align `.crushrc` LSP lint config with `.golangci.yml` (drop golines/wsl_v5 noise)~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~LSP signal matches CI~~ | ~~—~~ |
+| ~~M14~~ done — TODO #181 DONE (both chunks, 16 stale directives) | ~~#181: mechanical nolint sweep (nolintlint- or grep-driven), remove rotted directives~~ | ~~MED~~ | ~~M~~ | ~~100m~~ | ~~Honest suppression surface~~ | ~~—~~ |
+| ~~M15~~ **NOT-DO — owned by TODO_LIST #148 (Lars’s call).** | ~~#148: send staged innoextract 6.6.1 upstream PR (draft body from `tools/inno661/UPSTREAM.md`)~~ | ~~MED~~ | ~~S~~ | ~~30m~~ | ~~Upstream contribution lands~~ | ~~**Lars's call**~~ |
+| ~~M16~~ **NOT-DO — owned by TODO_LIST #156 (Lars-only).** | ~~#156: branch protection requiring the three workflows on master (GitHub settings)~~ | ~~MED~~ | ~~S~~ | ~~20m~~ | ~~CI becomes load-bearing~~ | ~~**Lars only** (GitHub)~~ |
+| ~~M17~~ **Superseded — v0.5.0 cut 2026-10-31 (TODO #155 DONE).** | ~~#155: cut v0.4.1 (changelog cut, tag, verify proxy) vs v0.5 — cadence call~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~Released increment~~ | ~~**Lars cadence call**~~ |
+| ~~M18~~ done — TODO #188 DONE (all-systems eval in nix.yml) | ~~aarch64 eval coverage: add `--all-systems` (or equivalent) to nix.yml check, or record accepted gap~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~Module eval verified on all shipped platforms~~ | ~~—~~ |
+| ~~M19~~ **NOT-DO — owned by TODO_LIST #166.** | ~~#166 hardware bundle (one wired session): full checklist in TODO_LIST — closes #138/#139/#140/#141/#150 partials, #129 screenshots, #182 readback~~ | ~~HIGH~~ | ~~M+~~ | ~~100m+/session~~ | ~~Truth for 5+ shipped-but-unverified features~~ | ~~**PIXY attached**~~ |
+| ~~M20~~ **NOT-DO — owned by TODO_LIST #154.** | ~~#154: close issue #6 after @zutto's real-hardware confirm~~ | ~~HIGH~~ | ~~S~~ | ~~10m~~ | ~~Community loop closed~~ | ~~external confirm~~ |
+| ~~M21~~ **NOT-DO — owned by TODO_LIST #182.** | ~~#182: `sync` reconciles Speeds/TrackMode from hardware readback~~ | ~~LOW~~ | ~~S~~ | ~~30m~~ | ~~Sync completeness~~ | ~~blocked on #166~~ |
 
 **Blocked parking lot (no medium task until unblocked):** #129 (inside M19), #138–#141 (verdicts inside M19), #150 (inside M19), #166 (M19 itself), #154 (M20), #155 (M17), #156 (M16), #182 (M21).
 
@@ -64,42 +64,42 @@ The unblocked backlog hygiene (#173/#174 hint surfacing + tests, #177 BuildFlow 
 ### P1 — Ship & verify (= M1)
 | # | Task | Est |
 | - | ---- | --- |
-| 1 | `git push origin master` (local auto-commits incl. port option, guide, lockfile fix) | 2m |
-| 2 | Watch `go-test.yml`: vet → templ generate → lint → govulncheck → race tests → fuzz list-vs-CI assert | 10m |
-| 3 | Watch `nix.yml`: `nix flake check --no-build` + package build | 10m |
-| 4 | Watch `website.yml`: frozen-lockfile → astro build + CSP patch → ≥19 pages → deploy | 10m |
+| ~~1~~ done — executed with this plan (parent verdict applies) | ~~`git push origin master` (local auto-commits incl. port option, guide, lockfile fix)~~ | ~~2m~~ |
+| ~~2~~ done — executed with this plan (parent verdict applies) | ~~Watch `go-test.yml`: vet → templ generate → lint → govulncheck → race tests → fuzz list-vs-CI assert~~ | ~~10m~~ |
+| ~~3~~ done — executed with this plan (parent verdict applies) | ~~Watch `nix.yml`: `nix flake check --no-build` + package build~~ | ~~10m~~ |
+| ~~4~~ done — executed with this plan (parent verdict applies) | ~~Watch `website.yml`: frozen-lockfile → astro build + CSP patch → ≥19 pages → deploy~~ | ~~10m~~ |
 | 5 | Curl live `/guides/monitoring/` + confirm sidebar entry renders | 5m |
 
 ### P2 — Website polish (= M2)
 | # | Task | Est |
 | - | ---- | --- |
-| 6 | Add `port` option section to `guides/configuration.mdx` (env table + module option cross-view) | 12m |
-| 7 | Cross-link `guides/metrics.mdx` → `guides/monitoring.mdx` (one-line pointer) | 5m |
-| 8 | Cross-link `guides/quickshell.mdx` stale-binary section → monitoring guide trap section | 8m |
-| 9 | `pnpm install --frozen-lockfile` — PROVE the CI lockfile gate is green post-regen | 5m |
-| 10 | Run the strict type gate (`tsc --strict`; astro check is TS7-broken by design) | 10m |
-| 11 | Rebuild website; grep dist for the new content (not the old — deploy-grep gotcha) | 10m |
+| ~~6~~ done — executed with this plan (parent verdict applies) | ~~Add `port` option section to `guides/configuration.mdx` (env table + module option cross-view)~~ | ~~12m~~ |
+| ~~7~~ done — executed with this plan (parent verdict applies) | ~~Cross-link `guides/metrics.mdx` → `guides/monitoring.mdx` (one-line pointer)~~ | ~~5m~~ |
+| ~~8~~ done — executed with this plan (parent verdict applies) | ~~Cross-link `guides/quickshell.mdx` stale-binary section → monitoring guide trap section~~ | ~~8m~~ |
+| ~~9~~ done — executed with this plan (parent verdict applies) | ~~`pnpm install --frozen-lockfile` — PROVE the CI lockfile gate is green post-regen~~ | ~~5m~~ |
+| ~~10~~ done — executed with this plan (parent verdict applies) | ~~Run the strict type gate (`tsc --strict`; astro check is TS7-broken by design)~~ | ~~10m~~ |
+| ~~11~~ done — executed with this plan (parent verdict applies) | ~~Rebuild website; grep dist for the new content (not the old — deploy-grep gotcha)~~ | ~~10m~~ |
 | 12 | Commit + push website changes (deploy rides `website/**` trigger) | 5m |
 
 ### P3 — SystemNix wiring (= M3, GATED)
 | # | Task | Est |
 | - | ---- | --- |
-| 13 | `nix flake update input:emeet-pixyd` in SystemNix to the pushed rev | 8m |
-| 14 | Set `hardware.emeet-pixy.port = ports.emeet-pixyd;` in the wrapper module | 5m |
-| 15 | Update `SystemNix/docs/services/emeet-pixyd.md` port note (convention → explicit) | 8m |
+| ~~13~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`nix flake update input:emeet-pixyd` in SystemNix to the pushed rev~~ | ~~8m~~ |
+| ~~14~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Set `hardware.emeet-pixy.port = ports.emeet-pixyd;` in the wrapper module~~ | ~~5m~~ |
+| ~~15~~ done — executed with this plan (parent verdict applies) | ~~Update `SystemNix/docs/services/emeet-pixyd.md` port note (convention → explicit)~~ | ~~8m~~ |
 | 16 | Eval-check SystemNix flake (`nix flake check --no-build` or host eval) | 10m |
 
 ### P4 — Backlog truth (= M4, folded into this plan's commit)
 | # | Task | Est |
 | - | ---- | --- |
-| 17 | Insert rows #183–#189 into TODO_LIST.md + new Updated header (old → Previous) | 10m |
+| ~~17~~ **NOT-DO — owned by TODO_LIST #129 (online retake; offline half done).** | ~~Insert rows #183–#189 into TODO_LIST.md + new Updated header (old → Previous)~~ | ~~10m~~ |
 | 18 | Verify no duplicate concepts vs existing rows (#129–#182 sweep) | 5m |
 
 ### P5 — Default-port pin (= M6)
 | # | Task | Est |
 | - | ---- | --- |
-| 19 | Add second vmTest node (defaults only) asserting `EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090` — or a cheap `nix eval` assertion if a full node is overkill | 12m |
-| 20 | Run the vmTest (mostly cached from this session) | 10m |
+| ~~19~~ done — executed with this plan (parent verdict applies) | ~~Add second vmTest node (defaults only) asserting `EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090` — or a cheap `nix eval` assertion if a full node is overkill~~ | ~~12m~~ |
+| ~~20~~ done — executed with this plan (parent verdict applies) | ~~Run the vmTest (mostly cached from this session)~~ | ~~10m~~ |
 | 21 | Commit + push | 5m |
 
 ### P6 — Lockstep (= M7)

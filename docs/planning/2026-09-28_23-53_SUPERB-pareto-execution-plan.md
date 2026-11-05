@@ -41,34 +41,34 @@ Sorted by importance → impact → customer value (ties broken by effort ascend
 
 | # | Task | Tier | Impact | Effort | Est | Customer value | Depends on | Closes/unblocks |
 |---|------|------|--------|--------|-----|----------------|------------|-----------------|
-| M01 | Hardware session A: battery probe + identity heads (`TestIntegration_BatteryProbe`, `device` queries, `GET_FUNC_STA` capture) | 1% | HIGH | M | 90m | Correct battery/capability reporting | PIXY wired | #139, feeds M27 |
-| M02 | Hardware session B: speed-query duality verdict, unit + limit pin, clamp + slider max, MotorType/DefaultPosMode pin | 1% | HIGH | M | 90m | Safe speed control, correct enums | M01 (same session) | #138, #150, un-gates M23/M27 |
-| M03 | Hardware session C: preset slot sweep, live push→pull round-trip, online screenshots retake + website refresh | 1% | HIGH | M | 90m | Trustworthy presets + honest marketing shots | M01 | #129, #141 |
-| M04 | Decision bundle: draft 3 ADRs (hint surfacing web/Waybar; NixOS `extraProductIds`; erraudit debt policy) + Lars sign-off | 1% | HIGH | S | 60m | Unblocks 3 streams; no churn from guessing | — | gates M09/M11/M07b |
-| M05 | Deploy & verify: push master, watch go-test/nix/website workflows, live-verify devices page + OG + sitemap | 1% | HIGH | S | 30m | Everything built this week reaches users | — | ships 2026-09-28 work |
-| M06 | Docs split-brain sync: comparison-doc matrix, `docs/hid-protocol.md`, `CONTRIBUTING.md` + repo-wide remnant grep | 4% | HIGH | S | 45m | No lying docs; contributor funnel intact | — | status-report b4 |
-| M07 | Lint-debt closure: rationale → AGENTS.md gotcha; apply M04-Q3 outcome (nolint sites or documented baseline) | 4% | MED | S | 30m | Future sessions stop re-triaging 29 findings | M04 | buildflow gate clarity |
-| M08 | HARVEST both status reports (23-47 dedup + 23-48 session) → TODO_LIST/ROADMAP with evidence, dedupe | 4% | MED | M | 60m | Living backlog stays the source of truth | — | docs-health rule |
-| M09 | Web/Waybar unsupported-hint surfacing: `webStatus` field, offline-panel copy, Waybar tooltip + JSON, tests | 20% | MED | M | 90m | C960 owners see why, not just "offline" | M04-Q1 | UX gap b2 |
-| M10 | Recognition hardening: hidraw-side fixed-EMEET recognition (or recorded decision), `probe`-hint test, log-branch test | 20% | MED | S | 60m | Edge devices + tested paths | — | status b1/b5 |
-| M11 | NixOS `hardware.emeet-pixy.extraProductIds` option + vmTest assert + docs | 80% | MED | S | 60m | Declarative onboarding for new PIXY PIDs | M04-Q2 | status g2 |
-| M12 | Error-wrapping audit: all `fmt.Errorf` `%v`-on-err → `%w` where chains matter + classification pin tests | 20% | HIGH | M | 90m | Correct HTTP/exit-code derivation | — | ROADMAP 2026-07-23 §c |
-| M13 | go-error-family adoption: `HTTPHandler` at `/api/health`,`/api/snapshot`; `LogError` at state/process/uevent/socket sites; `Assert*` in tests; scope ADR | 20% | MED | M | 90m | Consistent structured errors | M12 (sequencing) | ROADMAP error theme |
-| M14 | Structured command types, slice 1: typed registry + query commands + simple mutators behind string shim | 80% | HIGH | L | 100m | Type safety, multi-word args foundation | Lars ADR sign-off (#116 lineage) | multi-word surface |
-| M15 | Multi-word preset names via CLI: join-remaining per ADR + pinning tests (~6 lines) | 4% | MED | S | 30m | Names stop silently truncating | ADR approved (awaiting Lars) | #123 lineage |
-| M16 | CI guard: fail if go-modules FOD references `/nix/store` paths (poisoned-vendor class) | 20% | MED | S | 45m | Supply-chain regression net | — | ROADMAP build hardening |
-| M17 | vmTest extension: fake sysfs tree + actually start daemon in VM, assert socket + health | 80% | MED | L | 100m | Boot-level confidence, exercises recognition | — | ROADMAP build hardening |
-| M18 | A11y + mobile checklists actually executed (NVDA/Orca, real device), fix-or-file, flip FEATURES honestly | 80% | MED | L | 100m | The 2 partial rows become real | — | FEATURES debt |
-| M19 | Screenshot pipeline: scripted headless-chromium captures (online/offline) wired into website | 20% | MED | M | 90m | #129 stops being manual; fresh marketing | M03 (online shots) | status f31 |
-| M20 | Website polish pack: per-page feedback links, reading time, landing "Who is this for / When NOT" mirror | 20% | MED | M | 90m | Conversion + navigation | — | ROADMAP web ideas |
-| M21 | Public EMEET-STUDIO comparison page (distill internal doc) | 80% | MED | M | 90m | Positioning win — IF Lars accepts exposure | Lars gate (ROADMAP) | ROADMAP web idea |
-| M22 | SSE heartbeat + `LastEventID` replay + OTel PTZ-latency span | 80% | MED | M | 100m | Proxy-safe live UI, first tracing | — | ROADMAP observability |
-| M23 | Waybar enrichment: auto-mode + pan/tilt values; confirm charge classes | 80% | LOW | S | 60m | Denser bar module | M02 (ChargeSta pin) | ROADMAP UX |
-| M24 | Release/community bundle: #148 upstream PR send, #154 close-out nudge, #155 cut v0.4.1 (CHANGELOG, annotated tag, verify), #156 branch-protection notes for Lars | 4% | HIGH | M | 90m | Users get a versioned release; repo protected | M05 (CI green first) | #148/#154/#155/#156 |
-| M25 | Quality pack: `ResolveProductID` order-invariant property test (200 seeds), `probeVideo4linux` benchmark, simulator fixed-profile vendor-byte refusal | 20% | MED | S | 60m | Pins today's invariants forever | — | status f46-48 |
-| M26 | Tooling cadence: dprint/prettier for `.mdx`/`.mjs`; Renovate or scheduled `nix flake update` job | 80% | LOW | S | 60m | Ends formatter wars + dep rot | — | ROADMAP web/build |
-| M27 | Long-tail umbrella (each ≤100m, individually gated): koanf ADR, device-disappear ADR, `FuzzParseV2Response` (post-M02), `GET_FUNC_STA` decode (post-M01), `EMEET_PIXYD_MOTOR_SPEED` env default (post-M02), `#172` shared V2 helper (post-M02 trigger check), S600L + PIXY-Wireless watch rows, privacy-trigger-time + `hidCmdSend` retry research rows | 80% | LOW | L | 100m | Keeps intel alive without premature builds | mostly M01/M02 | ROADMAP offshoots |
-| M28 | Security bump: Dependabot open alerts #17–#19 (fast-uri 3.1.6→3.1.7 via workspace override ×2 HIGH CVSS 7.5; devalue 5.9.0→5.9.4 in-range, MEDIUM CVSS 5.3) + stale `minimumReleaseAgeExclude` entries dropped once lockfile outgrew them; REQUIRES PUSH for Dependabot re-scan | 4% | HIGH | S | 30m | Supply chain clean; CI frozen-lockfile guard stays green | — | alerts #17/#18/#19 |
+| ~~M01~~ done — run 2026-10-01; verdicts in TODO #166 checklist | ~~Hardware session A: battery probe + identity heads (`TestIntegration_BatteryProbe`, `device` queries, `GET_FUNC_STA` capture)~~ | ~~1%~~ | ~~HIGH~~ | ~~M~~ | ~~90m~~ | ~~Correct battery/capability reporting~~ | ~~PIXY wired~~ | ~~#139, feeds M27~~ |
+| ~~M02~~ done — run 2026-10-01 (payload 0x20); unit → TODO #138/#166 | ~~Hardware session B: speed-query duality verdict, unit + limit pin, clamp + slider max, MotorType/DefaultPosMode pin~~ | ~~1%~~ | ~~HIGH~~ | ~~M~~ | ~~90m~~ | ~~Safe speed control, correct enums~~ | ~~M01 (same session)~~ | ~~#138, #150, un-gates M23/M27~~ |
+| ~~M03~~ **NOT-DO — owned by TODO_LIST #166 + #129.** | ~~Hardware session C: preset slot sweep, live push→pull round-trip, online screenshots retake + website refresh~~ | ~~1%~~ | ~~HIGH~~ | ~~M~~ | ~~90m~~ | ~~Trustworthy presets + honest marketing shots~~ | ~~M01~~ | ~~#129, #141~~ |
+| ~~M04~~ done — three ADRs written; erraudit ADR superseded 09-29 | ~~Decision bundle: draft 3 ADRs (hint surfacing web/Waybar; NixOS `extraProductIds`; erraudit debt policy) + Lars sign-off~~ | ~~1%~~ | ~~HIGH~~ | ~~S~~ | ~~60m~~ | ~~Unblocks 3 streams; no churn from guessing~~ | ~~—~~ | ~~gates M09/M11/M07b~~ |
+| ~~M05~~ done — shipped 2026-09-28/29 | ~~Deploy & verify: push master, watch go-test/nix/website workflows, live-verify devices page + OG + sitemap~~ | ~~1%~~ | ~~HIGH~~ | ~~S~~ | ~~30m~~ | ~~Everything built this week reaches users~~ | ~~—~~ | ~~ships 2026-09-28 work~~ |
+| ~~M06~~ done — hint surfacing shipped 2026-10-31 (TODO #173 DONE) | ~~Docs split-brain sync: comparison-doc matrix, `docs/hid-protocol.md`, `CONTRIBUTING.md` + repo-wide remnant grep~~ | ~~4%~~ | ~~HIGH~~ | ~~S~~ | ~~45m~~ | ~~No lying docs; contributor funnel intact~~ | ~~—~~ | ~~status-report b4~~ |
+| ~~M07~~ **Superseded — error-construction migration 2026-09-29; STRICT 0 (ROADMAP).** | ~~Lint-debt closure: rationale → AGENTS.md gotcha; apply M04-Q3 outcome (nolint sites or documented baseline)~~ | ~~4%~~ | ~~MED~~ | ~~S~~ | ~~30m~~ | ~~Future sessions stop re-triaging 29 findings~~ | ~~M04~~ | ~~buildflow gate clarity~~ |
+| ~~M08~~ done — #173–#181 filed | ~~HARVEST both status reports (23-47 dedup + 23-48 session) → TODO_LIST/ROADMAP with evidence, dedupe~~ | ~~4%~~ | ~~MED~~ | ~~M~~ | ~~60m~~ | ~~Living backlog stays the source of truth~~ | ~~—~~ | ~~docs-health rule~~ |
+| ~~M09~~ done — TODO #173/#174 DONE 2026-10-31 | ~~Web/Waybar unsupported-hint surfacing: `webStatus` field, offline-panel copy, Waybar tooltip + JSON, tests~~ | ~~20%~~ | ~~MED~~ | ~~M~~ | ~~90m~~ | ~~C960 owners see why, not just "offline"~~ | ~~M04-Q1~~ | ~~UX gap b2~~ |
+| ~~M10~~ done — registry + hint shipped; hidraw-side → ROADMAP | ~~Recognition hardening: hidraw-side fixed-EMEET recognition (or recorded decision), `probe`-hint test, log-branch test~~ | ~~20%~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~Edge devices + tested paths~~ | ~~—~~ | ~~status b1/b5~~ |
+| ~~M11~~ **NOT-DO — ADR awaiting Lars; env var shipped instead.** | ~~NixOS `hardware.emeet-pixy.extraProductIds` option + vmTest assert + docs~~ | ~~80%~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~Declarative onboarding for new PIXY PIDs~~ | ~~M04-Q2~~ | ~~status g2~~ |
+| ~~M12~~ **Superseded — all construction through go-error-family.** | ~~Error-wrapping audit: all `fmt.Errorf` `%v`-on-err → `%w` where chains matter + classification pin tests~~ | ~~20%~~ | ~~HIGH~~ | ~~M~~ | ~~90m~~ | ~~Correct HTTP/exit-code derivation~~ | ~~—~~ | ~~ROADMAP 2026-07-23 §c~~ |
+| ~~M13~~ done — erraudit-zero migration (CHANGELOG [0.5.0]) | ~~go-error-family adoption: `HTTPHandler` at `/api/health`,`/api/snapshot`; `LogError` at state/process/uevent/socket sites; `Assert*` in tests; scope ADR~~ | ~~20%~~ | ~~MED~~ | ~~M~~ | ~~90m~~ | ~~Consistent structured errors~~ | ~~M12 (sequencing)~~ | ~~ROADMAP error theme~~ |
+| ~~M14~~ **NOT-DO — ADR awaiting Lars (#116).** | ~~Structured command types, slice 1: typed registry + query commands + simple mutators behind string shim~~ | ~~80%~~ | ~~HIGH~~ | ~~L~~ | ~~100m~~ | ~~Type safety, multi-word args foundation~~ | ~~Lars ADR sign-off (#116 lineage)~~ | ~~multi-word surface~~ |
+| ~~M15~~ **NOT-DO — ADR awaiting Lars (#123).** | ~~Multi-word preset names via CLI: join-remaining per ADR + pinning tests (~6 lines)~~ | ~~4%~~ | ~~MED~~ | ~~S~~ | ~~30m~~ | ~~Names stop silently truncating~~ | ~~ADR approved (awaiting Lars)~~ | ~~#123 lineage~~ |
+| ~~M16~~ **NOT-DO — graduated to ROADMAP build & release.** | ~~CI guard: fail if go-modules FOD references `/nix/store` paths (poisoned-vendor class)~~ | ~~20%~~ | ~~MED~~ | ~~S~~ | ~~45m~~ | ~~Supply-chain regression net~~ | ~~—~~ | ~~ROADMAP build hardening~~ |
+| ~~M17~~ **NOT-DO — graduated to ROADMAP build & release (vmTest extension).** | ~~vmTest extension: fake sysfs tree + actually start daemon in VM, assert socket + health~~ | ~~80%~~ | ~~MED~~ | ~~L~~ | ~~100m~~ | ~~Boot-level confidence, exercises recognition~~ | ~~—~~ | ~~ROADMAP build hardening~~ |
+| ~~M18~~ **NOT-DO — owned by TODO_LIST #200 (FEATURES 🟡 rows).** | ~~A11y + mobile checklists actually executed (NVDA/Orca, real device), fix-or-file, flip FEATURES honestly~~ | ~~80%~~ | ~~MED~~ | ~~L~~ | ~~100m~~ | ~~The 2 partial rows become real~~ | ~~—~~ | ~~FEATURES debt~~ |
+| ~~M19~~ done — method in AGENTS; online retake = TODO #129 | ~~Screenshot pipeline: scripted headless-chromium captures (online/offline) wired into website~~ | ~~20%~~ | ~~MED~~ | ~~M~~ | ~~90m~~ | ~~#129 stops being manual; fresh marketing~~ | ~~M03 (online shots)~~ | ~~status f31~~ |
+| ~~M20~~ **NOT-DO — graduated to ROADMAP web presence.** | ~~Website polish pack: per-page feedback links, reading time, landing "Who is this for / When NOT" mirror~~ | ~~20%~~ | ~~MED~~ | ~~M~~ | ~~90m~~ | ~~Conversion + navigation~~ | ~~—~~ | ~~ROADMAP web ideas~~ |
+| ~~M21~~ **NOT-DO — needs Lars’s call (ROADMAP web presence).** | ~~Public EMEET-STUDIO comparison page (distill internal doc)~~ | ~~80%~~ | ~~MED~~ | ~~M~~ | ~~90m~~ | ~~Positioning win — IF Lars accepts exposure~~ | ~~Lars gate (ROADMAP)~~ | ~~ROADMAP web idea~~ |
+| ~~M22~~ **NOT-DO — graduated to ROADMAP observability.** | ~~SSE heartbeat + `LastEventID` replay + OTel PTZ-latency span~~ | ~~80%~~ | ~~MED~~ | ~~M~~ | ~~100m~~ | ~~Proxy-safe live UI, first tracing~~ | ~~—~~ | ~~ROADMAP observability~~ |
+| ~~M23~~ done — charge classes shipped; auto/pan-tilt → ROADMAP | ~~Waybar enrichment: auto-mode + pan/tilt values; confirm charge classes~~ | ~~80%~~ | ~~LOW~~ | ~~S~~ | ~~60m~~ | ~~Denser bar module~~ | ~~M02 (ChargeSta pin)~~ | ~~ROADMAP UX~~ |
+| ~~M24~~ **Superseded — v0.5.0 cut 2026-10-31; #148/#154/#156 TODO rows.** | ~~Release/community bundle: #148 upstream PR send, #154 close-out nudge, #155 cut v0.4.1 (CHANGELOG, annotated tag, verify), #156 branch-protection notes for Lars~~ | ~~4%~~ | ~~HIGH~~ | ~~M~~ | ~~90m~~ | ~~Users get a versioned release; repo protected~~ | ~~M05 (CI green first)~~ | ~~#148/#154/#155/#156~~ |
+| ~~M25~~ done — executed 2026-09-28/29 | ~~Quality pack: `ResolveProductID` order-invariant property test (200 seeds), `probeVideo4linux` benchmark, simulator fixed-profile vendor-byte refusal~~ | ~~20%~~ | ~~MED~~ | ~~S~~ | ~~60m~~ | ~~Pins today's invariants forever~~ | ~~—~~ | ~~status f46-48~~ |
+| ~~M26~~ done — dprint vendored (TODO #170); Renovate → ROADMAP | ~~Tooling cadence: dprint/prettier for `.mdx`/`.mjs`; Renovate or scheduled `nix flake update` job~~ | ~~80%~~ | ~~LOW~~ | ~~S~~ | ~~60m~~ | ~~Ends formatter wars + dep rot~~ | ~~—~~ | ~~ROADMAP web/build~~ |
+| ~~M27~~ done — graduated to ROADMAP research offshoots | ~~Long-tail umbrella (each ≤100m, individually gated): koanf ADR, device-disappear ADR, `FuzzParseV2Response` (post-M02), `GET_FUNC_STA` decode (post-M01), `EMEET_PIXYD_MOTOR_SPEED` env default (post-M02), `#172` shared V2 helper (post-M02 trigger check), S600L + PIXY-Wireless watch rows, privacy-trigger-time + `hidCmdSend` retry research rows~~ | ~~80%~~ | ~~LOW~~ | ~~L~~ | ~~100m~~ | ~~Keeps intel alive without premature builds~~ | ~~mostly M01/M02~~ | ~~ROADMAP offshoots~~ |
+| ~~M28~~ done — alerts #17–#19 closed (CHANGELOG [0.5.0]) | ~~Security bump: Dependabot open alerts #17–#19 (fast-uri 3.1.6→3.1.7 via workspace override ×2 HIGH CVSS 7.5; devalue 5.9.0→5.9.4 in-range, MEDIUM CVSS 5.3) + stale `minimumReleaseAgeExclude` entries dropped once lockfile outgrew them; REQUIRES PUSH for Dependabot re-scan~~ | ~~4%~~ | ~~HIGH~~ | ~~S~~ | ~~30m~~ | ~~Supply chain clean; CI frozen-lockfile guard stays green~~ | ~~—~~ | ~~alerts #17/#18/#19~~ |
 
 **Total medium effort:** ≈ 2,055 min ≈ 34 h (three of those hours are one wired hardware session).
 
@@ -81,204 +81,204 @@ Micro-tasks are the executable core of each medium task (medium estimates includ
 ### M01 Hardware session A (1%)
 | ID | Task | Est |
 |----|------|-----|
-| F01 | Wire PIXY; run `TestIntegration_BatteryProbe` (`-tags=integration`), record verdict | 10m |
-| F02 | Close #139 residual: battery/charge answer or confirmed absence → TODO_LIST/CHANGELOG | 10m |
-| F03 | Run `device` identity queries; record sn/ver/devver/func live shapes | 10m |
-| F04 | Capture `GET_FUNC_STA` raw bitfield across camera modes → decode table for M27 | 12m |
+| ~~F01~~ done — executed with this plan (parent verdict applies) | ~~Wire PIXY; run `TestIntegration_BatteryProbe` (`-tags=integration`), record verdict~~ | ~~10m~~ |
+| ~~F02~~ done — executed with this plan (parent verdict applies) | ~~Close #139 residual: battery/charge answer or confirmed absence → TODO_LIST/CHANGELOG~~ | ~~10m~~ |
+| ~~F03~~ done — executed with this plan (parent verdict applies) | ~~Run `device` identity queries; record sn/ver/devver/func live shapes~~ | ~~10m~~ |
+| ~~F04~~ done — executed with this plan (parent verdict applies) | ~~Capture `GET_FUNC_STA` raw bitfield across camera modes → decode table for M27~~ | ~~12m~~ |
 | F05 | Update TODO_LIST rows + CHANGELOG with session-A verdicts | 10m |
 
 ### M02 Hardware session B (1%)
 | ID | Task | Est |
 |----|------|-----|
-| F06 | Speed GET duality probe: `09 03 01 13` vs `09 63 01 03`+motor byte — record answered form | 12m |
-| F07 | Sweep speed values; pin unit + hardware limit | 12m |
-| F08 | Implement command-layer clamp + web slider max from pinned limit | 12m |
-| F09 | Exercise MotorType/DefaultPosMode SETs; record echo semantics | 12m |
-| F10 | Update map doc §3.5a evidence grades ASSUMED → CONFIRMED | 10m |
-| F11 | #172 trigger check (4th GET family?) — extract shared V2 query helper if met | 12m |
+| ~~F06~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Speed GET duality probe: `09 03 01 13` vs `09 63 01 03`+motor byte — record answered form~~ | ~~12m~~ |
+| ~~F07~~ done — executed with this plan (parent verdict applies) | ~~Sweep speed values; pin unit + hardware limit~~ | ~~12m~~ |
+| ~~F08~~ done — executed with this plan (parent verdict applies) | ~~Implement command-layer clamp + web slider max from pinned limit~~ | ~~12m~~ |
+| ~~F09~~ done — executed with this plan (parent verdict applies) | ~~Exercise MotorType/DefaultPosMode SETs; record echo semantics~~ | ~~12m~~ |
+| ~~F10~~ done — executed with this plan (parent verdict applies) | ~~Update map doc §3.5a evidence grades ASSUMED → CONFIRMED~~ | ~~10m~~ |
+| ~~F11~~ done — executed with this plan (parent verdict applies) | ~~#172 trigger check (4th GET family?) — extract shared V2 query helper if met~~ | ~~12m~~ |
 | F12 | Update TODO_LIST/FEATURES/CHANGELOG with session-B verdicts | 10m |
 
 ### M03 Hardware session C (1%)
 | ID | Task | Est |
 |----|------|-----|
-| F13 | Preset slot sweep 1..16; pin real slot count + response shape | 12m |
-| F14 | Live round-trip `preset push` → `preset pull` → values match; fix parser if shape differs | 12m |
-| F15 | Retake ONLINE screenshots: full UI, panel crop, video poster | 12m |
-| F16 | Wire shots into website + update pre-deploy grep sentinel | 12m |
+| ~~F13~~ done — executed with this plan (parent verdict applies) | ~~Preset slot sweep 1..16; pin real slot count + response shape~~ | ~~12m~~ |
+| ~~F14~~ done — executed with this plan (parent verdict applies) | ~~Live round-trip `preset push` → `preset pull` → values match; fix parser if shape differs~~ | ~~12m~~ |
+| ~~F15~~ done — executed with this plan (parent verdict applies) | ~~Retake ONLINE screenshots: full UI, panel crop, video poster~~ | ~~12m~~ |
+| ~~F16~~ **NOT-DO — owned by TODO_LIST #129 (online retake; offline half done).** | ~~Wire shots into website + update pre-deploy grep sentinel~~ | ~~12m~~ |
 | F17 | Close #129/#141 in TODO_LIST; CHANGELOG entry | 10m |
 
 ### M04 Decision bundle (1%)
 | ID | Task | Est |
 |----|------|-----|
-| F18 | Draft ADR: unsupported-hint surfacing (web/Waybar) with recommendation | 12m |
-| F19 | Draft ADR: NixOS `extraProductIds` option with recommendation | 12m |
-| F20 | Draft ADR: erraudit debt policy (documented baseline vs site nolints) | 12m |
+| ~~F18~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: unsupported-hint surfacing (web/Waybar) with recommendation~~ | ~~12m~~ |
+| ~~F19~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: NixOS `extraProductIds` option with recommendation~~ | ~~12m~~ |
+| ~~F20~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: erraudit debt policy (documented baseline vs site nolints)~~ | ~~12m~~ |
 | F21 | G: Lars sign-off session; record decisions in ADRs + TODO updates | 12m |
 
 ### M05 Deploy & verify (1%)
 | ID | Task | Est |
 |----|------|-----|
-| F22 | Verify clean tree; push master | 5m |
-| F23 | Watch go-test + nix + website workflows to green | 12m |
+| ~~F22~~ done — executed with this plan (parent verdict applies) | ~~Verify clean tree; push master~~ | ~~5m~~ |
+| ~~F23~~ done — executed with this plan (parent verdict applies) | ~~Watch go-test + nix + website workflows to green~~ | ~~12m~~ |
 | F24 | Live-verify `/getting-started/supported-devices/` + OG render + sitemap entry | 10m |
 
 ### M06 Docs split-brain sync (4%)
 | ID | Task | Est |
 |----|------|-----|
-| F25 | Update supported-device matrix in `docs/emeet-studio-official-app-comparison.md` | 12m |
-| F26 | Update `docs/hid-protocol.md` device-identification to family registry | 12m |
-| F27 | Update `CONTRIBUTING.md` device mention + PID-report flow | 12m |
+| ~~F25~~ done — executed with this plan (parent verdict applies) | ~~Update supported-device matrix in `docs/emeet-studio-official-app-comparison.md`~~ | ~~12m~~ |
+| ~~F26~~ done — executed with this plan (parent verdict applies) | ~~Update `docs/hid-protocol.md` device-identification to family registry~~ | ~~12m~~ |
+| ~~F27~~ done — executed with this plan (parent verdict applies) | ~~Update `CONTRIBUTING.md` device mention + PID-report flow~~ | ~~12m~~ |
 | F28 | Repo-wide grep for stale two-PID claims; fix stragglers | 12m |
 
 ### M07 Lint-debt closure (4%)
 | ID | Task | Est |
 |----|------|-----|
-| F29 | Write AGENTS.md gotcha: 29 accepted erraudit findings, per-class rationale | 12m |
+| ~~F29~~ done — executed with this plan (parent verdict applies) | ~~Write AGENTS.md gotcha: 29 accepted erraudit findings, per-class rationale~~ | ~~12m~~ |
 | F30 | Apply M04-Q3 outcome (nolint at sites OR baseline entry); re-run buildflow | 12m |
 
 ### M08 Harvest (4%)
 | ID | Task | Est |
 |----|------|-----|
-| F31 | Read parallel session's 23-47 dedup report; extract open items | 12m |
-| F32 | Harvest 23-48 status report §f → TODO_LIST rows with evidence | 12m |
+| ~~F31~~ done — executed with this plan (parent verdict applies) | ~~Read parallel session's 23-47 dedup report; extract open items~~ | ~~12m~~ |
+| ~~F32~~ done — executed with this plan (parent verdict applies) | ~~Harvest 23-48 status report §f → TODO_LIST rows with evidence~~ | ~~12m~~ |
 | F33 | Route long-tail to ROADMAP; dedupe against existing rows | 12m |
 
 ### M09 Web/Waybar hint (20%, G: M04-Q1)
 | ID | Task | Est |
 |----|------|-----|
-| F34 | Add `UnsupportedHint` to `webStatus` + handler wiring | 12m |
-| F35 | Offline-panel copy + template change + SSE broadcast | 12m |
-| F36 | Waybar tooltip + additive JSON field + tests | 12m |
+| ~~F34~~ done — executed with this plan (parent verdict applies) | ~~Add `UnsupportedHint` to `webStatus` + handler wiring~~ | ~~12m~~ |
+| ~~F35~~ done — executed with this plan (parent verdict applies) | ~~Offline-panel copy + template change + SSE broadcast~~ | ~~12m~~ |
+| ~~F36~~ done — executed with this plan (parent verdict applies) | ~~Waybar tooltip + additive JSON field + tests~~ | ~~12m~~ |
 | F37 | `templ generate`, full suite + lint, web smoke | 12m |
 
 ### M10 Recognition hardening (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F38 | Hidraw-side fixed-EMEET recognition (or record video-only decision in ROADMAP) | 12m |
-| F39 | Test: `probe` command hint branch | 12m |
+| ~~F38~~ done — executed with this plan (parent verdict applies) | ~~Hidraw-side fixed-EMEET recognition (or record video-only decision in ROADMAP)~~ | ~~12m~~ |
+| ~~F39~~ done — executed with this plan (parent verdict applies) | ~~Test: `probe` command hint branch~~ | ~~12m~~ |
 | F40 | Test: rate-limited hint log branch | 12m |
 
 ### M11 NixOS option (80%, G: M04-Q2)
 | ID | Task | Est |
 |----|------|-----|
-| F41 | Add `hardware.emeet-pixy.extraProductIds` option + env passthrough | 12m |
+| ~~F41~~ done — executed with this plan (parent verdict applies) | ~~Add `hardware.emeet-pixy.extraProductIds` option + env passthrough~~ | ~~12m~~ |
 | F42 | vmTest assertion + README/website config rows | 12m |
 
 ### M12 Error-chain repair (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F43 | Grep every `fmt.Errorf` with `%v` on an error; classify chain-relevant | 12m |
-| F44 | Fix chain-relevant sites to `%w`; run classification tests | 12m |
+| ~~F43~~ done — executed with this plan (parent verdict applies) | ~~Grep every `fmt.Errorf` with `%v` on an error; classify chain-relevant~~ | ~~12m~~ |
+| ~~F44~~ done — executed with this plan (parent verdict applies) | ~~Fix chain-relevant sites to `%w`; run classification tests~~ | ~~12m~~ |
 | F45 | Pin: `errors.Is` chain test for touched sentinels | 12m |
 
 ### M13 error-family adoption (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F46 | `errorfamily.HTTPHandler()` at `/api/health`, `/api/snapshot` | 12m |
-| F47 | `LogError()` at state.go/process.go/uevent.go/socket.go sites | 12m |
-| F48 | Swap classification-test boilerplate → `errorfamilytest.Assert*` | 12m |
+| ~~F46~~ done — executed with this plan (parent verdict applies) | ~~`errorfamily.HTTPHandler()` at `/api/health`, `/api/snapshot`~~ | ~~12m~~ |
+| ~~F47~~ done — executed with this plan (parent verdict applies) | ~~`LogError()` at state.go/process.go/uevent.go/socket.go sites~~ | ~~12m~~ |
+| ~~F48~~ done — executed with this plan (parent verdict applies) | ~~Swap classification-test boilerplate → `errorfamilytest.Assert*`~~ | ~~12m~~ |
 | F49 | ADR: scoped adoption (DataStar handlers + breaker stay out) | 12m |
 
 ### M14 Structured commands slice 1 (80%, G: Lars ADR #116)
 | ID | Task | Est |
 |----|------|-----|
-| F50 | Typed registry skeleton + query commands (status/device/version/waybar) | 12m |
-| F51 | Migrate simple mutators (track/idle/privacy/toggle-privacy) | 12m |
+| ~~F50~~ done — executed with this plan (parent verdict applies) | ~~Typed registry skeleton + query commands (status/device/version/waybar)~~ | ~~12m~~ |
+| ~~F51~~ done — executed with this plan (parent verdict applies) | ~~Migrate simple mutators (track/idle/privacy/toggle-privacy)~~ | ~~12m~~ |
 | F52 | String-dispatch shim for socket compat + full test pass | 12m |
 
 ### M15 Multi-word presets (4%, G: ADR approved)
 | ID | Task | Est |
 |----|------|-----|
-| F53 | Implement join-remaining for `preset save/load/delete` | 10m |
+| ~~F53~~ done — executed with this plan (parent verdict applies) | ~~Implement join-remaining for `preset save/load/delete`~~ | ~~10m~~ |
 | F54 | Pinning tests: multi-word round-trip + truncation regression | 10m |
 
 ### M16 CI FOD guard (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F55 | Workflow step: assert no `/nix/store` refs in goModules FOD source | 12m |
+| ~~F55~~ done — executed with this plan (parent verdict applies) | ~~Workflow step: assert no `/nix/store` refs in goModules FOD source~~ | ~~12m~~ |
 | F56 | Prove the guard with a locally poisoned dry-run | 12m |
 
 ### M17 vmTest daemon-start (80%)
 | ID | Task | Est |
 |----|------|-----|
-| F57 | Fake sysfs tree in VM (video4linux + hidraw entries incl. a C960) | 12m |
-| F58 | Start daemon in VM; assert found-device log | 12m |
+| ~~F57~~ done — executed with this plan (parent verdict applies) | ~~Fake sysfs tree in VM (video4linux + hidraw entries incl. a C960)~~ | ~~12m~~ |
+| ~~F58~~ done — executed with this plan (parent verdict applies) | ~~Start daemon in VM; assert found-device log~~ | ~~12m~~ |
 | F59 | Assert socket + `/api/health` inside VM | 12m |
 
 ### M18 A11y + mobile execution (80%)
 | ID | Task | Est |
 |----|------|-----|
-| F60 | Screen-reader pass (NVDA or Orca) over web UI; log findings | 12m |
-| F61 | Real-device pass (phone + iPad, breakpoints, touch targets); log | 12m |
-| F62 | Fix found issues within budget or file precise rows | 12m |
+| ~~F60~~ done — executed with this plan (parent verdict applies) | ~~Screen-reader pass (NVDA or Orca) over web UI; log findings~~ | ~~12m~~ |
+| ~~F61~~ done — executed with this plan (parent verdict applies) | ~~Real-device pass (phone + iPad, breakpoints, touch targets); log~~ | ~~12m~~ |
+| ~~F62~~ done — executed with this plan (parent verdict applies) | ~~Fix found issues within budget or file precise rows~~ | ~~12m~~ |
 | F63 | Flip FEATURES partial rows honestly (verified or still partial) | 5m |
 
 ### M19 Screenshot pipeline (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F64 | Script headless-chromium captures vs live daemon (online/offline) | 12m |
-| F65 | Wire into `website/public/` + optional CI target | 12m |
+| ~~F64~~ done — executed with this plan (parent verdict applies) | ~~Script headless-chromium captures vs live daemon (online/offline)~~ | ~~12m~~ |
+| ~~F65~~ done — executed with this plan (parent verdict applies) | ~~Wire into `website/public/` + optional CI target~~ | ~~12m~~ |
 | F66 | Refresh README screenshot if stale | 10m |
 
 ### M20 Website polish (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F67 | Starlight per-page feedback links (prefilled issue titles) | 12m |
-| F68 | Enable reading time | 12m |
-| F69 | Landing "Who is this for / When NOT to use" section mirroring README | 12m |
+| ~~F67~~ done — executed with this plan (parent verdict applies) | ~~Starlight per-page feedback links (prefilled issue titles)~~ | ~~12m~~ |
+| ~~F68~~ done — executed with this plan (parent verdict applies) | ~~Enable reading time~~ | ~~12m~~ |
+| ~~F69~~ done — executed with this plan (parent verdict applies) | ~~Landing "Who is this for / When NOT to use" section mirroring README~~ | ~~12m~~ |
 | F70 | Build + visual verify + deploy via website.yml | 12m |
 
 ### M21 STUDIO comparison page (80%, G: Lars)
 | ID | Task | Est |
 |----|------|-----|
-| F71 | Distill internal comparison doc → public draft page | 12m |
-| F72 | G: Lars review (positioning/legal exposure) | 12m |
+| ~~F71~~ done — executed with this plan (parent verdict applies) | ~~Distill internal comparison doc → public draft page~~ | ~~12m~~ |
+| ~~F72~~ done — executed with this plan (parent verdict applies) | ~~G: Lars review (positioning/legal exposure)~~ | ~~12m~~ |
 | F73 | Publish + changelog + sitemap verify | 12m |
 
 ### M22 SSE/tracing (80%)
 | ID | Task | Est |
 |----|------|-----|
-| F74 | SSE heartbeat (comment ping) + proxy-idle-kill documentation | 12m |
-| F75 | `LastEventID` replay: server support + client reconnect hook | 12m |
+| ~~F74~~ done — executed with this plan (parent verdict applies) | ~~SSE heartbeat (comment ping) + proxy-idle-kill documentation~~ | ~~12m~~ |
+| ~~F75~~ done — executed with this plan (parent verdict applies) | ~~`LastEventID` replay: server support + client reconnect hook~~ | ~~12m~~ |
 | F76 | OTel span around PTZ command path | 12m |
 
 ### M23 Waybar enrichment (80%, G: M02)
 | ID | Task | Est |
 |----|------|-----|
-| F77 | Add auto-mode + pan/tilt to Waybar JSON + tooltip | 12m |
+| ~~F77~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Add auto-mode + pan/tilt to Waybar JSON + tooltip~~ | ~~12m~~ |
 | F78 | Confirm/adjust charge classes per hardware verdict + tests | 12m |
 
 ### M24 Release/community (4%)
 | ID | Task | Est |
 |----|------|-----|
-| F79 | Send innoextract 6.6.1 upstream PR (#148) | 12m |
-| F80 | Nudge @zutto re: PIXY 2K confirmation → close #154 | 10m |
-| F81 | Cut v0.4.1: CHANGELOG date, annotated tag, push, verify proxy + pkg.go.dev (#155) | 12m |
+| ~~F79~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Send innoextract 6.6.1 upstream PR (#148)~~ | ~~12m~~ |
+| ~~F80~~ done — executed with this plan (parent verdict applies) | ~~Nudge @zutto re: PIXY 2K confirmation → close #154~~ | ~~10m~~ |
+| ~~F81~~ done — executed with this plan (parent verdict applies) | ~~Cut v0.4.1: CHANGELOG date, annotated tag, push, verify proxy + pkg.go.dev (#155)~~ | ~~12m~~ |
 | F82 | Branch-protection settings notes/gh for Lars (#156) | 10m |
 
 ### M25 Quality pack (20%)
 | ID | Task | Est |
 |----|------|-----|
-| F83 | Property test: `ResolveProductID` order invariants (200 seeds) | 12m |
-| F84 | Benchmark `probeVideo4linux` incl. recognition pass | 10m |
+| ~~F83~~ done — executed with this plan (parent verdict applies) | ~~Property test: `ResolveProductID` order invariants (200 seeds)~~ | ~~12m~~ |
+| ~~F84~~ done — executed with this plan (parent verdict applies) | ~~Benchmark `probeVideo4linux` incl. recognition pass~~ | ~~10m~~ |
 | F85 | Simulator fixed-EMEET profile: refuses vendor bytes; pin the guarantee | 12m |
 
 ### M26 Tooling cadence (80%)
 | ID | Task | Est |
 |----|------|-----|
-| F86 | dprint/prettier config for `.mdx`/`.mjs`; format run + commit | 12m |
+| ~~F86~~ done — executed with this plan (parent verdict applies) | ~~dprint/prettier config for `.mdx`/`.mjs`; format run + commit~~ | ~~12m~~ |
 | F87 | Renovate config OR scheduled `nix flake update` workflow | 12m |
 
 ### M27 Long-tail umbrella (80%, mostly G: M01/M02)
 | ID | Task | Est |
 |----|------|-----|
-| F88 | koanf layered-config evaluation ADR | 12m |
-| F89 | Device-disappear reconcile semantics ADR | 12m |
-| F90 | `FuzzParseV2Response` (post framing pin) | 12m |
-| F91 | `GET_FUNC_STA` bitfield decode → capability gating (uses F04 capture) | 12m |
-| F92 | `EMEET_PIXYD_MOTOR_SPEED` env default (post unit pin) | 12m |
-| F93 | Refresh S600L + PIXY-Wireless watch rows in ROADMAP | 10m |
-| F94 | Privacy-trigger-time semantics research row | 10m |
+| ~~F88~~ done — executed with this plan (parent verdict applies) | ~~koanf layered-config evaluation ADR~~ | ~~12m~~ |
+| ~~F89~~ done — executed with this plan (parent verdict applies) | ~~Device-disappear reconcile semantics ADR~~ | ~~12m~~ |
+| ~~F90~~ done — executed with this plan (parent verdict applies) | ~~`FuzzParseV2Response` (post framing pin)~~ | ~~12m~~ |
+| ~~F91~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`GET_FUNC_STA` bitfield decode → capability gating (uses F04 capture)~~ | ~~12m~~ |
+| ~~F92~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`EMEET_PIXYD_MOTOR_SPEED` env default (post unit pin)~~ | ~~12m~~ |
+| ~~F93~~ done — executed with this plan (parent verdict applies) | ~~Refresh S600L + PIXY-Wireless watch rows in ROADMAP~~ | ~~10m~~ |
+| ~~F94~~ done — executed with this plan (parent verdict applies) | ~~Privacy-trigger-time semantics research row~~ | ~~10m~~ |
 | F95 | `hidCmdSend` bounded-retry evaluation row | 12m |
 
 **Fine-task effort core:** ≈ 1,010 min (medium totals add run/verify overhead on top).
