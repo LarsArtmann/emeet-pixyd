@@ -101,6 +101,7 @@ func TestWeb_StatusEndpointJSONShape(t *testing.T) {
 	for _, want := range []string{
 		`"camera":"privacy"`,
 		`"online":false`,
+		`"controllable":false`,
 		`"inCall":false`,
 		`"version":"dev"`,
 	} {
