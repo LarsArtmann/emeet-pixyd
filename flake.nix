@@ -83,9 +83,36 @@
             projectRootFile = "go.mod";
             programs = {
               gofumpt.enable = true;
-              goimports.enable = true;
               templ.enable = true;
               nixfmt.enable = true;
+            };
+            # Generated files are owned by `templ generate` (devShell,
+            # package.nix and CI all regenerate them): gofumpt would rewrite
+            # generator output (var x = vs x := churn between templ versions)
+            # and oscillate against every regenerate. goimports is NOT in
+            # treefmt because its go/packages driver shells out to `go`, which
+            # wants a toolchain download the offline check sandbox cannot
+            # perform; import grouping is enforced by golangci-lint (gci +
+            # goimports) in CI and the pre-commit gate instead.
+            settings.formatter.gofumpt.excludes = [
+              "vendor/*"
+              "*_templ.go"
+              "**_templ.go"
+            ];
+            # treefmt-nix's default templ wrapper carries the nixpkgs default
+            # `go` (1.26.x): templ fmt parses the generated code via
+            # go/packages, and that `go` sees go.mod's `go 1.27` and tries a
+            # toolchain download — which the offline check sandbox cannot do.
+            # Pin the wrapper's go to go_1_27 so no download is ever needed.
+            settings.formatter.templ.command = pkgs.writeShellApplication {
+              name = "templ";
+              runtimeInputs = [
+                pkgs.go_1_27
+                pkgs.templ
+              ];
+              text = ''
+                exec templ "$@"
+              '';
             };
           };
 
