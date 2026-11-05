@@ -104,16 +104,18 @@
             # go/packages, and that `go` sees go.mod's `go 1.27` and tries a
             # toolchain download — which the offline check sandbox cannot do.
             # Pin the wrapper's go to go_1_27 so no download is ever needed.
-            settings.formatter.templ.command = pkgs.writeShellApplication {
-              name = "templ";
-              runtimeInputs = [
-                pkgs.go_1_27
-                pkgs.templ
-              ];
-              text = ''
-                exec templ "$@"
-              '';
-            };
+            settings.formatter.templ.command = lib.mkForce (
+              pkgs.writeShellApplication {
+                name = "templ";
+                runtimeInputs = [
+                  pkgs.go_1_27
+                  pkgs.templ
+                ];
+                text = ''
+                  exec templ "$@"
+                '';
+              }
+            );
           };
 
           packages = {
