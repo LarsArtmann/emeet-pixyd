@@ -39,7 +39,7 @@
 
 ## 2. Gates & Decision Queue (cannot be executed by willpower alone)
 
-<!-- check-rows:ledger --> open Lars/hardware gates — rows route to TODO_LIST, not verdicts
+<!-- check-rows:ledger -->
 | Gate | Blocks | Owner | This plan's recommendation |
 | --- | --- | --- | --- |
 | Release timing | T01 (#155) | Lars | Cut v0.5.0 now; hardware verdicts become v0.5.1 |

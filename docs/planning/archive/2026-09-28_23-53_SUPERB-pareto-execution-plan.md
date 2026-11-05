@@ -79,207 +79,207 @@ Sorted by importance → impact → customer value (ties broken by effort ascend
 Micro-tasks are the executable core of each medium task (medium estimates include run/verify overhead). Sorted within their medium task; global order = the medium table's order. `G:` = gate.
 
 ### M01 Hardware session A (1%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F01~~ done — executed with this plan (parent verdict applies) | ~~Wire PIXY; run `TestIntegration_BatteryProbe` (`-tags=integration`), record verdict~~ | ~~10m~~ |
-| ~~F02~~ done — executed with this plan (parent verdict applies) | ~~Close #139 residual: battery/charge answer or confirmed absence → TODO_LIST/CHANGELOG~~ | ~~10m~~ |
-| ~~F03~~ done — executed with this plan (parent verdict applies) | ~~Run `device` identity queries; record sn/ver/devver/func live shapes~~ | ~~10m~~ |
-| ~~F04~~ done — executed with this plan (parent verdict applies) | ~~Capture `GET_FUNC_STA` raw bitfield across camera modes → decode table for M27~~ | ~~12m~~ |
-| F05 | Update TODO_LIST rows + CHANGELOG with session-A verdicts | 10m |
+| ~~F01~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Wire PIXY; run `TestIntegration_BatteryProbe` (`-tags=integration`), record verdict~~ | ~~10m~~ |
+| ~~F02~~ done — executed with this plan (parent verdict applies)| ~~Close #139 residual: battery/charge answer or confirmed absence → TODO_LIST/CHANGELOG~~ | ~~10m~~ |
+| ~~F03~~ done — executed with this plan (parent verdict applies)| ~~Run `device` identity queries; record sn/ver/devver/func live shapes~~ | ~~10m~~ |
+| ~~F04~~ done — executed with this plan (parent verdict applies)| ~~Capture `GET_FUNC_STA` raw bitfield across camera modes → decode table for M27~~ | ~~12m~~ |
+| ~~F05~~ done — executed with this plan (parent verdict applies)| ~~Update TODO_LIST rows + CHANGELOG with session-A verdicts~~ | ~~10m~~ |
 
 ### M02 Hardware session B (1%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F06~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Speed GET duality probe: `09 03 01 13` vs `09 63 01 03`+motor byte — record answered form~~ | ~~12m~~ |
-| ~~F07~~ done — executed with this plan (parent verdict applies) | ~~Sweep speed values; pin unit + hardware limit~~ | ~~12m~~ |
-| ~~F08~~ done — executed with this plan (parent verdict applies) | ~~Implement command-layer clamp + web slider max from pinned limit~~ | ~~12m~~ |
-| ~~F09~~ done — executed with this plan (parent verdict applies) | ~~Exercise MotorType/DefaultPosMode SETs; record echo semantics~~ | ~~12m~~ |
-| ~~F10~~ done — executed with this plan (parent verdict applies) | ~~Update map doc §3.5a evidence grades ASSUMED → CONFIRMED~~ | ~~10m~~ |
-| ~~F11~~ done — executed with this plan (parent verdict applies) | ~~#172 trigger check (4th GET family?) — extract shared V2 query helper if met~~ | ~~12m~~ |
-| F12 | Update TODO_LIST/FEATURES/CHANGELOG with session-B verdicts | 10m |
+| ~~F06~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Speed GET duality probe: `09 03 01 13` vs `09 63 01 03`+motor byte — record answered form~~ | ~~12m~~ |
+| ~~F07~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Sweep speed values; pin unit + hardware limit~~ | ~~12m~~ |
+| ~~F08~~ done — executed with this plan (parent verdict applies)| ~~Implement command-layer clamp + web slider max from pinned limit~~ | ~~12m~~ |
+| ~~F09~~ done — executed with this plan (parent verdict applies)| ~~Exercise MotorType/DefaultPosMode SETs; record echo semantics~~ | ~~12m~~ |
+| ~~F10~~ done — executed with this plan (parent verdict applies)| ~~Update map doc §3.5a evidence grades ASSUMED → CONFIRMED~~ | ~~10m~~ |
+| ~~F11~~ done — executed with this plan (parent verdict applies)| ~~#172 trigger check (4th GET family?) — extract shared V2 query helper if met~~ | ~~12m~~ |
+| ~~F12~~ done — executed with this plan (parent verdict applies)| ~~Update TODO_LIST/FEATURES/CHANGELOG with session-B verdicts~~ | ~~10m~~ |
 
 ### M03 Hardware session C (1%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F13~~ done — executed with this plan (parent verdict applies) | ~~Preset slot sweep 1..16; pin real slot count + response shape~~ | ~~12m~~ |
-| ~~F14~~ done — executed with this plan (parent verdict applies) | ~~Live round-trip `preset push` → `preset pull` → values match; fix parser if shape differs~~ | ~~12m~~ |
-| ~~F15~~ done — executed with this plan (parent verdict applies) | ~~Retake ONLINE screenshots: full UI, panel crop, video poster~~ | ~~12m~~ |
-| ~~F16~~ **NOT-DO — owned by TODO_LIST #129 (online retake; offline half done).** | ~~Wire shots into website + update pre-deploy grep sentinel~~ | ~~12m~~ |
-| F17 | Close #129/#141 in TODO_LIST; CHANGELOG entry | 10m |
+| ~~F13~~ done — executed with this plan (parent verdict applies)| ~~Preset slot sweep 1..16; pin real slot count + response shape~~ | ~~12m~~ |
+| ~~F14~~ done — executed with this plan (parent verdict applies)| ~~Live round-trip `preset push` → `preset pull` → values match; fix parser if shape differs~~ | ~~12m~~ |
+| ~~F15~~ done — executed with this plan (parent verdict applies)| ~~Retake ONLINE screenshots: full UI, panel crop, video poster~~ | ~~12m~~ |
+| ~~F16~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Wire shots into website + update pre-deploy grep sentinel~~ | ~~12m~~ |
+| ~~F17~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Close #129/#141 in TODO_LIST; CHANGELOG entry~~ | ~~10m~~ |
 
 ### M04 Decision bundle (1%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F18~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: unsupported-hint surfacing (web/Waybar) with recommendation~~ | ~~12m~~ |
-| ~~F19~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: NixOS `extraProductIds` option with recommendation~~ | ~~12m~~ |
-| ~~F20~~ done — executed with this plan (parent verdict applies) | ~~Draft ADR: erraudit debt policy (documented baseline vs site nolints)~~ | ~~12m~~ |
-| F21 | G: Lars sign-off session; record decisions in ADRs + TODO updates | 12m |
+| ~~F18~~ done — executed with this plan (parent verdict applies)| ~~Draft ADR: unsupported-hint surfacing (web/Waybar) with recommendation~~ | ~~12m~~ |
+| ~~F19~~ done — executed with this plan (parent verdict applies)| ~~Draft ADR: NixOS `extraProductIds` option with recommendation~~ | ~~12m~~ |
+| ~~F20~~ done — executed with this plan (parent verdict applies)| ~~Draft ADR: erraudit debt policy (documented baseline vs site nolints)~~ | ~~12m~~ |
+| ~~F21~~ done — executed with this plan (parent verdict applies)| ~~G: Lars sign-off session; record decisions in ADRs + TODO updates~~ | ~~12m~~ |
 
 ### M05 Deploy & verify (1%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F22~~ done — executed with this plan (parent verdict applies) | ~~Verify clean tree; push master~~ | ~~5m~~ |
-| ~~F23~~ done — executed with this plan (parent verdict applies) | ~~Watch go-test + nix + website workflows to green~~ | ~~12m~~ |
-| F24 | Live-verify `/getting-started/supported-devices/` + OG render + sitemap entry | 10m |
+| ~~F22~~ done — executed with this plan (parent verdict applies)| ~~Verify clean tree; push master~~ | ~~5m~~ |
+| ~~F23~~ done — executed with this plan (parent verdict applies)| ~~Watch go-test + nix + website workflows to green~~ | ~~12m~~ |
+| ~~F24~~ done — executed with this plan (parent verdict applies)| ~~Live-verify `/getting-started/supported-devices/` + OG render + sitemap entry~~ | ~~10m~~ |
 
 ### M06 Docs split-brain sync (4%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F25~~ done — executed with this plan (parent verdict applies) | ~~Update supported-device matrix in `docs/emeet-studio-official-app-comparison.md`~~ | ~~12m~~ |
-| ~~F26~~ done — executed with this plan (parent verdict applies) | ~~Update `docs/hid-protocol.md` device-identification to family registry~~ | ~~12m~~ |
-| ~~F27~~ done — executed with this plan (parent verdict applies) | ~~Update `CONTRIBUTING.md` device mention + PID-report flow~~ | ~~12m~~ |
-| F28 | Repo-wide grep for stale two-PID claims; fix stragglers | 12m |
+| ~~F25~~ done — executed with this plan (parent verdict applies)| ~~Update supported-device matrix in `docs/emeet-studio-official-app-comparison.md`~~ | ~~12m~~ |
+| ~~F26~~ done — executed with this plan (parent verdict applies)| ~~Update `docs/hid-protocol.md` device-identification to family registry~~ | ~~12m~~ |
+| ~~F27~~ done — executed with this plan (parent verdict applies)| ~~Update `CONTRIBUTING.md` device mention + PID-report flow~~ | ~~12m~~ |
+| ~~F28~~ done — executed with this plan (parent verdict applies)| ~~Repo-wide grep for stale two-PID claims; fix stragglers~~ | ~~12m~~ |
 
 ### M07 Lint-debt closure (4%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F29~~ done — executed with this plan (parent verdict applies) | ~~Write AGENTS.md gotcha: 29 accepted erraudit findings, per-class rationale~~ | ~~12m~~ |
-| F30 | Apply M04-Q3 outcome (nolint at sites OR baseline entry); re-run buildflow | 12m |
+| ~~F29~~ done — executed with this plan (parent verdict applies)| ~~Write AGENTS.md gotcha: 29 accepted erraudit findings, per-class rationale~~ | ~~12m~~ |
+| ~~F30~~ done — executed with this plan (parent verdict applies)| ~~Apply M04-Q3 outcome (nolint at sites OR baseline entry); re-run buildflow~~ | ~~12m~~ |
 
 ### M08 Harvest (4%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F31~~ done — executed with this plan (parent verdict applies) | ~~Read parallel session's 23-47 dedup report; extract open items~~ | ~~12m~~ |
-| ~~F32~~ done — executed with this plan (parent verdict applies) | ~~Harvest 23-48 status report §f → TODO_LIST rows with evidence~~ | ~~12m~~ |
-| F33 | Route long-tail to ROADMAP; dedupe against existing rows | 12m |
+| ~~F31~~ done — executed with this plan (parent verdict applies)| ~~Read parallel session's 23-47 dedup report; extract open items~~ | ~~12m~~ |
+| ~~F32~~ done — executed with this plan (parent verdict applies)| ~~Harvest 23-48 status report §f → TODO_LIST rows with evidence~~ | ~~12m~~ |
+| ~~F33~~ done — executed with this plan (parent verdict applies)| ~~Route long-tail to ROADMAP; dedupe against existing rows~~ | ~~12m~~ |
 
 ### M09 Web/Waybar hint (20%, G: M04-Q1)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F34~~ done — executed with this plan (parent verdict applies) | ~~Add `UnsupportedHint` to `webStatus` + handler wiring~~ | ~~12m~~ |
-| ~~F35~~ done — executed with this plan (parent verdict applies) | ~~Offline-panel copy + template change + SSE broadcast~~ | ~~12m~~ |
-| ~~F36~~ done — executed with this plan (parent verdict applies) | ~~Waybar tooltip + additive JSON field + tests~~ | ~~12m~~ |
-| F37 | `templ generate`, full suite + lint, web smoke | 12m |
+| ~~F34~~ done — executed with this plan (parent verdict applies)| ~~Add `UnsupportedHint` to `webStatus` + handler wiring~~ | ~~12m~~ |
+| ~~F35~~ done — executed with this plan (parent verdict applies)| ~~Offline-panel copy + template change + SSE broadcast~~ | ~~12m~~ |
+| ~~F36~~ done — executed with this plan (parent verdict applies)| ~~Waybar tooltip + additive JSON field + tests~~ | ~~12m~~ |
+| ~~F37~~ done — executed with this plan (parent verdict applies)| ~~`templ generate`, full suite + lint, web smoke~~ | ~~12m~~ |
 
 ### M10 Recognition hardening (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F38~~ done — executed with this plan (parent verdict applies) | ~~Hidraw-side fixed-EMEET recognition (or record video-only decision in ROADMAP)~~ | ~~12m~~ |
-| ~~F39~~ done — executed with this plan (parent verdict applies) | ~~Test: `probe` command hint branch~~ | ~~12m~~ |
-| F40 | Test: rate-limited hint log branch | 12m |
+| ~~F38~~ done — executed with this plan (parent verdict applies)| ~~Hidraw-side fixed-EMEET recognition (or record video-only decision in ROADMAP)~~ | ~~12m~~ |
+| ~~F39~~ done — executed with this plan (parent verdict applies)| ~~Test: `probe` command hint branch~~ | ~~12m~~ |
+| ~~F40~~ done — executed with this plan (parent verdict applies)| ~~Test: rate-limited hint log branch~~ | ~~12m~~ |
 
 ### M11 NixOS option (80%, G: M04-Q2)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F41~~ done — executed with this plan (parent verdict applies) | ~~Add `hardware.emeet-pixy.extraProductIds` option + env passthrough~~ | ~~12m~~ |
-| F42 | vmTest assertion + README/website config rows | 12m |
+| ~~F41~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Add `hardware.emeet-pixy.extraProductIds` option + env passthrough~~ | ~~12m~~ |
+| ~~F42~~ done — executed with this plan (parent verdict applies)| ~~vmTest assertion + README/website config rows~~ | ~~12m~~ |
 
 ### M12 Error-chain repair (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F43~~ done — executed with this plan (parent verdict applies) | ~~Grep every `fmt.Errorf` with `%v` on an error; classify chain-relevant~~ | ~~12m~~ |
-| ~~F44~~ done — executed with this plan (parent verdict applies) | ~~Fix chain-relevant sites to `%w`; run classification tests~~ | ~~12m~~ |
-| F45 | Pin: `errors.Is` chain test for touched sentinels | 12m |
+| ~~F43~~ done — executed with this plan (parent verdict applies)| ~~Grep every `fmt.Errorf` with `%v` on an error; classify chain-relevant~~ | ~~12m~~ |
+| ~~F44~~ done — executed with this plan (parent verdict applies)| ~~Fix chain-relevant sites to `%w`; run classification tests~~ | ~~12m~~ |
+| ~~F45~~ done — executed with this plan (parent verdict applies)| ~~Pin: `errors.Is` chain test for touched sentinels~~ | ~~12m~~ |
 
 ### M13 error-family adoption (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F46~~ done — executed with this plan (parent verdict applies) | ~~`errorfamily.HTTPHandler()` at `/api/health`, `/api/snapshot`~~ | ~~12m~~ |
-| ~~F47~~ done — executed with this plan (parent verdict applies) | ~~`LogError()` at state.go/process.go/uevent.go/socket.go sites~~ | ~~12m~~ |
-| ~~F48~~ done — executed with this plan (parent verdict applies) | ~~Swap classification-test boilerplate → `errorfamilytest.Assert*`~~ | ~~12m~~ |
-| F49 | ADR: scoped adoption (DataStar handlers + breaker stay out) | 12m |
+| ~~F46~~ done — executed with this plan (parent verdict applies)| ~~`errorfamily.HTTPHandler()` at `/api/health`, `/api/snapshot`~~ | ~~12m~~ |
+| ~~F47~~ done — executed with this plan (parent verdict applies)| ~~`LogError()` at state.go/process.go/uevent.go/socket.go sites~~ | ~~12m~~ |
+| ~~F48~~ done — executed with this plan (parent verdict applies)| ~~Swap classification-test boilerplate → `errorfamilytest.Assert*`~~ | ~~12m~~ |
+| ~~F49~~ done — executed with this plan (parent verdict applies)| ~~ADR: scoped adoption (DataStar handlers + breaker stay out)~~ | ~~12m~~ |
 
 ### M14 Structured commands slice 1 (80%, G: Lars ADR #116)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F50~~ done — executed with this plan (parent verdict applies) | ~~Typed registry skeleton + query commands (status/device/version/waybar)~~ | ~~12m~~ |
-| ~~F51~~ done — executed with this plan (parent verdict applies) | ~~Migrate simple mutators (track/idle/privacy/toggle-privacy)~~ | ~~12m~~ |
-| F52 | String-dispatch shim for socket compat + full test pass | 12m |
+| ~~F50~~ done — executed with this plan (parent verdict applies)| ~~Typed registry skeleton + query commands (status/device/version/waybar)~~ | ~~12m~~ |
+| ~~F51~~ done — executed with this plan (parent verdict applies)| ~~Migrate simple mutators (track/idle/privacy/toggle-privacy)~~ | ~~12m~~ |
+| ~~F52~~ done — executed with this plan (parent verdict applies)| ~~String-dispatch shim for socket compat + full test pass~~ | ~~12m~~ |
 
 ### M15 Multi-word presets (4%, G: ADR approved)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F53~~ done — executed with this plan (parent verdict applies) | ~~Implement join-remaining for `preset save/load/delete`~~ | ~~10m~~ |
-| F54 | Pinning tests: multi-word round-trip + truncation regression | 10m |
+| ~~F53~~ done — executed with this plan (parent verdict applies)| ~~Implement join-remaining for `preset save/load/delete`~~ | ~~10m~~ |
+| ~~F54~~ done — executed with this plan (parent verdict applies)| ~~Pinning tests: multi-word round-trip + truncation regression~~ | ~~10m~~ |
 
 ### M16 CI FOD guard (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F55~~ done — executed with this plan (parent verdict applies) | ~~Workflow step: assert no `/nix/store` refs in goModules FOD source~~ | ~~12m~~ |
-| F56 | Prove the guard with a locally poisoned dry-run | 12m |
+| ~~F55~~ done — executed with this plan (parent verdict applies)| ~~Workflow step: assert no `/nix/store` refs in goModules FOD source~~ | ~~12m~~ |
+| ~~F56~~ done — executed with this plan (parent verdict applies)| ~~Prove the guard with a locally poisoned dry-run~~ | ~~12m~~ |
 
 ### M17 vmTest daemon-start (80%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F57~~ done — executed with this plan (parent verdict applies) | ~~Fake sysfs tree in VM (video4linux + hidraw entries incl. a C960)~~ | ~~12m~~ |
-| ~~F58~~ done — executed with this plan (parent verdict applies) | ~~Start daemon in VM; assert found-device log~~ | ~~12m~~ |
-| F59 | Assert socket + `/api/health` inside VM | 12m |
+| ~~F57~~ done — executed with this plan (parent verdict applies)| ~~Fake sysfs tree in VM (video4linux + hidraw entries incl. a C960)~~ | ~~12m~~ |
+| ~~F58~~ done — executed with this plan (parent verdict applies)| ~~Start daemon in VM; assert found-device log~~ | ~~12m~~ |
+| ~~F59~~ done — executed with this plan (parent verdict applies)| ~~Assert socket + `/api/health` inside VM~~ | ~~12m~~ |
 
 ### M18 A11y + mobile execution (80%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F60~~ done — executed with this plan (parent verdict applies) | ~~Screen-reader pass (NVDA or Orca) over web UI; log findings~~ | ~~12m~~ |
-| ~~F61~~ done — executed with this plan (parent verdict applies) | ~~Real-device pass (phone + iPad, breakpoints, touch targets); log~~ | ~~12m~~ |
-| ~~F62~~ done — executed with this plan (parent verdict applies) | ~~Fix found issues within budget or file precise rows~~ | ~~12m~~ |
-| F63 | Flip FEATURES partial rows honestly (verified or still partial) | 5m |
+| ~~F60~~ done — executed with this plan (parent verdict applies)| ~~Screen-reader pass (NVDA or Orca) over web UI; log findings~~ | ~~12m~~ |
+| ~~F61~~ done — executed with this plan (parent verdict applies)| ~~Real-device pass (phone + iPad, breakpoints, touch targets); log~~ | ~~12m~~ |
+| ~~F62~~ done — executed with this plan (parent verdict applies)| ~~Fix found issues within budget or file precise rows~~ | ~~12m~~ |
+| ~~F63~~ done — executed with this plan (parent verdict applies)| ~~Flip FEATURES partial rows honestly (verified or still partial)~~ | ~~5m~~ |
 
 ### M19 Screenshot pipeline (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F64~~ done — executed with this plan (parent verdict applies) | ~~Script headless-chromium captures vs live daemon (online/offline)~~ | ~~12m~~ |
-| ~~F65~~ done — executed with this plan (parent verdict applies) | ~~Wire into `website/public/` + optional CI target~~ | ~~12m~~ |
-| F66 | Refresh README screenshot if stale | 10m |
+| ~~F64~~ done — executed with this plan (parent verdict applies)| ~~Script headless-chromium captures vs live daemon (online/offline)~~ | ~~12m~~ |
+| ~~F65~~ done — executed with this plan (parent verdict applies)| ~~Wire into `website/public/` + optional CI target~~ | ~~12m~~ |
+| ~~F66~~ done — executed with this plan (parent verdict applies)| ~~Refresh README screenshot if stale~~ | ~~10m~~ |
 
 ### M20 Website polish (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F67~~ done — executed with this plan (parent verdict applies) | ~~Starlight per-page feedback links (prefilled issue titles)~~ | ~~12m~~ |
-| ~~F68~~ done — executed with this plan (parent verdict applies) | ~~Enable reading time~~ | ~~12m~~ |
-| ~~F69~~ done — executed with this plan (parent verdict applies) | ~~Landing "Who is this for / When NOT to use" section mirroring README~~ | ~~12m~~ |
-| F70 | Build + visual verify + deploy via website.yml | 12m |
+| ~~F67~~ done — executed with this plan (parent verdict applies)| ~~Starlight per-page feedback links (prefilled issue titles)~~ | ~~12m~~ |
+| ~~F68~~ done — executed with this plan (parent verdict applies)| ~~Enable reading time~~ | ~~12m~~ |
+| ~~F69~~ done — executed with this plan (parent verdict applies)| ~~Landing "Who is this for / When NOT to use" section mirroring README~~ | ~~12m~~ |
+| ~~F70~~ done — executed with this plan (parent verdict applies)| ~~Build + visual verify + deploy via website.yml~~ | ~~12m~~ |
 
 ### M21 STUDIO comparison page (80%, G: Lars)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F71~~ done — executed with this plan (parent verdict applies) | ~~Distill internal comparison doc → public draft page~~ | ~~12m~~ |
-| ~~F72~~ done — executed with this plan (parent verdict applies) | ~~G: Lars review (positioning/legal exposure)~~ | ~~12m~~ |
-| F73 | Publish + changelog + sitemap verify | 12m |
+| ~~F71~~ done — executed with this plan (parent verdict applies)| ~~Distill internal comparison doc → public draft page~~ | ~~12m~~ |
+| ~~F72~~ done — executed with this plan (parent verdict applies)| ~~G: Lars review (positioning/legal exposure)~~ | ~~12m~~ |
+| ~~F73~~ done — executed with this plan (parent verdict applies)| ~~Publish + changelog + sitemap verify~~ | ~~12m~~ |
 
 ### M22 SSE/tracing (80%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F74~~ done — executed with this plan (parent verdict applies) | ~~SSE heartbeat (comment ping) + proxy-idle-kill documentation~~ | ~~12m~~ |
-| ~~F75~~ done — executed with this plan (parent verdict applies) | ~~`LastEventID` replay: server support + client reconnect hook~~ | ~~12m~~ |
-| F76 | OTel span around PTZ command path | 12m |
+| ~~F74~~ done — executed with this plan (parent verdict applies)| ~~SSE heartbeat (comment ping) + proxy-idle-kill documentation~~ | ~~12m~~ |
+| ~~F75~~ done — executed with this plan (parent verdict applies)| ~~`LastEventID` replay: server support + client reconnect hook~~ | ~~12m~~ |
+| ~~F76~~ done — executed with this plan (parent verdict applies)| ~~OTel span around PTZ command path~~ | ~~12m~~ |
 
 ### M23 Waybar enrichment (80%, G: M02)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F77~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Add auto-mode + pan/tilt to Waybar JSON + tooltip~~ | ~~12m~~ |
-| F78 | Confirm/adjust charge classes per hardware verdict + tests | 12m |
+| ~~F77~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Add auto-mode + pan/tilt to Waybar JSON + tooltip~~ | ~~12m~~ |
+| ~~F78~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Confirm/adjust charge classes per hardware verdict + tests~~ | ~~12m~~ |
 
 ### M24 Release/community (4%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F79~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Send innoextract 6.6.1 upstream PR (#148)~~ | ~~12m~~ |
-| ~~F80~~ done — executed with this plan (parent verdict applies) | ~~Nudge @zutto re: PIXY 2K confirmation → close #154~~ | ~~10m~~ |
-| ~~F81~~ done — executed with this plan (parent verdict applies) | ~~Cut v0.4.1: CHANGELOG date, annotated tag, push, verify proxy + pkg.go.dev (#155)~~ | ~~12m~~ |
-| F82 | Branch-protection settings notes/gh for Lars (#156) | 10m |
+| ~~F79~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Send innoextract 6.6.1 upstream PR (#148)~~ | ~~12m~~ |
+| ~~F80~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Nudge @zutto re: PIXY 2K confirmation → close #154~~ | ~~10m~~ |
+| ~~F81~~ done — executed with this plan (parent verdict applies)| ~~Cut v0.4.1: CHANGELOG date, annotated tag, push, verify proxy + pkg.go.dev (#155)~~ | ~~12m~~ |
+| ~~F82~~ done — executed with this plan (parent verdict applies)| ~~Branch-protection settings notes/gh for Lars (#156)~~ | ~~10m~~ |
 
 ### M25 Quality pack (20%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F83~~ done — executed with this plan (parent verdict applies) | ~~Property test: `ResolveProductID` order invariants (200 seeds)~~ | ~~12m~~ |
-| ~~F84~~ done — executed with this plan (parent verdict applies) | ~~Benchmark `probeVideo4linux` incl. recognition pass~~ | ~~10m~~ |
-| F85 | Simulator fixed-EMEET profile: refuses vendor bytes; pin the guarantee | 12m |
+| ~~F83~~ done — executed with this plan (parent verdict applies)| ~~Property test: `ResolveProductID` order invariants (200 seeds)~~ | ~~12m~~ |
+| ~~F84~~ done — executed with this plan (parent verdict applies)| ~~Benchmark `probeVideo4linux` incl. recognition pass~~ | ~~10m~~ |
+| ~~F85~~ done — executed with this plan (parent verdict applies)| ~~Simulator fixed-EMEET profile: refuses vendor bytes; pin the guarantee~~ | ~~12m~~ |
 
 ### M26 Tooling cadence (80%)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F86~~ done — executed with this plan (parent verdict applies) | ~~dprint/prettier config for `.mdx`/`.mjs`; format run + commit~~ | ~~12m~~ |
-| F87 | Renovate config OR scheduled `nix flake update` workflow | 12m |
+| ~~F86~~ done — executed with this plan (parent verdict applies)| ~~dprint/prettier config for `.mdx`/`.mjs`; format run + commit~~ | ~~12m~~ |
+| ~~F87~~ done — executed with this plan (parent verdict applies)| ~~Renovate config OR scheduled `nix flake update` workflow~~ | ~~12m~~ |
 
 ### M27 Long-tail umbrella (80%, mostly G: M01/M02)
-| ID | Task | Est |
+| ~~ID~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 |----|------|-----|
-| ~~F88~~ done — executed with this plan (parent verdict applies) | ~~koanf layered-config evaluation ADR~~ | ~~12m~~ |
-| ~~F89~~ done — executed with this plan (parent verdict applies) | ~~Device-disappear reconcile semantics ADR~~ | ~~12m~~ |
-| ~~F90~~ done — executed with this plan (parent verdict applies) | ~~`FuzzParseV2Response` (post framing pin)~~ | ~~12m~~ |
-| ~~F91~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`GET_FUNC_STA` bitfield decode → capability gating (uses F04 capture)~~ | ~~12m~~ |
-| ~~F92~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`EMEET_PIXYD_MOTOR_SPEED` env default (post unit pin)~~ | ~~12m~~ |
-| ~~F93~~ done — executed with this plan (parent verdict applies) | ~~Refresh S600L + PIXY-Wireless watch rows in ROADMAP~~ | ~~10m~~ |
-| ~~F94~~ done — executed with this plan (parent verdict applies) | ~~Privacy-trigger-time semantics research row~~ | ~~10m~~ |
-| F95 | `hidCmdSend` bounded-retry evaluation row | 12m |
+| ~~F88~~ done — executed with this plan (parent verdict applies)| ~~koanf layered-config evaluation ADR~~ | ~~12m~~ |
+| ~~F89~~ done — executed with this plan (parent verdict applies)| ~~Device-disappear reconcile semantics ADR~~ | ~~12m~~ |
+| ~~F90~~ done — executed with this plan (parent verdict applies)| ~~`FuzzParseV2Response` (post framing pin)~~ | ~~12m~~ |
+| ~~F91~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~`GET_FUNC_STA` bitfield decode → capability gating (uses F04 capture)~~ | ~~12m~~ |
+| ~~F92~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~`EMEET_PIXYD_MOTOR_SPEED` env default (post unit pin)~~ | ~~12m~~ |
+| ~~F93~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Refresh S600L + PIXY-Wireless watch rows in ROADMAP~~ | ~~10m~~ |
+| ~~F94~~ done — executed with this plan (parent verdict applies)| ~~Privacy-trigger-time semantics research row~~ | ~~10m~~ |
+| ~~F95~~ done — executed with this plan (parent verdict applies)| ~~`hidCmdSend` bounded-retry evaluation row~~ | ~~12m~~ |
 
 **Fine-task effort core:** ≈ 1,010 min (medium totals add run/verify overhead on top).
 

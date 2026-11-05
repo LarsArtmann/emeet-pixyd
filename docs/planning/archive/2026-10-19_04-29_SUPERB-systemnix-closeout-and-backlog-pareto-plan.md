@@ -62,83 +62,83 @@ The unblocked backlog hygiene (#173/#174 hint surfacing + tests, #177 BuildFlow 
 ## Fine Plan — ≤12 min tasks (sorted by phase; within phase by impact ↓)
 
 ### P1 — Ship & verify (= M1)
-| # | Task | Est |
+| ~~#~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 | - | ---- | --- |
-| ~~1~~ done — executed with this plan (parent verdict applies) | ~~`git push origin master` (local auto-commits incl. port option, guide, lockfile fix)~~ | ~~2m~~ |
-| ~~2~~ done — executed with this plan (parent verdict applies) | ~~Watch `go-test.yml`: vet → templ generate → lint → govulncheck → race tests → fuzz list-vs-CI assert~~ | ~~10m~~ |
-| ~~3~~ done — executed with this plan (parent verdict applies) | ~~Watch `nix.yml`: `nix flake check --no-build` + package build~~ | ~~10m~~ |
-| ~~4~~ done — executed with this plan (parent verdict applies) | ~~Watch `website.yml`: frozen-lockfile → astro build + CSP patch → ≥19 pages → deploy~~ | ~~10m~~ |
-| 5 | Curl live `/guides/monitoring/` + confirm sidebar entry renders | 5m |
+| ~~1~~ done — executed with this plan (parent verdict applies)| ~~`git push origin master` (local auto-commits incl. port option, guide, lockfile fix)~~ | ~~2m~~ |
+| ~~2~~ done — executed with this plan (parent verdict applies)| ~~Watch `go-test.yml`: vet → templ generate → lint → govulncheck → race tests → fuzz list-vs-CI assert~~ | ~~10m~~ |
+| ~~3~~ done — executed with this plan (parent verdict applies)| ~~Watch `nix.yml`: `nix flake check --no-build` + package build~~ | ~~10m~~ |
+| ~~4~~ done — executed with this plan (parent verdict applies)| ~~Watch `website.yml`: frozen-lockfile → astro build + CSP patch → ≥19 pages → deploy~~ | ~~10m~~ |
+| ~~5~~ done — executed with this plan (parent verdict applies)| ~~Curl live `/guides/monitoring/` + confirm sidebar entry renders~~ | ~~5m~~ |
 
 ### P2 — Website polish (= M2)
-| # | Task | Est |
+| ~~#~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 | - | ---- | --- |
-| ~~6~~ done — executed with this plan (parent verdict applies) | ~~Add `port` option section to `guides/configuration.mdx` (env table + module option cross-view)~~ | ~~12m~~ |
-| ~~7~~ done — executed with this plan (parent verdict applies) | ~~Cross-link `guides/metrics.mdx` → `guides/monitoring.mdx` (one-line pointer)~~ | ~~5m~~ |
-| ~~8~~ done — executed with this plan (parent verdict applies) | ~~Cross-link `guides/quickshell.mdx` stale-binary section → monitoring guide trap section~~ | ~~8m~~ |
-| ~~9~~ done — executed with this plan (parent verdict applies) | ~~`pnpm install --frozen-lockfile` — PROVE the CI lockfile gate is green post-regen~~ | ~~5m~~ |
-| ~~10~~ done — executed with this plan (parent verdict applies) | ~~Run the strict type gate (`tsc --strict`; astro check is TS7-broken by design)~~ | ~~10m~~ |
-| ~~11~~ done — executed with this plan (parent verdict applies) | ~~Rebuild website; grep dist for the new content (not the old — deploy-grep gotcha)~~ | ~~10m~~ |
-| 12 | Commit + push website changes (deploy rides `website/**` trigger) | 5m |
+| ~~6~~ done — executed with this plan (parent verdict applies)| ~~Add `port` option section to `guides/configuration.mdx` (env table + module option cross-view)~~ | ~~12m~~ |
+| ~~7~~ done — executed with this plan (parent verdict applies)| ~~Cross-link `guides/metrics.mdx` → `guides/monitoring.mdx` (one-line pointer)~~ | ~~5m~~ |
+| ~~8~~ done — executed with this plan (parent verdict applies)| ~~Cross-link `guides/quickshell.mdx` stale-binary section → monitoring guide trap section~~ | ~~8m~~ |
+| ~~9~~ done — executed with this plan (parent verdict applies)| ~~`pnpm install --frozen-lockfile` — PROVE the CI lockfile gate is green post-regen~~ | ~~5m~~ |
+| ~~10~~ done — executed with this plan (parent verdict applies)| ~~Run the strict type gate (`tsc --strict`; astro check is TS7-broken by design)~~ | ~~10m~~ |
+| ~~11~~ done — executed with this plan (parent verdict applies)| ~~Rebuild website; grep dist for the new content (not the old — deploy-grep gotcha)~~ | ~~10m~~ |
+| ~~12~~ done — executed with this plan (parent verdict applies)| ~~Commit + push website changes (deploy rides `website/**` trigger)~~ | ~~5m~~ |
 
 ### P3 — SystemNix wiring (= M3, GATED)
-| # | Task | Est |
+| ~~#~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 | - | ---- | --- |
-| ~~13~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~`nix flake update input:emeet-pixyd` in SystemNix to the pushed rev~~ | ~~8m~~ |
-| ~~14~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.** | ~~Set `hardware.emeet-pixy.port = ports.emeet-pixyd;` in the wrapper module~~ | ~~5m~~ |
-| ~~15~~ done — executed with this plan (parent verdict applies) | ~~Update `SystemNix/docs/services/emeet-pixyd.md` port note (convention → explicit)~~ | ~~8m~~ |
-| 16 | Eval-check SystemNix flake (`nix flake check --no-build` or host eval) | 10m |
+| ~~13~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~`nix flake update input:emeet-pixyd` in SystemNix to the pushed rev~~ | ~~8m~~ |
+| ~~14~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Set `hardware.emeet-pixy.port = ports.emeet-pixyd;` in the wrapper module~~ | ~~5m~~ |
+| ~~15~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Update `SystemNix/docs/services/emeet-pixyd.md` port note (convention → explicit)~~ | ~~8m~~ |
+| ~~16~~ done — executed with this plan (parent verdict applies)| ~~Eval-check SystemNix flake (`nix flake check --no-build` or host eval)~~ | ~~10m~~ |
 
 ### P4 — Backlog truth (= M4, folded into this plan's commit)
-| # | Task | Est |
+| ~~#~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 | - | ---- | --- |
-| ~~17~~ **NOT-DO — owned by TODO_LIST #129 (online retake; offline half done).** | ~~Insert rows #183–#189 into TODO_LIST.md + new Updated header (old → Previous)~~ | ~~10m~~ |
-| 18 | Verify no duplicate concepts vs existing rows (#129–#182 sweep) | 5m |
+| ~~17~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Insert rows #183–#189 into TODO_LIST.md + new Updated header (old → Previous)~~ | ~~10m~~ |
+| ~~18~~ **NOT-DO — owned by TODO_LIST #129 (online retake).**| ~~Verify no duplicate concepts vs existing rows (#129–#182 sweep)~~ | ~~5m~~ |
 
 ### P5 — Default-port pin (= M6)
-| # | Task | Est |
+| ~~#~~ done — executed with this plan (parent verdict applies)| ~~Task~~ | ~~Est~~ |
 | - | ---- | --- |
-| ~~19~~ done — executed with this plan (parent verdict applies) | ~~Add second vmTest node (defaults only) asserting `EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090` — or a cheap `nix eval` assertion if a full node is overkill~~ | ~~12m~~ |
-| ~~20~~ done — executed with this plan (parent verdict applies) | ~~Run the vmTest (mostly cached from this session)~~ | ~~10m~~ |
-| 21 | Commit + push | 5m |
+| ~~19~~ **NOT-DO — hardware-gated — TODO_LIST #166/#129.**| ~~Add second vmTest node (defaults only) asserting `EMEET_PIXYD_WEB_ADDR=127.0.0.1:8090` — or a cheap `nix eval` assertion if a full node is overkill~~ | ~~12m~~ |
+| ~~20~~ done — executed with this plan (parent verdict applies)| ~~Run the vmTest (mostly cached from this session)~~ | ~~10m~~ |
+| ~~21~~ done — executed with this plan (parent verdict applies)| ~~Commit + push~~ | ~~5m~~ |
 
 ### P6 — Lockstep (= M7)
 | # | Task | Est |
 | - | ---- | --- |
-| 22 | Cross-ref comments: `modules/nixos.nix` port default ↔ `internal/pixy/pixy.go` `DefaultWebAddr` (each names the other) | 8m |
-| 23 | Add monitoring-guide URL to the `port` option description (renders in NixOS manual/search) | 5m |
-| 24 | `nix fmt` + `nix flake check --no-build` | 5m |
-| 25 | Commit + push | 4m |
+| ~~22~~ done —| ~~Cross-ref comments: `modules/nixos.nix` port default ↔ `internal/pixy/pixy.go` `DefaultWebAddr` (each names the other)~~ | ~~8m~~ |
+| ~~23~~ done —| ~~Add monitoring-guide URL to the `port` option description (renders in NixOS manual/search)~~ | ~~5m~~ |
+| ~~24~~ done —| ~~`nix fmt` + `nix flake check --no-build`~~ | ~~5m~~ |
+| ~~25~~ done —| ~~Commit + push~~ | ~~4m~~ |
 
 ### P7 — #176 auto-commit gating (= M5; design first)
 | # | Task | Est |
 | - | ---- | --- |
-| 26 | Locate the daemon's commit path; check reuse of `scripts/pre-commit` | 12m |
-| 27 | Design gate: staged-files lint (fast) vs full build (slow) — pick staged-only | 12m |
-| 28 | Implement: failed gate → hold commit + log, never discard work | 12m |
-| 29 | Test with a deliberately broken staged `.go` file; confirm hold; fix file | 12m |
-| 30 | Document the gate in AGENTS.md Git Workflow note | 8m |
+| ~~26~~ done —| ~~Locate the daemon's commit path; check reuse of `scripts/pre-commit`~~ | ~~12m~~ |
+| ~~27~~ done —| ~~Design gate: staged-files lint (fast) vs full build (slow) — pick staged-only~~ | ~~12m~~ |
+| ~~28~~ done —| ~~Implement: failed gate → hold commit + log, never discard work~~ | ~~12m~~ |
+| ~~29~~ done —| ~~Test with a deliberately broken staged `.go` file; confirm hold; fix file~~ | ~~12m~~ |
+| ~~30~~ done —| ~~Document the gate in AGENTS.md Git Workflow note~~ | ~~8m~~ |
 
 ### P8 — Backlog first steps (12m slices; full tasks are M8–M18)
 | # | Task | Est |
 | - | ---- | --- |
-| 31 | #177: add BuildFlow ruff scoping for `tools/` (config edit + one green run) | 10m |
-| 32 | #178: run the 9 benchmarks, stash baseline output | 12m |
-| 33 | #179: read `presetAction`; write the 3-line decision recommendation for Lars | 12m |
-| 34 | #180: diff `.crushrc` lint list vs `.golangci.yml` enabled set; align | 10m |
-| 35 | #181: nolint inventory (grep count per file) → chunk plan | 12m |
-| 36 | #181 chunk 1: remove rotted directives in test files (test-file exclusions rot most) | 12m |
-| 37 | #173: re-read the ADR question + draft the panel-hint design in 5 bullets | 12m |
-| 38 | #148: draft the upstream PR body from `tools/inno661/UPSTREAM.md` | 12m |
-| 39 | #155: assemble v0.4.1 changelog cut preview (diff [Unreleased] vs v0.4.0) | 12m |
-| 40 | M18: try `nix flake check --no-build --all-systems` locally; record aarch64 result | 12m |
+| ~~31~~ done —| ~~#177: add BuildFlow ruff scoping for `tools/` (config edit + one green run)~~ | ~~10m~~ |
+| ~~32~~ done —| ~~#178: run the 9 benchmarks, stash baseline output~~ | ~~12m~~ |
+| ~~33~~ done —| ~~#179: read `presetAction`; write the 3-line decision recommendation for Lars~~ | ~~12m~~ |
+| ~~34~~ done —| ~~#180: diff `.crushrc` lint list vs `.golangci.yml` enabled set; align~~ | ~~10m~~ |
+| ~~35~~ done —| ~~#181: nolint inventory (grep count per file) → chunk plan~~ | ~~12m~~ |
+| ~~36~~ done —| ~~#181 chunk 1: remove rotted directives in test files (test-file exclusions rot most)~~ | ~~12m~~ |
+| ~~37~~ done —| ~~#173: re-read the ADR question + draft the panel-hint design in 5 bullets~~ | ~~12m~~ |
+| ~~38~~ done —| ~~#148: draft the upstream PR body from `tools/inno661/UPSTREAM.md`~~ | ~~12m~~ |
+| ~~39~~ done —| ~~#155: assemble v0.4.1 changelog cut preview (diff [Unreleased] vs v0.4.0)~~ | ~~12m~~ |
+| ~~40~~ done —| ~~M18: try `nix flake check --no-build --all-systems` locally; record aarch64 result~~ | ~~12m~~ |
 
 ### P9 — Blocked parking lot (single parked rows, no slices until unblocked)
 | # | Task | Est |
 | - | ---- | --- |
-| 41 | M19/#166: schedule the wired session when the PIXY is attached (checklist = TODO_LIST #166) | — |
-| 42 | M20/#154: ping @zutto for the PIXY 2K confirm | 5m |
-| 43 | M16/#156: GitHub branch-protection settings (Lars's console) | 20m |
+| ~~41~~ done —| ~~M19/#166: schedule the wired session when the PIXY is attached (checklist = TODO_LIST #166)~~ | ~~—~~ |
+| ~~42~~ done —| ~~M20/#154: ping @zutto for the PIXY 2K confirm~~ | ~~5m~~ |
+| ~~43~~ done —| ~~M16/#156: GitHub branch-protection settings (Lars's console)~~ | ~~20m~~ |
 
 ---
 
