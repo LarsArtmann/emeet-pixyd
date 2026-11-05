@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 >
-> **Last code-verified:** 2026-09-19 (docs-health sweep; go-test workflow green on the `0f3af79` tip; `golangci-lint` reports **0 issues**). `TestHandleStream_NoFFmpeg` is **environmental** on this NixOS host (ffmpeg + a non-PIXY `/dev/video0` present) and passes in CI.
+> **Last code-verified:** 2026-11-05 (docs-health AUDIT sweep against the v0.5.0+master tip; the 2026-10-31 release cut 57 entries incl. the official-protocol HID families, `/api/status`, NixOS `port`; race tests + lint 0 green at the tip). `TestHandleStream_NoFFmpeg` is **environmental** on this NixOS host (ffmpeg + a non-PIXY `/dev/video0` present) and passes in CI.
 
 ## Status legend
 
@@ -107,7 +107,7 @@
 | Feature                    | Status                | Notes                                                                                                                                                                                                                           |
 | -------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Device Probing             | 🟢 `FULLY_FUNCTIONAL` | sysfs walks (`probe.go` `probeDevices`) matching vendor `328f` via `pixy.ResolveProductID`; model flows through `probeResult` → `Daemon.model` → logs/output.                                                                   |
-| EMEET Device Recognition   | 🟢 `FULLY_FUNCTIONAL` | Fixed-lens EMEET webcams (C960 family, C950, C970, S600L — verified public PIDs) and unknown `328f` products are recognized but never sent vendor HID bytes; a rate-limited actionable hint logs at probe time and answers the `device`/`probe` commands (`pixy.Family`, `pixy.DeviceProfile`, `UnsupportedDeviceHint`). |
+| EMEET Device Recognition   | 🟢 `FULLY_FUNCTIONAL` | Fixed-lens EMEET webcams (C960 family, C950, C970, S600L — verified public PIDs) and unknown `328f` products are recognized but never sent vendor HID bytes; a rate-limited actionable hint logs at probe time and answers the `device`/`probe` commands (`pixy.Family`, `pixy.DeviceProfile`, `UnsupportedDeviceHint`). The hint also reaches every human surface: web-panel offline note, Waybar tooltip + additive JSON key, `/api/status` field (`unsupported_hint_test.go`). |
 | Extra Product IDs (env)    | 🟢 `FULLY_FUNCTIONAL` | `EMEET_PIXYD_EXTRA_PRODUCT_IDS` (comma-separated hex) treats unregistered PIDs as PIXY-family variants, displayed as `PIXY (PID 0x…)`; outranks the fixed-UVC classification; invalid entries skipped with a warning (`pixy.ParseExtraProductIDs`). |
 | Hotplug Detection          | 🟢 `FULLY_FUNCTIONAL` | Netlink uevent listener; context-cancellable; retries transient read errors.                                                                                                                                                    |
 | Device-Reappear Reconcile  | 🟢 `FULLY_FUNCTIONAL` | `reconcileOnDeviceAppear` (`device.go`): fresh installs adopt hardware; persisted camera mode is re-asserted when hardware differs (privacy survives power cycles/replugs); audio/gesture adopt. Pinned by `reconcile_test.go`. |
@@ -124,9 +124,9 @@
 
 | Feature             | Status                | Notes                                                                                                                                                                 |
 | ------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prometheus Metrics  | 🟢 `FULLY_FUNCTIONAL` | OTel gauges/counters at `/metrics`: in_call, auto_mode, camera_state, commands_total, probes_total, uevents_total, hid_failures_total, stream_duration, frames_total. |
+| Prometheus Metrics  | 🟢 `FULLY_FUNCTIONAL` | OTel gauges/counters at `/metrics`: in_call, auto_mode, camera_state, online, breaker_state, commands_total, probes_total, uevents_total, hid_failures_total, auto_errors_total, socket_accept_failures_total, stream_duration, frames_total. |
 | pprof Debug         | 🟢 `FULLY_FUNCTIONAL` | `/debug/pprof/*` gated behind `EMEET_PIXYD_DEBUG=true`.                                                                                                               |
-| Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/api/health` JSON; 503 when device offline, 200 online.                                                                                                              |
+| Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/api/health` JSON; 503 when device offline, 200 online; additive `degraded` bool + `reasons` array (never flips the status contract).                              |
 | Status API          | 🟢 `FULLY_FUNCTIONAL` | `/api/status` JSON for shell widgets (Quickshell / DankMaterialShell): camera state, device, model, online, in-call, auto/audio, gesture, battery (omitted when absent), version. Always 200 while the daemon runs. |
 | systemd Integration | 🟢 `FULLY_FUNCTIONAL` | `sd_notify` READY=1 + WATCHDOG=1 each poll tick.                                                                                                                      |
 
@@ -148,7 +148,7 @@
 | Tracking Variants      | 🟢 `FULLY_FUNCTIONAL` | `tracking none\|face\|halfbody\|fullbody` via SetTargetTrack + web picker; persists across restarts; enum corrected to the official 1-based scheme (statically evidenced, #166 confirms).                                                                                                         |
 | Battery/Charge         | 🟢 `FULLY_FUNCTIONAL` | `battery` command + status/Waybar/web lines over official GET heads; TTL cache; graceful absence; typed ChargeSta ({1,2}=charging) with Waybar charging/discharging classes.                                                                                                                      |
 | Motor-Preset Mirroring | 🟢 `FULLY_FUNCTIONAL` | `preset push <name>`: SetMotorPos ×3 + SetMotorPresetPos into hardware slots (alphabetical mapping); web chip push button with confirm prompt.                                                                                                                                                    |
-| Motor-Preset Pull      | 🟢 `FULLY_FUNCTIONAL` | `preset pull`: read-only sweep of slots 1..8 via GetMotorPresetPosMode; full-shape answers become additive `hw-<slot>` presets (never overwriting existing names), mode-only answers count as "set (position not exposed)"; web header Pull button. Slot count + live response shape #166-verify. |
+| Motor-Preset Pull      | 🟢 `FULLY_FUNCTIONAL` | `preset pull`: read-only sweep of slots 1..8 via GetMotorPresetPosMode; full-shape answers become additive `hw-<slot>` presets (never overwriting existing names), mode-only answers count as "set (position not exposed)"; web header Pull button. Aborts after 3 consecutive unreadable slots (early abort, `presetPullMaxConsecutiveFailures`), `--dry-run` previews report-only. Slot count + live response shape #166-verify. |
 | Identity Queries       | 🟢 `FULLY_FUNCTIONAL` | `device` output gains sn/ver/devver/func when the device answers (best-effort, omitted otherwise).                                                                                                                                                                                                |
 | Camera Model Surface   | 🟢 `FULLY_FUNCTIONAL` | Detected model shown in web footer, Waybar tooltip + JSON.                                                                                                                                                                                                                                        |
 
@@ -167,6 +167,25 @@
 
 ---
 
+## Resilience
+
+| Feature                   | Status                | Notes                                                                                                                                                                                                        |
+| ------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Subprocess Timeouts       | 🟢 `FULLY_FUNCTIONAL` | Every exec path bounded (5s `context.WithTimeout` on v4l2/wpctl/notify + MJPEG first-frame wait); a wedged binary can no longer hold `v4l2Mu` until the watchdog kills the daemon (`subprocess_timeout_test.go`). |
+| Fail-Fast Startup Bind    | 🟢 `FULLY_FUNCTIONAL` | CLI socket binds synchronously in `Run`; a bind failure exits non-zero via the error-family exit code (`STOPPING=1`) instead of a dead command surface at `READY=1` (`failfast_test.go`).                        |
+| Degraded Health Dimension | 🟢 `FULLY_FUNCTIONAL` | Runtime listener deaths (web listener, socket-accept ceiling) mark the daemon degraded — additive `degraded`+`reasons` on `/api/health` + `/api/status`, morph-safe panel banner (`degraded.go`).                |
+| Privacy-Trap Recovery     | 🟢 `FULLY_FUNCTIONAL` | Tilt ≤ −85° firmware privacy trap (write-eaten race) countered by a 6s arm window + 3s-deferred idle-bounce re-assert; hardware-verified across 0/300/800/1500ms race delays (`privacy_trap.go`, `integration_privacy_hardware_test.go`). |
+| Shutdown Drains           | 🟢 `FULLY_FUNCTIONAL` | `handleShutdown` waits on in-flight trap re-asserts before the state save, so persisted belief is settled (`TestHandleShutdown_DrainsInFlightTrapReassert`).                                                    |
+
+## Website & Docs
+
+| Feature              | Status                | Notes                                                                                                                                            |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Documentation Site   | 🟢 `FULLY_FUNCTIONAL` | Astro + Starlight at emeet-pixyd.lars.software; 20+ pages incl. monitoring, quickshell, presets, auto-modes guides; Firebase Hosting, custom domain cert active. |
+| Website Deploy CI    | 🟢 `FULLY_FUNCTIONAL` | `website.yml`: frozen-lockfile guard, astro build + CSP patch, page-count assert, deploy job on `website/**` pushes (secret-backed, run-verified).               |
+| Per-Page OG Images   | 🟢 `FULLY_FUNCTIONAL` | Every docs page ships a generated 1200×630 OG card (astro-og-canvas + Starlight Head override); live-verified post-deploy.                                       |
+| Demo Video + Poster  | 🟢 `FULLY_FUNCTIONAL` | 25s HyperFrames demo on the landing page; composition source committed (`website/emeet-pixy-demo/`, one-command re-render); dedicated webp poster frame.          |
+
 ## Accessibility
 
 | Feature     | Status                    | Notes                                                                                                                                                                                                                                                                      |
@@ -175,10 +194,10 @@
 
 ## Summary
 
-- **Total features:** 75
-- 🟢 Fully functional: 73
+- **Total features:** 83
+- 🟢 Fully functional: 81
 - 🟡 Partially functional: 2 (Mobile-Responsive Layout — untested on real devices; Accessibility — screen-reader/mobile checklists unexecuted)
 - 🔴 Broken: 0
 - ⚪ Planned: 0
 
-The codebase is mature and production-ready. The two `PARTIALLY_FUNCTIONAL` items are verification gaps (real-device testing, an unexecuted checklist), not missing functionality. The V2 HID command families (speed, tracking variants, battery, preset push, identity) are byte-verified against the protocol simulator. Their response framing and the TargetTrackMode/ChargeSta enums are corrected to the official values via static evidence from the official app's disassembly (Beta.25 x64); still assumption-pending for the hardware session (`TODO_LIST.md` #166): the MotorType and DefaultPosMode value semantics, the speed unit/limit, and the preset slot count.
+The codebase is mature and production-ready; v0.5.0 shipped 2026-10-31. The two `PARTIALLY_FUNCTIONAL` items are verification gaps (real-device testing, an unexecuted checklist), not missing functionality. The V2 HID command families (speed, tracking variants, battery, preset push/pull, identity) are byte-verified against the protocol simulator. Their response framing and the TargetTrackMode/ChargeSta enums are corrected to the official values via static evidence from the official app's disassembly (Beta.25 x64, exact-match — the version-shift hypothesis is retracted); still assumption-pending for the hardware session (`TODO_LIST.md` #166): the MotorType and DefaultPosMode value semantics, the speed unit/limit, and the preset slot count.

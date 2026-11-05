@@ -58,11 +58,12 @@ var (
 
 // Known V2 command heads used by emeet-pixyd.
 //
-// EVIDENCE GRADES (see docs/hid-protocol-official-map.md §3.5):
+// EVIDENCE GRADES (see docs/hid-protocol-official-map.md §3.5/§3.5a):
 //   - Head bytes: statically evidenced, 2.0.3 Mac cmdtable
 //     (tools/emhid/cmdtable.json); 108/162 of those heads independently
-//     confirmed byte-for-byte in the 2.0.0-Beta.25 x64 build under the
-//     version-shift model (2.0.3 = Beta.25 IDs + 1 after two insertions).
+//     confirmed byte-for-byte in the 2.0.0-Beta.25 x64 build — exact match,
+//     zero contradictions (the old version-shift hypothesis — 2.0.3 =
+//     Beta.25 IDs + 1 — is disproved and retracted; see map doc §3.5a).
 //   - Response framing: statically evidenced, Beta.25 x64 parser disassembly
 //     (see V2ResponsePayloadOffset) — hardware confirmation pending (#166).
 //   - Per-command payload layouts: map doc §3.5 call sites; graded per
@@ -76,8 +77,9 @@ var (
 	// (static, Beta.25 x64 send site @0x14017ecad): Beta.25 queries speed by
 	// riding the SET head (9,3,1,3) with the dev byte replaced by
 	// mergeType(3,3)=0x63 and the motorType byte appended; the dedicated GET
-	// head below is the 2.0.3 insertion (version-shift model) — which head the
-	// wired firmware answers is a #166 pin.
+	// head below is the other evidenced form (2.0.3 cmdtable entry; see the
+	// map doc §3.5a speed-query duality) — which head the wired firmware
+	// answers is a #166 pin.
 	V2GetMotorSpeed = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x13}
 	// V2SetMotorPos: payload [motorType:u8][pos:f32 LE].
 	V2SetMotorPos = V2Head{V2ReportPrefix, V2DevMotor, 0x01, 0x01}

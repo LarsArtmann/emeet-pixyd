@@ -36,6 +36,7 @@ curl -s http://127.0.0.1:8090/api/status
 | `device`  | string  | Video device path (`/dev/videoX`); empty when no camera is present                      |
 | `model`   | string  | `PIXY` or `PIXY 2K`; empty when unknown                                                 |
 | `online`  | bool    | `false` when the daemon runs but no camera is attached                                  |
+| `controllable` | bool | `false` when the HID node is missing (device present but vendor commands cannot reach it, e.g. missing udev permissions) |
 | `inCall`  | bool    | Call detection is active                                                                |
 | `auto`    | string  | Auto-manage mode (`off`, `full`, `tracking-only`, `privacy-only`)                       |
 | `audio`   | string  | Audio mode (`nc`, `live`, `original`)                                                   |

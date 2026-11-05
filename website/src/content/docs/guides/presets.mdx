@@ -52,12 +52,16 @@ Presets can be mirrored to and from the camera's on-device motor slots
 ```bash
 emeet-pixy preset push home     # Mirror the "home" preset into a hardware slot
 emeet-pixy preset pull          # Sweep hardware slots into hw-1, hw-2, ... presets
+emeet-pixy preset pull --dry-run # Preview the sweep without storing anything
 ```
 
 `preset pull` never moves the motors and never overwrites your named presets —
 pulled slots land as additive `hw-<slot>` presets. Slots that are set but do
 not expose their position are counted as "set (position not exposed)" instead
-of stored.
+of stored. The sweep aborts after 3 consecutive unreadable slots (one success
+resets the counter) so an unresponsive device cannot stall the command, and
+`--dry-run` runs the identical sweep report-only: nothing is stored, persisted,
+or broadcast.
 
 ## Limitations
 

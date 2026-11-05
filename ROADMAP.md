@@ -28,6 +28,9 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Surface error-family counts in Prometheus (errors by family) and consider per-family error budgets.
 - Write an ADR capturing the scoped-adoption decision (why DataStar handlers and the circuit breaker stay outside classification).
 - Error-wrapping consistency audit: not every `fmt.Errorf` site uses `%w`; `%v` breaks `errors.Is` chains and therefore classification (flagged in `2026-07-23_21-00` §c).
+- Wire the erraudit STRICT gate into CI (it is the documented gate per AGENTS.md erraudit state, but only golangci runs in CI today; needs the tool on the CI runner).
+- Distill an error-code taxonomy (`<area>.<snake_case>` families) into `docs/DOMAIN_LANGUAGE.md` so consumers can match on codes without reading `errorfamily.go`.
+- Pin `errors.Is` propagation through `errorfamily.Compose` trees with a unit test (the Compose path is used at real call sites; the Is-chain is currently pinned only for single wraps).
 
 ### Build & release hardening
 
@@ -42,6 +45,11 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - Per-page feedback links (issue tracker with pre-filled title); enable reading time.
 - Consider mirroring "Who is this for?" / "When NOT to use this" / the comparison matrix onto the Astro landing page (currently README-only).
 - Add a `prettier`/`prettierd` config for `.mdx`/`.mjs` to prevent future formatter wars.
+- "Why this exists" docs page mirroring the README section (requested twice in old reports, never built).
+- OG-card polish: custom font (Space Grotesk, the site font — cards use the package default) + truncation check on the longest page title.
+- Re-encode `webui-*.png` screenshots as webp (poster already is; screenshots are not).
+- Demo-video reshoot triggers (all optional): audio/voiceover bed, 9:16 vertical cut, preset-chips + keyboard-shortcut + real-camera scenes, multi-device honesty line; a GIF fallback for the poster.
+- Deploy runbook: add a rollback section to `FIREBASE_DEPLOY_SETUP.md` (redeploy previous release) and record the SA key ID + rotation cadence.
 - Demo video: mention the multi-device honesty line (fixed EMEET cams recognized, not controlled) — an optional reshoot trigger, cheap to defer (`2026-09-28_23-48` f33).
 - Distill a public "how emeet-pixyd relates to EMEET STUDIO" page from the internal comparison doc — **needs Lars's call** (documents their internals publicly; positioning win vs legal/positioning risk).
 
@@ -55,6 +63,11 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 - `koanf` layered config (file + env, replacing env-only).
 - Extend Waybar output: auto mode, pan/tilt values, and charging/discharging classes (model + battery level ship; the `ChargeSta` enum needs hardware verification, `TODO_LIST.md` #166). Waybar slot-occupancy (per-slot pull results in the bar JSON) is a **won't-do candidate** — toast/panel coverage suffices (`12-05` §f 40).
 - Per-slot `preset pull` outcome in the web UI — render occupied/empty/pulled per slot beyond the one-line toast (`12-05` §f 22).
+- Identity-query TTL cache — `sn`/`ver`/`devver`/`func` re-query on every `device` call today; a short TTL (power-cache pattern) would bound the cost.
+- Per-component health registry — a `map[string]func() error` walked by the health handler (the stealable samber/do idea, pairs with the `degraded` dimension).
+- Document the five-layer health model (systemd watchdog → `/api/health` → `/api/status` → metrics → degradation-by-omission) in `monitoring.mdx`; the D2 diagram already exists in `docs/architecture-understanding/`.
+- `/api/health`: expose the breaker trip reason + last-trip timestamp (the gauge exists since #194; the human-readable reason does not).
+- Split the presence dimension on `emeet_pixyd_camera_state` (online/controllable labels) for cleaner alerting.
 
 ### EMEET STUDIO research offshoots (intel worth keeping alive)
 
