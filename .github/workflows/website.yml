@@ -13,6 +13,14 @@ on:
       - .github/workflows/website.yml
   workflow_dispatch:
 
+# One run per ref at a time: a newer push cancels a stale build instead of
+# queueing behind it. An interrupted deploy cannot activate a partial site —
+# Firebase Hosting releases activate atomically after upload, so a cancelled
+# deploy job leaves the previous release serving.
+concurrency:
+  group: website-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,17 +45,56 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The strict gate. `pnpm run typecheck` (astro check) deliberately
+      # fails by design: it does not support the pinned TypeScript ~7.0.2.
+      - name: Typecheck (strict tsc)
+        run: pnpm exec tsc -p . --noEmit
+
       - name: Build (astro + CSP hash patch)
         run: pnpm run build
 
+      - name: Validate HTML output
+        run: pnpm exec html-validate dist
+
+      # The floor is DERIVED from source so a deleted or new page moves the
+      # assert automatically: every content doc renders one page, src/pages
+      # top-level .astro files are root pages, +1 for the generated 404.
       - name: Verify output
         run: |
-          pages=$(find dist -name '*.html' | wc -l)
-          echo "Built $pages HTML files"
-          if [ "$pages" -lt 19 ]; then
-            echo "ERROR: expected at least 19 HTML files (18 pages + 404), got $pages"
+          docs=$(find src/content -name '*.md*' | wc -l)
+          root_pages=$(find src/pages -maxdepth 1 -name '*.astro' | wc -l)
+          expected=$((docs + root_pages + 1))
+          built=$(find dist -name '*.html' | wc -l)
+          echo "Built $built HTML files (derived floor: $expected)"
+          if [ "$built" -lt "$expected" ]; then
+            echo "ERROR: expected at least $expected HTML files (docs:$docs + root pages:$root_pages + 404), got $built"
             exit 1
           fi
+
+  # Lints the workflow files themselves (all of .github/workflows, not just
+  # this one). Pinned tool + checksum so the lint gate is supply-chain safe.
+  lint-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: actionlint (v1.7.12, checksum-verified)
+        run: |
+          curl -fsSL -o actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  actionlint.tar.gz" | sha256sum -c -
+          tar -xzf actionlint.tar.gz actionlint
+          ./actionlint -color
+
+      - name: yamllint (v1.38.0)
+        # dprint owns YAML whitespace and normalizes to one space before
+        # comments, so the `comments` rule stays off (the linter must not
+        # fight the formatter); truthy/document-start are disabled for the
+        # YAML-1.1 `on:` key GitHub Actions requires; line-length is dprint's
+        # job, not a gate.
+        run: |
+          pip install --disable-pip-version-check yamllint==1.38.0
+          yamllint -d "{extends: default, rules: {line-length: disable, document-start: disable, truthy: disable, comments: disable}}" .github/workflows/
 
   # Deploys on master pushes (and manual dispatches) when the
   # FIREBASE_SERVICE_ACCOUNT secret is present. The secret is set, so the job
@@ -72,6 +119,14 @@ jobs:
         if: steps.secret.outputs.present == 'true'
         run: corepack enable
 
+      - name: Cache pnpm store
+        if: steps.secret.outputs.present == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('website/pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
       - name: Install dependencies
         if: steps.secret.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
@@ -87,11 +142,44 @@ jobs:
         if: steps.secret.outputs.present == 'true'
         run: grep -q "v0.5.0 (2026-10-31)" dist/changelog/index.html
 
+      # firebase-tools is PINNED (bump deliberately, update the cache key and
+      # FIREBASE_DEPLOY_SETUP.md alongside) — @latest lets a vendor release
+      # change deploy behavior between two pushes of identical code.
+      - name: Cache firebase-tools
+        if: steps.secret.outputs.present == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm/_npx
+          key: npx-firebase-tools-15.35.0
+
       - name: Deploy to Firebase Hosting
         if: steps.secret.outputs.present == 'true'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          set -eo pipefail
           echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          npx --yes firebase-tools@latest deploy --only hosting:emeet-pixyd --project lars-software
+          npx --yes firebase-tools@15.35.0 deploy --only hosting:emeet-pixyd --project lars-software 2>&1 | tee deploy.log
+          url=$(grep -o 'https://emeet-pixyd[^ "<]*' deploy.log | head -1)
+          {
+            echo "## Website deployed"
+            echo ""
+            echo "- Hosting URL: ${url:-https://emeet-pixyd.lars.software}"
+            echo "- Commit: ${GITHUB_SHA}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Post-deploy proof: the live URL must actually serve the site. Retried
+      # because CDN propagation right after a release can briefly 404.
+      - name: Smoke test live site
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          for attempt in 1 2 3; do
+            if curl -fsS https://emeet-pixyd.lars.software/ | grep -qi "emeet pixy"; then
+              echo "Live site answers (attempt $attempt)"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "ERROR: https://emeet-pixyd.lars.software did not serve the new release"
+          exit 1

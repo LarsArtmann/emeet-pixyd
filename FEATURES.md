@@ -182,7 +182,7 @@
 | Feature              | Status                | Notes                                                                                                                                            |
 | -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Documentation Site   | 🟢 `FULLY_FUNCTIONAL` | Astro + Starlight at emeet-pixyd.lars.software; 20+ pages incl. monitoring, quickshell, presets, auto-modes guides; Firebase Hosting, custom domain cert active. |
-| Website Deploy CI    | 🟢 `FULLY_FUNCTIONAL` | `website.yml`: frozen-lockfile guard, astro build + CSP patch, page-count assert, deploy job on `website/**` pushes (secret-backed, run-verified).               |
+| Website Deploy CI    | 🟢 `FULLY_FUNCTIONAL` | `website.yml`: frozen-lockfile guard, strict `tsc --noEmit` + `html-validate` + astro build + CSP patch, source-derived page-count floor, checksum-pinned actionlint/yamllint over every workflow, concurrency group, deploy job on `website/**` pushes with pinned `firebase-tools@15.35.0` + npx cache, post-deploy live smoke test, release URL in the job summary, rollback + rotation runbook (`FIREBASE_DEPLOY_SETUP.md`). |
 | Per-Page OG Images   | 🟢 `FULLY_FUNCTIONAL` | Every docs page ships a generated 1200×630 OG card (astro-og-canvas + Starlight Head override); live-verified post-deploy.                                       |
 | Demo Video + Poster  | 🟢 `FULLY_FUNCTIONAL` | 25s HyperFrames demo on the landing page; composition source committed (`website/emeet-pixy-demo/`, one-command re-render); dedicated webp poster frame.          |
 

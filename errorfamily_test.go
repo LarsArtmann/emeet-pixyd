@@ -245,7 +245,7 @@ func TestErrorFamilies_ErrorsIsThroughComposeTrees(t *testing.T) {
 	// results composed into one autoError).
 	nested := errorfamily.Compose(
 		errorfamily.Compose(primary),
-		errorfamily.Compose(closeErr, fmt.Errorf("extra context")),
+		errorfamily.Compose(closeErr, errors.New("extra context")),
 	)
 
 	if !errors.Is(nested, cause) || !errors.Is(nested, closeErr) {

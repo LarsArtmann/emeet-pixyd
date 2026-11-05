@@ -74,6 +74,12 @@ func withNoopV4L2() testDaemonOption {
 	return func(d *Daemon) { d.deps.v4l2Set = noopV4L2Set }
 }
 
+// withCommander swaps the subprocess runner so tests can simulate wedged
+// external binaries without a real v4l2-ctl.
+func withCommander(runner CommandRunner) testDaemonOption {
+	return func(d *Daemon) { d.deps.commander = runner }
+}
+
 // withNoopParsePTZ wires a deterministic parsePTZ stub so relative-mode PTZ
 // commands (e.g. "tilt -30") don't read real /dev/video0 hardware state.
 func withNoopParsePTZ() testDaemonOption {

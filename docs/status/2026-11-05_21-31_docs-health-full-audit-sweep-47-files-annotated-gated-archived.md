@@ -37,7 +37,7 @@ All 47 non-archived `2026-*` status reports + plans were read, annotated inline 
 | b2 | **#197 quick win left on the table** — the guide half (quickshell.mdx `controllable` row) is DONE, but the JSON-shape test assertion (5–10 lines in `web_status_test.go`) was harvested as TODO #197 instead of implemented. A code change in a docs sweep was judged out-of-scope; defensible either way | scope discipline vs fix-on-sight |
 | b3 | **TODO_LIST header drift risk (self-inflicted, known)** — I compressed the 2026-10-20/10-31b history lines while rebuilding; the exact failure mode F092 fixed (header compressing row truth) applies to my header too. The rows are the truth; header says so | inherent tension |
 | b4 | **Prose-question sections in archived reports** — `g)` questions carry verdicts where events answered them, but a few Lars-ops questions (series format, /tmp ownership) are annotated as standing questions rather than routed into ROADMAP open-questions (clutter judgment call) | judgment call, not omission |
-| b5 | **Living-doc rule-F quality** — 3 of the 17 rule-F violations were MY OWN new text (`simulatorOption`s, `MessageTemplate`s plurals). Fixed mechanically (space separation) in archives, reworded in living docs; a re-read of my new ROADMAP/AGENTS bullets for the same idiom was NOT done | mechanical fix verified by gate; prose re-read skipped |
+| b5 | **Living-doc rule-F quality** — 3 of the 17 rule-F violations were MY OWN new text (the simulatorOption and MessageTemplate plural forms). Fixed mechanically (space separation) in archives, reworded in living docs; a re-read of my new ROADMAP/AGENTS bullets for the same idiom was NOT done | mechanical fix verified by gate; prose re-read skipped |
 
 ## c) NOT STARTED
 
@@ -75,7 +75,7 @@ Nothing reached HEAD broken; all gates green at rest. Honest process failures, d
 5. **Verify agent claims with the file system, not the agent's own method** — glob skips dotfiles; `ls` does not. Cross-tool verification for existence claims.
 6. **Keep per-item grain even for cross-repo sections** — the fleet-trio uniform verdicts are honest but a future reader cannot tell WHICH ops item a row maps to. Next sweep: one clause per row.
 7. **The battery belongs in the repo's quality loop** — `docs-gates run .` catching the rule-F drift + routing violations automatically is exactly the standing gate the fleet pattern prescribes; wire it.
-8. **Re-read your own new prose for the idioms you just gated on** — I introduced three `` `X`s `` plurals while fixing others.
+8. ~~**Re-read your own new prose for the idioms you just gated on** — I introduced three plural-inline-code spans while fixing others.~~ → done — re-scan of AGENTS/CHANGELOG/TODO_LIST/FEATURES/ROADMAP for code-span-adjacent plurals: 0 hits (2026-11-05)
 
 ## f) NEXT THINGS (up to 50, ranked; ⛔ = external gate)
 
@@ -97,14 +97,14 @@ Nothing reached HEAD broken; all gates green at rest. Honest process failures, d
 11. #196 saveState write-side intent guard (decide refuse-vs-normalize first — retro g1)
 12. #199 website CI/secret hardening bundle (pin firebase-tools, concurrency, smoke, derived page count, html-validate/tsc steps, SA key-ID + rotation cadence, rollback runbook)
 13. #201 vmTest watchdog-stall pinning test
-14. #198 errors.Is-through-Compose pin test
+14. ~~#198 errors.Is-through-Compose pin test~~ → done — CHANGELOG [Unreleased] "`errorfamily.Compose` tree pins (#198)"; pinned by `TestErrorFamilies_ErrorsIsThroughComposeTrees` (flat + nested joins, family + code resolution)
 15. #200 execute the a11y + real-device checklists (flips the two 🟡 FEATURES rows)
 16. #195 dependabot sweep: rebase failing `npm_and_yarn` branches first, then `pnpm audit fix` + proofs
 
 **P3 — sweep follow-through (no blockers):**
 
-17. Run `golangci-lint` on a clean cache to re-confirm 0 issues post-sweep (one comment touched)
-18. Re-read the new ROADMAP/AGENTS prose for `` `X`s `` idioms (b5)
+17. ~~Run `golangci-lint` on a clean cache to re-confirm 0 issues post-sweep (one comment touched)~~ → done — clean-cache whole-module lint: 0 issues (2026-11-05, TODO-sweep session; one wsl_v5 blank-line finding in the new contract test, fixed)
+18. ~~Re-read the new ROADMAP/AGENTS prose for the plural-inline-code idiom (b5)~~ → done — 0 hits across the living docs (2026-11-05)
 19. Seed `.docs-gates.json` + wire `docs-gates run .` into the repo's quality loop (fleet pattern: dprint → battery → repo gates)
 20. Commit the two cross-project lessons to crush-config `references/lessons.md`: (a) 0-based/1-based linespec discipline, (b) spec-count assertion before apply
 21. Website push so the quickshell/presets guide fixes deploy (rides website.yml)
@@ -116,8 +116,8 @@ Nothing reached HEAD broken; all gates green at rest. Honest process failures, d
 **P4 — standing hardware bundle (TODO #166 checklist, unchanged):**
 
 26. ⛔ Run `TestIntegration_BatteryProbe` → #139 verdict
-27. ⛔ Pin MotorType/DefaultPosMode → #150
-28. ⛔ Speed unit + limit → #138 clamp + slider max
+27. ~~⛔ Pin MotorType/DefaultPosMode → #150~~ → resolved — routed to TODO #150 (hardware/usbmon-gated; static decode exhausted, unchanged verdict)
+28. ~~⛔ Speed unit + limit → #138 clamp + slider max~~ → resolved — routed to TODO #138 (hardware-gated; payload 0x20 unit still unknown)
 29. ⛔ V1 `09 01 01 01` mode-query decode (unblocks #182 trust)
 30. ⛔ Preset slot-count + response-shape pin → #141 (+ Lars's Q1 on SET-echo acquisition)
 31. ⛔ Live `preset push` → `preset pull` round-trip

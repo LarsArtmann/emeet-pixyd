@@ -34,6 +34,7 @@ func TestControllableContract_StatusVideoWithoutHID(t *testing.T) {
 
 	resp := get(t, server.URL+"/api/status")
 	defer resp.Body.Close()
+
 	assertStatusCode(t, resp, http.StatusOK)
 
 	body := getBody(t, resp)
