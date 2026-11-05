@@ -113,7 +113,7 @@ From `docs/SUPERB_ROADMAP.md`:
 ## d) TOTALLY FUCKED UP!
 
 - **Previous session left build broken** — The type-safety migration (typed `webStatus` fields) was committed partially: `web_types.go` and `handlers.go` were updated, `templates.templ` was updated, but `metrics.go` was untracked (and would cause redeclaration errors), `integration_test.go` had `string()` casts that no longer compiled, and `templates_templ.go` was stale. Build was broken on the working tree.
-- **`metrics.go` extraction was invisible** — Created but never `git add`ed, so it disappeared between sessions. The code was orphaned on disk.
+- **`metrics.go ` extraction was invisible** — Created but never `git add ` ed, so it disappeared between sessions. The code was orphaned on disk.
 - **`SUPERB_ROADMAP.md` is outdated** — Still shows 63.4% coverage, 120 test functions, metrics not migrated to OTel, pprof not done, `CommandError` not done. Many P0/P1 items are already completed.
 - **AGENTS.md gotchas section is stale** — Some gotchas reference linters that were removed this session (`contextcheck`, `exhaustruct`, `gochecknoglobals`, `gochecknoinits`, `paralleltest`).
 

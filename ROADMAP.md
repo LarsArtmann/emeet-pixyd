@@ -22,7 +22,7 @@ The daemon is mature: 71/73 features `FULLY_FUNCTIONAL` (see `FEATURES.md`), bui
 go-error-family is adopted at the boundaries that matter (HTTP status derivation, CLI exit codes, daemon-init logging). These are incremental enhancements, not commitments:
 
 - Expand `errorfamily.LogError()` beyond the single daemon-init site to the remaining `slog.Error` call sites that flow through classified sentinels (`state.go`, `process.go`, `uevent.go`, `socket.go`).
-- Register `MessageTemplate`s for key error codes to enable structured user-facing messages at CLI/API boundaries.
+- Register `MessageTemplate ` s for key error codes to enable structured user-facing messages at CLI/API boundaries.
 - Adopt `errorfamily.HTTPHandler()` for the JSON-shaped endpoints (`/api/health`, `/api/snapshot`) — they currently use plain `http.Error`.
 - Adopt `errorfamilytest.Assert*` helpers to cut classification-test boilerplate.
 - Surface error-family counts in Prometheus (errors by family) and consider per-family error budgets.

@@ -283,7 +283,7 @@ This plan was **fully delivered**. Every task C1–C7 (and all 26 micro-tasks M1
 - 3 genuine 500→503 stream bugs fixed; CLI exit codes derived via `errorfamily.ExitCode(err)`.
 - Dependency has since advanced to `go-error-family` **v0.10.0** (`go.mod`; was v0.8.0 at adoption).
 
-**Nothing in this plan remains open.** The forward-looking expansion ideas (broader `LogError()` coverage, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints) live in the report's `§f` lists and have been routed to `TODO_LIST.md` / `ROADMAP.md` — they are enhancements, not part of this plan's scope.
+**Nothing in this plan remains open.** The forward-looking expansion ideas (broader `LogError()` coverage, `MessageTemplate ` s, `HTTPHandler()` for JSON endpoints) live in the report's `§f ` lists and have been routed to `TODO_LIST.md ` / `ROADMAP.md ` — they are enhancements, not part of this plan's scope.
 
 ---
 

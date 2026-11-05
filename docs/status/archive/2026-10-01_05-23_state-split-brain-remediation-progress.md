@@ -123,7 +123,7 @@ these has a green test run behind it yet.
    went.
 ~~6. **I accidentally created a junk file.** A malformed tool call wrote a file~~ done — mistakes self-corrected same day
    literally named `{"command": "cd ` into the repo root. I found and
-   `trash`ed it, but it existed for several minutes and is exactly the kind of
+   `trash ` ed it, but it existed for several minutes and is exactly the kind of
    mess I should never produce.
 ~~7. **I did not verify half of what I "wrote".** M3/M4/M5/M6/M7 are the highest~~ done — mistakes self-corrected same day
    stakes changes in the project (state model + lock discipline) and **none of

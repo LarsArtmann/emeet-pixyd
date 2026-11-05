@@ -183,7 +183,7 @@ baseline (see question 2 for Lars).
    sourceURL, no skip-retry. Every later symptom (missing `**Page:**`
    lines, permanently skipped timeout views) traces to this. The fix that
    came out of it (skip-seen retry) is genuinely valuable — but it was
-   discoverable 40 minutes earlier by `stat`ing the binary.
+   discoverable 40 minutes earlier by `stat ` ing the binary.
 2. **Subpage loop indentation bug** shipped with a `0 failures` banner —
    the same found-but-unfixed class as typespec's `src/` shadowing. Caught
    by file-count diffing. The guard script now exists for a11y; the shoot

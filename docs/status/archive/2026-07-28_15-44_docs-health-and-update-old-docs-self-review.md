@@ -151,7 +151,7 @@ I scored Fitness 10/10, but I never opened README, DOMAIN_LANGUAGE, CONTRIBUTING
 
 21. Expand `errorfamily.LogError()` to `state.go`/`process.go`/`uevent.go`/`socket.go`.
 22. Adopt `errorfamily.HTTPHandler()` for `/api/health` and `/api/snapshot`.
-23. Register `MessageTemplate`s for key error codes.
+23. Register `MessageTemplate ` s for key error codes.
 24. Write an ADR for the go-error-family scoped-adoption decision.
 25. Adopt `errorfamilytest.Assert*` helpers to cut test boilerplate.
 

@@ -96,7 +96,7 @@ Nothing catastrophically broken — no code touched, no tests regressed (none ap
 16. `/api/health` could expose breaker state (`hidFailCount`/threshold) as a gauge — currently only the cumulative `hid_failures_total` counter exists
 17. `checkExternalDeps` results (missing ffmpeg/v4l2-ctl/wpctl/notify-send) could feed the same `degraded` dimension instead of being startup-log-only
 18. Consider a `emeet_pixyd_auto_errors_total` counter — `autoError` is surfaced to humans (status line) but not to metrics
-19. Socket accept-loop death (persistent accept errors) currently `continue`s forever; a consecutive-failure ceiling would convert F2's silent class into a logged/observable one
+19. Socket accept-loop death (persistent accept errors) currently `continue ` s forever; a consecutive-failure ceiling would convert F2's silent class into a logged/observable one
 20. The `powerCache` negative-result TTL (remembered absence) pattern could be reused for the June review's "probe cost" concern if probes ever get expensive
 21. Document the health-layer model (report §2) in `website/src/content/docs/guides/monitoring.mdx` — the doctrine file covers /api/health semantics but not the five-layer picture
 22. If #191b lands, extend the Quickshell guide with the `degraded` field (stable-interface discipline: docs ship with the field)

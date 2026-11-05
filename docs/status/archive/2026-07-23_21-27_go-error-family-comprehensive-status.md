@@ -130,7 +130,7 @@ The previous session had 3 silent issues (indirect dependency, false "pushed" cl
 
 1. **Expand `LogError()` adoption** — 13 `slog.Error` sites could benefit from `errorfamily.LogError()` for structured family/code/retryable fields. Start with operational errors that flow through classified sentinels.
 
-2. **Register `MessageTemplate`s for key error codes** — Would enable structured user-facing messages at the CLI boundary and API boundaries. Currently errors are raw strings.
+2. **Register `MessageTemplate ` s for key error codes** — Would enable structured user-facing messages at the CLI boundary and API boundaries. Currently errors are raw strings.
 
 3. **Consider `errorfamily.HTTPHandler()` for JSON API endpoints** — `/api/health` and `/api/snapshot` could benefit from classified JSON error responses instead of plain `http.Error`.
 
@@ -176,7 +176,7 @@ The previous session had 3 silent issues (indirect dependency, false "pushed" cl
 11. Move `main.go` to `cmd/emeet-pixyd/main.go` (silences BuildFlow CRITICAL)
 12. Update `flake.nix` and `package.nix` build paths for `cmd/` restructure
 13. Extract `vendorHash` to `vendorHash.nix` (cleaner diffs, better tool interop)
-14. Register `MessageTemplate`s for key error codes (`device.not_connected`, `config.invalid`, etc.)
+14. Register `MessageTemplate ` s for key error codes (`device.not_connected `, `config.invalid `, etc.)
 15. Adopt `errorfamily.HTTPHandler()` for `/api/health` endpoint (JSON error response)
 16. Adopt `errorfamily.HTTPHandler()` for `/api/snapshot` endpoint
 17. Adopt `errorfamilytest.AssertFamily` helpers to reduce test boilerplate
@@ -268,7 +268,7 @@ This report is the authoritative record of the **completed** go-error-family ado
 
 **§b (scoped adoption) is unchanged by design** — HTMX handlers returning 200+HTML toast, the 6 hardcoded 400 guards, and the circuit breaker remain intentionally outside classification. These are documented decisions, not gaps.
 
-**§c / §f forward-looking items:** the 50 enhancement ideas (broader `LogError()`, `MessageTemplate`s, `HTTPHandler()` for JSON endpoints, `errorfamilytest` helpers, fuzz/benchmark additions, ADR, CodeQL, etc.) are a brainstorm. The actionable, bounded subset has been routed to `TODO_LIST.md`; the rest to `ROADMAP.md`. This report remains the source of record — they are not re-listed here.
+**§c / §f forward-looking items:** the 50 enhancement ideas (broader `LogError()`, `MessageTemplate ` s, `HTTPHandler()` for JSON endpoints, `errorfamilytest ` helpers, fuzz/benchmark additions, ADR, CodeQL, etc.) are a brainstorm. The actionable, bounded subset has been routed to `TODO_LIST.md `; the rest to `ROADMAP.md `. This report remains the source of record — they are not re-listed here.
 
 ---
 
