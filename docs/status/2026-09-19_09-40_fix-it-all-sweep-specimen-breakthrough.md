@@ -11,14 +11,14 @@ Executed every software-actionable TODO remainder: the three PARTIAL code halves
 | Item                       | What landed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Baseline                   | build ✓ · `go test -race` ✓ · golangci-lint 0 issues ✓ · `nix build` ✓ — re-verified green after every code change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **#140 code half**         | Tracking variant persists to `state.json` (`State.TrackMode`, string form, `omitempty`; validated in `State.Valid()`; `EffectiveTrackMode()` defaults to face). Separate in-memory `Daemon.trackMode` field **deleted** (split-brain fix). Web picker shows the persisted variant after restart — pinned by `TestTrackingVariant_PersistedAcrossRestart` + pixy unit tests                                                                                                                                                                                                                                                                                                             |
-| **#138 code half**         | `pixy.SpeedValues` domain type (`Get/Set/IsZero`, `omitzero` JSON — file stays clean: `"speeds":{"pan":50}` only when set). `speed` command persists. Re-assert helper (`reassertSpeeds`/`reassertSpeedsLocked`, fail-fast so one flaky device can't triple-count toward the HID breaker) wired into **every move path**: PTZ axis moves, preset load (recall), preset push, center, and reconcile-on-device-appear. Web speed sliders initialize from persisted state (`formatSpeed`). **Lock-order flip**: the uevent path in `main.go` now takes `v4l2Mu → hidMu` (the only nested site) so V4L2 move paths can take `hidMu` underneath — order documented in a comment at the site |
-| **#141 code half**         | `POST /api/preset/push/{name}` handler + route; preset chips gained a push button (inline SVG upload icon, `preset-chip-push` CSS) gated by `confirm('Push preset "NAME" to the camera? The camera will physically move.')`. Endpoint + render pinned by tests. **`preset pull` design** written into ROADMAP (blocked on #166 framing/slot-count)                                                                                                                                                                                                                                                                                                                                     |
-| **#139 decision half**     | `docs/adr/2026-09-19_battery-polling-on-demand-ttl.md` — keep on-demand 60s TTL; background refresh rejected (unverified heads would doom-poll forever); hybrid documented as the revisit trigger after #166                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **#154**                   | Live-checked via `gh`: @zutto has not replied on issue #6 (still OPEN) → correctly stays BLOCKED, no action possible                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **#152 (partial, strong)** | **44/44 statically-initialized `EMHidCmdV2Head` globals in the Windows x64 2.0.0-Beta.25 build match the 2.0.3 Mac `cmdtable.json` byte-for-byte. Zero contradictions.** (44 of 162 — the rest aren't statically initialized in this build; see partial section)                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **#150 (partial, strong)** | UI enum registrations decoded from x64 disassembly (`0x14027c820`): **tracking variant = 0=None("No Smart Composition"), 1=Face, 2=HalfBody, 3=FullBody**; audio UI enum 1=Live Boost/2=BNR/3=Original; FocusMode 1=Face/2=Center/3=Custom; orientation 1=H/2=V/3=Both/4=Auto. Every official UI enum in this app is **1-based with 0=None** — our 0-based TargetTrackMode assumption is likely off by one                                                                                                                                                                                                                                                                             |
-| Hygiene                    | `.golangci.yml`: `pixy.SpeedValues` added to exhaustruct ignore-patterns (same category as `PTZValues`); lint auto-fixes applied                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ~~**#140 code half**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~Tracking variant persists to `state.json` (`State.TrackMode`, string form, `omitempty`; validated in `State.Valid()`; `EffectiveTrackMode()` defaults to face). Separate in-memory `Daemon.trackMode` field **deleted** (split-brain fix). Web picker shows the persisted variant after restart — pinned by `TestTrackingVariant_PersistedAcrossRestart` + pixy unit tests~~ |
+| ~~**#138 code half**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~`pixy.SpeedValues` domain type (`Get/Set/IsZero`, `omitzero` JSON — file stays clean: `"speeds":{"pan":50}` only when set). `speed` command persists. Re-assert helper (`reassertSpeeds`/`reassertSpeedsLocked`, fail-fast so one flaky device can't triple-count toward the HID breaker) wired into **every move path**: PTZ axis moves, preset load (recall), preset push, center, and reconcile-on-device-appear. Web speed sliders initialize from persisted state (`formatSpeed`). **Lock-order flip**: the uevent path in `main.go` now takes `v4l2Mu → hidMu` (the only nested site) so V4L2 move paths can take `hidMu` underneath — order documented in a comment at the site~~ |
+| ~~**#141 code half**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~`POST /api/preset/push/{name}` handler + route; preset chips gained a push button (inline SVG upload icon, `preset-chip-push` CSS) gated by `confirm('Push preset "NAME" to the camera? The camera will physically move.')`. Endpoint + render pinned by tests. **`preset pull` design** written into ROADMAP (blocked on #166 framing/slot-count)~~ |
+| ~~**#139 decision half**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~`docs/adr/2026-09-19_battery-polling-on-demand-ttl.md` — keep on-demand 60s TTL; background refresh rejected (unverified heads would doom-poll forever); hybrid documented as the revisit trigger after #166~~ |
+| ~~**#154**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~Live-checked via `gh`: @zutto has not replied on issue #6 (still OPEN) → correctly stays BLOCKED, no action possible~~ |
+| ~~**#152 (partial, strong)**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~**44/44 statically-initialized `EMHidCmdV2Head` globals in the Windows x64 2.0.0-Beta.25 build match the 2.0.3 Mac `cmdtable.json` byte-for-byte. Zero contradictions.** (44 of 162 — the rest aren't statically initialized in this build; see partial section)~~ |
+| ~~**#150 (partial, strong)**~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~UI enum registrations decoded from x64 disassembly (`0x14027c820`): **tracking variant = 0=None("No Smart Composition"), 1=Face, 2=HalfBody, 3=FullBody**; audio UI enum 1=Live Boost/2=BNR/3=Original; FocusMode 1=Face/2=Center/3=Custom; orientation 1=H/2=V/3=Both/4=Auto. Every official UI enum in this app is **1-based with 0=None** — our 0-based TargetTrackMode assumption is likely off by one~~ |
+| ~~Hygiene~~ done — shipped (CHANGELOG [0.5.0]; #152 closed; ADR; TestTargetTrackModeWireValues) | ~~`.golangci.yml`: `pixy.SpeedValues` added to exhaustruct ignore-patterns (same category as `PTZValues`); lint auto-fixes applied~~ |
 
 ## b) PARTIALLY DONE
 
@@ -52,59 +52,59 @@ Nothing destructive; repo is green and clean. Wasted-effort list, honestly:
 
 ## f) NEXT UP TO 50
 
-1. Decide + apply the TargetTrackMode correction (1-based, 0=None) — or tag code with the corrected-assumption note until #166
-2. Update `v2head.go` assumption comments with the x64 evidence (all four enums + 44/44 head match)
-3. Decode `ChargeSta` from the charge-status parser disasm (string sites located)
-4. Decode `DefaultPosMode` from `onGetDefaultPosMode` parser disasm
-5. Verify `MotorType` 0/1/2 pan/tilt/zoom at send sites
-6. Retry Mac 2.0.0-Beta.25 pkg from Wayback (alternate snapshot forms)
-7. Extract runtime-constructed heads from send paths → complete #152 to 162/162
-8. Name-join x64 heads via send-function slot references
-9. Commit the x64 analysis script to `tools/emhid/`
-10. Update `tools/inno661/README.md`: extractor verified against 2.0.0-Beta.25
-11. Update TODO_LIST rows #138/#139/#140/#141/#150/#152 with today's state
-12. CHANGELOG `[Unreleased]` entries for everything in section (a)
-13. AGENTS.md: specimen locations, lock-order rule, enum evidence, Wayback procedure
-14. Commit/locate the new installer's parsed.json
-15. `preset pull` implementation (after #166 framing + slot count)
-16. FuzzParseV2Response (after framing pinned)
-17. Waybar charging/discharging classes (after ChargeSta decoded)
-18. `EMEET_PIXYD_MOTOR_SPEED` env default + real-unit clamp (after #166)
-19. Speed slider max from hardware limit (after #166)
-20. #166 hardware session: battery verdict, framing, enums, slot sweep, tracking variants
-21. #129 retake online screenshots (hardware)
-22. #154 close issue #6 once @zutto confirms
-23. #155 cut v0.4.1 (Lars's cadence call — now carrying today's work too)
-24. #156 branch protection on master (Lars)
-25. #133 FIREBASE_SERVICE_ACCOUNT setup (Lars checklist)
-26. #148 send innoextract upstream PR (Lars's call)
-27. Multi-word preset names join-remaining (pending Lars's ADR approval)
-28. Structured command types #116 (pending Lars's ADR approval)
-29. Investigate the call-transform digest mismatches in the new extraction (verify.py)
-30. Investigate truncated file 917 in the EMEETLINK extraction (only if that specimen matters)
-31. Decide fate of `~/specimens/emeet-link/` (keep for record vs delete)
-32. Inspect the 29 MB EMEETLINK DMG once, then drop
-33. Lock-order regression test
-34. State JSON-shape round-trip test (omitzero)
-35. FEATURES.md: speed persistence, variant persistence, preset-push web UI
-36. Website changelog page + docs for the new behaviors
-37. Website docs: preset push confirmation semantics
-38. GET_DEVICE_MODE authoritative query switch (roadmap)
-39. GET_FUNC_STA bitfield decode (roadmap)
-40. Device-disappear reconcile semantics (roadmap)
-41. SSE heartbeat + LastEventID replay (roadmap)
-42. OTel tracing for PTZ latency (roadmap)
-43. `nix flake update` cadence (roadmap)
-44. gitleaks + codespell on-demand run (nothing suspicious expected; cheap)
-45. Re-check auto-commit messages for today's batch (heuristic noise vs per-task commits)
-46. Review whether `speed <axis> 0` should persist-as-unset semantics be documented in README/help
-47. Update `docs/hid-protocol-official-map.md` §3.5 with the 44/44 x64 confirmation
-48. Consider qemu/windows-vm smoke test of the official app against our assumptions (heavy; only if #166 stays unavailable)
-49. Purge `/tmp/text.asm` after the pipeline script exists (regenerable)
-50. Add the EMEETLINK-is-not-STUDIO finding to ROADMAP research notes (dead end recorded)
+~~1. Decide + apply the TargetTrackMode correction (1-based, 0=None) — or tag code with the corrected-assumption note until #166~~ done — applied (TargetTrackMode corrected; evidence grades; ChargeSta; specimen home)
+~~2. Update `v2head.go` assumption comments with the x64 evidence (all four enums + 44/44 head match)~~ done — applied (TargetTrackMode corrected; evidence grades; ChargeSta; specimen home)
+~~3. Decode `ChargeSta` from the charge-status parser disasm (string sites located)~~ done — applied (TargetTrackMode corrected; evidence grades; ChargeSta; specimen home)
+~~4. Decode `DefaultPosMode` from `onGetDefaultPosMode` parser disasm~~ done — applied (TargetTrackMode corrected; evidence grades; ChargeSta; specimen home)
+~~5. Verify `MotorType` 0/1/2 pan/tilt/zoom at send sites~~ done — applied (TargetTrackMode corrected; evidence grades; ChargeSta; specimen home)
+~~6. Retry Mac 2.0.0-Beta.25 pkg from Wayback (alternate snapshot forms)~~ **NOT-DO — TODO #150 (Qt copy helper; hardware/usbmon only).**
+~~7. Extract runtime-constructed heads from send paths → complete #152 to 162/162~~ **NOT-DO — TODO_LIST #150.**
+~~8. Name-join x64 heads via send-function slot references~~ **Superseded — superseded by exact-tuple match (12-05).**
+~~9. Commit the x64 analysis script to `tools/emhid/`~~ done — tools/emhid/extract_x64.py in tree
+~~10. Update `tools/inno661/README.md`: extractor verified against 2.0.0-Beta.25~~ done — parsed-beta25.json + README verified
+~~11. Update TODO_LIST rows #138/#139/#140/#141/#150/#152 with today's state~~ done — TODO rows updated 10:51
+~~12. CHANGELOG `[Unreleased]` entries for everything in section (a)~~ done — CHANGELOG [0.5.0]
+~~13. AGENTS.md: specimen locations, lock-order rule, enum evidence, Wayback procedure~~ done — AGENTS Wayback recipe + lock order
+~~14. Commit/locate the new installer's parsed.json~~ done — tools/inno661/data/parsed-beta25.json
+~~15. `preset pull` implementation (after #166 framing + slot count)~~ done — preset pull implemented 12-05
+~~16. FuzzParseV2Response (after framing pinned)~~ **NOT-DO — ROADMAP FuzzParseV2Response.**
+~~17. Waybar charging/discharging classes (after ChargeSta decoded)~~ done — TestWaybarBatteryClass
+~~18. `EMEET_PIXYD_MOTOR_SPEED` env default + real-unit clamp (after #166)~~ **NOT-DO — ROADMAP env default.**
+~~19. Speed slider max from hardware limit (after #166)~~ **NOT-DO — TODO #138/#166.**
+~~20. #166 hardware session: battery verdict, framing, enums, slot sweep, tracking variants~~ **NOT-DO — TODO_LIST #166 (partially run 10-01).**
+~~21. #129 retake online screenshots (hardware)~~ **NOT-DO — TODO_LIST #129.**
+~~22. #154 close issue #6 once @zutto confirms~~ **NOT-DO — TODO_LIST #154.**
+~~23. #155 cut v0.4.1 (Lars's cadence call — now carrying today's work too)~~ **Superseded — v0.5.0 (TODO #155 DONE).**
+~~24. #156 branch protection on master (Lars)~~ **NOT-DO — TODO_LIST #156.**
+~~25. #133 FIREBASE_SERVICE_ACCOUNT setup (Lars checklist)~~ done — #133 DONE (deploy CI active)
+~~26. #148 send innoextract upstream PR (Lars's call)~~ **NOT-DO — TODO_LIST #148.**
+~~27. Multi-word preset names join-remaining (pending Lars's ADR approval)~~ **NOT-DO — ROADMAP join-remaining.**
+~~28. Structured command types #116 (pending Lars's ADR approval)~~ **NOT-DO — ROADMAP #116.**
+~~29. Investigate the call-transform digest mismatches in the new extraction (verify.py)~~ **NOT-DO — digest investigation never recorded.**
+~~30. Investigate truncated file 917 in the EMEETLINK extraction (only if that specimen matters)~~ **Superseded — EMEETLINK dead end (ROADMAP).**
+~~31. Decide fate of `~/specimens/emeet-link/` (keep for record vs delete)~~ done — kept for record (ROADMAP)
+~~32. Inspect the 29 MB EMEETLINK DMG once, then drop~~ **Superseded — EMEETLINK dead end (ROADMAP).**
+~~33. Lock-order regression test~~ done — TestLockOrder_V4L2MoveWithHIDCommands
+~~34. State JSON-shape round-trip test (omitzero)~~ done — TestStateRoundTrip_SpeedsOmitZero_TrackModeNone
+~~35. FEATURES.md: speed persistence, variant persistence, preset-push web UI~~ done — FEATURES rows 🟢
+~~36. Website changelog page + docs for the new behaviors~~ done — site changelog documents the families (CHANGELOG [0.5.0])
+~~37. Website docs: preset push confirmation semantics~~ **NOT-DO — push-confirmation docs never added (micro).**
+~~38. GET_DEVICE_MODE authoritative query switch (roadmap)~~ **NOT-DO — ROADMAP GET_DEVICE_MODE.**
+~~39. GET_FUNC_STA bitfield decode (roadmap)~~ **NOT-DO — ROADMAP GET_FUNC_STA.**
+~~40. Device-disappear reconcile semantics (roadmap)~~ **NOT-DO — ROADMAP device-disappear.**
+~~41. SSE heartbeat + LastEventID replay (roadmap)~~ **NOT-DO — ROADMAP SSE heartbeat.**
+~~42. OTel tracing for PTZ latency (roadmap)~~ **NOT-DO — ROADMAP OTel tracing.**
+~~43. `nix flake update` cadence (roadmap)~~ **NOT-DO — ROADMAP flake update cadence.**
+~~44. gitleaks + codespell on-demand run (nothing suspicious expected; cheap)~~ **NOT-DO — gitleaks/codespell hygiene never recorded.**
+~~45. Re-check auto-commit messages for today's batch (heuristic noise vs per-task commits)~~ **NOT-DO — auto-commit review (process).**
+~~46. Review whether `speed <axis> 0` should persist-as-unset semantics be documented in README/help~~ **NOT-DO — speed-0 semantics never documented.**
+~~47. Update `docs/hid-protocol-official-map.md` §3.5 with the 44/44 x64 confirmation~~ done — map doc updated to 108/162 + §3.5a
+~~48. Consider qemu/windows-vm smoke test of the official app against our assumptions (heavy; only if #166 stays unavailable)~~ **NOT-DO — qemu smoke never done (ROADMAP-grade).**
+~~49. Purge `/tmp/text.asm` after the pipeline script exists (regenerable)~~ **Superseded — AGENTS records text.asm as regenerable scratch.**
+~~50. Add the EMEETLINK-is-not-STUDIO finding to ROADMAP research notes (dead end recorded)~~ done — ROADMAP dead-end note
 
 ## g) QUESTIONS (cannot figure these out myself)
 
 1. ~~**Apply the tracking-enum correction now?**~~ **RESOLVED-APPLIED (2026-09-19 ~10:30):** corrected to 0=none/1=face/2=halfbody/3=fullbody; `none` exposed over CLI + web picker + persistence; numeric aliases removed; wire bytes pinned by `TestTargetTrackModeWireValues`.
 2. ~~**Specimen storage**~~ **RESOLVED:** `~/specimens/emeet-studio/` is the durable home (installer + full extraction); distilled derived data committed (`tools/emhid/x64_heads.json`, `tools/inno661/data/parsed-beta25.json`); regeneration pipeline committed (`tools/emhid/extract_x64.py`, verified deterministic). ROADMAP open question updated to resolved-in-practice.
-3. **v0.4.1 timing (#155):** cut now (today's work + the five HID families, all marked "hardware verification pending") or accumulate toward v0.5 after the hardware session? ← untouched = still Lars's call
+~~3. **v0.4.1 timing (#155):** cut now (today's work + the five HID families, all marked "hardware verification pending") or accumulate toward v0.5 after the hardware session? ← untouched = still Lars's call~~ **Superseded — v0.5.0 cut 2026-10-31 (TODO #155 DONE).**

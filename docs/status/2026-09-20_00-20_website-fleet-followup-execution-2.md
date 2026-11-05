@@ -15,30 +15,30 @@
 
 ### What did I forget?
 
-1. **Binary freshness.** The 23:32 fleet cycle ran on a `visionreviewd`
+~~1. **Binary freshness.** The 23:32 fleet cycle ran on a `visionreviewd`~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    binary built **2026-09-07** — it had neither `sourceURL` support nor the
    skip-seen fix, and I noticed only when the `**Page:**` line failed to
    appear in fresh reviews. 40 minutes of reviews landed without
    provenance. Check `stat` on the binary before any long run.
-2. **The kill side-effect.** Killing the v1 pass mid-request left
+~~2. **The kill side-effect.** Killing the v1 pass mid-request left~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    llama-server chewing an orphan prompt; combined with the machine's
    external load (45–80) this produced a string of 5-minute timeouts.
-3. **`pnpm approve-builds` garbage was already committed.** cmdguard's
+~~3. **`pnpm approve-builds` garbage was already committed.** cmdguard's~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    `pnpm-workspace.yaml` carried the literal placeholder
    `esbuild: set this to true or false` — pnpm silently ignored the whole
    key. The prior session's "fix" was never actually a fix.
-4. **Timeout must scale with capture methodology.** Full-page screenshots
+~~4. **Timeout must scale with capture methodology.** Full-page screenshots~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    blow up the vision prompt token count; the 5-minute per-view timeout
    that was fine for 4320 px shots times out on 6252–10162 px ones. Raised
    the fleet config to 12 minutes.
-5. **Dark-mode shots are new ground.** Two of 17 sites don't respond to
+~~5. **Dark-mode shots are new ground.** Two of 17 sites don't respond to~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    `prefers-color-scheme` at all — cmdguard is dark-by-design (manual
    toggle only), learnings shipped `respectColorScheme` (a key that does
    not exist in Docusaurus 3.10) and simply never followed the OS setting.
 
 ### What could I have done better?
 
-1. **Coverage-diff, third strike.** My `--subpages` run reported
+~~1. **Coverage-diff, third strike.** My `--subpages` run reported~~ done — executed (binary guard, pnpm allowBuilds, timeouts, dark captures, coverage assertion — 00-20/01-23)
    `DONE: 0 failures` while capturing only the *last* subpage per site
    (28 files instead of 56) — a multiedit had dedented the wait/shot block
    out of the pages loop. I caught it by counting files against
@@ -82,48 +82,48 @@
 
 | Task | Evidence |
 | --- | --- |
-| `vision-stack-up.sh` wait 120→900 s + reload-time logging | `scripts/vision-stack-up.sh`; rationale + measured ~13 min in `docs/activation/site-fleet-ops.md` §1.4 |
-| CDP capture tool (new) | `scripts/cdp-shoot.py`: stdlib websocket client (nix `websockets` package envs proved broken), `captureBeyondViewport` full-page, `prefers-color-scheme=dark` emulation, `--subpages`/`--skip-home`/`--viewport`/`--mode`; 68 home shots (light+dark × desktop+mobile, docH 6252 px class) + 60 subpage shots, all verified |
-| `review-fleet.sh` upgraded | CDP captures first, tall-viewport `shoot-sites.sh` as fallback path |
-| site-monitor verified in production | 23:00 hourly cycle: 17×OK, 2×KNOWN correctly muted, no false alerts |
-| sourceURLs config | 17 entries in `~/.config/visionreviewd/websites.json` + repo copy synced; timeout raised 5m→12m for full-page shots |
-| activation README | new `sourceURLs` section with rendered example; fixed broken relative link to `visionreviewd-systemnix.md` |
+| ~~`vision-stack-up.sh` wait 120→900 s + reload-time logging~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~`scripts/vision-stack-up.sh`; rationale + measured ~13 min in `docs/activation/site-fleet-ops.md` §1.4~~ |
+| ~~CDP capture tool (new)~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~`scripts/cdp-shoot.py`: stdlib websocket client (nix `websockets` package envs proved broken), `captureBeyondViewport` full-page, `prefers-color-scheme=dark` emulation, `--subpages`/`--skip-home`/`--viewport`/`--mode`; 68 home shots (light+dark × desktop+mobile, docH 6252 px class) + 60 subpage shots, all verified~~ |
+| ~~`review-fleet.sh` upgraded~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~CDP captures first, tall-viewport `shoot-sites.sh` as fallback path~~ |
+| ~~site-monitor verified in production~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~23:00 hourly cycle: 17×OK, 2×KNOWN correctly muted, no false alerts~~ |
+| ~~sourceURLs config~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~17 entries in `~/.config/visionreviewd/websites.json` + repo copy synced; timeout raised 5m→12m for full-page shots~~ |
+| ~~activation README~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~new `sourceURLs` section with rendered example; fixed broken relative link to `visionreviewd-systemnix.md`~~ |
 
 ### visionreviewd (the repo)
 
 | Task | Evidence |
 | --- | --- |
-| sourceURL feature finished (F76–F79) | code was already committed by the daemon; config example + README docs + repo-copy sync landed this session |
-| **skip-seen bug fix** | `internal/reviewd/pipeline.go`: skip condition now requires `!state.NeedsReview()` — a view whose review failed (transient model outage) is retried on the next pass instead of being skipped forever. Field-triggered: the aborted 20:01 cycle had permanently unreviewable views. BDD regression spec `when the view's review failed in a previous pass`; full `internal/reviewd` suite green; binary rebuilt |
-| HARVEST (F32) | `TODO_LIST.md`: three new fleet sections + Blocked-on-Lars section; completed items removed; `ROADMAP` untouched (demo epic went to typespec repo) |
+| ~~sourceURL feature finished (F76–F79)~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~code was already committed by the daemon; config example + README docs + repo-copy sync landed this session~~ |
+| ~~**skip-seen bug fix**~~ done — executed (vision-stack-up, CDP tooling, monitor, sourceURLs, skip-seen fix) | ~~`internal/reviewd/pipeline.go`: skip condition now requires `!state.NeedsReview()` — a view whose review failed (transient model outage) is retried on the next pass instead of being skipped forever. Field-triggered: the aborted 20:01 cycle had permanently unreviewable views. BDD regression spec `when the view's review failed in a previous pass`; full `internal/reviewd` suite green; binary rebuilt~~ |
+| ~~HARVEST (F32)~~ done — harvest went to vision-review-agent TODO_LIST (not emeet-pixyd) | ~~`TODO_LIST.md`: three new fleet sections + Blocked-on-Lars section; completed items removed; `ROADMAP` untouched (demo epic went to typespec repo)~~ |
 
 ### Fleet quality (Wave 3/4 residue)
 
 | Task | Evidence |
 | --- | --- |
-| **axe re-run: 17/17 CLEAN** | round 1: 24 kinds → 4; round 2 fixes below → 0 violations of any severity on all home pages (desktop, light) |
-| atomicwrite `tabindex="0"` | `.min-w-0` install `<code>`; rebuilt+redeployed |
-| gogenfilter theme-aware amber | `text-[#fbbf24]` → `text-amber` token; light `--color-amber` `#b45309`→`#92400e` (axe-measured 4.19:1 → ~5.9:1 on its own tint); redeployed, CLEAN |
-| typespec `--color-accent-text` token | new token family (`#0f766e` light) for accent text; + same amber bump; redeployed, CLEAN |
-| learnings `.button--secondary` | white/blue override (axe-measured dark-on-darkgreen 2.5:1 before); redeployed, CLEAN |
-| cmdguard pnpm v11 fix | `pnpm-workspace.yaml` placeholder replaced with `allowBuilds: esbuild: true`; postinstall + `astro build` verified green; gotcha documented in cmdguard `AGENTS.md` + template-family checklist |
-| learnings: algolia placeholder leak | link audit caught `YOUR_APP_ID-dsn.algolia.net` loading from prod pages; placeholder config removed, leak verified gone from build and live site |
-| learnings: manifest + theme-color | `static/manifest.webmanifest` + `headTags` link + two media-scoped `theme-color` metas; live-verified (200s, meta present) |
-| learnings: real og:image | 1200×630 chromium card shot → `static/og/home.png` + `themeConfig.image`; live `og:image` verified |
-| learnings: dark mode | `respectPrefersColorScheme: true` (first attempt used a nonexistent key — schema error — then corrected) |
-| demo posters → webp + dimensions (F101) | do-auditlog: `demo-poster.webp` (69 KB→26 KB) + `width/height` on `<video>` + JSON-LD `thumbnailUrl`; emeet-pixyd: same (205 KB→27 KB); both live-verified |
-| custom-404 audit (F99) | all 17 sites return real 404s on a random path — no soft-404s, no Firebase default pages; audit script `scripts/cdp-shoot.py`-independent, results in `/tmp/vra/audit404_meta.json`, transcribed: CLEAN |
-| favicon/manifest/theme-color (F100) | 16/17 were complete; learnings gap closed above |
-| subpage enumeration (F66) + captures (F67) | sitemap-derived: 15 sites have getting-started docs; cmdguard + typespec are single-page (their sitemaps point at the KNOWN-broken custom domains — noted); 60 subpage captures (light+dark × desktop) |
+| ~~**axe re-run: 17/17 CLEAN**~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~round 1: 24 kinds → 4; round 2 fixes below → 0 violations of any severity on all home pages (desktop, light)~~ |
+| ~~atomicwrite `tabindex="0"`~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`.min-w-0` install `<code>`; rebuilt+redeployed~~ |
+| ~~gogenfilter theme-aware amber~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`text-[#fbbf24]` → `text-amber` token; light `--color-amber` `#b45309`→`#92400e` (axe-measured 4.19:1 → ~5.9:1 on its own tint); redeployed, CLEAN~~ |
+| ~~typespec `--color-accent-text` token~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~new token family (`#0f766e` light) for accent text; + same amber bump; redeployed, CLEAN~~ |
+| ~~learnings `.button--secondary`~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~white/blue override (axe-measured dark-on-darkgreen 2.5:1 before); redeployed, CLEAN~~ |
+| ~~cmdguard pnpm v11 fix~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`pnpm-workspace.yaml` placeholder replaced with `allowBuilds: esbuild: true`; postinstall + `astro build` verified green; gotcha documented in cmdguard `AGENTS.md` + template-family checklist~~ |
+| ~~learnings: algolia placeholder leak~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~link audit caught `YOUR_APP_ID-dsn.algolia.net` loading from prod pages; placeholder config removed, leak verified gone from build and live site~~ |
+| ~~learnings: manifest + theme-color~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`static/manifest.webmanifest` + `headTags` link + two media-scoped `theme-color` metas; live-verified (200s, meta present)~~ |
+| ~~learnings: real og:image~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~1200×630 chromium card shot → `static/og/home.png` + `themeConfig.image`; live `og:image` verified~~ |
+| ~~learnings: dark mode~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`respectPrefersColorScheme: true` (first attempt used a nonexistent key — schema error — then corrected)~~ |
+| ~~demo posters → webp + dimensions (F101)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~do-auditlog: `demo-poster.webp` (69 KB→26 KB) + `width/height` on `<video>` + JSON-LD `thumbnailUrl`; emeet-pixyd: same (205 KB→27 KB); both live-verified~~ |
+| ~~custom-404 audit (F99)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~all 17 sites return real 404s on a random path — no soft-404s, no Firebase default pages; audit script `scripts/cdp-shoot.py`-independent, results in `/tmp/vra/audit404_meta.json`, transcribed: CLEAN~~ |
+| ~~favicon/manifest/theme-color (F100)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~16/17 were complete; learnings gap closed above~~ |
+| ~~subpage enumeration (F66) + captures (F67)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~sitemap-derived: 15 sites have getting-started docs; cmdguard + typespec are single-page (their sitemaps point at the KNOWN-broken custom domains — noted); 60 subpage captures (light+dark × desktop)~~ |
 
 ### Family consolidation (F83–F86)
 
 | Task | Evidence |
 | --- | --- |
-| divergence report (F83) | `docs/activation/template-family-divergence.md`: layouts mean pairwise similarity **0.875** (max 0.955), heroes 0.546 (per-product by design), core-token overlap only 5/14 repos |
-| ADR (F84) | `docs/adr/0001-template-family-sync-over-extract.md`: **sync-script over extract-package** — version skew across 14 repos would be a worse failure mode than drift; the divergent part is the product surface |
-| prototype (F85) | `scripts/family-a11y-guard.sh`: check-mode guard for the three violation classes; current family state **0 FAIL / 68 INFO** (INFO = `bg-accent` CTAs in repos without the `--color-on-accent` scheme — convergence backlog, explicitly not violations) |
-| decision doc (F86) | covered by the ADR's Consequences section; guard wired as the pilot CI candidate |
+| ~~divergence report (F83)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`docs/activation/template-family-divergence.md`: layouts mean pairwise similarity **0.875** (max 0.955), heroes 0.546 (per-product by design), core-token overlap only 5/14 repos~~ |
+| ~~ADR (F84)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`docs/adr/0001-template-family-sync-over-extract.md`: **sync-script over extract-package** — version skew across 14 repos would be a worse failure mode than drift; the divergent part is the product surface~~ |
+| ~~prototype (F85)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~`scripts/family-a11y-guard.sh`: check-mode guard for the three violation classes; current family state **0 FAIL / 68 INFO** (INFO = `bg-accent` CTAs in repos without the `--color-on-accent` scheme — convergence backlog, explicitly not violations)~~ |
+| ~~decision doc (F86)~~ done — audits CLEAN / fixes landed / ADR-0001 / guard prototype (00-20) | ~~covered by the ADR's Consequences section; guard wired as the pilot CI candidate~~ |
 
 ### Score impact (partial — cycle still running)
 
@@ -145,17 +145,17 @@ baseline (see question 2 for Lars).
 
 ## b) PARTIALLY DONE
 
-1. **F82 (one full green cycle)** — the cycle is running right now on the
+~~1. **F82 (one full green cycle)** — the cycle is running right now on the~~ **NOT-DO — F82 + page-line + dark triage + subpage reviews + calibration + GPU — pending in ops trackers.**
    12-minute timeout (started 00:11); under external load 30–80 each view
    takes 1–3+ min (vs ~30 s on an idle box). 35 reviews had already landed
    from the earlier attempts; skip-seen (with the retry fix) resumes
    cleanly. Not yet closed: the pass must finish with exit 0 once.
-2. **Page-line E2E proof** — the scratch-dir capture recorded `sourceURL`
+~~2. **Page-line E2E proof** — the scratch-dir capture recorded `sourceURL`~~ **NOT-DO — F82 + page-line + dark triage + subpage reviews + calibration + GPU — pending in ops trackers.**
    in the event (new binary), but its review timed out twice under load.
    Test-proven at unit level; one green review renders the `**Page:**`
    line and closes it. The running cycle will produce these for all
    retried views anyway.
-3. **Dark triage (F65)** — captures done; static triage done (15/17
+~~3. **Dark triage (F65)** — captures done; static triage done (15/17~~ **NOT-DO — F82 + page-line + dark triage + subpage reviews + calibration + GPU — pending in ops trackers.**
    respond; cmdguard dark-by-design, learnings fixed); model-based triage
    of dark views lands with the running cycle.
 4. **Subpage review (F68–F69)** — 60 captures in place; reviews happen on
@@ -218,72 +218,72 @@ baseline (see question 2 for Lars).
 
 ## f) NEXT 50 (ordered by leverage)
 
-1. Let the running cycle finish → final score table + F82 closure (it
+~~1. Let the running cycle finish → final score table + F82 closure (it~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
    resumes cleanly thanks to the retry fix; log: `/tmp/vra/v3-once.log`)
-2. Re-verify score table per capture mode; write the trend into the fleet
+~~2. Re-verify score table per capture mode; write the trend into the fleet~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
    log (INDEX diff generation is TODO_LIST #5)
-3. Decide score methodology (Lars): full-page monthly vs viewport-pinned
+~~3. Decide score methodology (Lars): full-page monthly vs viewport-pinned~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
    monthly + full-page quarterly (see question 2)
-4. Wire `family-a11y-guard.sh` as CI check in one pilot family repo
-5. Adopt `--color-on-accent` token scheme in the 9 INFO repos (68 INFO
+~~4. Wire `family-a11y-guard.sh` as CI check in one pilot family repo~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~5. Adopt `--color-on-accent` token scheme in the 9 INFO repos (68 INFO~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
    findings; not violations, convergence debt)
-6. Re-review the 60 subpage captures (automatic next pass) + triage (F68–69)
-7. Dark-view triage once the cycle lands them (F65 tail)
-8. Add expected-shot-count assertion to `cdp-shoot.py` (close the d2 class)
-9. Pre-flight probe (canary review) into `review-fleet.sh` + load guard
-10. learnings: one manual CI run to prove Actions green post-retarget
-11. CSP report re-check for og/meta additions (report-only CSPs)
-12. auditlog canonical-URL audit (parity with the other 16)
-13. Push decision (Lars) → then push vision-review-agent, learnings, sites
-14. Release/tag visionreviewd with sourceURL + skip-retry fix (needs push)
-15. KNOWN_BROKEN escalation timer (7-day alert) in `site-monitor.sh`
-16. Off-machine monitor vantage (uptime push)
-17. home-manager module for both timers (canonical install)
-18. `site-monitor.sh --json` waybar widget
-19. Score-trend digest appended to fleet-review log
-20. GPU benchmark rocm vs CPU (needs free GPU window)
-21. Calibration F91–F94 in a quiet window (variance, 3b-vs-8B, prompt)
-22. Identify owner of the ollama qwen2.5vl:3b GPU workload (Lars)
-23. `/data` SMART + replace-vs-migrate decision (Lars, sudo) — VL model
+~~6. Re-review the 60 subpage captures (automatic next pass) + triage (F68–69)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~7. Dark-view triage once the cycle lands them (F65 tail)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~8. Add expected-shot-count assertion to `cdp-shoot.py` (close the d2 class)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~9. Pre-flight probe (canary review) into `review-fleet.sh` + load guard~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~10. learnings: one manual CI run to prove Actions green post-retarget~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~11. CSP report re-check for og/meta additions (report-only CSPs)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~12. auditlog canonical-URL audit (parity with the other 16)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~13. Push decision (Lars) → then push vision-review-agent, learnings, sites~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~14. Release/tag visionreviewd with sourceURL + skip-retry fix (needs push)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~15. KNOWN_BROKEN escalation timer (7-day alert) in `site-monitor.sh`~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~16. Off-machine monitor vantage (uptime push)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~17. home-manager module for both timers (canonical install)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~18. `site-monitor.sh --json` waybar widget~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~19. Score-trend digest appended to fleet-review log~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~20. GPU benchmark rocm vs CPU (needs free GPU window)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~21. Calibration F91–F94 in a quiet window (variance, 3b-vs-8B, prompt)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~22. Identify owner of the ollama qwen2.5vl:3b GPU workload (Lars)~~ done — executed or owned (guard CI pilot, token convergence, inventory assertion, pre-flight gates, TREND digest, escalation timer)
+~~23. `/data` SMART + replace-vs-migrate decision (Lars, sudo) — VL model~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     selective migration kills the 13-min reload problem
-24. cmdguard console attach (Lars) → custom domain → re-shoot/re-review
-25. typespec Namecheap CNAME + attach (Lars) → same; also fixes their
+~~24. cmdguard console attach (Lars) → custom domain → re-shoot/re-review~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~25. typespec Namecheap CNAME + attach (Lars) → same; also fixes their~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     sitemap/canonical URLs which point at the custom domain
-26. Hero-copy staleness pass (counts/versions vs repo state)
-27. learnings docs-subpage heading-order cleanups
-28. templ-components cmd/site vet gate (bump vs guard decision)
-29. emeet online screenshots (PIXY hardware)
-30. typespec `website/video/` cruft cleanup
-31. Mobile subpage captures (desktop done) — extend `--subpages` to mobile
-32. Interactive-states a11y pass (focus traps, menus) — audit extension
-33. Per-repo axe CI gate (pilot: gogenfilter as 8/8 gold standard)
-34. learnings search: real DocSearch/alternative or drop the UI stub
-35. Poster files: audit remaining video posters family-wide (only 2 sites
+~~26. Hero-copy staleness pass (counts/versions vs repo state)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~27. learnings docs-subpage heading-order cleanups~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~28. templ-components cmd/site vet gate (bump vs guard decision)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~29. emeet online screenshots (PIXY hardware)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~30. typespec `website/video/` cruft cleanup~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~31. Mobile subpage captures (desktop done) — extend `--subpages` to mobile~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~32. Interactive-states a11y pass (focus traps, menus) — audit extension~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~33. Per-repo axe CI gate (pilot: gogenfilter as 8/8 gold standard)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~34. learnings search: real DocSearch/alternative or drop the UI stub~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~35. Poster files: audit remaining video posters family-wide (only 2 sites~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     have video today)
-36. Score-trend alerting (alert when a site drops >2 between cycles)
-37. Capture sitemap health (both KNOWN-broken domains' sitemaps break
+~~36. Score-trend alerting (alert when a site drops >2 between cycles)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~37. Capture sitemap health (both KNOWN-broken domains' sitemaps break~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     consumers — validate sitemap targets in the family guard)
-38. `family-redeploy.sh`: add learnings/templcomponents/emeet special
+~~38. `family-redeploy.sh`: add learnings/templcomponents/emeet special~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     flows so one script covers 17 sites
-39. Alternates/`hreflang` audit (single-locale sites — likely no-op, close)
-40. Favicon consistency: SVG-only favicons vs ICO fallback audit
-41. og:image per-subpage (currently home-only) — low priority
-42. Journal replay drill (prove the replay path after the fix)
-43. Emit fleet cycle duration + canary time into the log for capacity
+~~39. Alternates/`hreflang` audit (single-locale sites — likely no-op, close)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~40. Favicon consistency: SVG-only favicons vs ICO fallback audit~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~41. og:image per-subpage (currently home-only) — low priority~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~42. Journal replay drill (prove the replay path after the fix)~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
+~~43. Emit fleet cycle duration + canary time into the log for capacity~~ **NOT-DO — Lars decisions + ops items + capture reviews → vision-review-agent ops trackers.**
     planning
-44. Checklist doc: add "dark-mode captures" item (done for cmdguard class,
+~~44. Checklist doc: add "dark-mode captures" item (done for cmdguard class,~~ done — dark-mode checklist item + retry-once shipped (01-23)
     keep for new repos)
 45. `cdp-shoot.py`: retry-once on per-view timeout instead of failing the
     site
 46. Consider `--omit-background=false` guard for dark captures (verify
     page actually paints, not just media emulation)
-47. Move `/tmp/vra/` audit scripts into `scripts/` with tests (linkcheck,
+~~47. Move `/tmp/vra/` audit scripts into `scripts/` with tests (linkcheck,~~ done — audit scripts moved; pnpm gotcha swept (01-23); demo.mp4 still owed (ops)
     404/meta audit)
-48. Document the pnpm allowBuilds gotcha in remaining family AGENTS.md
+~~48. Document the pnpm allowBuilds gotcha in remaining family AGENTS.md~~ done — audit scripts moved; pnpm gotcha swept (01-23); demo.mp4 still owed (ops)
     files (cmdguard done; it will hit the next pnpm v11 repo)
-49. MONTHLY: confirm the 00:xx cycle output wrote scores to the log
+~~49. MONTHLY: confirm the 00:xx cycle output wrote scores to the log~~ done — audit scripts moved; pnpm gotcha swept (01-23); demo.mp4 still owed (ops)
     (first data point for trend alerting)
-50. typespec demo.mp4 production (ROADMAP epic; storyboard seeded)
+~~50. typespec demo.mp4 production (ROADMAP epic; storyboard seeded)~~ done — audit scripts moved; pnpm gotcha swept (01-23); demo.mp4 still owed (ops)
 
 ## Decisions needed from Lars
 
