@@ -70,56 +70,56 @@ Nothing catastrophically broken — HEAD is green everywhere and all content ver
 
 **P1 — Lars decisions that unblock chains:**
 
-1. Q1: approve SystemNix push + `nix run .#deploy` + F032 gate dry-run (the pma build gate #176 goes live)
-2. Q2: SystemNix input float-vs-pin for emeet-pixyd (`scripts/float-register.sh`, long build)
-3. Q3a: T26 innoextract upstream PR — go/no-go
-4. Q3b: #156 branch protection — `gh api` (I can do it in 2 min) or your web UI
-5. /tmp cleanup ownership ruling (freshmc/vra-gocache/e2run/tmp.*/go-build-cache ≈ 32G; not mine to delete)
+1. Q1: approve SystemNix push + `nix run .#deploy` + F032 gate dry-run (the pma build gate #176 goes live) **→ TODO_LIST #176 + ROADMAP open questions (Lars Q1).**
+2. Q2: SystemNix input float-vs-pin for emeet-pixyd (`scripts/float-register.sh`, long build) **→ TODO_LIST #183 (Lars Q2).**
+3. Q3a: T26 innoextract upstream PR — go/no-go **→ TODO_LIST #148 (Lars).**
+4. Q3b: #156 branch protection — `gh api` (I can do it in 2 min) or your web UI **→ TODO_LIST #156 (Lars).**
+5. /tmp cleanup ownership ruling (freshmc/vra-gocache/e2run/tmp.*/go-build-cache ≈ 32G; not mine to delete) **→ Lars ops call (outside repo scope).**
 
 **P2 — next wired hardware session (T08–T10, T27, #166 checklist):**
 
-6. V1-mode decode (the `09 01 01 01` constant-0x02 answer) — unblocks #182 and makes `sync`/reconcile mode reads trustworthy
-7. Pin `MotorType` 0/1/2 mapping + `DefaultPosMode` values (static decode exhausted)
-8. Speed unit + limit hardware verdict → clamp at command layer + slider max (#138)
-9. Preset slot count + response-shape verdict (#141)
-10. Wired-firmware battery/charge query verdict (#139)
-11. T27: extract shared V2 query helper, migrate identity/power/motor, parity tests (#172)
-12. Fresh web-UI screenshots for the website (#129 — current shots show offline state)
-13. Re-run `TestIntegration_BatteryProbe` + the optical privacy-trap suite against the fixed firmware behavior
+6. V1-mode decode (the `09 01 01 01` constant-0x02 answer) — unblocks #182 and makes `sync`/reconcile mode reads trustworthy **→ TODO_LIST #166 checklist.**
+7. Pin `MotorType` 0/1/2 mapping + `DefaultPosMode` values (static decode exhausted) **→ TODO_LIST #150 + #166.**
+8. Speed unit + limit hardware verdict → clamp at command layer + slider max (#138) **→ TODO_LIST #138 + #166.**
+9. Preset slot count + response-shape verdict (#141) **→ TODO_LIST #141 + #166.**
+10. Wired-firmware battery/charge query verdict (#139) **→ TODO_LIST #139 + #166.**
+11. T27: extract shared V2 query helper, migrate identity/power/motor, parity tests (#172) **→ TODO_LIST #172.**
+12. Fresh web-UI screenshots for the website (#129 — current shots show offline state) **→ TODO_LIST #129.**
+13. Re-run `TestIntegration_BatteryProbe` + the optical privacy-trap suite against the fixed firmware behavior **→ TODO_LIST #166 checklist.**
 
 **P3 — code quality, no blockers:**
 
-14. Apply AGENTS.md lesson (e5): record the nolint-coverage semantics + clean-cache doctrine
-15. Multi-word preset names: join-remaining in `presetAction` (ADR approved design, waiting on Lars — Q from the 09-18 ADR)
-16. Report P3-15: per-component health registry (`map[string]func() error` walked by the health handler) — the stealable samber/do pattern
-17. Report P3-21: document the five-layer health model in `monitoring.mdx` (the D2 diagram now exists to embed)
-18. Consider `slog` level audit — the absorbed June #14; spot-check Debug/Info/Warn discipline once
-19. Website: add a `lang`/locale audit + html-validate pass over rendered dist (dep exists, never wired into CI)
-20. Website OG: custom font for cards (Space Grotesk is site font; cards use the package default) + truncation check on the longest title
-21. vmTest: add the watchdog-stall pinning test (c4 from the 14-30 report — wedge a fake v4l2-ctl, assert loop iteration bound ≪ WatchdogSec)
-22. Add counting-method labels to numeric claims in future reports (P4-23, still just a rule not a habit)
+14. Apply AGENTS.md lesson (e5): record the nolint-coverage semantics + clean-cache doctrine **→ DONE 2026-11-05** — AGENTS Lint bullet carries the coverage semantics + clean-cache doctrine.
+15. Multi-word preset names: join-remaining in `presetAction` (ADR approved design, waiting on Lars — Q from the 09-18 ADR) **→ ROADMAP design decision (#123, awaiting Lars).**
+16. Report P3-15: per-component health registry (`map[string]func() error` walked by the health handler) — the stealable samber/do pattern **→ ROADMAP observability (added 2026-11-05).**
+17. Report P3-21: document the five-layer health model in `monitoring.mdx` (the D2 diagram now exists to embed) **→ ROADMAP observability (added 2026-11-05).**
+18. Consider `slog` level audit — the absorbed June #14; spot-check Debug/Info/Warn discipline once **→ micro-hygiene (unrouted by convention).**
+19. Website: add a `lang`/locale audit + html-validate pass over rendered dist (dep exists, never wired into CI) **→ TODO_LIST #199.**
+20. Website OG: custom font for cards (Space Grotesk is site font; cards use the package default) + truncation check on the longest title **→ ROADMAP web presence (added 2026-11-05).**
+21. vmTest: add the watchdog-stall pinning test (c4 from the 14-30 report — wedge a fake v4l2-ctl, assert loop iteration bound ≪ WatchdogSec) **→ TODO_LIST #201.**
+22. Add counting-method labels to numeric claims in future reports (P4-23, still just a rule not a habit) **→ standing rule (no artifact by design).**
 
 **P4 — documentation/debt hygiene:**
 
-23. FEATURES.md freshness sweep (last touched pre-v0.5.0; OG images, degraded dimension, hint surfacing all missing from it)
-24. ROADMAP.md: retire stale entries the June audit marked superseded (WebSocket #27-era items)
-25. The 14-30 report's "series format question" (g1) — .md vs HTML for future architecture reviews, still unanswered
-26. CHANGELOG prep for v0.5.1 (the [Unreleased] section is getting long — 8 entries)
-27. Website changelog page: verify it renders the v0.5.0 entry correctly post-OG change
-28. Consider archiving `docs/planning/2026-10-31_14-33_*` plan into docs/planning/archive/ once Lars blesses the final report (docs-health convention)
+23. FEATURES.md freshness sweep (last touched pre-v0.5.0; OG images, degraded dimension, hint surfacing all missing from it) **→ DONE 2026-11-05** — FEATURES refreshed (Resilience + Website & Docs sections; counts 83/81/2).
+24. ROADMAP.md: retire stale entries the June audit marked superseded (WebSocket #27-era items) **→ VERIFIED current** — no WebSocket-era items remain in ROADMAP.
+25. The 14-30 report's "series format question" (g1) — .md vs HTML for future architecture reviews, still unanswered **→ QUESTION — Lars’s call (standing).**
+26. CHANGELOG prep for v0.5.1 (the [Unreleased] section is getting long — 8 entries) **→ Lars release cadence (releases deliberately manual).**
+27. Website changelog page: verify it renders the v0.5.0 entry correctly post-OG change **→ VERIFIED** — CI sentinel greps `v0.5.0 (2026-10-31)`; deploy green.
+28. Consider archiving `docs/planning/2026-10-31_14-33_*` plan into docs/planning/archive/ once Lars blesses the final report (docs-health convention) **→ DONE 2026-11-05** — archived with manifest (docs/planning/archive/README.md).
 
 **P5 — bigger bets (from ROADMAP/old reports, still valid):**
 
-29. `emeet_pixyd_camera_state` metric exists; consider a `presence` dimension split (online/controllable as labels) for cleaner alerting
-30. Health endpoint: expose breaker trip reason + last-trip timestamp (goes with 16)
-31. Explore udev-rule generation for unknown-EMEET-PID reporting (auto-file issues with the PID) — probably won't-do, but the hint flow now surfaces PIDs everywhere
-32. Man page / `--help` consistency pass (CLI reference doc vs actual commands)
-33. Evaluate `erraudit --enforce-generic-return` directive rot: 21 directives now, some may be removable after the constructor migration settled
+29. `emeet_pixyd_camera_state` metric exists; consider a `presence` dimension split (online/controllable as labels) for cleaner alerting **→ ROADMAP observability (added 2026-11-05).**
+30. Health endpoint: expose breaker trip reason + last-trip timestamp (goes with 16) **→ ROADMAP observability (added 2026-11-05).**
+31. Explore udev-rule generation for unknown-EMEET-PID reporting (auto-file issues with the PID) — probably won't-do, but the hint flow now surfaces PIDs everywhere **→ ROADMAP (added 2026-11-05, probably won’t-do).**
+32. Man page / `--help` consistency pass (CLI reference doc vs actual commands) **→ ROADMAP (added 2026-11-05).**
+33. Evaluate `erraudit --enforce-generic-return` directive rot: 21 directives now, some may be removable after the constructor migration settled **→ ROADMAP error theme (added 2026-11-05).**
 
 **Blocked/external (not startable):**
 
-34. #154 upstream V4L2/PipeWire confirmation (external)
-35. #182 blocked on #166 (is T08's work)
+34. #154 upstream V4L2/PipeWire confirmation (external) **→ TODO_LIST #154.**
+35. #182 blocked on #166 (is T08's work) **→ TODO_LIST #182.**
 36–50. *(no further real items — the backlog is genuinely down to hardware sessions, Lars decisions, and the P2–P5 list above; padding to 50 would violate honesty)*
 
 ## g) QUESTIONS (cannot figure out myself)
