@@ -1,0 +1,31 @@
+goos: linux
+goarch: amd64
+pkg: github.com/LarsArtmann/emeet-pixyd
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkWaybarOutput-32            	 1548529	       810.3 ns/op
+BenchmarkWaybarOutput-32            	 1716669	       683.4 ns/op
+BenchmarkWaybarOutput-32            	 1386836	       915.0 ns/op
+BenchmarkWaybarOutput-32            	  876904	      1233 ns/op
+BenchmarkWaybarOutput-32            	  936699	      1334 ns/op
+BenchmarkWaybarOutput-32            	 1000000	      1207 ns/op
+BenchmarkWaybarOutput-32            	 1432158	       973.8 ns/op
+BenchmarkWaybarOutput-32            	 1000000	      1660 ns/op
+BenchmarkWaybarOutput-32            	 1349884	       825.9 ns/op
+BenchmarkWaybarOutput-32            	 1657220	       679.8 ns/op
+BenchmarkGetWebStatus-32            	12687058	       102.4 ns/op
+BenchmarkGetWebStatus-32            	10619967	       112.8 ns/op
+BenchmarkGetWebStatus-32            	11153539	       101.4 ns/op
+BenchmarkGetWebStatus-32            	12700690	        93.58 ns/op
+BenchmarkGetWebStatus-32            	12761833	        94.79 ns/op
+BenchmarkGetWebStatus-32            	12550256	        89.98 ns/op
+BenchmarkGetWebStatus-32            	12720307	        93.87 ns/op
+BenchmarkGetWebStatus-32            	12056473	        97.11 ns/op
+BenchmarkGetWebStatus-32            	13223566	        96.67 ns/op
+BenchmarkGetWebStatus-32            	12245557	        95.88 ns/op
+BenchmarkExtractJPEGFrame-32        	  859003	      1282 ns/op
+BenchmarkExtractJPEGFrame-32        	 1000000	      1024 ns/op
+BenchmarkExtractJPEGFrame-32        	 1000000	      1760 ns/op
+BenchmarkExtractJPEGFrame-32        	  505743	      2361 ns/op
+BenchmarkExtractJPEGFrame-32        	  449839	      2540 ns/op
+BenchmarkExtractJPEGFrame-32        	  492135	      2318 ns/op
+BenchmarkExtractJPEGFrame-32        	

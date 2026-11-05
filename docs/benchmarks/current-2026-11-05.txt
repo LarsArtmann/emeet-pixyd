@@ -1,0 +1,53 @@
+goos: linux
+goarch: amd64
+pkg: github.com/LarsArtmann/emeet-pixyd
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkParseHIDResponse-32          	28593280	        41.01 ns/op
+BenchmarkParseHIDResponse-32          	30278443	        38.63 ns/op
+BenchmarkParseHIDResponse-32          	32141625	        38.05 ns/op
+BenchmarkParseHIDResponse-32          	30477241	        37.10 ns/op
+BenchmarkParseHIDResponse-32          	33195201	        37.59 ns/op
+BenchmarkWaybarOutput-32              	 1931688	       613.6 ns/op
+BenchmarkWaybarOutput-32              	 1798965	       779.8 ns/op
+BenchmarkWaybarOutput-32              	 1643215	       718.0 ns/op
+BenchmarkWaybarOutput-32              	 1360258	       909.6 ns/op
+BenchmarkWaybarOutput-32              	 1656160	       678.2 ns/op
+BenchmarkHandleCommand_Query-32       	 1000000	      1025 ns/op
+BenchmarkHandleCommand_Query-32       	 1000000	      1131 ns/op
+BenchmarkHandleCommand_Query-32       	 1000000	      1016 ns/op
+BenchmarkHandleCommand_Query-32       	  795469	      1839 ns/op
+BenchmarkHandleCommand_Query-32       	 1000000	      1129 ns/op
+BenchmarkHandleCommand_Mutating-32    	  181294	      7588 ns/op
+BenchmarkHandleCommand_Mutating-32    	   97137	     10302 ns/op
+BenchmarkHandleCommand_Mutating-32    	  155976	      7769 ns/op
+BenchmarkHandleCommand_Mutating-32    	  183918	      7553 ns/op
+BenchmarkHandleCommand_Mutating-32    	  181928	      6554 ns/op
+BenchmarkGetWebStatus-32              	12424212	        91.76 ns/op
+BenchmarkGetWebStatus-32              	13207898	        92.20 ns/op
+BenchmarkGetWebStatus-32              	13067116	        99.27 ns/op
+BenchmarkGetWebStatus-32              	13182273	        93.68 ns/op
+BenchmarkGetWebStatus-32              	13220160	       108.1 ns/op
+BenchmarkSimulatorRoundTrip-32        	  632937	      1798 ns/op
+BenchmarkSimulatorRoundTrip-32        	  704220	      1769 ns/op
+BenchmarkSimulatorRoundTrip-32        	  722182	      1703 ns/op
+BenchmarkSimulatorRoundTrip-32        	  630067	      1599 ns/op
+BenchmarkSimulatorRoundTrip-32        	  644586	      1601 ns/op
+BenchmarkExtractJPEGFrame-32          	  699452	      1714 ns/op
+BenchmarkExtractJPEGFrame-32          	  819225	      1351 ns/op
+BenchmarkExtractJPEGFrame-32          	  980606	      1416 ns/op
+BenchmarkExtractJPEGFrame-32          	  847156	      1469 ns/op
+BenchmarkExtractJPEGFrame-32          	  862272	      1672 ns/op
+BenchmarkFormatLastSynced-32          	17341512	        83.78 ns/op
+BenchmarkFormatLastSynced-32          	13801900	        79.34 ns/op
+BenchmarkFormatLastSynced-32          	18066292	        74.50 ns/op
+BenchmarkFormatLastSynced-32          	18559858	        71.74 ns/op
+BenchmarkFormatLastSynced-32          	17906473	        78.39 ns/op
+BenchmarkBroadcasterBroadcast-32      	31879311	        36.84 ns/op
+BenchmarkBroadcasterBroadcast-32      	33077113	        37.18 ns/op
+BenchmarkBroadcasterBroadcast-32      	32106901	        38.01 ns/op
+BenchmarkBroadcasterBroadcast-32      	32810853	        37.23 ns/op
+BenchmarkBroadcasterBroadcast-32      	31420058	        40.01 ns/op
+PASS
+ok  	github.com/LarsArtmann/emeet-pixyd	55.185s
+PASS
+ok  	github.com/LarsArtmann/emeet-pixyd/internal/pixy	0.004s
