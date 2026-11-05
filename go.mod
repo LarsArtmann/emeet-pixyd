@@ -3,7 +3,7 @@ module github.com/LarsArtmann/emeet-pixyd
 go 1.27
 
 require (
-	github.com/a-h/templ v0.3.1070
+	github.com/a-h/templ v0.3.1100
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/go-branded-id v0.7.0
