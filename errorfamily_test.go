@@ -207,3 +207,59 @@ func TestErrorFamilies_UnknownErrorDefaultsToTransient(t *testing.T) {
 		t.Errorf("HTTPStatus(unknown) = %d, want 503", got)
 	}
 }
+
+// TestErrorFamilies_ErrorsIsThroughComposeTrees pins sentinel matching and
+// family resolution through errorfamily.Compose trees (erraudit triage
+// 2026-09-29 b3/f5). Compose is live at real call sites (hid.go recv-close
+// join, auto.go per-step joins, pixy ipc close join) — only single-wrap
+// chains were pinned before. Compose is errors.Join: every branch must stay
+// reachable by errors.Is and the family must resolve from the tree (first
+// non-Transient branch wins).
+func TestErrorFamilies_ErrorsIsThroughComposeTrees(t *testing.T) {
+	t.Parallel()
+	registerErrorFamilies()
+
+	cause := pixy.ErrPIXYNotConnected
+	primary := errorfamily.Wrapf(cause, errorfamily.Infrastructure, "hid.recv_write", "write hidraw")
+	closeErr := errorfamily.Wrap(errors.New("close failed"), errorfamily.Transient, "hid.recv_close", "close hidraw")
+
+	flat := errorfamily.Compose(primary, closeErr)
+
+	if !errors.Is(flat, cause) {
+		t.Error("errors.Is(flat, cause) = false, want true (Compose must preserve every Unwrap branch)")
+	}
+
+	if !errors.Is(flat, closeErr) {
+		t.Error("errors.Is(flat, closeErr) = false, want true")
+	}
+
+	if got := errorfamily.Classify(flat); got != errorfamily.Infrastructure {
+		t.Errorf("Classify(flat) = %v, want Infrastructure (first non-Transient branch)", got)
+	}
+
+	if got := errorfamily.HTTPStatus(flat); got != http.StatusServiceUnavailable {
+		t.Errorf("HTTPStatus(flat) = %d, want 503", got)
+	}
+
+	// A join whose branches are themselves joins (auto.go shape: per-step
+	// results composed into one autoError).
+	nested := errorfamily.Compose(
+		errorfamily.Compose(primary),
+		errorfamily.Compose(closeErr, fmt.Errorf("extra context")),
+	)
+
+	if !errors.Is(nested, cause) || !errors.Is(nested, closeErr) {
+		t.Error("errors.Is through nested Compose = false, want true for both leaves")
+	}
+
+	if got := errorfamily.Code(flat); got != "hid.recv_write" {
+		t.Errorf("Code(flat) = %q, want hid.recv_write (Coded survives the join)", got)
+	}
+
+	// The wrap-depth case: cause two wraps below the join surface.
+	deep := errorfamily.Compose(fmt.Errorf("outer: %w", primary), closeErr)
+
+	if !errors.Is(deep, cause) {
+		t.Error("errors.Is(deep, cause) = false, want true through wrap + join depth")
+	}
+}

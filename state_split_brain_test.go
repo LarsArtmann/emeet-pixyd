@@ -376,3 +376,69 @@ func TestHIDSerialization_ConcurrentSyncAndAutoManage(t *testing.T) {
 		t.Errorf("observed %d concurrent HID transport calls, want <= 1 (hidMu must serialize)", got)
 	}
 }
+
+// TestSaveStateNormalizesNonIntentCameraOnWrite pins the write-side twin of
+// the loadState normalization (audit 2026-10-01 f12): a non-intent camera
+// value that somehow reaches the save path must never land in state.json —
+// the write normalizes to privacy (and says so in the log) while the rest of
+// the state keeps flowing. Refusing the save would block unrelated valid
+// state (audio, gesture, presets) over one corrupted field.
+func TestSaveStateNormalizesNonIntentCameraOnWrite(t *testing.T) {
+	t.Parallel()
+
+	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+
+	d.mu.Lock()
+	d.state.Camera = pixy.StateOffline
+	saveErr := d.saveState()
+	d.mu.Unlock()
+
+	if saveErr != nil {
+		t.Fatalf("saveState with a non-intent camera value: %v", saveErr)
+	}
+
+	data, err := os.ReadFile(d.config.StateFile())
+	if err != nil {
+		t.Fatalf("read saved state: %v", err)
+	}
+
+	var saved pixy.State
+
+	if err := json.Unmarshal(data, &saved); err != nil {
+		t.Fatalf("parse saved state: %v", err)
+	}
+
+	if saved.Camera != pixy.StatePrivacy {
+		t.Errorf("persisted camera = %q, want %q (offline must never reach disk)", saved.Camera, pixy.StatePrivacy)
+	}
+
+	if got := readCameraState(d); got != pixy.StatePrivacy {
+		t.Errorf("in-memory camera after save = %q, want %q (write-side normalize)", got, pixy.StatePrivacy)
+	}
+
+	// The guard is inert for valid intent: every desired mode round-trips
+	// unchanged.
+	for _, want := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
+		d.mu.Lock()
+		d.state.Camera = want
+		saveErr = d.saveState()
+		d.mu.Unlock()
+
+		if saveErr != nil {
+			t.Fatalf("saveState with %q: %v", want, saveErr)
+		}
+
+		data, err = os.ReadFile(d.config.StateFile())
+		if err != nil {
+			t.Fatalf("read saved state: %v", err)
+		}
+
+		if err := json.Unmarshal(data, &saved); err != nil {
+			t.Fatalf("parse saved state: %v", err)
+		}
+
+		if saved.Camera != want {
+			t.Errorf("persisted camera = %q, want %q (valid intent must round-trip)", saved.Camera, want)
+		}
+	}
+}

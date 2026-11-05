@@ -126,6 +126,23 @@ func (d *Daemon) saveState() error { //nolint:erraudit // family-inheriting erro
 		return err
 	}
 
+	// Write-side twin of the loadState normalization (ADR
+	// 2026-10-01_camera-intent-vs-connectivity): the camera field is desired
+	// intent, so a connectivity value must never reach disk. Normalize and
+	// warn instead of failing the whole save — refusing would also block
+	// persisting unrelated valid state (audio, gesture, presets).
+	if !d.state.Camera.ValidDesired() {
+		slog.Warn(
+			"non-intent camera mode on save — normalizing to privacy",
+			"path",
+			d.config.StateFile(),
+			"camera",
+			d.state.Camera,
+		)
+
+		d.state.Camera = pixy.StatePrivacy
+	}
+
 	data, err := json.Marshal(d.state)
 	if err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err), "state.marshal", "marshal state")
