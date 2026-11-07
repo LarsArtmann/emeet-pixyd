@@ -47,8 +47,11 @@ jobs:
 
       # The strict gate. `pnpm run typecheck` (astro check) deliberately
       # fails by design: it does not support the pinned TypeScript ~7.0.2.
+      # astro sync first: it generates the gitignored .astro/ virtual-module
+      # types (astro:content) that tsc needs on a fresh checkout — local
+      # trees only pass without it because build residue is present.
       - name: Typecheck (strict tsc)
-        run: pnpm exec tsc -p . --noEmit
+        run: pnpm exec astro sync && pnpm exec tsc -p . --noEmit
 
       - name: Build (astro + CSP hash patch)
         run: pnpm run build
