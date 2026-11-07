@@ -276,16 +276,19 @@ func TestConfigFromEnv_UpdateCheckDefaultOn(t *testing.T) {
 
 func TestConfigFromEnv_UpdateCheckOptOut(t *testing.T) {
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "off")
+
 	if ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = true for 'off', want false")
 	}
 
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "OFF")
+
 	if ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = true for 'OFF', want false")
 	}
 
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "Disabled")
+
 	if ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = true for 'Disabled', want false")
 	}
@@ -293,16 +296,19 @@ func TestConfigFromEnv_UpdateCheckOptOut(t *testing.T) {
 
 func TestConfigFromEnv_UpdateCheckExplicitOn(t *testing.T) {
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "on")
+
 	if !ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = false for 'on', want true")
 	}
 
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "true")
+
 	if !ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = false for 'true', want true")
 	}
 
 	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "1")
+
 	if !ConfigFromEnv().UpdateCheck {
 		t.Error("UpdateCheck = false for '1', want true")
 	}

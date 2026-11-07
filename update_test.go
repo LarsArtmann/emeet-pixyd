@@ -83,6 +83,7 @@ func TestReleaseFromFeed(t *testing.T) {
 		t.Parallel()
 
 		server := newJSONServer(t, http.StatusOK, `{"tag_name":"v0.6.0","html_url":"https://example.com/v0.6.0"}`)
+
 		release, err := releaseFromFeed(context.Background(), server.URL)
 		if err != nil {
 			t.Fatalf("releaseFromFeed: unexpected error: %v", err)
@@ -97,8 +98,8 @@ func TestReleaseFromFeed(t *testing.T) {
 		t.Parallel()
 
 		server := newJSONServer(t, http.StatusForbidden, `{"message":"rate limited"}`)
-		_, err := releaseFromFeed(context.Background(), server.URL)
 
+		_, err := releaseFromFeed(context.Background(), server.URL)
 		if err == nil {
 			t.Fatal("releaseFromFeed: expected error for 403, got nil")
 		}
@@ -112,8 +113,8 @@ func TestReleaseFromFeed(t *testing.T) {
 		t.Parallel()
 
 		server := newJSONServer(t, http.StatusOK, `{"tag_name":"v0.6.0"}`)
-		_, err := releaseFromFeed(context.Background(), server.URL)
 
+		_, err := releaseFromFeed(context.Background(), server.URL)
 		if err == nil {
 			t.Fatal("releaseFromFeed: expected error for missing html_url, got nil")
 		}
@@ -123,8 +124,8 @@ func TestReleaseFromFeed(t *testing.T) {
 		t.Parallel()
 
 		server := newJSONServer(t, http.StatusOK, `not-json`)
-		_, err := releaseFromFeed(context.Background(), server.URL)
 
+		_, err := releaseFromFeed(context.Background(), server.URL)
 		if err == nil {
 			t.Fatal("releaseFromFeed: expected decode error, got nil")
 		}

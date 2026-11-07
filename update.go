@@ -156,7 +156,7 @@ func releaseFromFeed(ctx context.Context, feedURL string) (githubRelease, error)
 
 	if release.TagName == "" || release.HTMLURL == "" {
 		return githubRelease{}, errorfamily.NewTransient("update.feed_incomplete",
-			fmt.Sprintf("release feed lacks tag_name or html_url (tag %q)", release.TagName))
+			fmt.Sprintf("release feed %s lacks tag_name or html_url (tag %q)", feedURL, release.TagName))
 	}
 
 	return release, nil
@@ -244,11 +244,15 @@ func parseReleaseTag(tag string) ([3]int, string, bool) {
 	return core, "", true
 }
 
+// versionCoreComponents is the major.minor.patch width the tag parser
+// accepts (shorter cores zero-pad).
+const versionCoreComponents = 3
+
 func parseCore(version string) ([3]int, bool) {
 	var core [3]int
 
 	parts := strings.Split(version, ".")
-	if len(parts) > 3 {
+	if len(parts) > versionCoreComponents {
 		return core, false
 	}
 
