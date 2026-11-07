@@ -306,6 +306,41 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 // unchanged (still the plain string).
 const CurrentSchemaVersion = 2
 
+// TrackModePref is the persisted tracking-variant preference (State.TrackMode):
+// which target the camera's tracking should follow. It is the typed storage
+// form of TargetTrackMode ("none"/"face"/"halfbody"/"fullbody"), plus the
+// empty value, which means "never set" and reads back as the face default.
+type TrackModePref string
+
+// TrackModePrefFromTarget returns the persisted preference for a hardware
+// target mode — the single conversion from the protocol enum to storage.
+func TrackModePrefFromTarget(mode TargetTrackMode) TrackModePref {
+	return TrackModePref(mode.String())
+}
+
+// Effective resolves the preference to the hardware target it selects. An
+// unset ("") or unparseable preference reads back as the face default, so
+// a fresh daemon (or a corrupted field) never blocks tracking.
+func (p TrackModePref) Effective() TargetTrackMode {
+	if mode, ok := ParseTargetTrackMode(string(p)); ok {
+		return mode
+	}
+
+	return TrackFace
+}
+
+// Valid reports whether the preference is the unset value or a spelling
+// ParseTargetTrackMode accepts (the load-time validation contract).
+func (p TrackModePref) Valid() bool {
+	if p == "" {
+		return true
+	}
+
+	_, ok := ParseTargetTrackMode(string(p))
+
+	return ok
+}
+
 // State holds the current runtime state of the PIXY daemon.
 type State struct {
 	SchemaVersion int `json:"v"`
@@ -328,10 +363,11 @@ type State struct {
 	AutoMode AutoMode  `json:"autoMode"`
 	Presets  PresetMap `json:"presets,omitempty"`
 
-	// TrackMode is the persisted tracking variant (TODO #140): the canonical
-	// TargetTrackMode string ("none"/"face"/"halfbody"/"fullbody"). Empty
-	// means "never set" and reads back as the default (face).
-	TrackMode string `json:"trackMode,omitempty"`
+	// TrackMode is the persisted tracking variant (TODO #140): which target
+	// the camera's tracking should follow. It is a TrackModePref — the typed
+	// storage form of TargetTrackMode ("none"/"face"/"halfbody"/"fullbody").
+	// Empty means "never set" and reads back as the default (face).
+	TrackMode TrackModePref `json:"trackMode,omitempty"`
 
 	// Speeds are the persisted per-axis motor speeds (TODO #138). Zero on an
 	// axis means "no preference": the daemon leaves the firmware default in
@@ -356,23 +392,7 @@ func DefaultState() State {
 
 // Valid reports whether all enum fields contain recognized values.
 func (s State) Valid() bool {
-	if s.TrackMode != "" {
-		if _, ok := ParseTargetTrackMode(s.TrackMode); !ok {
-			return false
-		}
-	}
-
-	return s.Camera.Valid() && s.Audio.Valid() && s.AutoMode.Valid()
-}
-
-// EffectiveTrackMode returns the persisted tracking variant, or the default
-// (face) when none was ever set.
-func (s State) EffectiveTrackMode() TargetTrackMode {
-	if mode, ok := ParseTargetTrackMode(s.TrackMode); ok {
-		return mode
-	}
-
-	return TrackFace
+	return s.Camera.Valid() && s.Audio.Valid() && s.AutoMode.Valid() && s.TrackMode.Valid()
 }
 
 // SpeedValues holds the per-axis motor speed preference (TODO #138).

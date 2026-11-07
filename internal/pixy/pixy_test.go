@@ -326,7 +326,7 @@ func TestStateTrackModeValidation(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		trackMode string
+		trackMode TrackModePref
 		wantValid bool
 	}{
 		{"", true}, // never set — valid, reads back as face
@@ -345,11 +345,11 @@ func TestStateTrackModeValidation(t *testing.T) {
 	}
 }
 
-func TestStateEffectiveTrackMode(t *testing.T) {
+func TestTrackModePrefEffective(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		trackMode string
+		trackMode TrackModePref
 		want      TargetTrackMode
 	}{
 		{"", TrackFace},
@@ -359,10 +359,8 @@ func TestStateEffectiveTrackMode(t *testing.T) {
 		{"fullbody", TrackFullBody},
 		{"bogus", TrackFace}, // defensive: loadState rejects invalid, but reads degrade to the default
 	} {
-		state := State{TrackMode: tc.trackMode}
-
-		if got := state.EffectiveTrackMode(); got != tc.want {
-			t.Errorf("EffectiveTrackMode(%q) = %v, want %v", tc.trackMode, got, tc.want)
+		if got := tc.trackMode.Effective(); got != tc.want {
+			t.Errorf("TrackModePref(%q).Effective() = %v, want %v", tc.trackMode, got, tc.want)
 		}
 	}
 }

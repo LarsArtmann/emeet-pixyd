@@ -238,7 +238,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 		Error:           errStr(d.autoError),
 		LastSynced:      d.lastSyncedAt,
 		Presets:         d.state.Presets.SortedNames(),
-		TrackMode:       d.state.EffectiveTrackMode().String(),
+		TrackMode:       d.state.TrackMode.Effective().String(),
 		Speeds:          d.state.Speeds,
 		UnsupportedHint: d.unsupportedHint,
 		Update:          d.updates.get(),

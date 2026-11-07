@@ -258,8 +258,9 @@ func TestTrackingVariant_PersistedAcrossRestart(t *testing.T) {
 		t.Fatal("loadState = false, want true (state file was just written)")
 	}
 
-	if got := readState(second, func(s pixy.State) string { return s.TrackMode }); got != pixy.TrackFullBody.String() {
-		t.Errorf("persisted track mode after restart = %q, want %q", got, pixy.TrackFullBody)
+	persisted := readState(second, func(s pixy.State) pixy.TrackModePref { return s.TrackMode })
+	if string(persisted) != pixy.TrackFullBody.String() {
+		t.Errorf("persisted track mode after restart = %q, want %q", persisted, pixy.TrackFullBody)
 	}
 
 	// The web picker must show the persisted variant, not reset to face.

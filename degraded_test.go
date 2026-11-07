@@ -97,7 +97,7 @@ func TestDegraded_HealthAndStatusCarryDimension(t *testing.T) {
 		t.Error("expected degraded=true after listener losses")
 	}
 
-	if !slices.Equal(degradedHealth.Reasons, []string{degradedSocketAccept, degradedWebServer}) {
+	if !slices.Equal(degradedHealth.Reasons, []string{string(degradedSocketAccept), string(degradedWebServer)}) {
 		t.Errorf("expected sorted reasons, got %v", degradedHealth.Reasons)
 	}
 
@@ -147,7 +147,8 @@ func TestDegraded_PanelBannerRendered(t *testing.T) {
 		t.Fatalf("read degraded body: %v", err)
 	}
 
-	if !strings.Contains(string(body), "degraded-banner") || !strings.Contains(string(body), degradedWebServer) {
+	bannerHTML := string(body)
+	if !strings.Contains(bannerHTML, "degraded-banner") || !strings.Contains(bannerHTML, string(degradedWebServer)) {
 		t.Errorf("degraded panel must render the banner with the reason, got: %.300s", body)
 	}
 }
@@ -177,7 +178,7 @@ func TestAcceptLoop_CeilingMarksDegradedHealthyAcceptClears(t *testing.T) {
 	marked := waitFor(t, 5*time.Second, func() bool {
 		snap := d.snapshot()
 
-		return slices.Equal(snap.DegradedReasons, []string{degradedSocketAccept})
+		return slices.Equal(snap.DegradedReasons, []string{string(degradedSocketAccept)})
 	})
 	if !marked {
 		t.Fatal("accept ceiling never marked the daemon degraded")
@@ -191,7 +192,7 @@ func TestAcceptLoop_CeilingMarksDegradedHealthyAcceptClears(t *testing.T) {
 	}
 
 	cleared := waitFor(t, 3*time.Second, func() bool {
-		return !slices.Contains(d.snapshot().DegradedReasons, degradedSocketAccept)
+		return !slices.Contains(d.snapshot().DegradedReasons, string(degradedSocketAccept))
 	})
 	if !cleared {
 		t.Fatal("healthy accept never cleared the socket-accept degradation")

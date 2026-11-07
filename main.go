@@ -45,7 +45,7 @@ type Daemon struct {
 	// degradedReasons tracks daemon-level degradations (dead web listener,
 	// accept-loop failure ceiling) surfaced by /api/health, /api/status and
 	// the web panel. Guarded by d.mu; initialized lazily by markDegraded.
-	degradedReasons map[string]struct{}
+	degradedReasons map[DegradedReason]struct{}
 
 	hidDev HIDDevice
 
@@ -183,7 +183,7 @@ func (d *Daemon) checkExternalDeps() {
 	} {
 		_, err := d.deps.commander.LookPath(dep.binary)
 		if err != nil {
-			d.markDegraded(degradedExternalDepPrefix + dep.binary)
+			d.markDegraded(ExternalDepReason(dep.binary))
 			slog.Warn("optional dependency not found", "binary", dep.binary, "impact", dep.impact)
 		}
 	}

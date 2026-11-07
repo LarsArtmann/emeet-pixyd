@@ -363,7 +363,7 @@ func (d *Daemon) handleTrackingVariantCommand(ctx context.Context, parts []strin
 	}
 
 	d.mu.Lock()
-	d.state.TrackMode = mode.String()
+	d.state.TrackMode = pixy.TrackModePrefFromTarget(mode)
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 	d.broadcastStateChanged()

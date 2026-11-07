@@ -206,7 +206,7 @@ func TestStateRoundTrip_SpeedsOmitZero_TrackModeNone(t *testing.T) {
 		state:  pixy.DefaultState(),
 	}
 
-	d.state.TrackMode = pixy.TrackNone.String()
+	d.state.TrackMode = pixy.TrackModePrefFromTarget(pixy.TrackNone)
 	d.state.Speeds = pixy.SpeedValues{}.Set(pixy.AxisPan, 42.5)
 
 	if err := d.saveState(); err != nil {
@@ -240,7 +240,7 @@ func TestStateRoundTrip_SpeedsOmitZero_TrackModeNone(t *testing.T) {
 		t.Errorf("pan speed after reload = %v, want 42.5", got)
 	}
 
-	if got := reloaded.state.EffectiveTrackMode(); got != pixy.TrackNone {
+	if got := reloaded.state.TrackMode.Effective(); got != pixy.TrackNone {
 		t.Errorf("effective track mode after reload = %v, want none", got)
 	}
 
