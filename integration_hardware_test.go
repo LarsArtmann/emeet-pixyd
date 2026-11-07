@@ -14,7 +14,7 @@ import (
 )
 
 func TestIntegration_DeviceProbed(t *testing.T) {
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	probeResult := probeDevices(nil)
 	d.applyProbeResultLocked(probeResult)
@@ -43,7 +43,7 @@ func TestIntegration_PTZRoundTrip(t *testing.T) {
 	}
 
 	// newTestDaemon wires real parsePTZValues by default — DON'T inject fake stubs
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	d.mu.RLock()
 	videoDev := d.videoDev
@@ -79,7 +79,7 @@ func TestIntegration_HIDTrackingToggle(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StatePrivacy, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, probeResult.VideoDev, probeResult.HidrawDev)
 
 	// Toggle tracking on
 	result := d.handleCommand(t.Context(), "track")
@@ -106,7 +106,7 @@ func TestIntegration_AudioCycle(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	for _, want := range []pixy.AudioMode{pixy.AudioNC, pixy.AudioLive, pixy.AudioOriginal} {
 		result := d.handleCommand(t.Context(), "audio "+string(want))
@@ -165,7 +165,7 @@ func TestIntegration_BatteryProbe(t *testing.T) {
 		t.Skip("no PIXY hidraw device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StatePrivacy, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, probeResult.VideoDev, probeResult.HidrawDev)
 	dev := newHIDRawDevice(probeResult.HidrawDev)
 
 	// name → head; motor heads get a second entry with the 0x63 iface byte.

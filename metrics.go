@@ -266,7 +266,7 @@ func updateMetrics(state pixy.State, online bool, breakerTripped bool) {
 
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		stateAttr := metric.WithAttributes(attribute.String("state", string(s)))
-		if state.Camera == s {
+		if state.Camera.CameraState() == s {
 			metricsInstance.cameraState.Record(ctx, 1, stateAttr)
 		} else {
 			metricsInstance.cameraState.Record(ctx, 0, stateAttr)

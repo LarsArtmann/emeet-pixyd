@@ -17,7 +17,7 @@ func TestDefaultState(t *testing.T) {
 
 	s := DefaultState()
 
-	if s.Camera != StatePrivacy {
+	if s.Camera != DesiredPrivacy {
 		t.Errorf("DefaultState().Camera = %v, want %v", s.Camera, StatePrivacy)
 	}
 

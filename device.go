@@ -92,7 +92,7 @@ func (d *Daemon) writeTracking(ctx context.Context, mode pixy.CameraState) error
 		ctx,
 		pixyConfig(hidInterfaceTracking, cameraHIDByte(mode)),
 		pixyCommit(hidInterfaceTracking),
-		func(d *Daemon) { d.state.Camera = mode },
+		func(d *Daemon) { d.state.Camera = pixy.DesiredCameraMode(mode) },
 	)
 }
 
@@ -225,7 +225,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 	defer d.mu.RUnlock()
 
 	return statusSnapshot{
-		Camera:          d.state.Camera,
+		Camera:          d.state.Camera.CameraState(),
 		Online:          d.videoDev != "",
 		Controllable:    d.hidrawDev != "",
 		Audio:           d.state.Audio,
@@ -334,9 +334,10 @@ func (d *Daemon) syncStateLocked(ctx context.Context) CommandResult {
 	log := slog.With("device", d.hidrawDev)
 
 	if trackingErr == nil && tracking.Valid() && tracking != pixy.StateOffline {
-		if d.state.Camera != tracking {
+		desired := pixy.DesiredCameraMode(tracking)
+		if d.state.Camera != desired {
 			log.Info("state sync: camera changed", "believed", d.state.Camera, "actual", tracking)
-			d.state.Camera = tracking
+			d.state.Camera = desired
 			changed = true
 		}
 	} else if trackingErr != nil {
@@ -417,7 +418,7 @@ func (d *Daemon) reconcileOnDeviceAppear(ctx context.Context) {
 	}
 
 	d.mu.RLock()
-	believed := d.state.Camera
+	believed := d.state.Camera.CameraState()
 	d.mu.RUnlock()
 
 	if !d.persistedIntent.Load() {

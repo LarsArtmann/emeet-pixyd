@@ -88,7 +88,7 @@ func withFakeDevices() testDaemonOption {
 		}
 		d.deps.setTracking = func(_ context.Context, state pixy.CameraState) error {
 			d.mu.Lock()
-			d.state.Camera = state
+			d.state.Camera = pixy.DesiredCameraMode(state)
 			d.mu.Unlock()
 
 			return nil

@@ -17,7 +17,7 @@ import (
 func TestWebPanelGolden_Tracking(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithDevice(t, pixy.StateTracking)
+	daemon := testDaemonWithDevice(t, pixy.DesiredTracking)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -49,7 +49,7 @@ func TestWebPanelGolden_Tracking(t *testing.T) {
 func TestWebPanelGolden_Privacy(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithDevice(t, pixy.StatePrivacy)
+	daemon := testDaemonWithDevice(t, pixy.DesiredPrivacy)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -66,7 +66,7 @@ func TestWebPanelGolden_Privacy(t *testing.T) {
 func TestWebPanelGolden_Idle(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithDevice(t, pixy.StateIdle)
+	daemon := testDaemonWithDevice(t, pixy.DesiredIdle)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -142,7 +142,7 @@ func TestWebPanelGolden_AudioSegmentsActiveState(t *testing.T) {
 		t.Run(string(tc.audio), func(t *testing.T) {
 			t.Parallel()
 
-			daemon := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, func(d *Daemon) {
+			daemon := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, func(d *Daemon) {
 				d.state.Audio = tc.audio
 			})
 			server := newTestWebServer(t, daemon)
@@ -160,7 +160,7 @@ func TestWebPanelGolden_AudioSegmentsActiveState(t *testing.T) {
 func TestWebPanelGolden_InCallStrip(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithState(t, pixy.StateTracking, true)
+	daemon := testDaemonWithState(t, pixy.DesiredTracking, true)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -173,7 +173,7 @@ func TestWebPanelGolden_InCallStrip(t *testing.T) {
 func TestWebPanelGolden_NoInCallStrip(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithState(t, pixy.StateTracking, false)
+	daemon := testDaemonWithState(t, pixy.DesiredTracking, false)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -186,7 +186,7 @@ func TestWebPanelGolden_NoInCallStrip(t *testing.T) {
 func TestWebPanelGolden_PresetsRendered(t *testing.T) {
 	t.Parallel()
 
-	daemon := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, func(d *Daemon) {
+	daemon := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Presets = pixy.NewPresetMap()
 		d.state.Presets["home"] = pixy.PTZValues{Pan: 0, Tilt: 0, Zoom: 100}
 		d.state.Presets["desk"] = pixy.PTZValues{Pan: 30, Tilt: -10, Zoom: 120}
@@ -249,7 +249,7 @@ func audioLabel(modeID string) string {
 func TestWebPanel_PTZRadarHasServerRenderedStyle(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithDevice(t, pixy.StateTracking)
+	daemon := testDaemonWithDevice(t, pixy.DesiredTracking)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)
@@ -272,7 +272,7 @@ func TestWebPanel_PTZRadarHasServerRenderedStyle(t *testing.T) {
 func TestWebPanel_DataStarAttributes(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithDevice(t, pixy.StateTracking)
+	daemon := testDaemonWithDevice(t, pixy.DesiredTracking)
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)

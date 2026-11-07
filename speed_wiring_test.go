@@ -24,7 +24,7 @@ func TestSpeedCommand_PersistsAcrossRestart(t *testing.T) {
 	stateDir := t.TempDir()
 
 	sim, opt := withPixySimulator()
-	first := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	first := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	first.config.StateDir = stateDir
 
 	if result := first.handleCommand(t.Context(), "speed pan 50"); result.IsError() {
@@ -35,7 +35,7 @@ func TestSpeedCommand_PersistsAcrossRestart(t *testing.T) {
 		t.Fatalf("simulator pan speed = %v, want 50 (command applied)", got)
 	}
 
-	second := newTestDaemon(t, pixy.StateTracking, "", "")
+	second := newTestDaemon(t, pixy.DesiredTracking, "", "")
 
 	second.config.StateDir = stateDir
 	if !second.loadState() {
@@ -66,7 +66,7 @@ func TestPTZMove_ReassertsConfiguredSpeed(t *testing.T) {
 
 	var v4l2Calls []v4l2Call
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	if result := d.handleCommand(t.Context(), "speed pan 50"); result.IsError() {
 		t.Fatalf("speed pan 50 failed: %s", result.String())
@@ -104,7 +104,7 @@ func TestPTZMove_NoSpeedPreference_NoHIDReport(t *testing.T) {
 
 	var v4l2Calls []v4l2Call
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	if result := d.handleCommand(t.Context(), "pan 30"); result.IsError() {
 		t.Fatalf("pan 30 failed: %s", result.String())
@@ -122,7 +122,7 @@ func TestPresetLoad_ReassertsConfiguredSpeeds(t *testing.T) {
 
 	var v4l2Calls []v4l2Call
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	d.mu.Lock()
 	d.state.Presets = pixy.PresetMap{"home": {Pan: 30, Tilt: -10, Zoom: 120}}
@@ -156,7 +156,7 @@ func TestCenter_ReassertsConfiguredSpeeds(t *testing.T) {
 	sim, opt := withPixySimulator()
 	centerCalls := 0
 	d := newTestDaemon(
-		t, pixy.StateTracking, testVideoDev, testHIDDev, opt,
+		t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt,
 		withCaptureCenter(&centerCalls),
 	)
 
@@ -182,7 +182,7 @@ func TestPresetPush_ReassertsConfiguredSpeedsBeforeMoves(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.state.Presets = pixy.PresetMap{"home": {Pan: 30, Tilt: -10, Zoom: 120}}
@@ -212,7 +212,7 @@ func TestReconcile_ReassertsPersistedSpeeds(t *testing.T) {
 	t.Parallel()
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0", withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, "/dev/video0", "/dev/hidraw0", withSim)
 	d.persistedIntent.Store(true)
 
 	d.mu.Lock()
@@ -239,7 +239,7 @@ func TestTrackingVariant_PersistedAcrossRestart(t *testing.T) {
 	stateDir := t.TempDir()
 
 	sim, opt := withPixySimulator()
-	first := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	first := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	first.config.StateDir = stateDir
 
 	if result := first.handleCommand(t.Context(), "tracking fullbody"); result.IsError() {
@@ -251,7 +251,7 @@ func TestTrackingVariant_PersistedAcrossRestart(t *testing.T) {
 	}
 
 	// Online + tracking so the panel renders the variant picker.
-	second := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+	second := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev)
 
 	second.config.StateDir = stateDir
 	if !second.loadState() {
@@ -282,7 +282,7 @@ func TestWebPresetPushEndpoint(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.state.Presets = pixy.PresetMap{"home": {Pan: 30, Tilt: -10, Zoom: 120}}
@@ -322,7 +322,7 @@ func TestWebPresetPushEndpoint(t *testing.T) {
 func TestWebPresetChip_RendersConfirmedPush(t *testing.T) {
 	t.Parallel()
 
-	daemon := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, func(d *Daemon) {
+	daemon := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Presets = pixy.NewPresetMap()
 		d.state.Presets["desk"] = pixy.PTZValues{Pan: 30, Tilt: -10, Zoom: 120}
 	})
@@ -353,7 +353,7 @@ func TestLockOrder_V4L2MoveWithHIDCommands(t *testing.T) {
 
 	var v4l2Calls []v4l2Call
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt, withCaptureV4L2(&v4l2Calls))
 
 	// A persisted speed makes every move path nest hidMu under v4l2Mu.
 	if result := d.handleCommand(t.Context(), "speed pan 40"); result.IsError() {

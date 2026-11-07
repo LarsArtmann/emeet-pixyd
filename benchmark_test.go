@@ -20,7 +20,7 @@ func BenchmarkParseHIDResponse(b *testing.B) {
 }
 
 func BenchmarkWaybarOutput(b *testing.B) {
-	d := testDaemonWithState(b, pixy.StateTracking, true)
+	d := testDaemonWithState(b, pixy.DesiredTracking, true)
 
 	b.ResetTimer()
 
@@ -30,7 +30,7 @@ func BenchmarkWaybarOutput(b *testing.B) {
 }
 
 func BenchmarkHandleCommand_Query(b *testing.B) {
-	d := testDaemonWithDevice(b, pixy.StateTracking)
+	d := testDaemonWithDevice(b, pixy.DesiredTracking)
 
 	b.ResetTimer()
 
@@ -40,7 +40,7 @@ func BenchmarkHandleCommand_Query(b *testing.B) {
 }
 
 func BenchmarkHandleCommand_Mutating(b *testing.B) {
-	d := testDaemonWithDevice(b, pixy.StatePrivacy)
+	d := testDaemonWithDevice(b, pixy.DesiredPrivacy)
 	d.config = defaultTestConfig(b.TempDir())
 	b.ResetTimer()
 
@@ -50,7 +50,7 @@ func BenchmarkHandleCommand_Mutating(b *testing.B) {
 }
 
 func BenchmarkGetWebStatus(b *testing.B) {
-	d := testDaemonWithDevice(b, pixy.StateTracking)
+	d := testDaemonWithDevice(b, pixy.DesiredTracking)
 	srv := &webServer{daemon: d}
 
 	b.ResetTimer()

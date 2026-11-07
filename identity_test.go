@@ -18,7 +18,7 @@ func TestDeviceCommand_IdentityWithSimulator(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	d.videoDev = testVideoDev
 	d.hidrawDev = testHIDDev
 	d.model = pixy.ModelOriginal

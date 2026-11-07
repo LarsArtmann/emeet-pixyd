@@ -86,7 +86,7 @@ func TestWpctlMock_FindPixySource_ParsesStatus(t *testing.T) {
 	t.Parallel()
 
 	mock := newWpctlMock(true)
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
 
 	source, err := d.findPixySource(context.Background())
 	if err != nil {
@@ -102,7 +102,7 @@ func TestWpctlMock_FindPixySource_NotFound(t *testing.T) {
 	t.Parallel()
 
 	mock := newWpctlMock(false)
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
 
 	_, err := d.findPixySource(context.Background())
 	if err == nil {
@@ -114,7 +114,7 @@ func TestWpctlMock_SetDefaultSource_RecordsCall(t *testing.T) {
 	t.Parallel()
 
 	mock := newWpctlMock(true)
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev, withWpctlMock(mock))
 
 	d.setDefaultSource(context.Background(), pixy.NewSourceID("42"))
 

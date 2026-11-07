@@ -20,19 +20,19 @@ func TestWaybarGoldenJSON(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		camera   pixy.CameraState
+		camera   pixy.DesiredCameraMode
 		inCall   bool
 		expected waybarJSON
 	}{
 		{
-			name: "tracking_not_in_call", camera: pixy.StateTracking, inCall: false,
+			name: "tracking_not_in_call", camera: pixy.DesiredTracking, inCall: false,
 			expected: waybarJSON{
 				Text: trackingText, Tooltip: "EMEET PIXY: tracking\nAudio: nc\nAuto: full",
 				Class: "custom-camera tracking",
 			},
 		},
 		{
-			name: "tracking_in_call", camera: pixy.StateTracking, inCall: true,
+			name: "tracking_in_call", camera: pixy.DesiredTracking, inCall: true,
 			expected: waybarJSON{
 				Text:    trackingText,
 				Tooltip: "EMEET PIXY: tracking\nAudio: nc\nAuto: full\nIn call: yes",
@@ -40,14 +40,14 @@ func TestWaybarGoldenJSON(t *testing.T) {
 			},
 		},
 		{
-			name: "privacy_not_in_call", camera: pixy.StatePrivacy, inCall: false,
+			name: "privacy_not_in_call", camera: pixy.DesiredPrivacy, inCall: false,
 			expected: waybarJSON{
 				Text: privacyText, Tooltip: "EMEET PIXY: privacy\nAudio: nc\nAuto: full",
 				Class: "custom-camera privacy",
 			},
 		},
 		{
-			name: "privacy_in_call", camera: pixy.StatePrivacy, inCall: true,
+			name: "privacy_in_call", camera: pixy.DesiredPrivacy, inCall: true,
 			expected: waybarJSON{
 				Text:    privacyText,
 				Tooltip: "EMEET PIXY: privacy\nAudio: nc\nAuto: full\nIn call: yes",
@@ -55,33 +55,18 @@ func TestWaybarGoldenJSON(t *testing.T) {
 			},
 		},
 		{
-			name: "idle_not_in_call", camera: pixy.StateIdle, inCall: false,
+			name: "idle_not_in_call", camera: pixy.DesiredIdle, inCall: false,
 			expected: waybarJSON{
 				Text: idleText, Tooltip: "EMEET PIXY: idle\nAudio: nc\nAuto: full",
 				Class: "custom-camera idle",
 			},
 		},
 		{
-			name: "idle_in_call", camera: pixy.StateIdle, inCall: true,
+			name: "idle_in_call", camera: pixy.DesiredIdle, inCall: true,
 			expected: waybarJSON{
 				Text:    idleText,
 				Tooltip: "EMEET PIXY: idle\nAudio: nc\nAuto: full\nIn call: yes",
 				Class:   "custom-camera idle in-call",
-			},
-		},
-		{
-			name: "offline_not_in_call", camera: pixy.StateOffline, inCall: false,
-			expected: waybarJSON{
-				Text: offlineText, Tooltip: "EMEET PIXY: offline\nAudio: nc\nAuto: full",
-				Class: "custom-camera offline",
-			},
-		},
-		{
-			name: "offline_in_call", camera: pixy.StateOffline, inCall: true,
-			expected: waybarJSON{
-				Text:    offlineText,
-				Tooltip: "EMEET PIXY: offline\nAudio: nc\nAuto: full\nIn call: yes",
-				Class:   "custom-camera offline in-call",
 			},
 		},
 	}
@@ -91,6 +76,51 @@ func TestWaybarGoldenJSON(t *testing.T) {
 			t.Parallel()
 
 			d := testDaemonWithState(t, tc.camera, tc.inCall)
+
+			output := d.waybarOutput(t.Context())
+
+			expectedJSON, err := json.Marshal(tc.expected)
+			if err != nil {
+				t.Fatalf("marshal expected: %v", err)
+			}
+
+			if output != string(expectedJSON) {
+				t.Errorf("golden JSON mismatch:\nwant: %s\ngot:  %s", expectedJSON, output)
+			}
+		})
+	}
+
+	// Offline DISPLAY is a connectivity observation, not an intent value:
+	// these goldens pin the collapse branch (no video node), which is how
+	// the bar actually renders an unplugged camera. The intent passed to
+	// the daemon is the default and must not leak into the output.
+	for _, tc := range []struct {
+		name     string
+		inCall   bool
+		expected waybarJSON
+	}{
+		{
+			name:   "offline_not_in_call",
+			inCall: false,
+			expected: waybarJSON{
+				Text: offlineText, Tooltip: "EMEET PIXY: offline\nAudio: nc\nAuto: full",
+				Class: "custom-camera offline",
+			},
+		},
+		{
+			name:   "offline_in_call",
+			inCall: true,
+			expected: waybarJSON{
+				Text:    offlineText,
+				Tooltip: "EMEET PIXY: offline\nAudio: nc\nAuto: full\nIn call: yes",
+				Class:   "custom-camera offline in-call",
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withInCall(tc.inCall))
 
 			output := d.waybarOutput(t.Context())
 
@@ -133,7 +163,7 @@ func TestWaybarModelInTooltipAndJSON(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := testDaemonWithState(t, pixy.StateTracking, false)
+			d := testDaemonWithState(t, pixy.DesiredTracking, false)
 			d.model = tc.model
 
 			var out waybarJSON
@@ -156,7 +186,7 @@ func TestWaybarModelInTooltipAndJSON(t *testing.T) {
 func TestWaybarModelOmittedWhenUnknown(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithState(t, pixy.StateIdle, false)
+	d := testDaemonWithState(t, pixy.DesiredIdle, false)
 
 	var out map[string]any
 
@@ -176,7 +206,7 @@ func TestWaybarBatteryClass(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	var out waybarJSON
 

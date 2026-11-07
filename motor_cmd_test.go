@@ -71,7 +71,7 @@ func TestHandleSpeedCommand_SimulatorRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "speed pan 45")
 	if result.IsError() {
@@ -107,7 +107,7 @@ func TestHandleSpeedCommand_AllAxes(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	for _, tc := range []struct {
 		axis  string
@@ -132,7 +132,7 @@ func TestHandleSpeedCommand_CircuitBreakerOpen(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.hidFailCount = hidCircuitBreakerThreshold
@@ -153,7 +153,7 @@ func TestHandleSpeedCommand_SetMotorSpeedFailureCountsTowardBreaker(t *testing.T
 
 	sim, opt := withPixySimulator()
 	sim.sendErr = context.DeadlineExceeded
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	if result := d.handleCommand(t.Context(), "speed pan 45"); !result.IsError() {
 		t.Fatalf("speed with sendErr = %q, want error", result.String())
@@ -183,7 +183,7 @@ func TestWebSpeedEndpoint(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	server := newTestWebServer(t, d)
 
 	request, err := http.NewRequestWithContext(
@@ -222,7 +222,7 @@ func TestWebSpeedEndpoint_BrowserSignalBody(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	server := newTestWebServer(t, d)
 
 	body := `{"loading":false,"pan":0,"tilt":0,"zoom":100,` +
@@ -260,7 +260,7 @@ func TestWebSpeedEndpoint_InvalidAxis(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	server := newTestWebServer(t, d)
 
 	request, err := http.NewRequestWithContext(
@@ -293,7 +293,7 @@ func TestHandleTrackingVariantCommand(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	for _, cmd := range []string{"tracking", "tracking sideways"} {
 		result := d.handleCommand(t.Context(), cmd)
@@ -347,7 +347,7 @@ func TestWebTrackingVariantEndpoint(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	server := newTestWebServer(t, d)
 
 	request, err := http.NewRequestWithContext(

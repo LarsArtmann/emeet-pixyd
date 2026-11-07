@@ -19,7 +19,7 @@ func TestBehavior_AutoModeChangeMidCall(t *testing.T) {
 		t,
 		withInCall(true),
 		func(d *Daemon) {
-			d.state.Camera = pixy.StateTracking
+			d.state.Camera = pixy.DesiredTracking
 			d.state.Audio = pixy.AudioNC
 			d.state.AutoMode = pixy.AutoFull
 		},
@@ -56,7 +56,7 @@ func TestBehavior_StateSurvivesRestart(t *testing.T) {
 
 	// Given a daemon with specific state
 	original := pixy.State{
-		Camera:   pixy.StateTracking,
+		Camera:   pixy.DesiredTracking,
 		Audio:    pixy.AudioLive,
 		Gesture:  true,
 		InCall:   true,
@@ -101,7 +101,7 @@ func TestBehavior_AudioCycleCompletes(t *testing.T) {
 
 	var audioCalls []pixy.AudioMode
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
 		d.deps.setAudio = func(_ context.Context, m pixy.AudioMode) error {
 			d.mu.Lock()
@@ -143,10 +143,10 @@ func TestBehavior_PrivacyToggleRoundTrip(t *testing.T) {
 
 	var trackingCalls []pixy.CameraState
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev, func(d *Daemon) {
 		d.deps.setTracking = func(_ context.Context, s pixy.CameraState) error {
 			d.mu.Lock()
-			d.state.Camera = s
+			d.state.Camera = pixy.DesiredCameraMode(s)
 			d.mu.Unlock()
 
 			trackingCalls = append(trackingCalls, s)
@@ -180,7 +180,7 @@ func TestBehavior_AutoModePersistsAfterSave(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withConfig(dir))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withConfig(dir))
 
 	// When user sets auto mode to tracking-only
 	d.handleAutoCommand([]string{"auto", "tracking-only"})
@@ -201,7 +201,7 @@ func TestBehavior_TrackingOnlyAutoMode(t *testing.T) {
 
 	d := testAutoDaemon(t, withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoTrackingOnly
-		d.state.Camera = pixy.StatePrivacy
+		d.state.Camera = pixy.DesiredPrivacy
 		d.state.Audio = pixy.AudioLive
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
@@ -227,7 +227,7 @@ func TestBehavior_PrivacyOnlyAutoMode(t *testing.T) {
 
 	d := testAutoDaemon(t, withNotifyMessages(&notifyMessages), func(d *Daemon) {
 		d.state.AutoMode = pixy.AutoPrivacyOnly
-		d.state.Camera = pixy.StateIdle
+		d.state.Camera = pixy.DesiredIdle
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})

@@ -15,7 +15,7 @@ import (
 // shared across multiple state persistence tests.
 func inCallState() pixy.State {
 	return pixy.State{
-		Camera:   pixy.StateTracking,
+		Camera:   pixy.DesiredTracking,
 		Audio:    pixy.AudioLive,
 		Gesture:  true,
 		InCall:   true,
@@ -73,7 +73,7 @@ func TestStateSaveLoad(t *testing.T) {
 		mu:     sync.RWMutex{},
 		config: cfg,
 		state: pixy.State{
-			Camera:   pixy.StateIdle,
+			Camera:   pixy.DesiredIdle,
 			Audio:    pixy.AudioNC,
 			Gesture:  false,
 			InCall:   false,
@@ -86,7 +86,7 @@ func TestStateSaveLoad(t *testing.T) {
 	}
 	d2.loadState()
 
-	if d2.state.Camera != pixy.StateTracking {
+	if d2.state.Camera != pixy.DesiredTracking {
 		t.Errorf("expected camera=tracking, got %s", d2.state.Camera)
 	}
 
@@ -122,7 +122,7 @@ func TestStateFileCorrupt(t *testing.T) {
 	d.config = cfg
 	assertLoadStateFalse(t, d, "corrupt")
 
-	if d.state.Camera != pixy.StatePrivacy {
+	if d.state.Camera != pixy.DesiredPrivacy {
 		t.Errorf("expected state to remain unchanged on corrupt file, got %s", d.state.Camera)
 	}
 }
@@ -186,7 +186,7 @@ func TestStateFileRejectsUnknownFields(t *testing.T) {
 		t.Error("expected loadState to reject unknown fields, but it loaded successfully")
 	}
 
-	if d.state.Camera != pixy.StatePrivacy {
+	if d.state.Camera != pixy.DesiredPrivacy {
 		t.Errorf("expected state to remain at default, got %s", d.state.Camera)
 	}
 }

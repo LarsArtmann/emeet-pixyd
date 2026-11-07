@@ -65,7 +65,7 @@ func tickBreakerGauge(d *Daemon) {
 func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	registerMetrics()
 
-	d := newTestDaemon(t, pixy.StateIdle, "", "", withConfig(t.TempDir()))
+	d := newTestDaemon(t, pixy.DesiredIdle, "", "", withConfig(t.TempDir()))
 
 	// Strikes below the threshold keep the breaker closed.
 	d.recordHIDSendFailure(context.Background())
@@ -114,7 +114,7 @@ func withFailingTracking() testDaemonOption {
 
 //nolint:paralleltest // global metrics registry
 func TestCheckExternalDeps_MarksDegradedPerMissingBinary(t *testing.T) {
-	d := newTestDaemon(t, pixy.StateIdle, "", "", withConfig(t.TempDir()))
+	d := newTestDaemon(t, pixy.DesiredIdle, "", "", withConfig(t.TempDir()))
 	d.deps.commander = failingDepsCommander{}
 
 	d.checkExternalDeps()
@@ -151,7 +151,7 @@ func TestAutoErrorsMetric_CountsFailedOperations(t *testing.T) {
 	// so exactly one op=track error must be counted.
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy,
+		pixy.DesiredPrivacy,
 		"",
 		"",
 		withConfig(t.TempDir()),
@@ -160,7 +160,7 @@ func TestAutoErrorsMetric_CountsFailedOperations(t *testing.T) {
 		withFindSource("test-source"),
 	)
 
-	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredPrivacy, pixy.AutoFull)
 
 	after := counterValue(t, "emeet_pixyd_auto_errors_total", attribute.String("op", "track"))
 	if after != before+1 {
@@ -174,7 +174,7 @@ func TestAcceptLoopFailureMetric_CountsEachFailure(t *testing.T) {
 
 	before := counterValue(t, "emeet_pixyd_socket_accept_failures_total")
 
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withConfig(t.TempDir()))
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withConfig(t.TempDir()))
 	d.config.StateDir = shortSocketDir(t)
 
 	inner, listenErr := d.newUnixListener()

@@ -100,7 +100,7 @@ func TestSetTracking_ReassertsModeAfterTrapRace(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -147,7 +147,7 @@ func TestHandleShutdown_DrainsInFlightTrapReassert(t *testing.T) {
 	withShortReassertDelay(t, 250*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -178,7 +178,7 @@ func TestSetTracking_NoReassertOutsideTrapWindow(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withSim)
 
 	if err := d.setTracking(context.Background(), pixy.StateTracking); err != nil {
 		t.Fatalf("setTracking: %v", err)
@@ -200,7 +200,7 @@ func TestSetTracking_ReassertSkippedAfterIntentChange(t *testing.T) {
 	withShortReassertDelay(t, 500*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -242,7 +242,7 @@ func TestSetTracking_IdleReassertSkipsBounce(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -266,7 +266,7 @@ func TestSetTracking_PrivacyWriteNeverReasserts(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -291,7 +291,7 @@ func TestHandleCommand_TrackDuringTrapSchedulesReassert(t *testing.T) {
 	withShortReassertDelay(t, 30*time.Millisecond)
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, withSim)
 
 	d.armPrivacyTrap()
 
@@ -332,7 +332,7 @@ func TestHandlePTZCommand_ArmsPrivacyTrap(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev,
+			d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev,
 				withCaptureV4L2(&[]v4l2Call{}), withNoopParsePTZ())
 
 			if result := d.handleCommand(context.Background(), tc.cmd); result.IsError() {
@@ -352,7 +352,7 @@ func TestHandlePTZCommand_ArmsPrivacyTrap(t *testing.T) {
 func TestSchedulePTZReadback_RearmsTrapOnArrival(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
 
 	d.deps.parsePTZ = func(_ context.Context, _ string) pixy.PTZValues {
 		return pixy.PTZValues{Pan: 0, Tilt: -88, Zoom: pixy.ZoomDefault}
@@ -369,7 +369,7 @@ func TestSchedulePTZReadback_RearmsTrapOnArrival(t *testing.T) {
 func TestPrivacyTrapArmedWindowExpiry(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, withNoopParsePTZ())
 
 	d.armPrivacyTrap()
 

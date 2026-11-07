@@ -23,7 +23,7 @@ func TestHandleGestureCommand_On(t *testing.T) {
 
 	var called, enabledArg bool
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOn)
 	notError(t, resp)
@@ -38,7 +38,7 @@ func TestHandleGestureCommand_Off(t *testing.T) {
 
 	var called, enabledArg bool
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withCaptureGesture(&called, &enabledArg))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withCaptureGesture(&called, &enabledArg))
 
 	resp := d.handleGestureCommand(context.Background(), cmdGestureOff)
 	notError(t, resp)
@@ -55,7 +55,7 @@ func TestHandleGestureCommand_ToggleOn(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy, "", "",
+		pixy.DesiredPrivacy, "", "",
 		func(d *Daemon) { d.state.Gesture = false },
 		withCaptureGestureArg(&enabledArg),
 	)
@@ -75,7 +75,7 @@ func TestHandleGestureCommand_ToggleOff(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy, "", "",
+		pixy.DesiredPrivacy, "", "",
 		func(d *Daemon) { d.state.Gesture = true },
 		withCaptureGestureArg(&enabledArg),
 	)
@@ -93,7 +93,7 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 
 	var modeArg pixy.AudioMode
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withCaptureAudio(&modeArg))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withCaptureAudio(&modeArg))
 
 	resp := d.handleAudioCommand(context.Background(), []string{cmdAudio, string(pixy.AudioLive)})
 	notError(t, resp)
@@ -104,7 +104,7 @@ func TestHandleAudioCommand_SetMode(t *testing.T) {
 func TestHandleAudioCommand_InvalidMode(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	resp := d.handleAudioCommand(context.Background(), []string{"audio", "invalid"})
 	assertCommandContains(t, resp.String(), "error:", "response")
@@ -115,7 +115,7 @@ func TestHandleAudioCommand_NextMode(t *testing.T) {
 
 	var modeArg pixy.AudioMode
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", func(d *Daemon) {
 		d.state.Audio = pixy.AudioNC
 	}, withCaptureAudio(&modeArg))
 
@@ -130,7 +130,7 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 
 	var stateArg pixy.CameraState
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", withCaptureTracking(&stateArg))
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withCaptureTracking(&stateArg))
 
 	resp := d.handleTrackingCommand(context.Background(), pixy.StateTracking, cmdTrack)
 	notError(t, resp)
@@ -143,7 +143,7 @@ func TestHandleTrackingCommand_SetTracking(t *testing.T) {
 func TestHandleTrackingCommand_ErrorPath(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", func(d *Daemon) {
 		d.deps.setTracking = func(context.Context, pixy.CameraState) error {
 			return ErrInvalidValue
 		}
@@ -160,7 +160,7 @@ func TestHandleTogglePrivacy_FromPrivacy(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy, "/dev/video0", "/dev/hidraw7",
+		pixy.DesiredPrivacy, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 
@@ -179,7 +179,7 @@ func TestHandleTogglePrivacy_FromTracking(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking, "/dev/video0", "/dev/hidraw7",
+		pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 
@@ -198,7 +198,7 @@ func TestHandleTogglePrivacy_FromIdle(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateIdle, "/dev/video0", "/dev/hidraw7",
+		pixy.DesiredIdle, "/dev/video0", "/dev/hidraw7",
 		withCaptureTracking(&stateArg),
 	)
 

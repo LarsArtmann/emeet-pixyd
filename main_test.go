@@ -186,7 +186,7 @@ func withConfig(dir string) testDaemonOption {
 	}
 }
 
-func withCameraState(state pixy.CameraState) testDaemonOption {
+func withCameraState(state pixy.DesiredCameraMode) testDaemonOption {
 	return func(d *Daemon) { d.state.Camera = state }
 }
 
@@ -217,7 +217,7 @@ func readState[T any](d *Daemon, fn func(pixy.State) T) T {
 }
 
 func readCameraState(d *Daemon) pixy.CameraState {
-	return readState(d, func(s pixy.State) pixy.CameraState { return s.Camera })
+	return readState(d, func(s pixy.State) pixy.CameraState { return s.Camera.CameraState() })
 }
 
 func readAudioState(d *Daemon) pixy.AudioMode {
@@ -259,7 +259,7 @@ func newDaemonForStateTest(cfg pixy.Config, state pixy.State) *Daemon {
 
 func newTestDaemon(
 	tb testing.TB,
-	camera pixy.CameraState,
+	camera pixy.DesiredCameraMode,
 	videoDev, hidrawDev string,
 	opts ...testDaemonOption,
 ) *Daemon {
@@ -324,10 +324,10 @@ func newTestDaemon(
 func testDaemonNoDevice(tb testing.TB) *Daemon {
 	tb.Helper()
 
-	return newTestDaemon(tb, pixy.StatePrivacy, "", "")
+	return newTestDaemon(tb, pixy.DesiredPrivacy, "", "")
 }
 
-func testDaemonWithDevice(tb testing.TB, camera pixy.CameraState) *Daemon {
+func testDaemonWithDevice(tb testing.TB, camera pixy.DesiredCameraMode) *Daemon {
 	tb.Helper()
 
 	return newTestDaemon(tb, camera, testVideoDev, testHIDDev)
@@ -336,7 +336,7 @@ func testDaemonWithDevice(tb testing.TB, camera pixy.CameraState) *Daemon {
 // testDaemonWithState builds a daemon with a video node present (so waybar
 // renders the requested camera mode) but no HID node (so the battery surface
 // fast-fails instead of touching a real device).
-func testDaemonWithState(tb testing.TB, camera pixy.CameraState, inCall bool) *Daemon {
+func testDaemonWithState(tb testing.TB, camera pixy.DesiredCameraMode, inCall bool) *Daemon {
 	tb.Helper()
 
 	return newTestDaemon(tb, camera, testVideoDev, "", withInCall(inCall))

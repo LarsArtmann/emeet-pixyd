@@ -25,7 +25,7 @@ func TestHandleCommandStatus(t *testing.T) {
 func TestHandleCommandUnknown(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "foobar")
 	assertEqual(t, result.String(), "error: unknown command: foobar")
@@ -34,7 +34,7 @@ func TestHandleCommandUnknown(t *testing.T) {
 func TestHandleCommandAutoToggle(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(t, pixy.StatePrivacy)
+	d := testDaemonWithDevice(t, pixy.DesiredPrivacy)
 	d.config = defaultTestConfig(t.TempDir())
 
 	result := d.handleCommand(context.Background(), "auto-off")
@@ -53,7 +53,7 @@ func TestHandleCommandAutoToggle(t *testing.T) {
 func TestHandleCommandAudioInvalid(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "/dev/hidraw0")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, "/dev/hidraw0")
 
 	result := d.handleCommand(context.Background(), "audio xyz")
 	if result.String() == "" || !strings.HasPrefix(result.String(), "error: audio xyz:") {
@@ -65,7 +65,7 @@ func TestHandleCommandAudioInvalid(t *testing.T) {
 func TestHandleCommandDeviceRequired(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	for _, cmd := range []string{cmdTrack, cmdIdle, cmdPrivacy, cmdTogglePrivacy, cmdCenter, cmdGestureOn, cmdGestureOff} {
 		result := d.handleCommand(context.Background(), cmd)
@@ -83,15 +83,14 @@ func TestWaybarOutput(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		camera   pixy.CameraState
+		camera   pixy.DesiredCameraMode
 		inCall   bool
 		expected string
 	}{
-		{pixy.StateTracking, false, testStrTracking},
-		{pixy.StatePrivacy, false, testStrPrivacy},
-		{pixy.StateIdle, false, "idle"},
-		{pixy.StateOffline, false, "offline"},
-		{pixy.StateTracking, true, "tracking in-call"},
+		{pixy.DesiredTracking, false, testStrTracking},
+		{pixy.DesiredPrivacy, false, testStrPrivacy},
+		{pixy.DesiredIdle, false, "idle"},
+		{pixy.DesiredTracking, true, "tracking in-call"},
 	}
 
 	for _, testCase := range tests {
@@ -116,6 +115,22 @@ func TestWaybarOutput(t *testing.T) {
 		assertParsedField(t, parsed, "text")
 		assertParsedField(t, parsed, "tooltip")
 	}
+
+	// Offline DISPLAY is a connectivity observation, not an intent value:
+	// with no video node the bar collapses to offline regardless of the
+	// (typed, always-valid) desired mode.
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
+	output := d.waybarOutput(t.Context())
+
+	var parsed map[string]string
+
+	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
+		t.Fatalf("waybar output is not valid JSON: %s, err: %v", output, err)
+	}
+
+	if parsed["class"] != "custom-camera offline" {
+		t.Errorf("expected class 'custom-camera offline', got '%s'", parsed["class"])
+	}
 }
 
 func TestHandleCommandTogglePrivacy(t *testing.T) {
@@ -125,7 +140,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy, testVideoDev, "/dev/hidraw0",
+		pixy.DesiredPrivacy, testVideoDev, "/dev/hidraw0",
 		withCaptureTrackingSlice(&captured),
 	)
 
@@ -140,7 +155,7 @@ func TestHandleCommandTogglePrivacy(t *testing.T) {
 func TestHandleCommandProbe(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	result := d.handleCommand(context.Background(), cmdProbe)
 
@@ -154,7 +169,7 @@ func TestHandleCommandProbe(t *testing.T) {
 func TestHandleCommandAudioCycleNoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	result := d.handleCommand(context.Background(), "audio")
 	assertErrorPrefix(t, result.String())

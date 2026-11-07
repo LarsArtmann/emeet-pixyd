@@ -212,7 +212,7 @@ func TestHandleQueryCommand_Device_UnsupportedEMEET(t *testing.T) {
 func TestHandleQueryCommand_Device_WithDevice(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(t, pixy.StateTracking)
+	d := testDaemonWithDevice(t, pixy.DesiredTracking)
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdDevice})
 	assertCommandContains(t, resp.String(), "/dev/video", "response")
@@ -230,7 +230,7 @@ func TestHandleQueryCommand_Sync_NoDevice(t *testing.T) {
 func TestHandleQueryCommand_Probe_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateOffline, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 
 	resp := d.handleQueryCommand(context.Background(), []string{cmdProbe})
 	// probeDevices() scans real sysfs, so this test is flaky when a PIXY is connected.
@@ -279,7 +279,7 @@ func TestHandleCommand_QueryNoLock(t *testing.T) {
 func TestHandleCommand_MutatingRequiresLock(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithDevice(t, pixy.StatePrivacy)
+	d := testDaemonWithDevice(t, pixy.DesiredPrivacy)
 	d.config = defaultTestConfig(t.TempDir())
 
 	resp := d.handleCommand(context.Background(), cmdAutoOff)

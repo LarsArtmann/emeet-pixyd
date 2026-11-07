@@ -528,7 +528,7 @@ func TestSimulator_DaemonSetTracking_RoundTrip(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
 	if err != nil {
@@ -536,7 +536,7 @@ func TestSimulator_DaemonSetTracking_RoundTrip(t *testing.T) {
 	}
 
 	// Daemon state should be updated
-	if d.state.Camera != pixy.StateTracking {
+	if d.state.Camera != pixy.DesiredTracking {
 		t.Errorf("daemon state: camera=%s, want %s", d.state.Camera, pixy.StateTracking)
 	}
 
@@ -565,7 +565,7 @@ func TestSimulator_DaemonSetAudio_RoundTrip(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	err := d.deps.setAudio(context.Background(), pixy.AudioLive)
 	if err != nil {
@@ -585,7 +585,7 @@ func TestSimulator_DaemonSetGesture_RoundTrip(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	err := d.deps.setGesture(context.Background(), true)
 	if err != nil {
@@ -605,7 +605,7 @@ func TestSimulator_SyncState_ReadsFromSimulator(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	// Change device state directly on the simulator (simulates physical button press)
 	sim.state.mu.Lock()
@@ -620,7 +620,7 @@ func TestSimulator_SyncState_ReadsFromSimulator(t *testing.T) {
 		t.Fatalf("syncState failed: %v", result.Err)
 	}
 
-	if d.state.Camera != pixy.StatePrivacy {
+	if d.state.Camera != pixy.DesiredPrivacy {
 		t.Errorf("after sync: camera=%s, want %s", d.state.Camera, pixy.StatePrivacy)
 	}
 
@@ -637,7 +637,7 @@ func TestSimulator_DaemonSetTracking_ProtocolBytesValid(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	_ = d.deps.setTracking(context.Background(), pixy.StateTracking)
 
@@ -709,7 +709,7 @@ func TestSimulator_CircuitBreaker_Accumulation(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	// Pre-load threshold-1 failures so the next failure opens the circuit
 	// without triggering a real sysfs re-probe (which would clear hidDev).
@@ -752,7 +752,7 @@ func TestSimulator_CircuitBreaker_ResetOnSuccess(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	// Pre-load a partial failure count.
 	d.mu.Lock()
@@ -782,7 +782,7 @@ func TestSimulator_CircuitBreaker_CommitFailure(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	commitErr := errors.New("commit write failed")
 	sim.commitErr = commitErr
@@ -813,7 +813,7 @@ func TestSimulator_CircuitBreaker_CommitFailure(t *testing.T) {
 	}
 
 	// State should NOT have changed because the commit failed.
-	if d.state.Camera != pixy.StateIdle {
+	if d.state.Camera != pixy.DesiredIdle {
 		t.Errorf("daemon state changed after commit failure: %s", d.state.Camera)
 	}
 }
@@ -824,7 +824,7 @@ func TestSimulator_200msSleepBetweenConfigAndCommit(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	err := d.deps.setTracking(context.Background(), pixy.StateTracking)
 	if err != nil {
@@ -957,7 +957,7 @@ func TestSimulator_DaemonSetAudio_ProtocolBytesValid(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	_ = d.deps.setAudio(context.Background(), pixy.AudioLive)
 
@@ -992,7 +992,7 @@ func TestSimulator_DaemonSetGesture_ProtocolBytesValid(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	_ = d.deps.setGesture(context.Background(), true)
 
@@ -1036,7 +1036,7 @@ func TestSimulator_CircuitBreaker_RealAccumulationViaCommitFailures(t *testing.T
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	commitErr := errors.New("commit write I/O error")
 	sim.commitErr = commitErr
@@ -1086,7 +1086,7 @@ func TestSimulator_ContextCancellationDuringSleep(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -1430,7 +1430,7 @@ func TestSimulator_SyncState_WriteThenReadRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev, opt)
 
 	// Step 1: Set tracking to Privacy via daemon (write path through protocol).
 	err := d.deps.setTracking(context.Background(), pixy.StatePrivacy)
@@ -1456,7 +1456,7 @@ func TestSimulator_SyncState_WriteThenReadRoundTrip(t *testing.T) {
 	}
 
 	// Step 4: Daemon state should reflect the simulator's new state.
-	if d.state.Camera != pixy.StateTracking {
+	if d.state.Camera != pixy.DesiredTracking {
 		t.Errorf("camera after sync: %s, want %s", d.state.Camera, pixy.StateTracking)
 	}
 

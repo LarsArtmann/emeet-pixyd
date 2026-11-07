@@ -251,7 +251,7 @@ func (d *Daemon) handleTogglePrivacy(ctx context.Context) CommandResult {
 	camera := d.state.Camera
 	d.mu.RUnlock()
 
-	if camera == pixy.StatePrivacy {
+	if camera == pixy.DesiredPrivacy {
 		return d.handleTrackingCommand(ctx, pixy.StateTracking, cmdTogglePrivacy)
 	}
 

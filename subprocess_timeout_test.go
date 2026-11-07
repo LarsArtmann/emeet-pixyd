@@ -42,7 +42,7 @@ func (hangCommander) LookPath(string) (string, error) {
 func TestV4L2Set_HungCommanderIsBounded(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7")
 	d.deps.commander = hangCommander{}
 
 	start := time.Now()
@@ -73,7 +73,7 @@ func TestV4L2Set_HungCommanderIsBounded(t *testing.T) {
 func TestParsePTZValues_HungCommanderIsBounded(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7")
 	d.deps.commander = hangCommander{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -99,7 +99,7 @@ func TestParsePTZValues_HungCommanderIsBounded(t *testing.T) {
 func TestAudioAndNotifyPaths_HungCommanderIsBounded(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7")
 	d.deps.commander = hangCommander{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
@@ -141,7 +141,7 @@ func TestStream_SilentFFmpegBoundedAndHealthyStarts(t *testing.T) {
 
 	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7")
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7")
 	webSrv := &webServer{daemon: d}
 
 	silent := httptest.NewRecorder()

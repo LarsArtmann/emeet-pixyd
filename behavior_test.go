@@ -39,7 +39,7 @@ func TestBehavior_FullAutoCallLifecycle(t *testing.T) {
 		notifyBodies   []string
 	)
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, "", func(d *Daemon) {
 		d.deps.findSource = func(_ context.Context) (pixy.SourceID, error) { return pixy.NewSourceID("42"), nil }
 		d.deps.setSource = func(_ context.Context, id pixy.SourceID) {
 			setSourceCalls = append(setSourceCalls, id.Get())
@@ -131,22 +131,22 @@ func TestBehavior_WaybarTooltipContent(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		camera   pixy.CameraState
+		camera   pixy.DesiredCameraMode
 		audio    pixy.AudioMode
 		autoMode pixy.AutoMode
 		inCall   bool
 	}{
 		{
 			"tracking with NC in call",
-			pixy.StateTracking, pixy.AudioNC, pixy.AutoFull, true,
+			pixy.DesiredTracking, pixy.AudioNC, pixy.AutoFull, true,
 		},
 		{
 			"privacy with live not in call",
-			pixy.StatePrivacy, pixy.AudioLive, pixy.AutoTrackingOnly, false,
+			pixy.DesiredPrivacy, pixy.AudioLive, pixy.AutoTrackingOnly, false,
 		},
 		{
 			"idle with original auto-off",
-			pixy.StateIdle, pixy.AudioOriginal, pixy.AutoOff, false,
+			pixy.DesiredIdle, pixy.AudioOriginal, pixy.AutoOff, false,
 		},
 	}
 
@@ -190,7 +190,7 @@ func TestBehavior_ErrorDuringCallStart_StillSetsInCall(t *testing.T) {
 	t.Parallel()
 
 	// Given a daemon with video device but no hidraw (setDeviceState returns early)
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, "", func(d *Daemon) {
 		d.deps.isCameraInUse = cameraInUseFn
 		d.config.DebounceCount = 1
 	})

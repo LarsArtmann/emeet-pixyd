@@ -29,7 +29,7 @@ import (
 func TestControllableContract_StatusVideoWithoutHID(t *testing.T) {
 	t.Parallel()
 
-	daemon := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, "")
+	daemon := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, "")
 	server := newTestWebServer(t, daemon)
 
 	resp := get(t, server.URL+"/api/status")
@@ -67,7 +67,7 @@ func TestControllableContract_StatusVideoWithoutHID(t *testing.T) {
 func TestControllableContract_WaybarVideoWithoutHID(t *testing.T) {
 	t.Parallel()
 
-	daemon := testDaemonWithState(t, pixy.StateTracking, false)
+	daemon := testDaemonWithState(t, pixy.DesiredTracking, false)
 
 	output := daemon.waybarOutput(t.Context())
 
@@ -85,7 +85,7 @@ func TestControllableContract_StatusLine(t *testing.T) {
 	t.Run("no_video_node_collapses_to_offline", func(t *testing.T) {
 		t.Parallel()
 
-		daemon := newTestDaemon(t, pixy.StateTracking, "", "")
+		daemon := newTestDaemon(t, pixy.DesiredTracking, "", "")
 
 		result := daemon.handleCommand(context.Background(), cmdStatus)
 		assertStatusPrefix(t, result.String(), "camera=offline", "tracking intent without video node")
@@ -95,7 +95,7 @@ func TestControllableContract_StatusLine(t *testing.T) {
 	t.Run("video_without_hid_keeps_intent", func(t *testing.T) {
 		t.Parallel()
 
-		daemon := newTestDaemon(t, pixy.StateTracking, testVideoDev, "", withNoopParsePTZ())
+		daemon := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, "", withNoopParsePTZ())
 
 		result := daemon.handleCommand(context.Background(), cmdStatus)
 		assertStatusPrefix(t, result.String(), "camera=tracking", "tracking intent with video node present")
@@ -110,7 +110,7 @@ func TestControllableContract_StatusLine(t *testing.T) {
 func TestControllableContract_PanelVideoWithoutHID(t *testing.T) {
 	t.Parallel()
 
-	daemon := newTestDaemon(t, pixy.StateTracking, testVideoDev, "", withNoopParsePTZ())
+	daemon := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, "", withNoopParsePTZ())
 	server := newTestWebServer(t, daemon)
 
 	body := getPanelBody(t, server)

@@ -55,6 +55,25 @@ func (d *Daemon) loadState() bool {
 		return false
 	}
 
+	// v1 compatibility: "offline" used to be persisted as the camera mode
+	// when no device was seen. It is a connectivity value, not intent, and
+	// the DesiredCameraMode type cannot represent it — so normalize any
+	// non-intent camera value to privacy BEFORE validation, keeping the
+	// rest of the file (presets, speeds, track mode). A persisted outage
+	// must never masquerade as the user's chosen mode. See
+	// CurrentSchemaVersion.
+	if !loaded.Camera.Valid() {
+		slog.Warn(
+			"state file carried a non-intent camera mode — normalizing to privacy",
+			"path",
+			d.config.StateFile(),
+			"camera",
+			loaded.Camera,
+		)
+
+		loaded.Camera = pixy.DesiredPrivacy
+	}
+
 	if !loaded.Valid() {
 		slog.Warn(
 			"invalid state values, using defaults",
@@ -69,22 +88,6 @@ func (d *Daemon) loadState() bool {
 		)
 
 		return false
-	}
-
-	// v1 compatibility: "offline" used to be persisted as the camera mode
-	// when no device was seen. It is a connectivity value, not intent, so
-	// normalize it (a persisted outage must never masquerade as the user's
-	// chosen mode). See CurrentSchemaVersion.
-	if !loaded.Camera.ValidDesired() {
-		slog.Warn(
-			"state file carried a non-intent camera mode — normalizing to privacy",
-			"path",
-			d.config.StateFile(),
-			"camera",
-			loaded.Camera,
-		)
-
-		loaded.Camera = pixy.StatePrivacy
 	}
 
 	d.state = loaded
@@ -126,22 +129,10 @@ func (d *Daemon) saveState() error { //nolint:erraudit // family-inheriting erro
 		return err
 	}
 
-	// Write-side twin of the loadState normalization (ADR
-	// 2026-10-01_camera-intent-vs-connectivity): the camera field is desired
-	// intent, so a connectivity value must never reach disk. Normalize and
-	// warn instead of failing the whole save — refusing would also block
-	// persisting unrelated valid state (audio, gesture, presets).
-	if !d.state.Camera.ValidDesired() {
-		slog.Warn(
-			"non-intent camera mode on save — normalizing to privacy",
-			"path",
-			d.config.StateFile(),
-			"camera",
-			d.state.Camera,
-		)
-
-		d.state.Camera = pixy.StatePrivacy
-	}
+	// The camera field needs no write-side guard: State.Camera is typed
+	// pixy.DesiredCameraMode, so a connectivity value cannot reach this
+	// function (the old ValidDesired normalization was made redundant by
+	// the type; ADR 2026-10-01_camera-intent-vs-connectivity).
 
 	data, err := json.Marshal(d.state)
 	if err != nil {

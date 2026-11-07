@@ -58,7 +58,7 @@ func getJSON(t *testing.T, url string, target any) {
 func TestDegraded_HealthAndStatusCarryDimension(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev)
 	webSrv := &webServer{daemon: d}
 	server := httptest.NewServer(newWebMux(webSrv))
 	t.Cleanup(server.Close)
@@ -117,7 +117,7 @@ func TestDegraded_HealthAndStatusCarryDimension(t *testing.T) {
 func TestDegraded_PanelBannerRendered(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev)
 	webSrv := &webServer{daemon: d}
 	server := httptest.NewServer(newWebMux(webSrv))
 	t.Cleanup(server.Close)
@@ -158,7 +158,7 @@ func TestDegraded_PanelBannerRendered(t *testing.T) {
 func TestAcceptLoop_CeilingMarksDegradedHealthyAcceptClears(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev)
 	d.config.StateDir = shortSocketDir(t)
 
 	inner, listenErr := d.newUnixListener()

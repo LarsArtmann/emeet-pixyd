@@ -163,7 +163,7 @@ func TestWeb_WebStatusOfflineNoDevice(t *testing.T) {
 func TestWeb_WebStatusOnlineWithDevice(t *testing.T) {
 	t.Parallel()
 	daemon := newDaemonWithDevice(t)
-	daemon.state.Camera = pixy.StateTracking
+	daemon.state.Camera = pixy.DesiredTracking
 	daemon.state.Audio = pixy.AudioLive
 	daemon.state.Gesture = true
 	daemon.state.InCall = true
@@ -193,15 +193,13 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		camera pixy.CameraState
+		camera pixy.DesiredCameraMode
 	}{
-		{pixy.StateTracking},
+		{pixy.DesiredTracking},
 
-		{pixy.StatePrivacy},
+		{pixy.DesiredPrivacy},
 
-		{pixy.StateIdle},
-
-		{pixy.StateOffline},
+		{pixy.DesiredIdle},
 	}
 	for _, tc := range tests {
 		t.Run(string(tc.camera), func(t *testing.T) {
@@ -216,7 +214,7 @@ func TestWeb_WebStatusAllCameraStates(t *testing.T) {
 
 			status := webSrv.getWebStatus(t.Context())
 
-			if status.Camera != tc.camera {
+			if status.Camera != tc.camera.CameraState() {
 				t.Errorf("expected camera=%s, got %s", tc.camera, status.Camera)
 			}
 		})

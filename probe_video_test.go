@@ -260,7 +260,7 @@ func TestProbeVideo4linux_MultipleCamerasPIXYSecond(t *testing.T) {
 func TestSetDeviceState_CircuitBreaker(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateIdle, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, testVideoDev, testHIDDev)
 
 	d.mu.Lock()
 	d.hidDev = &failingHID{err: errors.New("device busy")}

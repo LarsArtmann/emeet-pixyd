@@ -69,7 +69,7 @@ func TestUnsupportedHintShort(t *testing.T) {
 func TestUnsupportedHint_AbsentWhenUnset(t *testing.T) {
 	t.Parallel()
 
-	d := testDaemonWithState(t, pixy.StateIdle, false)
+	d := testDaemonWithState(t, pixy.DesiredIdle, false)
 
 	var waybarOut map[string]any
 	if err := json.Unmarshal([]byte(d.waybarOutput(t.Context())), &waybarOut); err != nil {
@@ -109,7 +109,7 @@ func TestUnsupportedHint_SurfacesOnAllHumanSurfaces(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateIdle,
+		pixy.DesiredIdle,
 		"",
 		"",
 		withConfig(t.TempDir()),

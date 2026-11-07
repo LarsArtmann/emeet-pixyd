@@ -80,7 +80,7 @@ func TestDefaultStateValues(t *testing.T) {
 	t.Parallel()
 
 	s := pixy.DefaultState()
-	if s.Camera != pixy.StatePrivacy {
+	if s.Camera != pixy.DesiredPrivacy {
 		t.Errorf("expected default camera=privacy, got %s", s.Camera)
 	}
 

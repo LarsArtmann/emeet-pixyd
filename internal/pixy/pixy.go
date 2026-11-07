@@ -85,19 +85,43 @@ func (s CameraState) Valid() bool {
 	}
 }
 
-// ValidDesired reports whether s is a mode the user can actually choose.
-// StateOffline is excluded: it is a connectivity observation projected at
-// read time, never a persisted intent (see State.Camera).
-func (s CameraState) ValidDesired() bool {
-	switch s {
-	case StateIdle, StateTracking, StatePrivacy:
+// DesiredCameraMode is the user's chosen operating mode — the ONLY type
+// State.Camera can hold. The value space is exactly idle, tracking, and
+// privacy: StateOffline is a connectivity observation projected onto the
+// display surfaces at read time and cannot be represented as intent, which
+// makes the split-brain bug class (a probe miss or an outage persisting
+// over the user's choice) a compile error instead of a runtime
+// normalization (ADR 2026-10-01_camera-intent-vs-connectivity).
+type DesiredCameraMode string
+
+// Desired camera modes — the complete value space.
+const (
+	// DesiredIdle means the camera is powered on but not actively tracking.
+	DesiredIdle DesiredCameraMode = "idle"
+	// DesiredTracking means the camera is actively tracking faces.
+	DesiredTracking DesiredCameraMode = "tracking"
+	// DesiredPrivacy means the camera lens is physically blocked.
+	DesiredPrivacy DesiredCameraMode = "privacy"
+)
+
+func (m DesiredCameraMode) String() string { return string(m) }
+
+// Valid reports whether the mode is one of the three desired values.
+func (m DesiredCameraMode) Valid() bool {
+	switch m {
+	case DesiredIdle, DesiredTracking, DesiredPrivacy:
 		return true
-	case StateOffline:
-		return false
 	default:
 		return false
 	}
 }
+
+// CameraState projects the desired mode onto the display/observation type
+// used by the hardware protocol and every human surface. The projection is
+// total (every desired value is a valid CameraState); the reverse direction
+// exists only at the guarded write sites (hardware sync, legacy state load),
+// where the offline value is excluded explicitly.
+func (m DesiredCameraMode) CameraState() CameraState { return CameraState(m) }
 
 // AudioMode represents the noise cancellation mode of the PIXY camera microphone.
 type AudioMode string
@@ -263,7 +287,9 @@ func ParseCameraState(rawInput string) (CameraState, error) {
 // v2 (2026-10-01): State.Camera is defined as *desired* mode only — the
 // connectivity value StateOffline is no longer persisted (it was a
 // split-brain with user intent). v1 files carrying "offline" are normalized
-// to privacy on load.
+// to privacy on load. Since 2026-11 the field is typed DesiredCameraMode,
+// so the invariant is enforced in memory by the type; the wire format is
+// unchanged (still the plain string).
 const CurrentSchemaVersion = 2
 
 // State holds the current runtime state of the PIXY daemon.
@@ -273,10 +299,13 @@ type State struct {
 	// Camera is the user's desired operating mode — one of idle, tracking,
 	// or privacy. It is NEVER "offline": connectivity is observed at runtime
 	// (a probe/device snapshot) and projected onto the display, so unplugging
-	// the camera can never overwrite (or persist) the user's choice.
-	Camera  CameraState `json:"camera"`
-	Audio   AudioMode   `json:"audio"`
-	Gesture bool        `json:"gesture"`
+	// the camera can never overwrite (or persist) the user's choice. The
+	// DesiredCameraMode type makes that invariant a compile error; legacy
+	// "offline" values from v1 state files are normalized on load (see
+	// loadState).
+	Camera  DesiredCameraMode `json:"camera"`
+	Audio   AudioMode         `json:"audio"`
+	Gesture bool              `json:"gesture"`
 
 	// InCall is a runtime observation (is a call in progress?), not intent.
 	// It is persisted for crash visibility but reset on daemon start: the
@@ -300,7 +329,7 @@ type State struct {
 func DefaultState() State {
 	return State{
 		SchemaVersion: CurrentSchemaVersion,
-		Camera:        StatePrivacy,
+		Camera:        DesiredPrivacy,
 		Audio:         AudioNC,
 		Gesture:       false,
 		InCall:        false,

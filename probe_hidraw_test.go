@@ -273,10 +273,10 @@ func TestProbeDevices_PreservesIntent(t *testing.T) {
 
 	for _, tc := range []struct {
 		name          string
-		initialCamera pixy.CameraState
+		initialCamera pixy.DesiredCameraMode
 	}{
-		{"from privacy state", pixy.StatePrivacy},
-		{"from tracking state", pixy.StateTracking},
+		{"from privacy state", pixy.DesiredPrivacy},
+		{"from tracking state", pixy.DesiredTracking},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

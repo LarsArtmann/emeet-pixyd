@@ -38,7 +38,7 @@ func TestHandleCallEnd_PrivacyOnlyNoPrivacy(t *testing.T) {
 		t,
 		withInCall(true),
 		func(d *Daemon) {
-			d.state.Camera = pixy.StateTracking
+			d.state.Camera = pixy.DesiredTracking
 		},
 	)
 
@@ -56,7 +56,7 @@ func TestAutoManage_NoDevice_PreservesIntent(t *testing.T) {
 		t.Skip("PIXY device physically connected — test requires no device")
 	}
 
-	d := newTestDaemon(t, pixy.StatePrivacy, "", "")
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 	d.autoManage(context.Background())
 
 	// Connectivity is not intent: a missing device must not rewrite the
@@ -72,7 +72,7 @@ func TestAutoManage_AutoOff_NoAction(t *testing.T) {
 	// auto=off is the manual mode: the /proc usage monitor must not even
 	// run (issue #6) — camera modes set via CLI/socket/web just persist.
 	monitorCalled := false
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev,
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev,
 		withAutoOff(),
 		func(d *Daemon) {
 			d.deps.isCameraInUse = func(_ string) bool {
@@ -188,7 +188,7 @@ func TestAutoManage_SavesStateAfterRun(t *testing.T) {
 	dir := t.TempDir()
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy, testVideoDev, testHIDDev,
+		pixy.DesiredPrivacy, testVideoDev, testHIDDev,
 		withConfig(dir), withCameraInUse(true), withDebounceCount(),
 	)
 

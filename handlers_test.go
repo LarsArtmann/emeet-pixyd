@@ -68,7 +68,7 @@ func TestUpdateMetrics(t *testing.T) {
 	registerMetrics()
 
 	state := pixy.State{
-		Camera:   pixy.StateTracking,
+		Camera:   pixy.DesiredTracking,
 		Audio:    pixy.AudioNC,
 		InCall:   true,
 		AutoMode: pixy.AutoOff,
@@ -82,7 +82,7 @@ func TestUpdateMetrics(t *testing.T) {
 
 	for _, s := range []pixy.CameraState{pixy.StatePrivacy, pixy.StateTracking, pixy.StateIdle} {
 		want := 0.0
-		if state.Camera == s {
+		if state.Camera.CameraState() == s {
 			want = 1.0
 		}
 
@@ -90,7 +90,7 @@ func TestUpdateMetrics(t *testing.T) {
 	}
 
 	updateMetrics(pixy.State{
-		Camera:   pixy.StatePrivacy,
+		Camera:   pixy.DesiredPrivacy,
 		InCall:   false,
 		AutoMode: pixy.AutoFull,
 	}, false, false)

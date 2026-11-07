@@ -23,7 +23,7 @@ import (
 func TestWatchdogStall_HungV4L2BoundsLoopIteration(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, withCommander(&hungV4L2Commander{}))
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, withCommander(&hungV4L2Commander{}))
 
 	stallStart := time.Now()
 

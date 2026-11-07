@@ -17,7 +17,7 @@ func TestReconcile_FreshStateAdoptsHardware(t *testing.T) {
 	t.Parallel()
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0", withSim)
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0", withSim)
 	d.persistedIntent.Store(false)
 
 	d.reconcileOnDeviceAppear(context.Background())
@@ -26,7 +26,7 @@ func TestReconcile_FreshStateAdoptsHardware(t *testing.T) {
 	camera := d.state.Camera
 	d.mu.RUnlock()
 
-	if camera != pixy.StateIdle {
+	if camera != pixy.DesiredIdle {
 		t.Errorf("camera after fresh reconcile = %q, want %q (adopted from hardware)", camera, pixy.StateIdle)
 	}
 
@@ -47,7 +47,7 @@ func TestReconcile_PersistedModeReasserted(t *testing.T) {
 	t.Parallel()
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StatePrivacy, "/dev/video0", "/dev/hidraw0", withSim)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "/dev/video0", "/dev/hidraw0", withSim)
 	d.persistedIntent.Store(true)
 
 	if hw := sim.Tracking(); hw == pixy.StatePrivacy {
@@ -60,7 +60,7 @@ func TestReconcile_PersistedModeReasserted(t *testing.T) {
 	camera := d.state.Camera
 	d.mu.RUnlock()
 
-	if camera != pixy.StatePrivacy {
+	if camera != pixy.DesiredPrivacy {
 		t.Errorf("believed camera after reconcile = %q, want %q (persisted mode must win)", camera, pixy.StatePrivacy)
 	}
 
@@ -75,7 +75,7 @@ func TestReconcile_MatchingHardwareNoWrite(t *testing.T) {
 	t.Parallel()
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0", withSim)
+	d := newTestDaemon(t, pixy.DesiredIdle, "/dev/video0", "/dev/hidraw0", withSim)
 	d.persistedIntent.Store(true)
 
 	d.reconcileOnDeviceAppear(context.Background())
@@ -92,7 +92,7 @@ func TestReconcile_QueryFailureKeepsBelief(t *testing.T) {
 	t.Parallel()
 
 	sim, withSim := withPixySimulator()
-	d := newTestDaemon(t, pixy.StatePrivacy, "/dev/video0", "/dev/hidraw0", withSim)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "/dev/video0", "/dev/hidraw0", withSim)
 	d.persistedIntent.Store(true)
 
 	sim.sendRecvErr = errors.New("simulated query failure")
@@ -103,7 +103,7 @@ func TestReconcile_QueryFailureKeepsBelief(t *testing.T) {
 	camera := d.state.Camera
 	d.mu.RUnlock()
 
-	if camera != pixy.StatePrivacy {
+	if camera != pixy.DesiredPrivacy {
 		t.Errorf("camera after failed reconcile = %q, want %q (belief must be kept)", camera, pixy.StatePrivacy)
 	}
 
@@ -122,7 +122,7 @@ func TestAutoOff_ManualCameraModeSurvivesTicks(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		"/dev/video0",
 		"/dev/hidraw0",
 		withAutoOff(),
@@ -145,7 +145,7 @@ func TestAutoOff_ManualCameraModeSurvivesTicks(t *testing.T) {
 	inCall := d.state.InCall
 	d.mu.RUnlock()
 
-	if camera != pixy.StateTracking {
+	if camera != pixy.DesiredTracking {
 		t.Errorf("camera after 3 ticks with auto=off = %q, want %q", camera, pixy.StateTracking)
 	}
 
@@ -165,16 +165,16 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 
 	stateDir := t.TempDir()
 
-	first := newTestDaemon(t, pixy.StateTracking, "", "", withAutoOff())
+	first := newTestDaemon(t, pixy.DesiredTracking, "", "", withAutoOff())
 	first.config.StateDir = stateDir
-	first.state.Camera = pixy.StateTracking
+	first.state.Camera = pixy.DesiredTracking
 	first.state.AutoMode = pixy.AutoOff
 
 	first.mu.Lock()
 	first.saveStateOrLog("save for round-trip")
 	first.mu.Unlock()
 
-	second := newTestDaemon(t, pixy.StateOffline, "", "")
+	second := newTestDaemon(t, pixy.DesiredPrivacy, "", "")
 	second.config.StateDir = stateDir
 
 	second.persistedIntent.Store(second.loadState())
@@ -183,7 +183,7 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 		t.Fatal("loadState = false, want true (state file was just written)")
 	}
 
-	if second.state.Camera != pixy.StateTracking {
+	if second.state.Camera != pixy.DesiredTracking {
 		t.Errorf("camera after restart = %q, want %q", second.state.Camera, pixy.StateTracking)
 	}
 
@@ -201,7 +201,7 @@ func TestStateRoundTrip_PreservedCameraMode(t *testing.T) {
 func TestDeviceCommandIncludesModel(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "/dev/hidraw0")
+	d := newTestDaemon(t, pixy.DesiredIdle, "/dev/video0", "/dev/hidraw0")
 	d.mu.Lock()
 	d.model = pixy.Model2K
 	d.mu.Unlock()
@@ -221,7 +221,7 @@ func TestDeviceCommandIncludesModel(t *testing.T) {
 func TestWebStatusCarriesModel(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateIdle, "/dev/video0", "")
+	d := newTestDaemon(t, pixy.DesiredIdle, "/dev/video0", "")
 	d.mu.Lock()
 	d.model = pixy.Model2K
 	d.mu.Unlock()

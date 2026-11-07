@@ -12,7 +12,7 @@ import (
 
 func (d *Daemon) handleCallStart(
 	ctx context.Context,
-	camera pixy.CameraState,
+	camera pixy.DesiredCameraMode,
 	autoMode pixy.AutoMode,
 ) {
 	d.mu.Lock()
@@ -23,7 +23,7 @@ func (d *Daemon) handleCallStart(
 
 	log := slog.With("auto_mode", autoMode)
 
-	if autoMode.ActivatesTracking() && (camera == pixy.StatePrivacy || camera == pixy.StateIdle) {
+	if autoMode.ActivatesTracking() && (camera == pixy.DesiredPrivacy || camera == pixy.DesiredIdle) {
 		trackErr := d.deps.setTracking(ctx, pixy.StateTracking)
 		if trackErr != nil {
 			log.Error("failed to activate tracking", "error", trackErr)

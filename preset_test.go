@@ -12,7 +12,7 @@ func TestPreset_SaveLoadDelete(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 		withFakeParsePTZ(10, -5, 120),
 	)
@@ -62,7 +62,7 @@ func TestPreset_LoadNotFound(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -76,7 +76,7 @@ func TestPreset_DeleteNotFound(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -90,7 +90,7 @@ func TestPreset_ListEmpty(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -108,7 +108,7 @@ func TestPreset_Usage(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -133,7 +133,7 @@ func TestPreset_LoadSetsPTZCache(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -164,7 +164,7 @@ func TestPreset_SaveRejectsInvalidName(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 	)
 
@@ -180,7 +180,7 @@ func TestPreset_PresetsPersistInState(t *testing.T) {
 	t.Parallel()
 
 	d := newTestDaemon(
-		t, pixy.StateTracking, "/dev/video0", "/dev/hidraw0",
+		t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw0",
 		withFakeDevices(),
 		withFakeParsePTZ(5, 5, 110),
 	)
@@ -195,7 +195,7 @@ func TestPreset_PresetsPersistInState(t *testing.T) {
 
 	// Load state into a new daemon
 	d2 := newTestDaemon(
-		t, pixy.StatePrivacy, "", "",
+		t, pixy.DesiredPrivacy, "", "",
 		withFakeDevices(),
 	)
 	d2.config.StateDir = d.config.StateDir

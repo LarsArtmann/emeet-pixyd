@@ -25,7 +25,7 @@ func TestIntegration_AutoManageFullLifecycle(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy,
+		pixy.DesiredPrivacy,
 		testVideoDev,
 		testHIDDev,
 		withDebounceCount(),
@@ -36,7 +36,7 @@ func TestIntegration_AutoManageFullLifecycle(t *testing.T) {
 
 			d.deps.setTracking = func(_ context.Context, state pixy.CameraState) error {
 				d.mu.Lock()
-				d.state.Camera = state
+				d.state.Camera = pixy.DesiredCameraMode(state)
 				d.mu.Unlock()
 
 				trackingCalls = append(trackingCalls, state)
@@ -132,7 +132,7 @@ func TestIntegration_AutoManageTrackingOnlyMode(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy,
+		pixy.DesiredPrivacy,
 		testVideoDev,
 		testHIDDev,
 		withDebounceCount(),
@@ -185,7 +185,7 @@ func TestIntegration_AutoManagePrivacyOnlyMode(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StatePrivacy,
+		pixy.DesiredPrivacy,
 		testVideoDev,
 		testHIDDev,
 		withDebounceCount(),
@@ -197,7 +197,7 @@ func TestIntegration_AutoManagePrivacyOnlyMode(t *testing.T) {
 
 			d.deps.setTracking = func(_ context.Context, state pixy.CameraState) error {
 				d.mu.Lock()
-				d.state.Camera = state
+				d.state.Camera = pixy.DesiredCameraMode(state)
 				d.mu.Unlock()
 
 				trackingCalls = append(trackingCalls, state)

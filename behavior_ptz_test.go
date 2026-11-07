@@ -170,7 +170,7 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 	// Given a daemon with a device and a web server (cache has stale pan=0)
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		"/dev/video0",
 		"/dev/hidraw7",
 		withNoopV4L2(),
@@ -202,8 +202,10 @@ func TestBehavior_PTZWebSliderReflectsUserInput(t *testing.T) {
 func TestBehavior_PTZWebSliderShowsErrorOnFailure(t *testing.T) {
 	t.Parallel()
 
-	// Given a daemon with no device
-	d := newTestDaemon(t, pixy.StateOffline, "", "", withNoopV4L2())
+	// Given a daemon with no device (empty dev args; the camera intent is
+	// irrelevant here and can no longer BE "offline" — that value is a
+	// connectivity observation, not a DesiredCameraMode)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, "", "", withNoopV4L2())
 	webSrv := &webServer{daemon: d}
 	mux := newWebMux(webSrv)
 
@@ -244,7 +246,7 @@ func TestBehavior_PTZWebReachesV4L2Camera(t *testing.T) {
 
 			d := newTestDaemon(
 				t,
-				pixy.StateTracking,
+				pixy.DesiredTracking,
 				"/dev/video0",
 				"/dev/hidraw7",
 				withCaptureV4L2(&v4l2Calls),

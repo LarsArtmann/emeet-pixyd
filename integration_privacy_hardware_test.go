@@ -91,7 +91,7 @@ func TestIntegration_TiltPrivacyTrap(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 	dev := newHIDRawDevice(probeResult.HidrawDev)
 
 	// Baseline: known mode and position.
@@ -211,7 +211,7 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	frameLuma := func(step string) float64 {
 		t.Helper()
@@ -340,7 +340,7 @@ func TestIntegration_PrivacyTrapTimingRace(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	frameLuma := func(step string) float64 {
 		t.Helper()
@@ -419,7 +419,7 @@ func TestIntegration_TrapRecoveryMatrix(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	frameLuma := func(step string) float64 {
 		t.Helper()
@@ -529,7 +529,7 @@ func TestIntegration_PrivacyTrapBoundaries(t *testing.T) {
 		t.Skip("no PIXY device found — connect hardware to run this test")
 	}
 
-	d := newTestDaemon(t, pixy.StateIdle, probeResult.VideoDev, probeResult.HidrawDev)
+	d := newTestDaemon(t, pixy.DesiredIdle, probeResult.VideoDev, probeResult.HidrawDev)
 
 	frameLuma := func(step string) float64 {
 		t.Helper()

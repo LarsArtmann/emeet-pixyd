@@ -260,7 +260,7 @@ func TestState_Valid(t *testing.T) {
 
 	invalidCamera := DefaultState()
 
-	invalidCamera.Camera = CameraState("bogus")
+	invalidCamera.Camera = DesiredCameraMode("bogus")
 	if invalidCamera.Valid() {
 		t.Error("State with invalid Camera should not be Valid()")
 	}
@@ -441,5 +441,41 @@ func TestSpeedValuesSetGetZero(t *testing.T) {
 
 	if _, ok := speeds.Get("head"); ok {
 		t.Error(`Get("head") = true, want false for unknown axis`)
+	}
+}
+
+// TestDesiredCameraMode pins the intent/observation split at the type level:
+// the desired value space is exactly the three user-chosen modes (offline is
+// a connectivity observation and must never become representable intent),
+// and the display projection is byte-identical to the CameraState wire
+// values (the JSON contract of State.Camera never changed, schema v2).
+func TestDesiredCameraMode(t *testing.T) {
+	t.Parallel()
+
+	if DesiredIdle != "idle" || DesiredTracking != "tracking" || DesiredPrivacy != "privacy" {
+		t.Fatalf(
+			"desired wire values drifted: idle=%q tracking=%q privacy=%q",
+			DesiredIdle, DesiredTracking, DesiredPrivacy,
+		)
+	}
+
+	for _, m := range []DesiredCameraMode{DesiredIdle, DesiredTracking, DesiredPrivacy} {
+		if !m.Valid() {
+			t.Errorf("Valid(%q) = false, want true", m)
+		}
+
+		cs := m.CameraState()
+		if cs != CameraState(string(m)) || !cs.Valid() || cs.String() != string(m) {
+			t.Errorf("projection %q → %q is not a total, wire-identical CameraState", m, cs)
+		}
+	}
+
+	if DesiredCameraMode("offline").Valid() {
+		t.Error(`Valid("offline") = true, want false (offline is a connectivity observation, never intent)`)
+	}
+
+	defaultCam := DefaultState().Camera
+	if defaultCam != DesiredPrivacy {
+		t.Errorf("DefaultState().Camera = %q, want %q (privacy is the safe default)", defaultCam, DesiredPrivacy)
 	}
 }

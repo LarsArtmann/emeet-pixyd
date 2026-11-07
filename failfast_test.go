@@ -19,7 +19,7 @@ import (
 func TestNewUnixListener_FailsFastOnUnlistenablePath(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StatePrivacy, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredPrivacy, testVideoDev, testHIDDev)
 
 	// Poison the state dir path with a regular file so MkdirAll cannot
 	// succeed and the socket path can never exist.

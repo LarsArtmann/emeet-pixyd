@@ -288,7 +288,7 @@ func TestPresetPull_ModeOnlySweep(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
@@ -327,7 +327,7 @@ func TestPresetPull_FullShapeSweep(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
@@ -364,7 +364,7 @@ func TestPresetPull_NeverOverwritesExistingNames(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 
@@ -395,7 +395,7 @@ func TestPresetPull_LimitReached(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 
@@ -441,7 +441,7 @@ func TestPresetPull_AllSlotsUnreadable(t *testing.T) {
 
 	sim, opt := withPixySimulator()
 	sim.sendRecvErr = errors.New("injected read failure")
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "preset pull")
 	if !result.IsError() {
@@ -513,7 +513,7 @@ func TestPresetPull_EarlyAbortStopsSweep(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	flaky := &flakyQuerySim{pixySimulator: sim, remaining: presetPullMaxConsecutiveFailures}
 	d.hidDev = flaky
 
@@ -531,7 +531,7 @@ func TestPresetPull_SuccessResetsAbortCounter(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	flaky := &flakyQuerySim{pixySimulator: sim, remaining: 2}
 	d.hidDev = flaky
 
@@ -561,7 +561,7 @@ func TestPresetPull_DryRunDoesNotMutate(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 	seedHardwareSlot(t, sim, 3, 20, 10, 130)
@@ -608,7 +608,7 @@ func TestPresetPull_DryRunModeOnly(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 1, 10, -5, 115)
 
@@ -626,7 +626,7 @@ func TestPresetPull_DryRunRejectsExtraName(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "preset pull "+flagDryRun+" hw-1")
 	if !result.IsError() || !strings.Contains(result.String(), "takes no name") {
@@ -638,7 +638,7 @@ func TestPresetPull_CircuitBreakerOpen(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.hidFailCount = hidCircuitBreakerThreshold
@@ -658,7 +658,7 @@ func TestPresetPull_TakesNoName(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "preset pull hw-1")
 	if !result.IsError() || !strings.Contains(result.String(), "takes no name") {
@@ -673,7 +673,7 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
 
-	first := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	first := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 	first.config.StateDir = stateDir
 
 	seedHardwareSlot(t, sim, 1, 42, -7, 111)
@@ -682,7 +682,7 @@ func TestPresetPull_PersistsInState(t *testing.T) {
 		t.Fatalf("preset pull failed: %s", result.String())
 	}
 
-	second := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+	second := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev)
 	second.config.StateDir = stateDir
 
 	if !second.loadState() {
@@ -702,7 +702,7 @@ func TestWebPresetPullEndpoint(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	seedHardwareSlot(t, sim, 2, 15, 5, 125)
 
@@ -736,7 +736,7 @@ func TestWebPresetPullEndpoint(t *testing.T) {
 func TestWebPresetPull_RendersHeaderButton(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev)
 	server := newTestWebServer(t, d)
 
 	body := getPanelBody(t, server)
@@ -786,7 +786,7 @@ func randomPullScenario(t *testing.T, rng *rand.Rand) (*Daemon, pixy.PresetMap, 
 	t.Helper()
 
 	sim, opt := withPixySimulator(withPresetFullResponses())
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	// hw-9 is beyond the slot range on purpose: pull must never generate it.
 	userNames := []string{"stage", "door", "wide", "hw-1", "hw-2", "hw-5", "hw-9"}

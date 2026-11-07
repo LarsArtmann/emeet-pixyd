@@ -20,7 +20,7 @@ func TestBatteryCommand_SimulatorReading(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "battery")
 	if result.IsError() {
@@ -73,7 +73,7 @@ func TestPowerStatus_FailureIsCached(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	sim.sendRecvErr = errors.New("simulated battery query failure")
 
@@ -227,7 +227,7 @@ func TestPresetPush_SimulatorSequence(t *testing.T) {
 	t.Parallel()
 
 	sim, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.state.Presets = pixy.PresetMap{"home": {Pan: 30, Tilt: -10, Zoom: 120}}
@@ -266,7 +266,7 @@ func TestPresetPush_UnknownPreset(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	result := d.handleCommand(t.Context(), "preset push nope")
 	if !result.IsError() || result.String() != errorPrefix+respPresetNotFound {
@@ -278,7 +278,7 @@ func TestPresetPush_SlotOverflowRejected(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	d.mu.Lock()
 	d.state.Presets = pixy.PresetMap{}
@@ -299,7 +299,7 @@ func TestPresetSave_MultiWordNameTruncates(t *testing.T) {
 	t.Parallel()
 
 	_, opt := withPixySimulator()
-	d := newTestDaemon(t, pixy.StateTracking, testVideoDev, testHIDDev, opt)
+	d := newTestDaemon(t, pixy.DesiredTracking, testVideoDev, testHIDDev, opt)
 
 	// PIN THE BUG (former TODO #123): strings.Fields dispatch means
 	// `preset save my home` saves the preset "my" and silently drops

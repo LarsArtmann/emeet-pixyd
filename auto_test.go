@@ -12,7 +12,7 @@ import (
 func testAutoDaemon(tb testing.TB, opts ...testDaemonOption) *Daemon {
 	tb.Helper()
 
-	return newTestDaemon(tb, pixy.StatePrivacy, testVideoDev, testHIDDev, opts...)
+	return newTestDaemon(tb, pixy.DesiredPrivacy, testVideoDev, testHIDDev, opts...)
 }
 
 func readDebounce(d *Daemon) (_, _ int) {
@@ -31,7 +31,7 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 
 	d := testAutoDaemon(t, withNotifyCalled(&notifyCalled))
 
-	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredPrivacy, pixy.AutoFull)
 
 	assertInCall(t, d, true)
 
@@ -43,9 +43,9 @@ func TestHandleCallStart_SetsInCall(t *testing.T) {
 func TestHandleCallStart_TracksFromPrivacy(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(t, withCameraState(pixy.StatePrivacy))
+	d := testAutoDaemon(t, withCameraState(pixy.DesiredPrivacy))
 
-	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredPrivacy, pixy.AutoFull)
 
 	assertInCall(t, d, true)
 }
@@ -55,7 +55,7 @@ func TestHandleCallStart_SwitchesAudioToNC(t *testing.T) {
 
 	d := testAutoDaemon(t, withAudioState(pixy.AudioLive))
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoFull)
 
 	assertInCall(t, d, true)
 }
@@ -65,7 +65,7 @@ func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 
 	d := testAutoDaemon(t, withAudioState(pixy.AudioLive))
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoTrackingOnly)
 
 	if audio := readAudioState(d); audio != pixy.AudioLive {
 		t.Errorf("tracking-only should not change audio, got %s", audio)
@@ -75,9 +75,9 @@ func TestHandleCallStart_TrackingOnlyNoAudio(t *testing.T) {
 func TestHandleCallStart_PrivacyOnlyNoTracking(t *testing.T) {
 	t.Parallel()
 
-	d := testAutoDaemon(t, withCameraState(pixy.StatePrivacy))
+	d := testAutoDaemon(t, withCameraState(pixy.DesiredPrivacy))
 
-	d.handleCallStart(context.Background(), pixy.StatePrivacy, pixy.AutoPrivacyOnly)
+	d.handleCallStart(context.Background(), pixy.DesiredPrivacy, pixy.AutoPrivacyOnly)
 
 	if camera := readCameraState(d); camera != pixy.StatePrivacy {
 		t.Errorf("privacy-only should not activate tracking, got %s", camera)
@@ -103,7 +103,7 @@ func TestHandleCallStart_SetsPipeWireSource(t *testing.T) {
 		},
 	)
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoFull)
 
 	if !setSourceCalled {
 		t.Error("expected setSource to be called with found source")
@@ -123,7 +123,7 @@ func TestHandleCallStart_TrackingOnlyNoSourceSwitch(t *testing.T) {
 		},
 	)
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoTrackingOnly)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoTrackingOnly)
 
 	if setSourceCalled {
 		t.Error("tracking-only should not switch PipeWire source")
@@ -170,7 +170,7 @@ func TestHandleCallStart_FindSourceErrorSurfacesInAutoError(t *testing.T) {
 		},
 	)
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoFull)
 
 	d.mu.RLock()
 	autoErr := d.autoError
@@ -191,7 +191,7 @@ func TestHandleCallStart_FindSourceSuccessClearsAutoError(t *testing.T) {
 		withFindSource("42"),
 	)
 
-	d.handleCallStart(context.Background(), pixy.StateTracking, pixy.AutoFull)
+	d.handleCallStart(context.Background(), pixy.DesiredTracking, pixy.AutoFull)
 
 	d.mu.RLock()
 	autoErr := d.autoError

@@ -91,7 +91,7 @@ func TestSSEEndpoint_PTZReturnsPatchSignals(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		"/dev/video0",
 		"/dev/hidraw7",
 		withNoopV4L2(),
@@ -427,7 +427,7 @@ func TestHandlePTZ_ErrorReturnsFullPanelPatch(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		"/dev/video0",
 		"/dev/hidraw7",
 		withNoopParsePTZ(),

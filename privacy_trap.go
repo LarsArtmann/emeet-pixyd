@@ -75,7 +75,7 @@ func (d *Daemon) schedulePrivacyTrapReassert(ctx context.Context, mode pixy.Came
 		}
 
 		d.mu.RLock()
-		believed := d.state.Camera
+		believed := d.state.Camera.CameraState()
 		d.mu.RUnlock()
 
 		if believed != mode {

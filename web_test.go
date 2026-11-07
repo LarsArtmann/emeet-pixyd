@@ -376,7 +376,7 @@ func TestWeb_PresetActionAcceptsValidName(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		testVideoDev,
 		testHIDDev,
 		withConfig(t.TempDir()),
@@ -397,7 +397,7 @@ func TestWeb_PresetSaveLoadDelete(t *testing.T) {
 
 	d := newTestDaemon(
 		t,
-		pixy.StateTracking,
+		pixy.DesiredTracking,
 		testVideoDev,
 		testHIDDev,
 		withConfig(t.TempDir()),

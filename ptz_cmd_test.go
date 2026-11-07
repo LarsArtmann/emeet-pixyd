@@ -68,7 +68,7 @@ func newPTZDaemon(tb testing.TB, opts ...testDaemonOption) *Daemon {
 	// stub so relative math is reproducible regardless of real /dev/video0 state.
 	opts = append([]testDaemonOption{withNoopParsePTZ()}, opts...)
 
-	return newTestDaemon(tb, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", opts...)
+	return newTestDaemon(tb, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7", opts...)
 }
 
 func newPTZCaptureDaemon(tb testing.TB, opts ...testDaemonOption) (*Daemon, *[]v4l2Call) {
@@ -104,7 +104,7 @@ func TestHandlePTZCommand_InvalidValue(t *testing.T) {
 func TestHandlePTZCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "", "")
+	d := newTestDaemon(t, pixy.DesiredTracking, "", "")
 
 	resp := d.handlePTZCommand(context.Background(), []string{string(pixy.AxisPan), "10"})
 	expectError(t, resp)
@@ -115,7 +115,7 @@ func TestHandlePTZCommand_NoDevice(t *testing.T) {
 func TestHandlePTZCommand_V4L2Error(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7", func(d *Daemon) {
 		d.deps.v4l2Set = func(context.Context, string, string, string) error {
 			return ErrInvalidValue
 		}
@@ -157,7 +157,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 
 	var calls int
 
-	d := newTestDaemon(t, pixy.StateTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
+	d := newTestDaemon(t, pixy.DesiredTracking, "/dev/video0", "/dev/hidraw7", withCaptureCenter(&calls))
 
 	resp := d.handleCenterCommand(context.Background())
 	notError(t, resp)
@@ -170,7 +170,7 @@ func TestHandleCenterCommand_Success(t *testing.T) {
 func TestHandleCenterCommand_NoDevice(t *testing.T) {
 	t.Parallel()
 
-	d := newTestDaemon(t, pixy.StateTracking, "", "")
+	d := newTestDaemon(t, pixy.DesiredTracking, "", "")
 
 	resp := d.handleCenterCommand(context.Background())
 	expectError(t, resp)
