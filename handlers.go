@@ -74,7 +74,7 @@ type webServer struct {
 func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	snap := s.daemon.snapshot()
 	status := webStatus{
-		Camera:          snap.Camera,
+		Camera:          snap.Camera.CameraState(),
 		Audio:           snap.Audio,
 		Gesture:         snap.Gesture,
 		InCall:          snap.InCall,
@@ -150,7 +150,7 @@ func (s *webServer) handleHealth(responseWriter http.ResponseWriter, _ *http.Req
 
 	if err := writeJSON(responseWriter, status, healthResponse{
 		Status:   boolStr(snap.Online, "ok", "offline"),
-		Camera:   snap.Camera,
+		Camera:   snap.Camera.CameraState(),
 		Version:  buildVersion,
 		Degraded: len(snap.DegradedReasons) > 0,
 		Reasons:  snap.DegradedReasons,

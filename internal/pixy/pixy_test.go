@@ -479,3 +479,27 @@ func TestDesiredCameraMode(t *testing.T) {
 		t.Errorf("DefaultState().Camera = %q, want %q (privacy is the safe default)", defaultCam, DesiredPrivacy)
 	}
 }
+
+// TestDisplayCameraState pins the human-surface collapse rule: an online
+// camera always displays its desired mode; a camera without a video node
+// displays offline regardless of intent. Machine surfaces must NOT use this
+// helper — they keep the raw intent and report connectivity separately.
+func TestDisplayCameraState(t *testing.T) {
+	t.Parallel()
+
+	desiredModes := []DesiredCameraMode{DesiredIdle, DesiredTracking, DesiredPrivacy}
+
+	for _, m := range desiredModes {
+		if got := DisplayCameraState(true, m); got != CameraState(m) {
+			t.Errorf("DisplayCameraState(true, %q) = %q, want %q (online = passthrough)", m, got, m)
+		}
+
+		if got := DisplayCameraState(false, m); got != StateOffline {
+			t.Errorf("DisplayCameraState(false, %q) = %q, want %q (offline collapse)", m, got, StateOffline)
+		}
+	}
+
+	if StateOffline != "offline" {
+		t.Fatalf("offline wire value drifted: %q", StateOffline)
+	}
+}

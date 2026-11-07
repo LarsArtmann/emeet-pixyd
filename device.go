@@ -191,12 +191,13 @@ func (d *Daemon) presenceLocked() devicePresence {
 // statusSnapshot is the canonical, lock-consistent view of the daemon that
 // every status surface (CLI, Waybar, web panel, health, /api/status) reads
 // from — one place where the field set is defined, so a surface cannot drift
-// from the others. Camera is desired intent; Online/Controllable are the
-// connectivity observation. Each surface chooses its own display collapse
-// (the human surfaces render offline when !Online; the machine surface keeps
-// camera=intent and reports Online separately).
+// from the others. Camera is desired intent (DesiredCameraMode);
+// Online/Controllable are the connectivity observation. Each surface chooses
+// its own projection: the human surfaces collapse to offline with
+// pixy.DisplayCameraState, the machine surfaces project with .CameraState()
+// and report Online separately.
 type statusSnapshot struct {
-	Camera          pixy.CameraState
+	Camera          pixy.DesiredCameraMode
 	Online          bool
 	Controllable    bool
 	Audio           pixy.AudioMode
@@ -225,7 +226,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 	defer d.mu.RUnlock()
 
 	return statusSnapshot{
-		Camera:          d.state.Camera.CameraState(),
+		Camera:          d.state.Camera,
 		Online:          d.videoDev != "",
 		Controllable:    d.hidrawDev != "",
 		Audio:           d.state.Audio,
@@ -479,7 +480,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 	if !s.Online {
 		return fmt.Sprintf(
 			"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=",
-			pixy.StateOffline,
+			pixy.DisplayCameraState(s.Online, s.Camera),
 			s.Audio,
 			s.Gesture,
 			0,
@@ -494,7 +495,7 @@ func (d *Daemon) getStatus(ctx context.Context) string {
 
 	base := fmt.Sprintf(
 		"camera=%s audio=%s gesture=%v pan=%d tilt=%d zoom=%d in_call=%s auto=%s device=%s",
-		s.Camera,
+		pixy.DisplayCameraState(s.Online, s.Camera),
 		s.Audio,
 		s.Gesture,
 		ptz.Pan,

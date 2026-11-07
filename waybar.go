@@ -42,13 +42,9 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 	s := d.snapshot()
 
 	// The bar is a human surface: collapse to offline when no video node is
-	// present (the same collapse the CLI `status` line does), rather than
-	// showing the desired mode for a camera that is not there. The machine
-	// surface (/api/status) keeps camera=intent + online=false instead.
-	camera := s.Camera
-	if !s.Online {
-		camera = pixy.StateOffline
-	}
+	// present (pixy.DisplayCameraState — the single source of the rule).
+	// The machine surface (/api/status) keeps camera=intent + online=false.
+	camera := pixy.DisplayCameraState(s.Online, s.Camera)
 
 	info := waybarCameraStates[camera]
 	class := info.class

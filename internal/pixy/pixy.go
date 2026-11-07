@@ -123,6 +123,20 @@ func (m DesiredCameraMode) Valid() bool {
 // where the offline value is excluded explicitly.
 func (m DesiredCameraMode) CameraState() CameraState { return CameraState(m) }
 
+// DisplayCameraState is the display projection for HUMAN surfaces (Waybar,
+// the CLI status line): when the camera is not online (no video node), the
+// display collapses to StateOffline — a bar must not show a chosen mode for
+// a camera that is not there. This is the single source of the collapse
+// rule; the machine surfaces (/api/status, /api/health) keep the raw intent
+// and report connectivity separately (Online/Controllable flags).
+func DisplayCameraState(online bool, desired DesiredCameraMode) CameraState {
+	if !online {
+		return StateOffline
+	}
+
+	return desired.CameraState()
+}
+
 // AudioMode represents the noise cancellation mode of the PIXY camera microphone.
 type AudioMode string
 
