@@ -1,0 +1,69 @@
+version: 2
+
+project_name: emeet-pixyd
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    binary: emeet-pixyd
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.buildVersion=v{{ .Version }}
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: git
+  sort: asc
+  filters:
+    exclude:
+      - "^chore:"
+      - "^docs:"
+      - "^test:"
+      - "^Merge "
+
+release:
+  prerelease: auto
+  header: |
+    **emeet-pixyd {{ .Tag }}** — the curated summary lives in [CHANGELOG.md](https://github.com/LarsArtmann/emeet-pixyd/blob/master/CHANGELOG.md).
+  footer: |
+    ## Verify
+
+    ```shell
+    sha256sum -c checksums.txt --ignore-missing
+    ```
+
+    The checksums file is keylessly signed with [Cosign](https://docs.sigstore.dev/) via GitHub OIDC:
+
+    ```shell
+    cosign verify-blob checksums.txt \
+      --bundle checksums.txt.bundle.json \
+      --certificate-identity-regexp 'https://github.com/LarsArtmann/' \
+      --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
+    ```
+
+    Build provenance is attested (SLSA) via `actions/attest-build-provenance` on this release.
+
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.bundle.json"
+    args:
+      - "sign-blob"
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
