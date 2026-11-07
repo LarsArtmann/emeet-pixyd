@@ -22,13 +22,13 @@ All values are automatically clamped to these ranges.
 Bare numbers are treated as absolute:
 
 ```bash
-emeet-pixy pan 0        # Center
-emeet-pixy pan -90      # Full left
-emeet-pixy pan 90       # Full right
-emeet-pixy tilt 45      # Halfway up
-emeet-pixy tilt -30     # Slightly down
-emeet-pixy zoom 100     # No zoom
-emeet-pixy zoom 150     # Max zoom
+emeet-pixyd pan 0        # Center
+emeet-pixyd pan -90      # Full left
+emeet-pixyd pan 90       # Full right
+emeet-pixyd tilt 45      # Halfway up
+emeet-pixyd tilt -30     # Slightly down
+emeet-pixyd zoom 100     # No zoom
+emeet-pixyd zoom 150     # Max zoom
 ```
 
 ## Relative Positioning
@@ -36,12 +36,12 @@ emeet-pixy zoom 150     # Max zoom
 Use the `rel` prefix for relative moves:
 
 ```bash
-emeet-pixy pan rel+10   # Pan 10 degrees right
-emeet-pixy pan rel-10   # Pan 10 degrees left
-emeet-pixy tilt rel+5   # Tilt 5 degrees up
-emeet-pixy tilt rel-5   # Tilt 5 degrees down
-emeet-pixy zoom rel+5   # Zoom in 5
-emeet-pixy zoom rel-5   # Zoom out 5
+emeet-pixyd pan rel+10   # Pan 10 degrees right
+emeet-pixyd pan rel-10   # Pan 10 degrees left
+emeet-pixyd tilt rel+5   # Tilt 5 degrees up
+emeet-pixyd tilt rel-5   # Tilt 5 degrees down
+emeet-pixyd zoom rel+5   # Zoom in 5
+emeet-pixyd zoom rel-5   # Zoom out 5
 ```
 
 Relative commands read the current position from the hardware, compute the new value, and clamp to valid range.
@@ -80,10 +80,10 @@ After each PTZ set, a delayed (500ms) hardware readback corrects the cache with 
 
 PTZ position goes through V4L2, but motor **speed** uses the camera's official
 HID motor commands (reverse-engineered from the EMEET STUDIO protocol — see
-[`emeet-pixy.lars.software` protocol docs](/guides/architecture/)):
+[`emeet-pixyd.lars.software` protocol docs](/guides/architecture/)):
 
 ```bash
-emeet-pixy speed pan 45     # axis: pan, tilt, or zoom; value 0–10000
+emeet-pixyd speed pan 45     # axis: pan, tilt, or zoom; value 0–10000
 ```
 
 The web UI exposes the same control as three speed sliders in the Position
@@ -93,7 +93,7 @@ physical unit is being verified against hardware.
 ## Center Camera
 
 ```bash
-emeet-pixy center    # pan=0, tilt=0, zoom=100
+emeet-pixyd center    # pan=0, tilt=0, zoom=100
 ```
 
 This is also available as keyboard shortcut `C` in the web UI.

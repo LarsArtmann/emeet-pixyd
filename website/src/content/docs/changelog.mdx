@@ -5,6 +5,24 @@ description: Release history and breaking changes
 
 All notable changes to emeet-pixyd are documented here.
 
+## v0.6.0 (2026-11-07)
+
+The automated-release-pipeline release: pushing a `v*` tag now publishes
+static linux binaries (amd64 + arm64) with checksums, a keyless Cosign
+signature, and SLSA provenance — no Go toolchain needed, see
+[Download a Release](/getting-started/installation/#download-a-release).
+
+- **Update-available notices** — the daemon checks GitHub Releases daily and
+  shows a small notice in the web panel footer, `/api/status`,
+  `emeet-pixyd version`, and the Waybar tooltip. Nix builds are compared via
+  git commit SHA, release binaries via the tag. Opt out with
+  `EMEET_PIXYD_UPDATE_CHECK=off`
+- **`--version` reports the release tag** on release binaries (git SHA on nix
+  builds, `dev` on local builds)
+- Release notes are auto-generated from commits with the verify commands in the
+  footer; the full runbook for maintainers lives in
+  [RELEASING.md](https://github.com/LarsArtmann/emeet-pixyd/blob/master/RELEASING.md)
+
 ## v0.5.0 (2026-10-31)
 
 This release ships the official-protocol command families (motor speed,

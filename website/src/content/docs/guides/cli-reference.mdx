@@ -1,9 +1,9 @@
 ---
 title: CLI Reference
-description: All commands available via the emeet-pixy CLI and Unix socket
+description: All commands available via the emeet-pixyd CLI and Unix socket
 ---
 
-The `emeet-pixy` binary (symlink to `emeet-pixyd`) sends commands to a running daemon via Unix socket at `/run/emeet-pixyd/socket`.
+The `emeet-pixyd` binary (symlink to `emeet-pixyd`) sends commands to a running daemon via Unix socket at `/run/emeet-pixyd/socket`.
 
 ## Global Flags
 
@@ -18,21 +18,21 @@ emeet-pixyd --help       # Show usage
 
 | Command                     | Description                               |
 | --------------------------- | ----------------------------------------- |
-| `emeet-pixy track`          | Enable AI face tracking                   |
-| `emeet-pixy idle`           | Set camera to idle (on but no tracking)   |
-| `emeet-pixy privacy`        | Enable privacy mode (hardware lens block) |
-| `emeet-pixy toggle-privacy` | Toggle privacy mode                       |
-| `emeet-pixy tracking <variant>` | Set the smart-composition variant (none, face, halfbody, fullbody) |
+| `emeet-pixyd track`          | Enable AI face tracking                   |
+| `emeet-pixyd idle`           | Set camera to idle (on but no tracking)   |
+| `emeet-pixyd privacy`        | Enable privacy mode (hardware lens block) |
+| `emeet-pixyd toggle-privacy` | Toggle privacy mode                       |
+| `emeet-pixyd tracking <variant>` | Set the smart-composition variant (none, face, halfbody, fullbody) |
 
 ### PTZ Control
 
 | Command                      | Description                             |
 | ---------------------------- | --------------------------------------- |
-| `emeet-pixy center`          | Center camera (pan=0, tilt=0, zoom=100) |
-| `emeet-pixy pan <value>`     | Set pan (-150 to 150; or `rel+/-N`)     |
-| `emeet-pixy tilt <value>`    | Set tilt (-90 to 90; or `rel+/-N`)      |
-| `emeet-pixy zoom <value>`    | Set zoom (100 to 150; or `rel+/-N`)     |
-| `emeet-pixy speed <axis> <v>` | Motor speed over HID (axis: pan, tilt, zoom) |
+| `emeet-pixyd center`          | Center camera (pan=0, tilt=0, zoom=100) |
+| `emeet-pixyd pan <value>`     | Set pan (-150 to 150; or `rel+/-N`)     |
+| `emeet-pixyd tilt <value>`    | Set tilt (-90 to 90; or `rel+/-N`)      |
+| `emeet-pixyd zoom <value>`    | Set zoom (100 to 150; or `rel+/-N`)     |
+| `emeet-pixyd speed <axis> <v>` | Motor speed over HID (axis: pan, tilt, zoom) |
 
 `speed` uses the camera's official HID motor commands (not V4L2) and accepts
 values 0–10000; the physical unit is being verified against hardware, so the
@@ -41,62 +41,62 @@ value is passed to the device verbatim.
 Bare numbers are treated as **absolute** positions. Use the `rel` prefix for relative moves:
 
 ```bash
-emeet-pixy pan -90       # Absolute: pan to -90 degrees
-emeet-pixy pan rel+10    # Relative: pan 10 degrees right
-emeet-pixy tilt rel-5    # Relative: tilt 5 degrees down
-emeet-pixy zoom rel+5    # Relative: zoom in 5
+emeet-pixyd pan -90       # Absolute: pan to -90 degrees
+emeet-pixyd pan rel+10    # Relative: pan 10 degrees right
+emeet-pixyd tilt rel-5    # Relative: tilt 5 degrees down
+emeet-pixyd zoom rel+5    # Relative: zoom in 5
 ```
 
 ### Audio
 
 | Command                 | Description              |
 | ----------------------- | ------------------------ |
-| `emeet-pixy audio`      | Cycle to next audio mode |
-| `emeet-pixy audio nc`   | Noise cancellation       |
-| `emeet-pixy audio live` | Live (raw)               |
-| `emeet-pixy audio org`  | Original                 |
+| `emeet-pixyd audio`      | Cycle to next audio mode |
+| `emeet-pixyd audio nc`   | Noise cancellation       |
+| `emeet-pixyd audio live` | Live (raw)               |
+| `emeet-pixyd audio org`  | Original                 |
 
 ### Gesture Control
 
 | Command                     | Description             |
 | --------------------------- | ----------------------- |
-| `emeet-pixy gesture-on`     | Enable gesture control  |
-| `emeet-pixy gesture-off`    | Disable gesture control |
-| `emeet-pixy toggle-gesture` | Toggle gesture control  |
+| `emeet-pixyd gesture-on`     | Enable gesture control  |
+| `emeet-pixyd gesture-off`    | Disable gesture control |
+| `emeet-pixyd toggle-gesture` | Toggle gesture control  |
 
 ### Auto Mode
 
 | Command                  | Description                                            |
 | ------------------------ | ------------------------------------------------------ |
-| `emeet-pixy auto`        | Show current auto mode                                 |
-| `emeet-pixy auto <mode>` | Set auto mode (off, full, tracking-only, privacy-only) |
-| `emeet-pixy auto-on`     | Enable full auto mode                                  |
-| `emeet-pixy auto-off`    | Disable auto mode                                      |
-| `emeet-pixy toggle-auto` | Toggle auto mode                                       |
+| `emeet-pixyd auto`        | Show current auto mode                                 |
+| `emeet-pixyd auto <mode>` | Set auto mode (off, full, tracking-only, privacy-only) |
+| `emeet-pixyd auto-on`     | Enable full auto mode                                  |
+| `emeet-pixyd auto-off`    | Disable auto mode                                      |
+| `emeet-pixyd toggle-auto` | Toggle auto mode                                       |
 
 ### Presets
 
 | Command                           | Description                         |
 | --------------------------------- | ----------------------------------- |
-| `emeet-pixy preset save <name>`   | Save current PTZ position as preset |
-| `emeet-pixy preset load <name>`   | Recall a saved preset               |
-| `emeet-pixy preset push <name>`   | Mirror a preset into a hardware motor slot (the camera moves) |
-| `emeet-pixy preset pull`          | Sweep hardware motor slots into `hw-N` presets (read-only)    |
-| `emeet-pixy preset pull --dry-run` | Preview the sweep: same queries and report, nothing stored    |
-| `emeet-pixy preset delete <name>` | Delete a preset                     |
-| `emeet-pixy preset list`          | List all presets                    |
+| `emeet-pixyd preset save <name>`   | Save current PTZ position as preset |
+| `emeet-pixyd preset load <name>`   | Recall a saved preset               |
+| `emeet-pixyd preset push <name>`   | Mirror a preset into a hardware motor slot (the camera moves) |
+| `emeet-pixyd preset pull`          | Sweep hardware motor slots into `hw-N` presets (read-only)    |
+| `emeet-pixyd preset pull --dry-run` | Preview the sweep: same queries and report, nothing stored    |
+| `emeet-pixyd preset delete <name>` | Delete a preset                     |
+| `emeet-pixyd preset list`          | List all presets                    |
 
 ### Status and Diagnostics
 
 | Command              | Description                                              |
 | -------------------- | -------------------------------------------------------- |
-| `emeet-pixy status`  | Full status (camera, audio, gesture, PTZ, in-call, auto) |
-| `emeet-pixy battery` | Battery/charge reading (explicit "unavailable" if the device does not answer) |
-| `emeet-pixy sync`    | Sync daemon state from camera hardware                   |
-| `emeet-pixy probe`   | Re-detect device (video + hidraw)                        |
-| `emeet-pixy device`  | Show current video and hidraw device paths               |
-| `emeet-pixy waybar`  | Output Waybar JSON                                       |
-| `emeet-pixy version` | Show version                                             |
+| `emeet-pixyd status`  | Full status (camera, audio, gesture, PTZ, in-call, auto) |
+| `emeet-pixyd battery` | Battery/charge reading (explicit "unavailable" if the device does not answer) |
+| `emeet-pixyd sync`    | Sync daemon state from camera hardware                   |
+| `emeet-pixyd probe`   | Re-detect device (video + hidraw)                        |
+| `emeet-pixyd device`  | Show current video and hidraw device paths               |
+| `emeet-pixyd waybar`  | Output Waybar JSON                                       |
+| `emeet-pixyd version` | Show version                                             |
 
 ## Socket Protocol
 
@@ -104,7 +104,7 @@ Commands are sent as newline-delimited strings over the Unix socket. The daemon 
 
 ## Error Handling
 
-All commands return either a success message or an error string prefixed with `error: `. The `emeet-pixy` CLI prints these directly to stdout/stderr.
+All commands return either a success message or an error string prefixed with `error: `. The `emeet-pixyd` CLI prints these directly to stdout/stderr.
 
 ## Where to go next
 

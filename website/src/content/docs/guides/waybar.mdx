@@ -3,7 +3,7 @@ title: Waybar Integration
 description: JSON output for custom Waybar modules
 ---
 
-emeet-pixyd provides JSON output formatted for [Waybar](https://github.com/Alexays/Waybar) custom modules.
+emeet-pixydd provides JSON output formatted for [Waybar](https://github.com/Alexays/Waybar) custom modules.
 
 ## Basic Setup
 
@@ -11,13 +11,13 @@ Add a custom module to your Waybar config:
 
 ```json
 {
-  "custom/emeet-pixy": {
-    "exec": "emeet-pixy waybar",
+  "custom/emeet-pixyd": {
+    "exec": "emeet-pixyd waybar",
     "format": "{}",
     "interval": 5,
     "tooltip": true,
-    "on-click": "emeet-pixy toggle-privacy",
-    "on-click-right": "emeet-pixy toggle-auto"
+    "on-click": "emeet-pixyd toggle-privacy",
+    "on-click-right": "emeet-pixyd toggle-auto"
   }
 }
 ```
@@ -48,31 +48,31 @@ The `text` field combines a Font Awesome icon with a short label. The `class` fi
 ### CSS Styling
 
 ```css
-#custom-emeet-pixy.custom-camera.tracking {
+#custom-emeet-pixyd.custom-camera.tracking {
   color: #10b981;
 }
 
-#custom-emeet-pixy.custom-camera.idle {
+#custom-emeet-pixyd.custom-camera.idle {
   color: #fbbf24;
 }
 
-#custom-emeet-pixy.custom-camera.privacy {
+#custom-emeet-pixyd.custom-camera.privacy {
   color: #f87171;
 }
 
-#custom-emeet-pixy.custom-camera.offline {
+#custom-emeet-pixyd.custom-camera.offline {
   color: #78716c;
 }
 
-#custom-emeet-pixy.custom-camera.in-call {
+#custom-emeet-pixyd.custom-camera.in-call {
   text-decoration: underline;
 }
 
-#custom-emeet-pixy.custom-camera.charging {
+#custom-emeet-pixyd.custom-camera.charging {
   color: #34d399;
 }
 
-#custom-emeet-pixy.custom-camera.discharging {
+#custom-emeet-pixyd.custom-camera.discharging {
   opacity: 0.9;
 }
 ```
@@ -103,11 +103,11 @@ Common click mappings:
 
 | Action       | Command                     |
 | ------------ | --------------------------- |
-| Left click   | `emeet-pixy toggle-privacy` |
-| Right click  | `emeet-pixy toggle-auto`    |
-| Middle click | `emeet-pixy center`         |
-| Scroll up    | `emeet-pixy zoom rel+10`    |
-| Scroll down  | `emeet-pixy zoom rel-10`    |
+| Left click   | `emeet-pixydd toggle-privacy` |
+| Right click  | `emeet-pixydd toggle-auto`    |
+| Middle click | `emeet-pixydd center`         |
+| Scroll up    | `emeet-pixydd zoom rel+10`    |
+| Scroll down  | `emeet-pixydd zoom rel-10`    |
 
 ## Performance
 

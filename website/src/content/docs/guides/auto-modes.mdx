@@ -19,14 +19,14 @@ emeet-pixyd supports four auto-management strategies, configured via `EMEET_PIXY
 ### CLI
 
 ```bash
-emeet-pixy auto full              # Full automation
-emeet-pixy auto tracking-only     # Just tracking
-emeet-pixy auto privacy-only      # Just privacy on call end
-emeet-pixy auto off               # Disable all automation
-emeet-pixy auto                   # Show current mode
-emeet-pixy auto-on                # Shortcut: set to full
-emeet-pixy auto-off               # Shortcut: set to off
-emeet-pixy toggle-auto            # Toggle between off and full
+emeet-pixyd auto full              # Full automation
+emeet-pixyd auto tracking-only     # Just tracking
+emeet-pixyd auto privacy-only      # Just privacy on call end
+emeet-pixyd auto off               # Disable all automation
+emeet-pixyd auto                   # Show current mode
+emeet-pixyd auto-on                # Shortcut: set to full
+emeet-pixyd auto-off               # Shortcut: set to off
+emeet-pixyd toggle-auto            # Toggle between off and full
 ```
 
 ### Environment Variable
@@ -90,9 +90,9 @@ toggles tracking/privacy on demand and grabs focused snapshots via FFmpeg
 without the daemon reacting to each capture:
 
 ```bash
-emeet-pixy auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
-emeet-pixy track            # tracking stays on, no capture required
-emeet-pixy privacy          # physically block the lens when idle
+emeet-pixyd auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
+emeet-pixyd track            # tracking stays on, no capture required
+emeet-pixyd privacy          # physically block the lens when idle
 ```
 
 You can still control everything manually via CLI, web UI, or HTTP API — auto

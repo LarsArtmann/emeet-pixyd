@@ -10,8 +10,8 @@ Presets let you save and recall PTZ positions by name. They're persisted in `sta
 ### CLI
 
 ```bash
-emeet-pixy preset save home     # Save current position as "home"
-emeet-pixy preset save desk     # Save another position
+emeet-pixyd preset save home     # Save current position as "home"
+emeet-pixyd preset save desk     # Save another position
 ```
 
 ### Web UI
@@ -23,7 +23,7 @@ Type a name in the preset input field and press Enter (or click Save).
 ### CLI
 
 ```bash
-emeet-pixy preset load home     # Recall the "home" preset
+emeet-pixyd preset load home     # Recall the "home" preset
 ```
 
 ### Web UI
@@ -33,7 +33,7 @@ Click a preset name chip to recall it.
 ## Deleting Presets
 
 ```bash
-emeet-pixy preset delete home   # Delete the "home" preset
+emeet-pixyd preset delete home   # Delete the "home" preset
 ```
 
 In the web UI, click the `x` button on a preset chip.
@@ -41,7 +41,7 @@ In the web UI, click the `x` button on a preset chip.
 ## Listing Presets
 
 ```bash
-emeet-pixy preset list
+emeet-pixyd preset list
 ```
 
 ## Hardware Mirroring
@@ -50,9 +50,9 @@ Presets can be mirrored to and from the camera's on-device motor slots
 (slots 1–8). Push moves the camera; pull is read-only:
 
 ```bash
-emeet-pixy preset push home     # Mirror the "home" preset into a hardware slot
-emeet-pixy preset pull          # Sweep hardware slots into hw-1, hw-2, ... presets
-emeet-pixy preset pull --dry-run # Preview the sweep without storing anything
+emeet-pixyd preset push home     # Mirror the "home" preset into a hardware slot
+emeet-pixyd preset pull          # Sweep hardware slots into hw-1, hw-2, ... presets
+emeet-pixyd preset pull --dry-run # Preview the sweep without storing anything
 ```
 
 `preset pull` never moves the motors and never overwrites your named presets —

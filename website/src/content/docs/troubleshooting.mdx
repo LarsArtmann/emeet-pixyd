@@ -32,7 +32,7 @@ sudo udevadm trigger
 ### Re-probe the device
 
 ```bash
-emeet-pixy probe
+emeet-pixyd probe
 ```
 
 This forces a fresh scan of `/sys/class/video4linux` and `/sys/class/hidraw`.
@@ -138,7 +138,7 @@ Lower debounce = faster detection but more false positives from momentary camera
 The daemon uses netlink uevents for hotplug detection. If unplugging/replugging the PIXY doesn't trigger re-detection:
 
 ```bash
-emeet-pixy probe    # Manual re-probe
+emeet-pixyd probe    # Manual re-probe
 ```
 
 Check that the daemon has the necessary permissions to create netlink sockets (the NixOS module handles `RestrictAddressFamilies`).

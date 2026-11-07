@@ -17,7 +17,7 @@ The daemon starts listening on:
 ## 2. Verify Detection
 
 ```bash
-emeet-pixy status
+emeet-pixyd status
 ```
 
 Output:
@@ -37,7 +37,7 @@ If the camera shows `offline`, check your USB connection and udev rules:
 lsusb | grep 328f
 # Should show: Bus 001 Device 004: ID 328f:00c0 ... (or 328f:0118 on the PIXY 2K)
 
-emeet-pixy probe    # Re-detect device
+emeet-pixyd probe    # Re-detect device
 ```
 
 ## 3. Open the Web UI
@@ -66,13 +66,13 @@ When the call ends, the daemon enters **privacy mode** — the hardware lens shu
 Any command can be sent via the CLI:
 
 ```bash
-emeet-pixy track          # Enable face tracking
-emeet-pixy idle           # Set camera to idle
-emeet-pixy privacy        # Enable privacy mode (lens blocked)
-emeet-pixy center         # Center camera (pan=0, tilt=0, zoom=100)
-emeet-pixy pan -90        # Pan left 90 degrees
-emeet-pixy tilt 45        # Tilt up 45 degrees
-emeet-pixy zoom 120       # Zoom to 120%
+emeet-pixyd track          # Enable face tracking
+emeet-pixyd idle           # Set camera to idle
+emeet-pixyd privacy        # Enable privacy mode (lens blocked)
+emeet-pixyd center         # Center camera (pan=0, tilt=0, zoom=100)
+emeet-pixyd pan -90        # Pan left 90 degrees
+emeet-pixyd tilt 45        # Tilt up 45 degrees
+emeet-pixyd zoom 120       # Zoom to 120%
 ```
 
 ## Auto Modes
@@ -89,8 +89,8 @@ The daemon supports four automation strategies. The default is `full`:
 Change auto mode:
 
 ```bash
-emeet-pixy auto tracking-only
-emeet-pixy auto-off     # Disable all automation
+emeet-pixyd auto tracking-only
+emeet-pixyd auto-off     # Disable all automation
 ```
 
 ## Where to go next

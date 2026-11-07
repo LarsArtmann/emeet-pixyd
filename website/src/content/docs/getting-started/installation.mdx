@@ -53,7 +53,7 @@ hardware.emeet-pixy = {
 That's it. The module installs:
 
 - The daemon binary (`emeet-pixyd`)
-- A CLI symlink (`emeet-pixy`)
+- A CLI symlink (`emeet-pixyd`)
 - udev rules for PIXY hidraw + video4linux access
 - A systemd user service (runs after PipeWire + graphical-session)
 - All runtime dependencies in PATH (`v4l-utils`, `wireplumber`, `libnotify`)
@@ -93,7 +93,7 @@ emeet-pixyd
 Check status:
 
 ```bash
-emeet-pixy status
+emeet-pixyd status
 ```
 
 If the PIXY is connected, you should see camera state, audio mode, PTZ position, and auto mode.
