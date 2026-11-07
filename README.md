@@ -161,7 +161,7 @@ That's it. The module installs the daemon, udev rules, systemd user service, and
 
 ### Download a Release
 
-Every release ships static linux binaries (amd64 + arm64) with checksums: grab a tarball from [GitHub Releases](https://github.com/LarsArtmann/emeet-pixyd/releases/latest), verify it with `sha256sum -c checksums.txt --ignore-missing`, and extract — no runtime dependencies beyond `v4l-utils` and (for audio switching) `wireplumber`.
+Every release ships static linux binaries (amd64 + arm64) with checksums: grab a tarball from [GitHub Releases](https://github.com/LarsArtmann/emeet-pixyd/releases/latest) — version-less archive names mean [direct latest-download URLs](https://github.com/LarsArtmann/emeet-pixyd/releases/latest/download/emeet-pixyd_linux_amd64.tar.gz) always work — verify it with `sha256sum -c checksums.txt --ignore-missing` (the checksums file itself carries a keyless [Cosign](https://docs.sigstore.dev/) signature and SLSA provenance; verify commands are on each release page), and extract — no runtime dependencies beyond `v4l-utils` and (for audio switching) `wireplumber`. Release maintainers: the cut process is documented in [RELEASING.md](RELEASING.md).
 
 ### Build from Source
 
