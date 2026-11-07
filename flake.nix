@@ -78,6 +78,32 @@
           pkgs,
           ...
         }:
+        let
+          # templ MUST be the go.mod-pinned version: `templ generate` output is
+          # version-specific and the go.mod runtime no longer defines what other
+          # versions emit (nixpkgs 0.3.1020 emitted templ.ResolveAttributeValue,
+          # undefined in the v0.3.1100 runtime — a devShell/BuildFlow codegen run
+          # broke the build twice, 2026-11-07). Pin the binary itself so every
+          # `templ` on PATH generates canonically; bump together with go.mod's
+          # github.com/a-h/templ.
+          templPinned = pkgs.buildGoModule.override { go = pkgs.go_1_27; } {
+            pname = "templ";
+            version = "0.3.1100";
+            src = pkgs.fetchFromGitHub {
+              owner = "a-h";
+              repo = "templ";
+              rev = "v0.3.1100";
+              hash = "sha256-QViQAMtCqaXS4GodlSCW/nE4Sox+EF49sbb7h9RBIS0=";
+            };
+            vendorHash = "sha256-MMAoHofeZzGNFsjxY4nrPRyaiKOk4fLYY+kIVmdAL3g=";
+            subPackages = [ "cmd/templ" ];
+            ldflags = [
+              "-s"
+              "-w"
+              "-extldflags -static"
+            ];
+          };
+        in
         {
           treefmt = {
             projectRootFile = "go.mod";
@@ -111,7 +137,7 @@
                 name = "templ";
                 runtimeInputs = [
                   pkgs.go_1_27
-                  pkgs.templ
+                  templPinned
                 ];
                 text = ''
                   exec templ "$@"
@@ -284,7 +310,7 @@
             packages = [
               pkgs.go_1_27
               pkgs.golangci-lint
-              pkgs.templ
+              templPinned
               pkgs.dprint
               pkgs.git
               pkgs.v4l-utils
