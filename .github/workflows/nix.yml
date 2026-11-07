@@ -3,6 +3,9 @@ name: Nix
 on:
   push:
     branches: [master]
+    # Release tags build the flake too: the delivering layer (nix run
+    # .#emeet-pixyd) is proven at the exact release commit, not just master HEAD.
+    tags: ["v*"]
   pull_request:
     branches: [master]
 
