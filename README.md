@@ -77,7 +77,7 @@ Skip this daemon if:
 | EMEET S600L           | `328f:00ef`             | Recognized — fixed UVC camera                                                                       |
 | Other EMEET devices   | `328f:*`                | Detected as "unknown EMEET device" — the daemon logs the product ID and how to report or opt in     |
 
-The daemon never sends vendor commands to devices outside the PIXY family: fixed EMEET webcams have no vendor control surface, so there is nothing to automate — and no reason to grant extra device permissions. When a recognized-but-unsupported device is plugged in without a PIXY, the daemon logs one rate-limited hint explaining exactly that, and `emeet-pixy device` repeats it.
+The daemon never sends vendor commands to devices outside the PIXY family: fixed EMEET webcams have no vendor control surface, so there is nothing to automate — and no reason to grant extra device permissions. When a recognized-but-unsupported device is plugged in without a PIXY, the daemon logs one rate-limited hint explaining exactly that, and `emeet-pixyd device` repeats it.
 
 **Own an unlisted PIXY variant?** Point the daemon at it without waiting for a release:
 
@@ -176,36 +176,36 @@ nix build    # or, with a Go ≥ 1.27.1 toolchain: go build -o emeet-pixyd .
 Run without arguments to start the daemon, or pass a command to communicate via Unix socket:
 
 ```
-emeet-pixy status               # Full status (camera, audio, gesture, PTZ, in-call, auto)
-emeet-pixy track                # Enable face tracking
-emeet-pixy idle                 # Set camera to idle
-emeet-pixy privacy              # Enable privacy mode
-emeet-pixy toggle-privacy       # Toggle privacy mode
-emeet-pixy center               # Center camera (pan=0, tilt=0, zoom=100)
-emeet-pixy audio [mode]         # Cycle or set audio mode (nc, live, org)
-emeet-pixy gesture-on           # Enable gesture control
-emeet-pixy gesture-off          # Disable gesture control
-emeet-pixy toggle-gesture       # Toggle gesture control
-emeet-pixy auto [mode]          # Set auto mode (off, full, tracking-only, privacy-only)
-emeet-pixy auto-on              # Enable full auto mode
-emeet-pixy auto-off             # Disable auto mode
-emeet-pixy toggle-auto          # Toggle auto mode
-emeet-pixy pan <value>          # Set pan (−150 to 150; or rel+/-N for relative)
-emeet-pixy tilt <value>         # Set tilt (−90 to 90; or rel+/-N for relative)
-emeet-pixy zoom <value>         # Set zoom (100 to 150; or rel+/-N for relative)
-emeet-pixy speed <axis> <value> # Set motor speed for PTZ moves (axis: pan, tilt, zoom)
-emeet-pixy tracking <variant>   # Set tracking variant (none, face, halfbody, fullbody)
-emeet-pixy battery              # Show battery/charge (omitted if the device doesn't answer)
-emeet-pixy preset save <name>   # Save current PTZ position as a named preset
-emeet-pixy preset load <name>   # Recall a saved preset
-emeet-pixy preset push <name>   # Mirror a saved preset into a hardware motor slot
-emeet-pixy preset pull          # Sweep hardware slots into hw-N presets (read-only)
-emeet-pixy preset pull --dry-run # Preview the sweep without storing anything
-emeet-pixy preset list          # List all saved presets
-emeet-pixy sync                 # Sync daemon state from camera hardware
-emeet-pixy probe                # Re-detect device (video + hidraw)
-emeet-pixy device               # Show current video device path + model
-emeet-pixy waybar               # Output Waybar JSON
+emeet-pixyd status               # Full status (camera, audio, gesture, PTZ, in-call, auto)
+emeet-pixyd track                # Enable face tracking
+emeet-pixyd idle                 # Set camera to idle
+emeet-pixyd privacy              # Enable privacy mode
+emeet-pixyd toggle-privacy       # Toggle privacy mode
+emeet-pixyd center               # Center camera (pan=0, tilt=0, zoom=100)
+emeet-pixyd audio [mode]         # Cycle or set audio mode (nc, live, org)
+emeet-pixyd gesture-on           # Enable gesture control
+emeet-pixyd gesture-off          # Disable gesture control
+emeet-pixyd toggle-gesture       # Toggle gesture control
+emeet-pixyd auto [mode]          # Set auto mode (off, full, tracking-only, privacy-only)
+emeet-pixyd auto-on              # Enable full auto mode
+emeet-pixyd auto-off             # Disable auto mode
+emeet-pixyd toggle-auto          # Toggle auto mode
+emeet-pixyd pan <value>          # Set pan (−150 to 150; or rel+/-N for relative)
+emeet-pixyd tilt <value>         # Set tilt (−90 to 90; or rel+/-N for relative)
+emeet-pixyd zoom <value>         # Set zoom (100 to 150; or rel+/-N for relative)
+emeet-pixyd speed <axis> <value> # Set motor speed for PTZ moves (axis: pan, tilt, zoom)
+emeet-pixyd tracking <variant>   # Set tracking variant (none, face, halfbody, fullbody)
+emeet-pixyd battery              # Show battery/charge (omitted if the device doesn't answer)
+emeet-pixyd preset save <name>   # Save current PTZ position as a named preset
+emeet-pixyd preset load <name>   # Recall a saved preset
+emeet-pixyd preset push <name>   # Mirror a saved preset into a hardware motor slot
+emeet-pixyd preset pull          # Sweep hardware slots into hw-N presets (read-only)
+emeet-pixyd preset pull --dry-run # Preview the sweep without storing anything
+emeet-pixyd preset list          # List all saved presets
+emeet-pixyd sync                 # Sync daemon state from camera hardware
+emeet-pixyd probe                # Re-detect device (video + hidraw)
+emeet-pixyd device               # Show current video device path + model
+emeet-pixyd waybar               # Output Waybar JSON
 ```
 
 ## Auto Modes
@@ -238,9 +238,9 @@ This is the right mode for headless or on-demand setups, e.g. a
 switches tracking/privacy on demand and grabs focused snapshots via FFmpeg:
 
 ```bash
-emeet-pixy auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
-emeet-pixy track            # tracking stays on, no capture required
-emeet-pixy privacy          # physically block the lens when the assistant is idle
+emeet-pixyd auto-off         # or: EMEET_PIXYD_AUTO=off / NixOS: auto = "off"
+emeet-pixyd track            # tracking stays on, no capture required
+emeet-pixyd privacy          # physically block the lens when the assistant is idle
 ```
 
 ## Web UI
@@ -357,7 +357,7 @@ static/             Frontend assets (DataStar, app.js, style.css) — go:embed
 | `Permission denied` on hidraw     | Verify udev rules match vendor `328f`, product `00c0` (PIXY) or `0118` (PIXY 2K). Run `udevadm control --reload-rules`. |
 | `v4l2-ctl: command not found`     | Install `v4l-utils` (provided by NixOS module).                                                                         |
 | No audio switching                | Check `wpctl status` shows a PIXY source. `wpctl` must be in PATH.                                                      |
-| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixy probe` output.                                               |
+| Camera not detected after plug-in | Daemon auto-detects via netlink uevents. Check `emeet-pixyd probe` output.                                               |
 | "recognized but not controllable: EMEET C960 …" | You have a fixed EMEET webcam, not a PIXY — the standard UVC driver already handles it; emeet-pixyd automates only the PIXY family. Nothing to fix. |
 | "unknown EMEET device (USB product ID 0x…)" | Unregistered EMEET hardware. If it is a PIXY-family variant, set `EMEET_PIXYD_EXTRA_PRODUCT_IDS=0x<pid>`; otherwise open an issue with the ID. |
 | Web UI shows "Camera in use"      | Another process (e.g., OBS, another browser tab) is holding `/dev/video*` open.                                         |
