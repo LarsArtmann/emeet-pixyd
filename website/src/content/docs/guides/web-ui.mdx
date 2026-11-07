@@ -97,6 +97,10 @@ Click the camera icon overlay on the preview to capture a still frame. The image
 
 The UI uses Server-Sent Events (SSE) for real-time state updates. When the daemon state changes (from CLI, auto-mode, or another browser tab), all connected clients update instantly without polling.
 
+## Update Notice
+
+When the daemon learns a newer release exists (daily GitHub check — see [Configuration](/guides/configuration/#update-check)), the footer next to the version gains a quiet `vX.Y.Z available` link to the release page. It morphs in over SSE while the panel is open and disappears once the daemon binary is up to date. Disable the whole mechanism with `EMEET_PIXYD_UPDATE_CHECK=off`.
+
 ## Offline State
 
 When the PIXY is not connected, the PTZ section is replaced with a placeholder card. The preview shows an SVG camera-off icon. The daemon automatically re-detects the device via netlink uevents when it's plugged back in.

@@ -76,6 +76,19 @@ in
       default = false;
       description = "Enable debug mode (pprof endpoints at /debug/pprof/)";
     };
+
+    updateCheck = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Let the daemon check GitHub for newer releases (once shortly
+        after startup, then daily) and surface a small "update available"
+        notice (web panel footer, /api/status, CLI version, Waybar
+        tooltip). The check is an unauthenticated GET to
+        api.github.com — no version or identifying data is sent. Set to
+        false to keep the daemon fully offline.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -110,6 +123,9 @@ in
           }
           // lib.optionalAttrs cfg.debug {
             EMEET_PIXYD_DEBUG = "true";
+          }
+          // lib.optionalAttrs (!cfg.updateCheck) {
+            EMEET_PIXYD_UPDATE_CHECK = "off";
           };
         in
         {

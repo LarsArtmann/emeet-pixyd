@@ -275,6 +275,7 @@ All config is via environment variables (no CLI flags — `os.Args` is reserved 
 | `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off (manual, no /proc monitoring), full, tracking-only, privacy-only (legacy: true/1, false/0) |
 | `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                                                                         |
 | `EMEET_PIXYD_EXTRA_PRODUCT_IDS` | *(empty)*       | Comma-separated hex USB product IDs treated as PIXY-family variants (e.g. `0x0119,01ab`)                  |
+| `EMEET_PIXYD_UPDATE_CHECK`    | `on`               | Daily GitHub release check; shows a small update notice in the web panel footer, `/api/status`, CLI `version`, and the Waybar tooltip. Set `off` to keep the daemon fully offline |
 
 ### NixOS Module Options
 
@@ -285,6 +286,7 @@ All config is via environment variables (no CLI flags — `os.Args` is reserved 
 | `hardware.emeet-pixy.auto`         | enum   | `"full"` | Auto-management strategy                |
 | `hardware.emeet-pixy.defaultAudio` | enum   | `"nc"`   | Default audio mode                      |
 | `hardware.emeet-pixy.debug`        | bool   | `false`  | Enable debug mode                       |
+| `hardware.emeet-pixy.updateCheck`  | bool   | `true`   | Daily GitHub release check with an update notice (`EMEET_PIXYD_UPDATE_CHECK`) |
 
 ## Runtime Dependencies
 

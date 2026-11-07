@@ -83,6 +83,7 @@
 | Preset Autocomplete       | 🟢 `FULLY_FUNCTIONAL`     | `<datalist>` of existing preset names attached to the save input (`templates.templ:358`).                                                                                                                |
 | SSE Connection Indicator  | 🟢 `FULLY_FUNCTIONAL`     | Green/amber/red dot driven by DataStar `datastar-fetch` document events (`app.js`); offline banner outside the morphed panel so state survives SSE patches.                                              |
 | SVG Placeholder Icons     | 🟢 `FULLY_FUNCTIONAL`     | Inline SVG icons for all states (Lucide-style stroke); offline/fallback use `iconCameraOff` — no emoji anywhere.                                                                                         |
+| Update Notice             | 🟢 `FULLY_FUNCTIONAL`     | Quiet `vX.Y.Z available` link in the footer when a newer GitHub release exists (daily check, `update.go`); morphs in over SSE. Also surfaced in `/api/status` (`update` object), CLI `version`, and the Waybar tooltip. Opt-out: `EMEET_PIXYD_UPDATE_CHECK=off`. |
 
 ## CLI / Unix Socket
 
@@ -94,6 +95,7 @@
 | Sync                | 🟢 `FULLY_FUNCTIONAL` | Queries hardware via HID, reconciles daemon state.                                                                                                                                    |
 | Probe               | 🟢 `FULLY_FUNCTIONAL` | Re-scans sysfs; pure `probeDevices()` returns `probeResult`.                                                                                                                          |
 | Waybar Output       | 🟢 `FULLY_FUNCTIONAL` | JSON `text`/`tooltip`/`class` (`waybar.go`) + additive `model` and battery fields (omitted when absent). Pan/tilt values and charging/discharging classes not yet included (ROADMAP). |
+| Version             | 🟢 `FULLY_FUNCTIONAL` | `emeet-pixyd version` via socket; appends `(update available: vX.Y.Z, URL)` when the update checker knows a newer release.                                                              |
 | --version / --help  | 🟢 `FULLY_FUNCTIONAL` | `handleFlag()` before CLI dispatch.                                                                                                                                                   |
 
 ## Desktop Notifications

@@ -17,6 +17,7 @@ All configuration is via environment variables. The daemon does not use CLI flag
 | `EMEET_PIXYD_AUTO`           | `full`             | Auto mode: off, full, tracking-only, privacy-only |
 | `EMEET_PIXYD_DEFAULT_AUDIO`  | `nc`               | Default audio mode: nc, live, org                 |
 | `EMEET_PIXYD_EXTRA_PRODUCT_IDS` | *(empty)*       | Comma-separated hex USB product IDs treated as PIXY-family variants (see [Supported Devices](/getting-started/supported-devices/)) |
+| `EMEET_PIXYD_UPDATE_CHECK`    | `on`               | Daily GitHub release check with an update notice (see below) |
 
 ### Duration Format
 
@@ -33,6 +34,17 @@ All configuration is via environment variables. The daemon does not use CLI flag
 - `true` / `1` → `full`
 - `false` / `0` → `off`
 
+### Update Check
+
+Roughly 30 seconds after startup and then once a day, the daemon asks GitHub for the newest release (`api.github.com/repos/LarsArtmann/emeet-pixyd/releases/latest`, an unauthenticated GET — no version or identifying data is sent). When the running build predates that release, every surface shows a small notice:
+
+- the web panel footer renders a `vX.Y.Z available` link to the release page (morphed in live over SSE),
+- `GET /api/status` carries an additive `update` object (`{version, url}`, omitted when current),
+- `emeet-pixyd version` appends the tag and release URL,
+- the Waybar tooltip gains an `Update available` line.
+
+Both build channels compare correctly: release binaries carry a semver tag (numeric compare), nix flake builds carry a git commit SHA (compared against the release tag via the GitHub compare API — only a commit strictly behind the tag counts). Dev builds (`go run`, version `dev`) never check. Set `EMEET_PIXYD_UPDATE_CHECK=off` to keep the daemon fully offline; failures are debug-logged only and never degrade anything.
+
 ## NixOS Module Options
 
 | Option                             | Type   | Default  | Description                             |
@@ -43,8 +55,9 @@ All configuration is via environment variables. The daemon does not use CLI flag
 | `hardware.emeet-pixy.auto`         | enum   | `"full"` | Auto-management strategy                |
 | `hardware.emeet-pixy.defaultAudio` | enum   | `"nc"`   | Default audio mode                      |
 | `hardware.emeet-pixy.debug`        | bool   | `false`  | Enable debug mode                       |
+| `hardware.emeet-pixy.updateCheck`  | bool   | `true`   | Daily GitHub release check with an update notice (`EMEET_PIXYD_UPDATE_CHECK`) |
 
-The NixOS module passes all options as `Environment=` vars. The `auto` option maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` to `EMEET_PIXYD_DEFAULT_AUDIO`, and `debug` to `EMEET_PIXYD_DEBUG`.
+The NixOS module passes all options as `Environment=` vars. The `auto` option maps directly to `EMEET_PIXYD_AUTO`, `defaultAudio` to `EMEET_PIXYD_DEFAULT_AUDIO`, and `debug` to `EMEET_PIXYD_DEBUG`. Setting `updateCheck = false` renders `EMEET_PIXYD_UPDATE_CHECK=off`.
 
 ### Web Port
 

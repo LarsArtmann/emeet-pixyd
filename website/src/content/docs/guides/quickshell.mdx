@@ -46,6 +46,7 @@ curl -s http://127.0.0.1:8090/api/status
 | `degraded` | bool    | `true` when a daemon surface is degraded (dead web listener, CLI accept-loop failures)   |
 | `reasons`  | string[] | Stable reason keys (`web-server`, `socket-accept`); omitted when healthy                |
 | `unsupportedHint` | string | Set when a recognized-but-unsupported EMEET webcam was seen (e.g. a C960); omitted when unset. First clause names the device — good for tooltips |
+| `update`  | object  | `{version, url}` naming a newer upstream release than the running build; omitted when current. Good for a subtle upgrade badge (see [Configuration](/guides/configuration/#update-check)) |
 
 Unlike [`/api/health`](/guides/metrics/), which answers `503` when the camera
 is unplugged, `/api/status` always answers `200` while the daemon is running.
