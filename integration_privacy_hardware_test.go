@@ -329,7 +329,7 @@ func TestIntegration_PrivacyTrapRecovery(t *testing.T) {
 }
 
 // TestIntegration_PrivacyTrapTimingRace verifies the fix for the reported
-// bug on real hardware: a track write landing inside the firmware's trap
+// firmware defect on real hardware: a track write landing inside the firmware's trap
 // transition is eaten, and the daemon's deferred re-assert (privacy_trap.go)
 // must recover the lens within the measurement window. Before the fix every
 // delay round below stayed covered (luma 12-34).

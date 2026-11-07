@@ -50,6 +50,17 @@ func counterValue(t *testing.T, name string, attrs ...attribute.KeyValue) int64 
 	return 0
 }
 
+// tickBreakerGauge reproduces the poll loop's metrics tick (autoManage): the
+// breaker gauge derives from hidFailCount >= threshold on every tick — the
+// strike path itself writes only at the trip site. Tests must tick before
+// asserting instead of trusting registry residue from earlier tests.
+func tickBreakerGauge(d *Daemon) {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold)
+}
+
 //nolint:paralleltest // global metrics registry
 func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	registerMetrics()
@@ -59,6 +70,7 @@ func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	// Strikes below the threshold keep the breaker closed.
 	d.recordHIDSendFailure(context.Background())
 	d.recordHIDSendFailure(context.Background())
+	tickBreakerGauge(d)
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 0)
 
 	// The third strike trips it — recorded immediately.
@@ -72,9 +84,7 @@ func TestBreakerStateMetric_MirrorsAccounting(t *testing.T) {
 	d.applyProbeResultLocked(probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev})
 	d.mu.Unlock()
 
-	d.mu.RLock()
-	updateMetrics(d.state, d.videoDev != "", d.hidFailCount >= hidCircuitBreakerThreshold)
-	d.mu.RUnlock()
+	tickBreakerGauge(d)
 
 	requireGaugeValue(t, "emeet_pixyd_breaker_state", 0)
 }
