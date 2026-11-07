@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -42,10 +43,11 @@ const (
 
 // availableUpdate describes a newer upstream release observed by the update
 // checker: the release tag as published (e.g. "v0.6.0") and the human-facing
-// release page URL. Immutable once constructed.
+// release page URL. Immutable once constructed. JSON tags serve the
+// additive /api/status `update` object (omitted entirely when nil).
 type availableUpdate struct {
-	Version string
-	URL     string
+	Version string `json:"version"`
+	URL     string `json:"url"`
 }
 
 // updateState holds the update checker's last verdict. Guarded by its own
@@ -85,17 +87,17 @@ func sameUpdate(a, b *availableUpdate) bool {
 }
 
 // githubRelease is the subset of the GitHub releases/latest payload the
-// checker consumes.
+// checker consumes (snake_case is the upstream API contract).
 type githubRelease struct {
-	TagName string `json:"tag_name"`
-	HTMLURL string `json:"html_url"`
+	TagName string `json:"tag_name"` //nolint:tagliatelle
+	HTMLURL string `json:"html_url"` //nolint:tagliatelle
 }
 
 // githubCompare is the subset of the GitHub compare payload the checker
 // consumes: status is one of identical/behind/ahead/diverged (head vs base).
 type githubCompare struct {
 	Status   string `json:"status"`
-	BehindBy int    `json:"behind_by"`
+	BehindBy int    `json:"behind_by"` //nolint:tagliatelle
 }
 
 //nolint:gochecknoglobals // shared HTTP client, safe for concurrent use
@@ -185,6 +187,7 @@ func compareFromAPI(ctx context.Context, baseURL, baseTag, headSHA string) (gith
 // same core are treated as equal (no notice — noise beats precision here).
 func isNewerRelease(current, latest string) bool {
 	curCore, curPre, curOK := parseReleaseTag(current)
+
 	latCore, latPre, latOK := parseReleaseTag(latest)
 	if !curOK || !latOK {
 		return false
@@ -221,48 +224,44 @@ func compareVersionCores(a, b [3]int) int {
 // parseReleaseTag splits a tag into its numeric core (padded to 3
 // components) and pre-release suffix; ok is false for anything that does not
 // start major[.minor[.patch]] numerically ("dev", commit SHAs, garbage).
-func parseReleaseTag(tag string) (core [3]int, preRelease string, ok bool) {
+func parseReleaseTag(tag string) ([3]int, string, bool) {
 	version := strings.TrimPrefix(strings.TrimPrefix(tag, "v"), "V")
 
 	if corePart, pre, found := strings.Cut(version, "-"); found {
-		if !parseCore(corePart, &core) {
+		core, ok := parseCore(corePart)
+		if !ok {
 			return [3]int{}, "", false
 		}
 
 		return core, pre, true
 	}
 
-	if !parseCore(version, &core) {
+	core, ok := parseCore(version)
+	if !ok {
 		return [3]int{}, "", false
 	}
 
 	return core, "", true
 }
 
-func parseCore(s string, core *[3]int) bool {
-	parts := strings.Split(s, ".")
-	if len(parts) == 0 || len(parts) > 3 {
-		return false
+func parseCore(version string) ([3]int, bool) {
+	var core [3]int
+
+	parts := strings.Split(version, ".")
+	if len(parts) > 3 {
+		return core, false
 	}
 
 	for i, part := range parts {
-		if part == "" {
-			return false
-		}
-
-		n := 0
-		for _, ch := range part {
-			if ch < '0' || ch > '9' {
-				return false
-			}
-
-			n = n*10 + int(ch-'0')
+		n, err := strconv.Atoi(part)
+		if err != nil || n < 0 {
+			return core, false
 		}
 
 		core[i] = n
 	}
 
-	return true
+	return core, true
 }
 
 // commitSHA extracts a git commit SHA from a buildVersion: the full 40-hex
@@ -294,8 +293,7 @@ func isHexDigit(ch rune) bool {
 // verdict changes broadcast to SSE clients so open panels morph the notice
 // in live.
 func (d *Daemon) checkForUpdate(ctx context.Context, current string) {
-	sha, byCommit := commitSHA(current)
-	if !byCommit {
+	if _, byCommit := commitSHA(current); !byCommit {
 		if _, _, byTag := parseReleaseTag(current); !byTag {
 			slog.Debug("skipping update check for uncomparable version", "version", current)
 
@@ -310,14 +308,9 @@ func (d *Daemon) checkForUpdate(ctx context.Context, current string) {
 		return
 	}
 
-	newer := false
-	if byCommit {
-		newer, err = d.commitBehindRelease(ctx, release, sha)
-		if err != nil {
-			return
-		}
-	} else {
-		newer = isNewerRelease(current, release.TagName)
+	newer, err := d.newerThanCurrent(ctx, current, release)
+	if err != nil {
+		return // already debug-logged; keep the last known observation
 	}
 
 	update := (*availableUpdate)(nil)
@@ -345,6 +338,16 @@ func (d *Daemon) commitBehindRelease(ctx context.Context, release githubRelease,
 	}
 
 	return compare.Status == "behind" && compare.BehindBy > 0, nil
+}
+
+// newerThanCurrent resolves both version channels against a fetched release:
+// the commit channel via the GitHub compare API, the tag channel numerically.
+func (d *Daemon) newerThanCurrent(ctx context.Context, current string, release githubRelease) (bool, error) {
+	if sha, byCommit := commitSHA(current); byCommit {
+		return d.commitBehindRelease(ctx, release, sha)
+	}
+
+	return isNewerRelease(current, release.TagName), nil
 }
 
 // runUpdateChecker polls the upstream release feed until ctx is done: first

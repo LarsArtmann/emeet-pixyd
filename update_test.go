@@ -23,7 +23,7 @@ func TestIsNewerRelease(t *testing.T) {
 		want    bool
 	}{
 		{current: "v0.5.0", latest: "v0.6.0", want: true},
-		{current: "0.5.0", latest: "v0.6.0", want: true},   // no v prefix on current
+		{current: "0.5.0", latest: "v0.6.0", want: true},    // no v prefix on current
 		{current: "v0.5", latest: "v0.5.1", want: true},     // 2-component core pads
 		{current: "v0.10.0", latest: "v0.9.0", want: false}, // numeric, not lexicographic
 		{current: "v0.6.0", latest: "v0.6.0", want: false},  // equal
@@ -31,8 +31,8 @@ func TestIsNewerRelease(t *testing.T) {
 		{current: "v0.6.0", latest: "v0.6.0-rc1", want: false},
 		{current: "v0.6.0-rc1", latest: "v0.6.0", want: true}, // pre-release < final
 		{current: "v0.6.0-rc1", latest: "v0.6.0-rc2", want: false},
-		{current: "dev", latest: "v0.6.0", want: false},       // unparseable current
-		{current: "v0.6.0", latest: "dev", want: false},       // unparseable latest
+		{current: "dev", latest: "v0.6.0", want: false}, // unparseable current
+		{current: "v0.6.0", latest: "dev", want: false}, // unparseable latest
 		{current: "v0.6.0", latest: "", want: false},
 	} {
 		if got := isNewerRelease(tc.current, tc.latest); got != tc.want {
@@ -50,16 +50,16 @@ func TestCommitSHA(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		in      string
-		want    string
-		wantOK  bool
+		in     string
+		want   string
+		wantOK bool
 	}{
 		{in: full, want: full, wantOK: true},
 		{in: full + "-dirty", want: full, wantOK: true},
 		{in: "0c3a1b2", want: "0c3a1b2", wantOK: true},
 		{in: "v0.5.0", wantOK: false},
 		{in: "dev", wantOK: false},
-		{in: "0c3a1b20", wantOK: false},  // 8 chars: neither short nor full
+		{in: "0c3a1b20", wantOK: false}, // 8 chars: neither short nor full
 		{in: strings.Repeat("g", 40), wantOK: false},
 	} {
 		got, ok := commitSHA(tc.in)
@@ -84,7 +84,6 @@ func TestReleaseFromFeed(t *testing.T) {
 
 		server := newJSONServer(t, http.StatusOK, `{"tag_name":"v0.6.0","html_url":"https://example.com/v0.6.0"}`)
 		release, err := releaseFromFeed(context.Background(), server.URL)
-
 		if err != nil {
 			t.Fatalf("releaseFromFeed: unexpected error: %v", err)
 		}
@@ -456,8 +455,7 @@ func TestWebStatusJSON_UpdateFields(t *testing.T) {
 	body := getBody(t, resp)
 	resp.Body.Close()
 
-	assertNotContains(t, body, `"updateVersion"`, "update fields omitted before any check ran")
-	assertNotContains(t, body, `"updateURL"`, "update fields omitted before any check ran")
+	assertNotContains(t, body, `"update"`, "update object omitted before any check ran")
 
 	daemon.updates.set(&availableUpdate{Version: "v0.6.0", URL: "https://example.com/rel"})
 
@@ -465,12 +463,16 @@ func TestWebStatusJSON_UpdateFields(t *testing.T) {
 	got := decodeStatusResponse(t, resp)
 	resp.Body.Close()
 
-	if got.UpdateVersion != "v0.6.0" {
-		t.Errorf("updateVersion = %q, want v0.6.0", got.UpdateVersion)
+	if got.Update == nil {
+		t.Fatal("update = nil, want the observed release")
 	}
 
-	if got.UpdateURL != "https://example.com/rel" {
-		t.Errorf("updateURL = %q, want the release URL", got.UpdateURL)
+	if got.Update.Version != "v0.6.0" {
+		t.Errorf("update.version = %q, want v0.6.0", got.Update.Version)
+	}
+
+	if got.Update.URL != "https://example.com/rel" {
+		t.Errorf("update.url = %q, want the release URL", got.Update.URL)
 	}
 }
 

@@ -141,6 +141,7 @@ linters:
         - net\.Dialer
         - net\.ListenConfig
         - net/http\.Server
+        - net/http\.Client
         - golang.org/x/sys/unix\.SockaddrNetlink
     funlen:
       lines: 100

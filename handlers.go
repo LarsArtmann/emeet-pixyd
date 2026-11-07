@@ -186,16 +186,15 @@ type statusResponse struct {
 	Gesture      bool             `json:"gesture"`
 	Battery      string           `json:"battery,omitzero"`
 	Version      string           `json:"version"`
-	Degraded     bool     `json:"degraded"`
-	Reasons      []string `json:"reasons,omitempty"`
+	Degraded     bool             `json:"degraded"`
+	Reasons      []string         `json:"reasons,omitempty"`
 	// UnsupportedHint is additive and absent when nothing is recognized on
 	// the bus — widget consumers keep working unchanged (ADR 2026-09-28).
 	UnsupportedHint string `json:"unsupportedHint,omitempty"`
-	// UpdateVersion/UpdateURL are additive and absent while the daemon runs
-	// the newest release (or has not checked yet): the observed newer
-	// release tag and its release-page URL, for widgets that want a badge.
-	UpdateVersion string `json:"updateVersion,omitempty"`
-	UpdateURL     string `json:"updateURL,omitempty"`
+	// Update is additive and absent while the daemon runs the newest
+	// release (or before the first check): the observed newer release
+	// (version + release-page URL) for widgets that want a badge.
+	Update *availableUpdate `json:"update,omitempty"`
 }
 
 // handleStatusJSON serves the widget-facing status contract. It reuses
@@ -219,10 +218,7 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 		Degraded:        status.Degraded,
 		Reasons:         status.DegradedReasons,
 		UnsupportedHint: status.UnsupportedHint,
-	}
-	if status.Update != nil {
-		resp.UpdateVersion = status.Update.Version
-		resp.UpdateURL = status.Update.URL
+		Update:          status.Update,
 	}
 
 	if err := writeJSON(responseWriter, http.StatusOK, resp); err != nil {
