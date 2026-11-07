@@ -212,6 +212,10 @@ type statusSnapshot struct {
 	Speeds          pixy.SpeedValues
 	UnsupportedHint string // why a recognized-but-unsupported EMEET device is not controllable ("" when unset)
 
+	// Update is the newer upstream release observed by the update checker
+	// (nil = none known; see update.go).
+	Update *availableUpdate
+
 	DegradedReasons []string
 }
 
@@ -236,6 +240,7 @@ func (d *Daemon) snapshot() statusSnapshot {
 		TrackMode:       d.state.EffectiveTrackMode().String(),
 		Speeds:          d.state.Speeds,
 		UnsupportedHint: d.unsupportedHint,
+		Update:          d.updates.get(),
 
 		DegradedReasons: d.degradedReasonsSortedLocked(),
 	}

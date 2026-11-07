@@ -1,6 +1,7 @@
 package pixy
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -21,6 +22,13 @@ type Config struct {
 	AutoMode      AutoMode
 	DefaultAudio  AudioMode
 
+	// UpdateCheck enables the slow upstream release check (GitHub releases,
+	// default on). When a newer release exists, every status surface shows a
+	// small notice (web panel footer, /api/status, CLI version, Waybar
+	// tooltip). Disable with EMEET_PIXYD_UPDATE_CHECK=off to keep the daemon
+	// from reaching out to api.github.com at all.
+	UpdateCheck bool
+
 	// ExtraProductIDs are additional USB product IDs (hex, from
 	// EMEET_PIXYD_EXTRA_PRODUCT_IDS) treated as PIXY-family devices. They
 	// let users onboard PIXY variants the registry does not know yet.
@@ -40,6 +48,7 @@ func DefaultConfig() Config {
 		WebAddr:       DefaultWebAddr,
 		AutoMode:      state.AutoMode,
 		DefaultAudio:  state.Audio,
+		UpdateCheck:   true,
 	}
 }
 
@@ -48,7 +57,8 @@ func DefaultConfig() Config {
 // EMEET_PIXYD_POLL_INTERVAL (Go duration), EMEET_PIXYD_DEBOUNCE_COUNT (int),
 // EMEET_PIXYD_DEBUG (bool), EMEET_PIXYD_AUTO (off/full/tracking-only/privacy-only, or legacy true/1/false/0),
 // EMEET_PIXYD_DEFAULT_AUDIO (nc/live/org),
-// EMEET_PIXYD_EXTRA_PRODUCT_IDS (comma-separated hex USB product IDs).
+// EMEET_PIXYD_EXTRA_PRODUCT_IDS (comma-separated hex USB product IDs),
+// EMEET_PIXYD_UPDATE_CHECK (on/true/1 or off/false/0; default on).
 func ConfigFromEnv() Config {
 	cfg := DefaultConfig()
 
@@ -104,7 +114,31 @@ func ConfigFromEnv() Config {
 		cfg.ExtraProductIDs = ParseExtraProductIDs(v)
 	}
 
+	if v := os.Getenv("EMEET_PIXYD_UPDATE_CHECK"); v != "" {
+		enabled, parseErr := ParseBool(v)
+		if parseErr == nil {
+			cfg.UpdateCheck = enabled
+		} else {
+			slog.Warn("invalid EMEET_PIXYD_UPDATE_CHECK, using default", "value", v, "default", cfg.UpdateCheck)
+		}
+	}
+
 	return cfg
+}
+
+// ParseBool parses the boolean env syntax shared by flag-like settings:
+// on/true/1/enabled and off/false/0/disabled, case-insensitive. Numbers keep
+// DEBUG's legacy "1" form working in both directions.
+func ParseBool(value string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "on", "true", "1", "enabled":
+		return true, nil
+	case "off", "false", "0", "disabled":
+		return false, nil
+	default:
+		return false, errorfamily.NewRejection("config.parse_bool",
+			fmt.Sprintf("cannot parse %q as a boolean (on/off, true/false, 1/0)", value))
+	}
 }
 
 // ParseExtraProductIDs parses a comma-separated list of hex USB product IDs

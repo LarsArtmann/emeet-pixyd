@@ -262,6 +262,87 @@ func TestConfigFromEnv_DebugAcceptsOne(t *testing.T) {
 	}
 }
 
+func TestConfigFromEnv_UpdateCheckDefaultOn(t *testing.T) {
+	t.Parallel()
+
+	if !DefaultConfig().UpdateCheck {
+		t.Error("DefaultConfig().UpdateCheck = false, want true")
+	}
+
+	if !ConfigFromEnv().UpdateCheck {
+		t.Error("ConfigFromEnv().UpdateCheck = false, want true when env unset")
+	}
+}
+
+func TestConfigFromEnv_UpdateCheckOptOut(t *testing.T) {
+	for _, raw := range []string{"off", "false", "0", "OFF", "Disabled"} {
+		t.Setenv("EMEET_PIXYD_UPDATE_CHECK", raw)
+
+		if ConfigFromEnv().UpdateCheck {
+			t.Errorf("UpdateCheck = true for %q, want false", raw)
+		}
+	}
+}
+
+func TestConfigFromEnv_UpdateCheckExplicitOn(t *testing.T) {
+	for _, raw := range []string{"on", "true", "1"} {
+		t.Setenv("EMEET_PIXYD_UPDATE_CHECK", raw)
+
+		if !ConfigFromEnv().UpdateCheck {
+			t.Errorf("UpdateCheck = false for %q, want true", raw)
+		}
+	}
+}
+
+func TestConfigFromEnv_UpdateCheckInvalidKeepsDefault(t *testing.T) {
+	t.Setenv("EMEET_PIXYD_UPDATE_CHECK", "maybe")
+
+	if !ConfigFromEnv().UpdateCheck {
+		t.Error("UpdateCheck = false for invalid 'maybe', want default true")
+	}
+}
+
+func TestParseBool(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		input   string
+		want    bool
+		wantErr bool
+	}{
+		{input: "on", want: true},
+		{input: "true", want: true},
+		{input: "1", want: true},
+		{input: "enabled", want: true},
+		{input: " off ", want: false},
+		{input: "false", want: false},
+		{input: "0", want: false},
+		{input: "disabled", want: false},
+		{input: "maybe", wantErr: true},
+		{input: "", wantErr: true},
+	} {
+		got, err := ParseBool(tc.input)
+
+		if tc.wantErr {
+			if err == nil {
+				t.Errorf("ParseBool(%q): expected error, got nil", tc.input)
+			}
+
+			continue
+		}
+
+		if err != nil {
+			t.Errorf("ParseBool(%q): unexpected error: %v", tc.input, err)
+
+			continue
+		}
+
+		if got != tc.want {
+			t.Errorf("ParseBool(%q) = %v, want %v", tc.input, got, tc.want)
+		}
+	}
+}
+
 func TestConfigFromEnv_IgnoresInvalidValues(t *testing.T) {
 	t.Setenv("EMEET_PIXYD_POLL_INTERVAL", "not-a-duration")
 	t.Setenv("EMEET_PIXYD_DEBOUNCE_COUNT", "not-a-number")

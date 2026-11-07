@@ -18,6 +18,8 @@ type Dependencies struct {
 	findSource     func(ctx context.Context) (pixy.SourceID, error)
 	setSource      func(ctx context.Context, sourceID pixy.SourceID)
 	notify         func(ctx context.Context, title, body string)
+	latestRelease  func(ctx context.Context) (githubRelease, error)
+	compareRelease func(ctx context.Context, tag, sha string) (githubCompare, error)
 	setTracking    func(ctx context.Context, state pixy.CameraState) error
 	setAudio       func(ctx context.Context, mode pixy.AudioMode) error
 	setGesture     func(ctx context.Context, enabled bool) error

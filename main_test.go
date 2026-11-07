@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -199,6 +200,14 @@ func noopSetSourceFn(context.Context, pixy.SourceID) {}
 
 func noopNotifyFn(context.Context, string, string) {}
 
+func noopLatestReleaseFn(context.Context) (githubRelease, error) {
+	return githubRelease{}, errorfamily.NewTransient("update.noop", "noop release feed")
+}
+
+func noopCompareReleaseFn(context.Context, string, string) (githubCompare, error) {
+	return githubCompare{}, errorfamily.NewTransient("update.noop", "noop compare")
+}
+
 func readState[T any](d *Daemon, fn func(pixy.State) T) T {
 	d.mu.RLock()
 	v := fn(d.state)
@@ -227,6 +236,8 @@ func noopDependencies() Dependencies {
 		findSource:     noopFindSourceFn,
 		setSource:      noopSetSourceFn,
 		notify:         noopNotifyFn,
+		latestRelease:  noopLatestReleaseFn,
+		compareRelease: noopCompareReleaseFn,
 		setTracking:    noopSetTracking,
 		setAudio:       noopSetAudio,
 		setGesture:     noopSetGesture,

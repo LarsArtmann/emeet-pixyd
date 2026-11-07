@@ -80,6 +80,10 @@ type Daemon struct {
 
 	ptzCache ptzCache
 
+	// updates holds the update checker's observation (a newer upstream
+	// release or none), guarded by its own lock — see update.go.
+	updates updateState
+
 	// powerCache holds the last battery/charge reading (TODO #139) with a
 	// TTL, so status/waybar surfaces cost at most one HID query per window.
 	powerCache powerCache
@@ -125,6 +129,8 @@ func NewDaemon(cfg pixy.Config) (*Daemon, error) {
 		findSource:     d.findPixySource,
 		setSource:      d.setDefaultSource,
 		notify:         d.notifyCmd,
+		latestRelease:  fetchLatestReleaseFeed,
+		compareRelease: fetchReleaseCompare,
 	}
 	d.deps.setTracking = d.setTracking
 	d.deps.setAudio = d.setAudio
@@ -260,6 +266,8 @@ func (d *Daemon) Run() error {
 			d.reconcileOnDeviceAppear(ctx)
 		}()
 	}
+
+	go d.runUpdateChecker(ctx)
 
 	d.eventLoop(ctx, cancel, sigs, httpSrv)
 
