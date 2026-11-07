@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>Data Model &amp; Layout Review — emeet-pixyd (2026-11-07)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -826,246 +826,520 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>DATA MODEL &amp; ARCHITECTURE REVIEW</span>
+      <span>2026-11-07</span>
+      <span>emeet-pixyd</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
           <a href="#findings">Findings</a>
           <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#vision">The Vision</a>
+          <a href="#model">Target Data Model</a>
+          <a href="#decisions">Decision Log</a>
+          <a href="#table">Issue Table</a>
+          <a href="#architecture">Architecture Context</a>
+          <a href="#plan">Migration Plan</a>
         </nav>
       </aside>
 
       <main class="main">
-        <!-- Hero -->
         <div class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Architecture Deep-Dive</div>
+          <h1>Data Model &amp; Layout Review</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            First-principles review of every type in emeet-pixyd's domain and daemon layers,
+            combined with this session's modularization verdict: what is already excellent,
+            where intent and observation still share one type, and the migration that makes
+            invalid states unrepresentable without breaking a single persisted file.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
         <nav class="toc">
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
             <li><a href="#findings">Findings</a></li>
             <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
+            <li><a href="#strengths">Strengths</a></li>
+            <li><a href="#vision">The Vision</a></li>
+            <li><a href="#model">Target Data Model</a></li>
+            <li><a href="#decisions">Decision Log</a></li>
+            <li><a href="#table">Issue Table</a></li>
+            <li><a href="#architecture">Architecture Context</a></li>
+            <li><a href="#plan">Migration Plan</a></li>
           </ul>
         </nav>
 
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
+            <div class="stat-value">8</div>
+            <div class="stat-label">Findings</div>
           </div>
-          <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
             <div class="stat-label">Critical</div>
           </div>
           <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-value">4</div>
+            <div class="stat-label">Important</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">7</div>
+            <div class="stat-label">Strengths</div>
           </div>
         </div>
+        <p>
+          Scope: every type definition in <code>internal/pixy</code> (7 files, read in full) and the
+          daemon's data-bearing files (<code>state.go</code>, <code>web_types.go</code>, <code>cache.go</code>,
+          <code>waybar.go</code>, <code>degraded.go</code>, <code>errors.go</code>, <code>device.go</code>,
+          <code>probe.go</code>, <code>power.go</code>, <code>handlers.go</code>, <code>update.go</code>,
+          <code>model.go</code>). Verified claims cite file:line from this session's reads. Not audited:
+          test-file types, metrics internals, templ templates. No finding blocks development; the four
+          Important items are systemic (each affects multiple types) and all fixes are additive with
+          byte-stable JSON.
+        </p>
 
-        <!-- Findings as Cards -->
         <h2 id="findings"><span class="num">01</span>Findings</h2>
 
         <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
+          <h4>Root cause #1 — Intent and observation share one enum</h4>
+          <p>
+            <code>pixy.CameraState</code> carries three user-desired modes plus
+            <code>StateOffline</code>, a connectivity observation. The persistence invariant
+            ("offline never reaches disk") is enforced by <em>runtime twin-normalization</em> in
+            loadState and saveState instead of by the type system.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>Root cause #2 — Empty string as state</h4>
+          <p>
+            Optionality is encoded as <code>""</code> across Battery, Model, VideoDev, HidrawDev,
+            UnsupportedHint, Toast, LastSynced and State.TrackMode. Boundaries validate, but every
+            consumer re-checks emptiness, and the one dangerous case — TrackMode
+            <code>""</code> meaning "reads back as face" — is an implicit default hidden in an
+            accessor.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>Root cause #3 — View proliferation + a duplicated collapse rule</h4>
+          <p>
+            Four shapes of the same truth (<code>statusSnapshot</code>, <code>webStatus</code>,
+            <code>statusResponse</code>, <code>waybarJSON</code>) and two hand-rolled copies of the
+            "human surfaces collapse intent → offline when no video node" rule
+            (waybar.go:49–51 and device.go:481–490 in getStatus — one substitutes the value, the
+            other early-returns a different format).
+          </p>
         </div>
 
         <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
+          <h4>The fix in one sentence</h4>
+          <p>
+            Split the desired mode into its own alias type, brand the USB product ID, type the
+            degraded-reason and track-mode strings, and extract ONE display-collapse helper —
+            six additive migrations, all JSON-stable, none blocking.
+          </p>
         </div>
 
-        <!-- Issue Cards -->
         <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
 
-        <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>I1 — CameraState conflates desired mode with connectivity</h3>
+          <div class="where">internal/pixy/pixy.go:62–100, state.go:74–88 + 129–144, waybar.go:48–51</div>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            <code>State.Camera</code> persists the user's intent; <code>StateOffline</code> is a
+            connectivity observation that v1 files used to (wrongly) persist. ADR
+            2026-10-01 fixed the persistence split-brain, but the type still lets any
+            <code>CameraState</code> variable hold an observation. The invariant is re-enforced at
+            every boundary: <code>ValidDesired()</code> filtering, load-time normalization to
+            privacy, save-time normalization to privacy — three runtime guards for a fact the
+            compiler could hold.
           </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            State the concrete recommended action.
+            <code>type DesiredCameraMode string</code> with exactly
+            <code>{DesiredIdle, DesiredTracking, DesiredPrivacy}</code>;
+            <code>State.Camera DesiredCameraMode</code>; a single
+            <code>func (m DesiredCameraMode) CameraState() CameraState</code> projection for
+            display surfaces. JSON bytes are unchanged ("idle"/"tracking"/"privacy"), schema
+            version stays 2, and the twin normalization collapses to zero lines.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <h3>I2 — The offline-collapse rule is hand-rolled twice</h3>
+          <div class="where">waybar.go:49–51; device.go:480–490 (getStatus)</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            Waybar substitutes the camera value inline; the CLI status line early-returns a
+            whole different format string with hard-coded zeros. Two copies of one display rule
+            will drift the next time a human surface is added (a third already exists in spirit
+            inside the web panel's offline banner). This is also finding #2's evidence: the rule
+            exists because intent and connectivity are separate concepts wearing one type.
           </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            One helper in <code>internal/pixy</code>:
+            <code>func DisplayCameraState(online bool, desired DesiredCameraMode) CameraState</code>.
+            Both surfaces call it; a table-driven test pins the rule. (Verified: no shared helper
+            exists today — grep for StateOffline in non-test root files finds only the two
+            hand-rolled sites.)
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>I3 — USB product IDs are raw int64 while process IDs are branded</h3>
+          <div class="where">internal/pixy/model.go:22–78, 97–120; internal/pixy/config.go:35; ids.go</div>
+          <p>
+            The codebase brands process PIDs (<code>id.ID[pidBrand, int]</code>) and PipeWire
+            source IDs — but USB product IDs flow as bare <code>int64</code> through the device
+            registries, <code>ResolveProductID</code>, <code>Config.ExtraProductIDs</code>, and
+            the uevent parser. Two unrelated ID spaces (process vs USB) are one
+            <code>int64</code> substitution bug away from each other.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            <code>type USBProductID int64</code> + named constants + a
+            <code>ParseUSBProductID(string) (USBProductID, bool)</code> that owns the hex
+            parsing now inlined in ParseExtraProductIDs. Alias branding: zero overhead, registry
+            keys become self-documenting.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>I4 — State.TrackMode is a string beside a typed enum it mirrors</h3>
+          <div class="where">internal/pixy/pixy.go:288–296, 314–333; internal/pixy/v2head.go:441–495</div>
+          <p>
+            <code>TargetTrackMode</code> is a verified byte enum with canonical strings
+            ("none"/"face"/"halfbody"/"fullbody") — yet the persisted field is raw
+            <code>string</code>, with <code>""</code> meaning "never set, reads back as face"
+            encoded in <code>EffectiveTrackMode()</code>. <code>State.Valid()</code> re-parses
+            the string on every load to recover the type safety the enum already provides.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            <code>type TrackModePref string</code> (same canonical strings, zero value = unset
+            stays) + <code>func (p TrackModePref) Effective() TargetTrackMode</code> moved next
+            to the enum. Optional hardening: an <code>UnmarshalJSON</code> that rejects unknown
+            strings at decode time instead of at <code>Valid()</code> time.
+          </div>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <h3>I5 — Degraded reasons are untyped strings with a prefix protocol</h3>
+          <div class="where">degraded.go:12–43</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            <code>markDegraded(reason string)</code> accepts anything; the reason space is "one
+            of two constants" or <code>"extdep:&lt;binary&gt;"</code> — a two-variant union
+            encoded as a string prefix. A typo'd reason key silently creates a new degradation
+            class no consumer knows.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            <code>type DegradedReason string</code> with the two fixed constants and
+            <code>ExternalDepReason(binary string) DegradedReason</code> owning the prefix.
+            JSON/wire strings unchanged.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>I6 — PresetMap trusts its keys</h3>
+          <div class="where">internal/pixy/pixy.go:497–524</div>
+          <p>
+            <code>PresetMap map[string]PTZValues</code> has Get/SortedNames/IsFull but no
+            validated mutator; <code>ValidatePresetName</code> guards write sites by convention.
+            JSON unmarshal or a careless literal can insert names that violate the documented
+            invariants (≤16, ≤32 runes, no path separators).
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Add <code>func (p PresetMap) Set(name string, v PTZValues) error</code> that runs
+            ValidatePresetName + IsFull, and route all write sites (CLI, preset push, web)
+            through it. Keep the map type for JSON stability.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>I7 — Machine contracts carry display strings</h3>
+          <div class="where">handlers.go:177–193 (statusResponse.Battery string)</div>
+          <p>
+            The shell-widget API's <code>battery</code> field is a formatted display string in a
+            contract documented as a stable public interface. Widgets that want to style
+            charging state must parse text. Same class: <code>Reasons []string</code> in
+            statusResponse (fixes itself once I5 types DegradedReason — the strings stay).
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Additive first (ADR 2026-09-28 precedent):
+            <code>batteryPercent,omitzero</code> + <code>batteryCharging,omitzero</code> beside
+            the legacy string; update quickshell.mdx; retire the string only in a future schema
+            generation.
+          </div>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Considered &amp; rejected</span>
+          <h3>I8 — SpeedValues / PTZValues near-duplication</h3>
+          <div class="where">internal/pixy/pixy.go:335–416</div>
+          <p>
+            Two axis-triples (float32 preferences vs int positions) with shared generic plumbing
+            (<code>axisGet/axisSet[V]</code>). A generic <code>AxisValues[V]</code> would unify
+            the shape but erase the domain distinction between "what the user prefers" and
+            "where the camera is" — the exact conflation this review exists to remove.
+            Rejected: premature generalization; the shared helpers are the right altitude.
           </p>
         </div>
 
-        <!-- Strengths -->
-        <h2>Strengths</h2>
+        <h2 id="strengths"><span class="num">03</span>Strengths — keep these</h2>
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
-            <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
+            <div class="text"><strong>Branded IDs where it counts</strong>
+              <span>PID and SourceID ride go-branded-id phantom types (ids.go) — accidental ID substitution cannot compile.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Error model is exemplary (P12: pass)</strong>
+              <span>Every error constructed through go-error-family with machine-readable <code>&lt;area.&gt;&lt;code&gt;</code> identifiers; nil-safe family-inheriting wraps (wrap.go); strict erraudit gate green.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Generics used at the right altitude (P11: pass)</strong>
+              <span><code>ttlCache[T]</code> and <code>axisGet/axisSet[V ~int|~float32]</code> remove real duplication without inventing domain-less abstractions.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Versioned, strict persistence (P8: pass)</strong>
+              <span>SchemaVersion + json/v2 <code>RejectUnknownMembers</code> + documented v1→v2 offline normalization — the state file cannot silently grow unknown fields.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Closed-shape union by hand where Go lacks sums</strong>
+              <span><code>MotorPresetReading</code> hides <code>hasPos</code> behind an accessor; position floats are only meaningful when <code>HasPosition()</code> — the two evidenced wire shapes collapse into one honest type (v2head.go:284–323).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Evidence-graded protocol types</strong>
+              <span>V2Head constants carry their evidence grade (static cmdtable / x64 disasm / hardware-pending #166) in the type's docs — reverse-engineered knowledge lives with the type, not in a wiki.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Typed view enums surface-wide</strong>
+              <span>webStatus/statusResponse use <code>pixy.*</code> typed fields, never raw strings; waybar's state map is keyed by the real enum (web_types.go:19–51, waybar.go:34–39).</span>
             </div>
           </div>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <h2 id="vision"><span class="num">04</span>The Vision</h2>
+        <p>
+          This model's job: hold <strong>user intent</strong> durably across unplug, reboot and
+          firmware resets, while observing <strong>hardware truth</strong> separately — and render
+          both correctly on four surfaces (CLI, web, Waybar, shell-widget API) without the two
+          ever bleeding into each other. The five core entities: <em>DeviceIntent</em> (camera /
+          audio / gesture / track / speeds), <em>Connectivity</em> (video + HID presence),
+          <em>DeviceIdentity</em> (model / family / USB product ID), <em>AxisGeometry</em>
+          (PTZ positions and limits), and <em>Observations</em> (battery, in-call, update,
+          degradation). The invariants that must always hold: persisted camera ∈ desired set;
+          all persisted enums valid; presets ≤ 16 with valid names; zero speed = firmware
+          default; display shows offline iff no video node. Today all five invariants are
+          runtime-enforced; the target model moves three of them into the type system and
+          single-sources the other two.
+        </p>
+
+        <h2 id="model"><span class="num">05</span>Target Data Model (Go)</h2>
+<pre><code>// Desired intent — what the user chose. Never carries connectivity.
+type DesiredCameraMode string
+
+const (
+    DesiredIdle      DesiredCameraMode = "idle"
+    DesiredTracking  DesiredCameraMode = "tracking"
+    DesiredPrivacy   DesiredCameraMode = "privacy"
+)
+
+// Display projection — the ONE place the collapse rule lives.
+func DisplayCameraState(online bool, m DesiredCameraMode) CameraState {
+    if !online {
+        return StateOffline
+    }
+    return CameraState(m)
+}
+
+// State.Camera becomes intent by construction — load/save normalization deleted.
+type State struct {
+    // ...
+    Camera DesiredCameraMode `json:"camera"`
+}
+
+// Identity — no more bare int64 in the device registry.
+type USBProductID int64
+
+const (
+    ProductIDOriginal USBProductID = 0x00c0
+    ProductID2K       USBProductID = 0x0118
+)
+
+// Persistence — typed preference, canonical strings on disk unchanged.
+type TrackModePref string // "" = never set; Effective() → TrackFace
+
+// Degradations — closed vocabulary + owned prefix union.
+type DegradedReason string
+const (
+    DegradedWebServer   DegradedReason = "web-server"
+    DegradedSocketAccept DegradedReason = "socket-accept"
+)
+func ExternalDepReason(binary string) DegradedReason // "extdep:" + binary
+</code></pre>
+        <p>
+          Design rule applied throughout: <strong>alias branding</strong> (not struct wrappers)
+          because every zero value must remain JSON-trivial and disk-compatible — the pattern
+          table's "zero value valid? yes / JSON trivial" column decides. Struct wrapping is
+          reserved for cases needing construction-time validation, and none of these survive
+          unmarshal without it anyway.
+        </p>
+
+        <h2 id="decisions"><span class="num">06</span>Decision Log — with rejected alternatives</h2>
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
+            <tr><th>#</th><th>Decision</th><th>Rejected alternative</th><th>Why</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
+            <tr><td>D1</td><td>DesiredCameraMode alias type</td><td>Split State into IntentState/ViewState structs</td><td>JSON stability wins; one field type-swap removes all three runtime guards</td></tr>
+            <tr><td>D2</td><td>Plain DisplayCameraState function</td><td>Unify the 4 view structs now</td><td>View unification is a surface-by-surface refactor; the rule must be single-sourced first (YAGNI on the rest)</td></tr>
+            <tr><td>D3</td><td>USBProductID alias</td><td>Struct wrapper with validation</td><td>Registry map keys + hot paths; parse failures already handled at the env boundary</td></tr>
+            <tr><td>D4</td><td>Keep SpeedValues/PTZValues separate</td><td>Generic AxisValues[V]</td><td>Preference ≠ position; merging recreates the intent/observation conflation in geometry</td></tr>
+            <tr><td>D5</td><td>Keep CommandResult{Message,Err}</td><td>Interface-based Result union</td><td>Go (value, error) idiom; struct is documented; zero consumers benefit from a closed union here</td></tr>
+            <tr><td>D6</td><td>Additive battery fields</td><td>Break the statusResponse contract</td><td>Field names are a documented public interface (quickshell.mdx); additive-first is the house precedent (ADR 2026-09-28)</td></tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
+        <h2 id="table"><span class="num">07</span>Issue Table</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Severity</th><th>Issue</th><th>Pattern class</th><th>Effort</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>I1</td><td><span class="severity severity-important">Important</span></td><td>Intent+connectivity share CameraState</td><td>P5 unions / P3 type-level validation</td><td>M</td></tr>
+            <tr><td>I2</td><td><span class="severity severity-important">Important</span></td><td>Collapse rule duplicated ×2; 4 view shapes</td><td>P9 duplicated logic</td><td>S</td></tr>
+            <tr><td>I3</td><td><span class="severity severity-important">Important</span></td><td>USB product IDs raw int64</td><td>P4 primitive obsession</td><td>S</td></tr>
+            <tr><td>I4</td><td><span class="severity severity-important">Important</span></td><td>TrackMode string beside its enum</td><td>P4 / P2 empty-as-state</td><td>S</td></tr>
+            <tr><td>I5</td><td><span class="severity severity-nice">Nice</span></td><td>Degraded reasons untyped + prefix union</td><td>P4 / P5</td><td>S</td></tr>
+            <tr><td>I6</td><td><span class="severity severity-nice">Nice</span></td><td>PresetMap key validation by convention</td><td>P3 validation</td><td>S</td></tr>
+            <tr><td>I7</td><td><span class="severity severity-nice">Nice</span></td><td>Battery display string in machine API</td><td>P4</td><td>S</td></tr>
+            <tr><td>I8</td><td><span class="severity severity-nice">Rejected</span></td><td>AxisValues[V] unification</td><td>P11 — deliberately not taken</td><td>—</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="architecture"><span class="num">08</span>Architecture Context — combined with this session's layout verdict</h2>
+        <div class="card card-solution">
+          <h4>Layout verdict (go-modularize Unix gate, this session)</h4>
+          <p>
+            Flat single-module root <strong>stays</strong>: 2 packages, `internal/pixy` passes
+            direction/surface but fails the pipe test (no named second consumer), root `main`
+            is one cohesive daemon package. Real sub-packages (hid/stream/web) are blocked by
+            the god-struct `*Daemon` and the same-package lock-order pins — and the type fixes
+            in this review (I1/I3/I5 move intent, identity and degradation vocabulary INTO
+            `internal/pixy`) are exactly the preparation that makes a future
+            hidTransport/streamServer decomposition mechanical. Types first, packages later.
+            Full verdict recorded in <code>docs/adr/2026-11-07_flat-layout-modularization-gate.md</code>.
+          </p>
         </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
+        <div class="card card-warning">
+          <h4>Incident during this review (fixed)</h4>
+          <p>
+            The working tree arrived with <code>templates_templ.go</code> regenerated by nixpkgs
+            templ 0.3.1020, which emits <code>templ.ResolveAttributeValue</code> — undefined in
+            the go.mod-pinned v0.3.1100 runtime. The tree did not compile
+            (AGENTS.md's documented buildflow gotcha, live). Fixed by regenerating with the
+            pinned CLI; the file is byte-identical to HEAD, all gates re-verified green
+            (build, race tests, golangci-lint 0 issues).
+          </p>
         </div>
 
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
-
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
+        <h2 id="plan"><span class="num">09</span>Migration Plan — additive, independently revertable</h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
+            <strong>DisplayCameraState helper + dedupe</strong> (S) — extract the collapse rule
+            into internal/pixy, call it from waybar + getStatus, pin with a table test. Zero
+            behavior change; the two call sites are the test oracle.
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
+            <strong>USBProductID sweep</strong> (S) — introduce the alias, convert registries,
+            Config, ResolveProductID, uevent parser. Pure rename-level diff; compiler finds
+            every site.
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <strong>DesiredCameraMode</strong> (M) — new alias + State.Camera field swap +
+            projection for surfaces; DELETE ValidDesired's callers, both normalization blocks,
+            and their dedicated tests' redundancy (keep state_split_brain_test as the wire
+            oracle). JSON unchanged; schema stays v2.
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <strong>TrackModePref + DegradedReason typing</strong> (S) — two alias swaps with
+            Effective()/ExternalDepReason owners; wire strings byte-identical.
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <strong>PresetMap.Set + additive battery fields</strong> (S) — validated mutator
+            routed through all write sites; statusResponse gains batteryPercent/batteryCharging
+            beside the legacy string; update quickshell.mdx + FEATURES.md.
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <strong>Gate after each step</strong> — GOWORK=off go build, race tests, erraudit
+            strict, golangci-lint (0-issue bar); templ untouched by all steps.
           </div>
         </div>
 
-        <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
-        </footer>
+        <h2>Conclusion</h2>
+        <p>
+          <em>"The state file already tells the truth; the types are catching up."</em>
+          emeet-pixyd's data model is well above the Go median — branded IDs, evidence-graded
+          protocol types, strict JSON, exemplary error families. The remaining rot is one
+          systemic theme wearing four masks: intent and observation not yet separated in the
+          type system. Five additive migrations, roughly one day, zero persisted-file changes,
+          and the compiler holds the invariants that three runtime guards hold today.
+        </p>
       </main>
     </div>
-
-    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
-    <script>
-      (function () {
-        if (!("IntersectionObserver" in window)) return;
-        var nav = document.querySelector("[data-nav]");
-        if (!nav) return;
-        var links = nav.querySelectorAll('a[href^="#"]');
-        var ids = Array.from(links).map(function (l) {
-          return l.getAttribute("href").slice(1);
-        });
-        var sections = ids
-          .map(function (id) {
-            return document.getElementById(id);
-          })
-          .filter(Boolean);
-        if (!sections.length) return;
-        var observer = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                links.forEach(function (link) {
-                  link.classList.toggle(
-                    "active",
-                    link.getAttribute("href") === "#" + entry.target.id,
-                  );
-                });
-              }
-            });
-          },
-          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
-        );
-        sections.forEach(function (s) {
-          observer.observe(s);
-        });
-      })();
-    </script>
   </body>
 </html>
