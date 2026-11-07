@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install emeet-pixyd on NixOS or build from source
+description: Install emeet-pixyd — prebuilt binaries, NixOS module, or build from source
 ---
 
 import { CardGrid, Card } from "@astrojs/starlight/components";
@@ -12,6 +12,20 @@ emeet-pixyd runs on Linux (x86_64 + aarch64) and requires an EMEET PIXY dual-cam
 - **Linux** (x86_64 or aarch64) — the daemon uses Linux-specific APIs (`/proc`, netlink, V4L2, hidraw)
 - **EMEET PIXY** webcam connected via USB
 - **Go 1.26+** (only for building from source)
+
+## Download a Release
+
+Every release ships static linux binaries (amd64 + arm64) with checksums — no runtime installs needed:
+
+```bash
+wget https://github.com/LarsArtmann/emeet-pixyd/releases/latest/download/emeet-pixyd_linux_amd64.tar.gz
+wget https://github.com/LarsArtmann/emeet-pixyd/releases/latest/download/checksums.txt
+sha256sum -c checksums.txt --ignore-missing
+tar -xzf emeet-pixyd_linux_amd64.tar.gz
+./emeet-pixyd
+```
+
+Replace `amd64` with `arm64` on aarch64. The checksums file is cosign-signed and carries SLSA build provenance — verification instructions are in each release's notes.
 
 ## NixOS (recommended)
 

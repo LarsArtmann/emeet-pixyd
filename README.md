@@ -159,6 +159,10 @@ hardware.emeet-pixy = {
 
 That's it. The module installs the daemon, udev rules, systemd user service, and all runtime dependencies.
 
+### Download a Release
+
+Every release ships static linux binaries (amd64 + arm64) with checksums: grab a tarball from [GitHub Releases](https://github.com/LarsArtmann/emeet-pixyd/releases/latest), verify it with `sha256sum -c checksums.txt --ignore-missing`, and extract — no runtime dependencies beyond `v4l-utils` and (for audio switching) `wireplumber`.
+
 ### Build from Source
 
 ```bash

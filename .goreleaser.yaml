@@ -18,7 +18,7 @@ builds:
       - -X main.buildVersion=v{{ .Version }}
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
       - LICENSE

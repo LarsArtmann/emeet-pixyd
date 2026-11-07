@@ -34,6 +34,7 @@ go-error-family is adopted at the boundaries that matter (HTTP status derivation
 
 ### Build & release hardening
 
+- SBOM generation in the GoReleaser release pipeline (`sboms: artifacts: archive` + syft install step) — deliberately deferred when GoReleaser was adopted (2026-11-07): checksums + keyless cosign signature + SLSA provenance already cover integrity, and syft adds CI surface without a known consumer; revisit if a downstream asks.
 - Add a CI guard that fails if the go-modules FOD references store paths (regression test for the committed-binary-poisoning class of bug — the go-branded-id incident is fixed upstream, but the class is not).
 - Extend the NixOS vmTest: fake sysfs + actually start the daemon inside the VM (the vmTest itself is green since 2026-09-19; this is the deeper extension — it would exercise device recognition end to end).
 - `nix flake update` cadence / automation (Renovate or a scheduled update job).
