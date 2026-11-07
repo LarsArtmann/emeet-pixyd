@@ -16,7 +16,10 @@ nix fmt                                     # treefmt: nixfmt/templ/gofumpt (goi
 dprint fmt                                  # yaml/json/dockerfile in devShell (markdown deliberately ungated, see dprint.json)
 nix run                                     # run the daemon; emeet-pixyd status sends a socket command
 go test -tags=integration ./...             # real-hardware HID/V4L2 tests
+GOWORK=off goreleaser release --snapshot --clean --skip=publish --skip=sign  # release dry-run
 ```
+
+Releases: cut an annotated `v*` tag — the full runbook lives in `RELEASING.md` (pre-tag gates, post-tag verification, rc channel, gotchas).
 
 - **`GOWORK=off` is mandatory** — a parent `go.work` exists that does not include this project.
 - **Go ≥ 1.27.1 required** (`go.mod`); the host toolchain may be older with `GOTOOLCHAIN=local` — run all Go tooling inside `nix develop` (devShell pins `go_1_27`).
@@ -160,7 +163,7 @@ Server side: `sse.PatchElementTempl(statusPanel(status))` morphs `#status-panel`
 - Simulator V2 routing rule: motor SET heads collide with the commit-report shape, so V2 SETs are validated BEFORE the commit step, and the 0x63 iface substitution applies to motor heads ONLY (applying it to optics heads made `SetTargetTrack` collide with `SetMotorPos` — pinned by the preset-push tests).
 - vmTest: `/etc/systemd/user` is a symlink `find` cannot descend — an unguarded `cat $(find …)` blocks on stdin; cat the canonical path.
 - **Benchmarks on this host are shared-machine noise-prone**: concurrent agent/buildflow sessions (load 30+ observed 2026-11-05) inflate every benchmark UNIFORMLY (±25-50% CV, +56% geomean skew across unrelated benchmarks). A uniform inflation across benchmarks = machine load, NOT a code regression — for perf verdicts use the full 9-bench × 5 suite (`docs/benchmarks/`), compare with benchstat, and distrust any run whose CV exceeds ~10% on the micro benches. The #178 verdict data (`current-2026-11-05.txt`) came from the one quiet window.
-- **Website transitive-dep sweep mechanics (2026-11-05, 24→0 npm alerts)**: `pnpm update <pkg>…` moves in-range transitive deps in the lockfile, but anything capped by `pnpm-workspace.yaml` `overrides` (fast-uri was pinned 3.1.7 there from an earlier sweep) stays until the override is bumped. `pnpm audit` has NO `fix` subcommand on pnpm 11; `pnpm update` may auto-add a `minimumReleaseAgeExclude` entry to `pnpm-workspace.yaml` — remove it unless a real release-age gate is configured. Proof battery: `pnpm audit` → 0, `pnpm install --frozen-lockfile`, `tsc -p . --noEmit`, `pnpm run build`, `html-validate dist` (all five run locally before CI).
+- **Website transitive-dep sweep mechanics (2026-11-05, 24→0 npm alerts)**: `pnpm update <pkg>…` moves in-range transitive deps in the lockfile, but anything capped by `pnpm-workspace.yaml` `overrides` (fast-uri was pinned 3.1.7 there from an earlier sweep) stays until the override is bumped. `pnpm audit` has NO `fix` subcommand on pnpm 11. **`minimumReleaseAgeExclude` in `pnpm-workspace.yaml` is LOAD-BEARING under pnpm 11.20** (the `minimumReleaseAge` supply-chain policy is ON by default, 24h): pnpm auto-adds entries when a fresh resolution pulls recently-published versions, and removing the list makes `pnpm install --frozen-lockfile` REJECT the lockfile ("entries that the active policies reject"). Keep the list, then `dprint fmt` the file (pnpm's own formatting fails the dprint gate) — learned 2026-11-07 when removing it broke the frozen-lockfile gate; the earlier "remove unless a release-age gate is configured" note is obsolete. Proof battery: `pnpm audit` → 0, `pnpm install --frozen-lockfile`, `tsc -p . --noEmit`, `pnpm run build`, `html-validate dist` (all five run locally before CI).
 
 ## Research artifacts (EMEET STUDIO reverse engineering)
 
