@@ -509,13 +509,12 @@ func (d *Daemon) handlePresetSave(ctx context.Context, name string) CommandResul
 		d.state.Presets = pixy.NewPresetMap()
 	}
 
-	if _, exists := d.state.Presets[name]; !exists && d.state.Presets.IsFull() {
+	if setErr := d.state.Presets.Set(name, clamped); setErr != nil {
 		d.mu.Unlock()
 
-		return errResultMsg(fmt.Sprintf("preset limit reached (%d)", pixy.MaxPresets))
+		return errResult(cmdPreset+" "+presetSave+" "+name, setErr)
 	}
 
-	d.state.Presets[name] = clamped
 	d.saveStateOrLog("failed to save state")
 	d.mu.Unlock()
 	d.broadcastStateChanged()
@@ -738,7 +737,16 @@ func (s *presetPullSweep) admitReading(reading pixy.MotorPresetReading, slot int
 			d.state.Presets = pixy.NewPresetMap()
 		}
 
-		d.state.Presets[name] = reading.PTZValues()
+		// hw-<slot> names pass ValidatePresetName by construction and the
+		// limit was checked in the `full` case, so Set cannot fail here; a
+		// failure would be a preset map invariant break, so it is booked as
+		// a slot failure and surfaces in the sweep summary.
+		if setErr := d.state.Presets.Set(name, reading.PTZValues()); setErr != nil {
+			s.recordFailure(setErr)
+
+			return false
+		}
+
 		s.outcome.pulled = append(s.outcome.pulled, name)
 		s.changed = true
 	}

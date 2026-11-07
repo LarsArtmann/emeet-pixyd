@@ -49,6 +49,9 @@ var (
 	ErrInvalidCameraState error = errorfamily.NewRejection("camera.state_invalid", "invalid camera state")
 	// ErrInvalidPresetName is returned when a preset name fails validation.
 	ErrInvalidPresetName error = errorfamily.NewRejection("preset.name_invalid", "invalid preset name")
+	// ErrPresetMapFull is returned by PresetMap.Set when storing a NEW name
+	// would exceed MaxPresets (overwrites of existing names are allowed).
+	ErrPresetMapFull error = errorfamily.NewRejection("preset.map_full", "preset limit reached")
 	// ErrHIDDeviceNotAvailable is returned when the HIDRAW device path is empty.
 	ErrHIDDeviceNotAvailable error = errorfamily.NewInfrastructure(
 		"hid.device_unavailable",
@@ -585,3 +588,22 @@ func (p PresetMap) Get(name string) (PTZValues, bool) {
 
 // IsFull reports whether the preset collection has reached MaxPresets.
 func (p PresetMap) IsFull() bool { return len(p) >= MaxPresets }
+
+// Set validates and stores one preset — the single mutator for every write
+// path (CLI save, hardware pull sweep). The name must pass ValidatePresetName;
+// a NEW name is rejected once the collection is full (overwriting an existing
+// name is always allowed). The caller must ensure p is non-nil (a nil map
+// cannot store; use NewPresetMap first).
+func (p PresetMap) Set(name string, values PTZValues) error {
+	if err := ValidatePresetName(name); err != nil {
+		return err
+	}
+
+	if _, exists := p[name]; !exists && p.IsFull() {
+		return Wrapf(ErrPresetMapFull, "preset.set_full", "preset limit reached (%d)", MaxPresets)
+	}
+
+	p[name] = values
+
+	return nil
+}

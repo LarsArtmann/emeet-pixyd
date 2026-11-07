@@ -4,6 +4,7 @@ package pixy
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -499,5 +500,51 @@ func TestDisplayCameraState(t *testing.T) {
 
 	if StateOffline != "offline" {
 		t.Fatalf("offline wire value drifted: %q", StateOffline)
+	}
+}
+
+// TestPresetMapSet pins the validated-mutator contract: legal names store
+// and overwrite freely, illegal names are rejected with the name-validation
+// error, and a NEW name past MaxPresets is rejected with ErrPresetMapFull —
+// while overwriting an existing name stays allowed at the cap.
+func TestPresetMapSet(t *testing.T) {
+	t.Parallel()
+
+	presets := NewPresetMap()
+
+	if err := presets.Set("home", PTZValues{Pan: 10, Tilt: 20, Zoom: 100}); err != nil {
+		t.Fatalf("Set(home) = %v, want nil", err)
+	}
+
+	if got, ok := presets.Get("home"); !ok || got != (PTZValues{Pan: 10, Tilt: 20, Zoom: 100}) {
+		t.Errorf("Get(home) = %v, %v; want stored values", got, ok)
+	}
+
+	for _, bad := range []string{"", "  ", "a/b", "a\\b", strings.Repeat("x", MaxPresetNameLength+1)} {
+		if err := presets.Set(bad, PTZValues{}); !errors.Is(err, ErrInvalidPresetName) {
+			t.Errorf("Set(%q) error = %v, want ErrInvalidPresetName", bad, err)
+		}
+	}
+
+	for i := range MaxPresets - 1 {
+		if err := presets.Set(fmt.Sprintf("p%02d", i), PTZValues{}); err != nil {
+			t.Fatalf("Set(p%02d) = %v, want nil (fill to cap)", i, err)
+		}
+	}
+
+	if !presets.IsFull() {
+		t.Fatal("presets not full after MaxPresets-1 fills + home")
+	}
+
+	if err := presets.Set("overflow", PTZValues{}); !errors.Is(err, ErrPresetMapFull) {
+		t.Errorf("Set(overflow) at cap = %v, want ErrPresetMapFull", err)
+	}
+
+	if err := presets.Set("home", PTZValues{Pan: 99}); err != nil {
+		t.Errorf("Set(home) overwrite at cap = %v, want nil (overwrites always allowed)", err)
+	}
+
+	if got := presets["home"]; got.Pan != 99 {
+		t.Errorf("overwrite did not land: home = %+v", got)
 	}
 }
