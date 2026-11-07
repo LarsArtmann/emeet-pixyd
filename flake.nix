@@ -86,8 +86,10 @@
               templ.enable = true;
               nixfmt.enable = true;
             };
-            # Generated files are owned by `templ generate` (devShell,
-            # package.nix and CI all regenerate them): gofumpt would rewrite
+            # Generated files are owned by `templ generate` (devShell and CI
+            # regenerate them; the nix derivations consume the committed
+            # files — a stale committed _templ.go fail-fasts at nix build
+            # instead, PR #19): gofumpt would rewrite
             # generator output (var x = vs x := churn between templ versions)
             # and oscillate against every regenerate. goimports is NOT in
             # treefmt because its go/packages driver shells out to `go`, which
