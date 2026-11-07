@@ -3,7 +3,6 @@
   buildGoModule,
   src,
   version,
-  templ,
   ...
 }:
 buildGoModule {
@@ -12,16 +11,10 @@ buildGoModule {
 
   inherit src;
 
-  vendorHash = "sha256-vrxbBXRo/Td9eqLnZrnGHhKKthgql5j+C/N0KfpyssY=";
+  vendorHash = "sha256-Lbk/4A571Ix/HB8tuRlhlXYXfSi5ck9zcxjQxJ/BUks=";
   proxyVendor = true;
 
   doCheck = false;
-
-  nativeBuildInputs = [ templ ];
-
-  preBuild = ''
-    templ generate
-  '';
 
   ldflags = [
     "-s"
