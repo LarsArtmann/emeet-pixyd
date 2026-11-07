@@ -1,6 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-11-07 (PR triage: #19 + #12 merged via the local CI-parity battery — GitHub Actions creates no runs repo-wide since 2026-11-05, see #204; #203 placeholder-hash gate guard from the PR #18 external report)
+**Updated:** 2026-11-07b (type-safety sweep executed per `docs/planning/2026-11-07_07-16_pareto-type-safety-and-layout-plan.md`: DesiredCameraMode compile-time intent split (T3, save-side normalization deleted — the load shim STAYS as the v1 wire migration), DisplayCameraState collapse single-source (T1), USBProductID (T2), TrackModePref + DegradedReason (T4), PresetMap.Set (T5), additive batteryPercent/batteryCharging in /api/status (T6); review finding I8 (AxisValues merge) rejected; deferred rows recorded in ROADMAP — findings I1–I7 landed, rows pruned to CHANGELOG at the next release)
+
+**Previous:** 2026-11-07 (PR triage: #19 + #12 merged via the local CI-parity battery — GitHub Actions creates no runs repo-wide since 2026-11-05, see #204; #203 placeholder-hash gate guard from the PR #18 external report)
 
 **Previous:** 2026-11-05b (TODO sweep: #195–#199 + #201 executed and pruned to CHANGELOG — controllable contract pins, write-side intent guard, Compose tree pins, website CI hardening + dependency sweep (24→0 npm alerts), watchdog-stall pin, benchmark verdict (#178 perf-neutral); #200 re-statused BLOCKED — needs a graphical session + screen reader / physical devices)
 

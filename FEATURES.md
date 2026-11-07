@@ -119,7 +119,7 @@
 
 | Feature           | Status                | Notes                                                                                 |
 | ----------------- | --------------------- | ------------------------------------------------------------------------------------- |
-| State Persistence | 🟢 `FULLY_FUNCTIONAL` | JSON at `{StateDir}/state.json`, atomic write (tmp + rename); validates loaded enums. |
+| State Persistence | 🟢 `FULLY_FUNCTIONAL` | JSON at `{StateDir}/state.json`, atomic write (tmp + rename); validates loaded enums. `State.Camera` is typed `pixy.DesiredCameraMode` (intent cannot be `offline` — 2026-11-07), `State.TrackMode` a typed `TrackModePref`. |
 | SIGHUP Save       | 🟢 `FULLY_FUNCTIONAL` | Saves state without shutdown (`main.go:256`).                                         |
 
 ## Monitoring & Observability
@@ -129,7 +129,7 @@
 | Prometheus Metrics  | 🟢 `FULLY_FUNCTIONAL` | OTel gauges/counters at `/metrics`: in_call, auto_mode, camera_state, online, breaker_state, commands_total, probes_total, uevents_total, hid_failures_total, auto_errors_total, socket_accept_failures_total, stream_duration, frames_total. |
 | pprof Debug         | 🟢 `FULLY_FUNCTIONAL` | `/debug/pprof/*` gated behind `EMEET_PIXYD_DEBUG=true`.                                                                                                               |
 | Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/api/health` JSON; 503 when device offline, 200 online; additive `degraded` bool + `reasons` array (never flips the status contract).                              |
-| Status API          | 🟢 `FULLY_FUNCTIONAL` | `/api/status` JSON for shell widgets (Quickshell / DankMaterialShell): camera state, device, model, online, in-call, auto/audio, gesture, battery (omitted when absent), version. Always 200 while the daemon runs. |
+| Status API          | 🟢 `FULLY_FUNCTIONAL` | `/api/status` JSON for shell widgets (Quickshell / DankMaterialShell): camera state, device, model, online, in-call, auto/audio, gesture, battery (omitted when absent) + additive `batteryPercent`/`batteryCharging` (2026-11-07, omitzero), version. Always 200 while the daemon runs. |
 | systemd Integration | 🟢 `FULLY_FUNCTIONAL` | `sd_notify` READY=1 + WATCHDOG=1 each poll tick.                                                                                                                      |
 
 ## Error Handling
