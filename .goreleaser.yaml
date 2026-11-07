@@ -31,9 +31,13 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - "^chore:"
-      - "^docs:"
-      - "^test:"
+      # Scope-less prefixes: v0.6.0's real output showed chore(config):,
+      # chore(deps):, docs(todo):, and docs+tests: slipping past exact "^chore:"
+      # matches; "^plan" from planning-doc commits joins on the same evidence.
+      - "^chore"
+      - "^docs"
+      - "^test"
+      - "^plan"
       - "^Merge "
 
 release:
