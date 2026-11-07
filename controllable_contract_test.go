@@ -6,8 +6,10 @@ import (
 	"context"
 	"encoding/json/v2"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/LarsArtmann/emeet-pixyd/internal/pixy"
 )
@@ -122,4 +124,50 @@ func TestControllableContract_PanelVideoWithoutHID(t *testing.T) {
 	assertNotContains(t, body, "tracking-variants", "tracking-variant strip requires controllable")
 
 	assertContains(t, body, "slider-pan", "position card renders while video node present")
+}
+
+// TestStatusContract_BatteryFieldsAdditive pins the 2026-11-07 additive
+// battery split in /api/status: the legacy `battery` display string is
+// byte-identical to what widgets already parse, and the new
+// batteryPercent/batteryCharging keys appear (and are typed) only when the
+// device answered a battery query — absent otherwise, never null.
+func TestStatusContract_BatteryFieldsAdditive(t *testing.T) {
+	t.Parallel()
+
+	d := testDaemonWithState(t, pixy.DesiredPrivacy, false)
+	d.powerCache.Set(
+		powerCacheEntry{reading: powerReading{Level: 87, Charging: true}, available: true},
+		time.Minute,
+	)
+
+	srv := &webServer{daemon: d}
+	mux := newWebMux(srv)
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	resp := get(t, server.URL+"/api/status")
+	body := getBody(t, resp)
+	resp.Body.Close()
+
+	var parsed map[string]any
+
+	if err := json.Unmarshal([]byte(body), &parsed); err != nil {
+		t.Fatalf("decode /api/status: %v", err)
+	}
+
+	if got, ok := parsed["battery"].(string); !ok || got != "87% (charging)" {
+		t.Errorf("battery = %q (%v), want the legacy display string \"87%% (charging)\"", parsed["battery"], ok)
+	}
+
+	if got, ok := parsed["batteryPercent"].(float64); !ok || got != 87 {
+		t.Errorf("batteryPercent = %v (%v), want 87 as a JSON number", parsed["batteryPercent"], ok)
+	}
+
+	if got, ok := parsed["batteryCharging"].(bool); !ok || !got {
+		t.Errorf("batteryCharging = %v (%v), want true", parsed["batteryCharging"], ok)
+	}
+
+	assertContains(t, body, `"batteryPercent":87`, "status JSON batteryPercent shape")
+	assertContains(t, body, `"batteryCharging":true`, "status JSON batteryCharging shape")
 }

@@ -35,8 +35,13 @@ type webStatus struct {
 	Version      string
 	PresetNames  []string
 	Battery      string // "" when the device does not answer battery queries
-	TrackMode    string // active tracking variant (none/face/halfbody/fullbody)
-	Speeds       pixy.SpeedValues
+	// BatteryPercent/BatteryCharging are the machine-readable split of the
+	// legacy display string, carried additive into /api/status (zero values
+	// omit at the JSON boundary). Populated from the same powerStatus read.
+	BatteryPercent  int
+	BatteryCharging bool
+	TrackMode       string // active tracking variant (none/face/halfbody/fullbody)
+	Speeds          pixy.SpeedValues
 	// UnsupportedHint explains a recognized-but-unsupported EMEET device
 	// ("" = nothing to show). Long-form text; space-constrained surfaces
 	// render unsupportedHintShort of it.

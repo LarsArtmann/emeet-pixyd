@@ -42,6 +42,8 @@ curl -s http://127.0.0.1:8090/api/status
 | `audio`   | string  | Audio mode (`nc`, `live`, `original`)                                                   |
 | `gesture` | bool    | Gesture control enabled                                                                 |
 | `battery`  | string  | Battery + charge, omitted entirely when the device does not answer the battery queries  |
+| `batteryPercent` | int | Battery level 0–100 as a number, so widgets can style thresholds without parsing `battery`; omitted when no reading |
+| `batteryCharging` | bool | `true` while charging; omitted when no reading or not charging |
 | `version`  | string  | Daemon build version                                                                    |
 | `degraded` | bool    | `true` when a daemon surface is degraded (dead web listener, CLI accept-loop failures)   |
 | `reasons`  | string[] | Stable reason keys (`web-server`, `socket-accept`); omitted when healthy                |

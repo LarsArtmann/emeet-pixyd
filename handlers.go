@@ -104,6 +104,8 @@ func (s *webServer) getWebStatus(ctx context.Context) webStatus {
 	// AFTER the outer lock is released — never nest the RLocks.
 	if reading, ok := s.daemon.powerStatus(ctx); ok {
 		status.Battery = reading.String()
+		status.BatteryPercent = reading.Level
+		status.BatteryCharging = reading.Charging
 	}
 
 	return status
@@ -185,9 +187,15 @@ type statusResponse struct {
 	Audio        pixy.AudioMode   `json:"audio"`
 	Gesture      bool             `json:"gesture"`
 	Battery      string           `json:"battery,omitzero"`
-	Version      string           `json:"version"`
-	Degraded     bool             `json:"degraded"`
-	Reasons      []string         `json:"reasons,omitempty"`
+	// BatteryPercent and BatteryCharging are additive (2026-11-07): the
+	// machine-readable split of the legacy display string, so bar widgets can
+	// style charging state without parsing. Both omit at their zero value —
+	// absent means the device answered no battery query.
+	BatteryPercent  int      `json:"batteryPercent,omitzero"`
+	BatteryCharging bool     `json:"batteryCharging,omitzero"`
+	Version         string   `json:"version"`
+	Degraded        bool     `json:"degraded"`
+	Reasons         []string `json:"reasons,omitempty"`
 	// UnsupportedHint is additive and absent when nothing is recognized on
 	// the bus — widget consumers keep working unchanged (ADR 2026-09-28).
 	UnsupportedHint string `json:"unsupportedHint,omitempty"`
@@ -214,6 +222,8 @@ func (s *webServer) handleStatusJSON(responseWriter http.ResponseWriter, request
 		Audio:           status.Audio,
 		Gesture:         status.Gesture,
 		Battery:         status.Battery,
+		BatteryPercent:  status.BatteryPercent,
+		BatteryCharging: status.BatteryCharging,
 		Version:         status.Version,
 		Degraded:        status.Degraded,
 		Reasons:         status.DegradedReasons,
