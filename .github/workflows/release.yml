@@ -19,6 +19,10 @@ env:
   GOWORK: off
 
 jobs:
+  # Deliberately unconditional (no path filters): ~1 min of CI minutes buys a
+  # continuous config-drift guard on every master push and PR — including
+  # website/doc-only pushes — so drift is caught the day it lands, not at tag
+  # time, and the release path is proven releasable before anything depends on it.
   validate:
     if: github.ref_type != 'tag'
     runs-on: ubuntu-latest
@@ -32,6 +36,11 @@ jobs:
       - name: Validate GoReleaser config
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
+          # Floating "~> v2" is a deliberate policy (decision 2026-11-07): this
+          # validate job continuously proves the config against the latest v2
+          # release, so drift is caught here the day it lands. Dependabot's
+          # github-actions ecosystem does NOT cover the `version:` input, so an
+          # exact pin would rot silently until a tag-time failure.
           version: "~> v2"
           args: check
 
@@ -70,6 +79,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # GoReleaser talks to the API via the GITHUB_TOKEN env (release
+          # creation); nothing git-pushes here, so the checkout's cached
+          # credentials are dead weight and a needless exfiltration surface.
+          persist-credentials: false
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -90,3 +103,33 @@ jobs:
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-checksums: ./dist/checksums.txt
+
+  smoke:
+    name: Post-publish smoke
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download, checksum-verify, and run the published linux amd64 artifact
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}"
+          work="$(mktemp -d)"
+          cd "${work}"
+          # Retry: the release job finishes moments before assets are queryable.
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors \
+            -o checksums.txt "${base}/checksums.txt"
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors \
+            -o emeet-pixyd_linux_amd64.tar.gz "${base}/emeet-pixyd_linux_amd64.tar.gz"
+          grep 'emeet-pixyd_linux_amd64\.tar\.gz$' checksums.txt > want.txt
+          sha256sum -c want.txt
+          mkdir extract
+          tar -xzf emeet-pixyd_linux_amd64.tar.gz -C extract
+          got="$(./extract/emeet-pixyd --version)"
+          echo "binary reports: ${got}"
+          if [ "${got}" != "emeet-pixyd ${tag}" ]; then
+            echo "::error::--version reported '${got}', want 'emeet-pixyd ${tag}'"
+            exit 1
+          fi

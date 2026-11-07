@@ -52,7 +52,7 @@ release:
     ```shell
     cosign verify-blob checksums.txt \
       --bundle checksums.txt.bundle.json \
-      --certificate-identity-regexp 'https://github.com/LarsArtmann/' \
+      --certificate-identity-regexp '^https://github\.com/LarsArtmann/emeet-pixyd/\.github/workflows/release\.yml@refs/tags/' \
       --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
     ```
 

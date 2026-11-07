@@ -22,7 +22,7 @@ jobs:
         run: |
           # Pin templ version to match go.mod and nix pkgs.templ (prevents drift)
           TEMPL_VERSION=$(grep 'a-h/templ' go.mod | awk '{print $2}')
-          go install github.com/a-h/templ/cmd/templ@${TEMPL_VERSION}
+          go install github.com/a-h/templ/cmd/templ@"${TEMPL_VERSION}"
           echo "Using templ $(templ version)"
           templ generate
           # Validate generated files are non-empty (guards against templ intermittently
