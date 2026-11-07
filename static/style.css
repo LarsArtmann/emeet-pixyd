@@ -1056,6 +1056,21 @@ input[type="range"]:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+/* Update-available notice in the footer (update.go): same quiet scale as the
+   version line, accent-tinted so it reads as actionable without shouting. */
+a.update-available {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent);
+  color: var(--accent);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+a.update-available:hover,
+a.update-available:focus-visible {
+  color: var(--accent-hover);
+  border-bottom-style: solid;
+}
+
 /* ========================================================================== */
 /*  Buttons                                                                   */
 /* ========================================================================== */

@@ -85,6 +85,12 @@ func (d *Daemon) waybarOutput(ctx context.Context) string {
 		tooltip.WriteString(unsupportedHintShort(s.UnsupportedHint))
 	}
 
+	// Update notice: one short line while a newer upstream release is known.
+	if s.Update != nil {
+		tooltip.WriteString("\nUpdate available: ")
+		tooltip.WriteString(s.Update.Version)
+	}
+
 	// Battery line (TODO #139) appears only when the device answers the
 	// official HID battery queries; waybar output stays stable otherwise.
 	// A reading additionally tags the class with charging/discharging so

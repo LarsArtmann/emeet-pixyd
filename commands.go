@@ -180,6 +180,10 @@ func (d *Daemon) handleQueryCommand(ctx context.Context, parts []string) Command
 		return okResult(d.waybarOutput(ctx))
 
 	case cmdVersion:
+		if u := d.snapshot().Update; u != nil {
+			return okResult(fmt.Sprintf("emeet-pixyd %s (update available: %s, %s)", buildVersion, u.Version, u.URL))
+		}
+
 		return okResult("emeet-pixyd " + buildVersion)
 
 	case cmdSync:

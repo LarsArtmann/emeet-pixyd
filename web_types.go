@@ -42,6 +42,10 @@ type webStatus struct {
 	// render unsupportedHintShort of it.
 	UnsupportedHint string
 
+	// Update is the newer upstream release observed by the update checker
+	// (nil = none known). The footer renders a small notice linking to it.
+	Update *availableUpdate
+
 	Degraded        bool     // daemon-level degradation (dead listener, accept ceiling)
 	DegradedReasons []string // stable reason keys (see degraded.go)
 }

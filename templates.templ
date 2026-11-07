@@ -289,6 +289,17 @@ templ statusPanel(s webStatus) {
 			} else if s.Version != "" {
 				<span class="last-synced">v{ s.Version }</span>
 			}
+			if s.Update != nil {
+				<a
+					class="last-synced update-available"
+					href={ s.Update.URL }
+					target="_blank"
+					rel="noopener"
+					title="A newer release exists; the release page opens in a new tab"
+				>
+					{ s.Update.Version } available
+				</a>
+			}
 		</div>
 	</div>
 }

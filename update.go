@@ -143,8 +143,12 @@ func fetchJSON(ctx context.Context, url string, target any) error {
 // without a tag or page URL is treated as an error so a malformed feed can
 // never surface an unusable notice.
 func fetchLatestReleaseFeed(ctx context.Context) (githubRelease, error) {
+	return releaseFromFeed(ctx, updateFeedURL)
+}
+
+func releaseFromFeed(ctx context.Context, feedURL string) (githubRelease, error) {
 	var release githubRelease
-	if err := fetchJSON(ctx, updateFeedURL, &release); err != nil {
+	if err := fetchJSON(ctx, feedURL, &release); err != nil {
 		return githubRelease{}, err
 	}
 
@@ -160,9 +164,13 @@ func fetchLatestReleaseFeed(ctx context.Context) (githubRelease, error) {
 // the default branch history (the flake-build channel: buildVersion is a
 // commit SHA, not a tag).
 func fetchReleaseCompare(ctx context.Context, baseTag, headSHA string) (githubCompare, error) {
+	return compareFromAPI(ctx, updateCompareBaseURL, baseTag, headSHA)
+}
+
+func compareFromAPI(ctx context.Context, baseURL, baseTag, headSHA string) (githubCompare, error) {
 	var result githubCompare
 
-	url := fmt.Sprintf("%s/%s...%s", updateCompareBaseURL, baseTag, headSHA)
+	url := fmt.Sprintf("%s/%s...%s", baseURL, baseTag, headSHA)
 	if err := fetchJSON(ctx, url, &result); err != nil {
 		return githubCompare{}, err
 	}
