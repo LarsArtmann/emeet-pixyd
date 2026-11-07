@@ -1,6 +1,8 @@
 # emeet-pixyd — TODO List
 
-**Updated:** 2026-11-05b (TODO sweep: #195–#199 + #201 executed and pruned to CHANGELOG — controllable contract pins, write-side intent guard, Compose tree pins, website CI hardening + dependency sweep (24→0 npm alerts), watchdog-stall pin, benchmark verdict (#178 perf-neutral); #200 re-statused BLOCKED — needs a graphical session + screen reader / physical devices)
+**Updated:** 2026-11-07 (PR triage: #19 + #12 merged via the local CI-parity battery — GitHub Actions creates no runs repo-wide since 2026-11-05, see #204; #203 placeholder-hash gate guard from the PR #18 external report)
+
+**Previous:** 2026-11-05b (TODO sweep: #195–#199 + #201 executed and pruned to CHANGELOG — controllable contract pins, write-side intent guard, Compose tree pins, website CI hardening + dependency sweep (24→0 npm alerts), watchdog-stall pin, benchmark verdict (#178 perf-neutral); #200 re-statused BLOCKED — needs a graphical session + screen reader / physical devices)
 
 **Previous:** 2026-11-05 (docs-health AUDIT sweep: all DONE rows pruned — completed work lives in `CHANGELOG.md`; every open item from the annotated status reports verified against code and harvested; new rows #196–#201; #186 deleted — its vmTest default-port pin was verified green 2026-10-31 but the row never flipped)
 
@@ -37,6 +39,7 @@
 | 156 | 🚫 BLOCKED | Branch protection: require go-test/nix/website workflows on master (GitHub settings, Lars only)   | MED    | S      | report `2026-09-17_17-34` f16                                  |
 | 166 | 🚫 BLOCKED | Hardware-verification bundle — one wired session closes #138/#139/#140/#141/#150 + #129                           | HIGH   | M      | checklist below; `integration_hardware_test.go`                |
 | 200 | 🚫 BLOCKED | Execute the accessibility + real-device checklists; flip the two 🟡 FEATURES rows — needs a graphical session with Orca running against the daemon UI (this host is tty-only: no Orca, no at-spi), NVDA/VoiceOver machines for the other readers, and physical phone/iPad for the responsive matrix | MED | M | `docs/accessibility-audit.md`; FEATURES 🟡 rows; plan `2026-09-28_23-53` M18 |
+| 204 | 🚫 BLOCKED | GitHub Actions creates no runs repo-wide since 2026-11-05 23:25 UTC — all three workflows report `active`, the repo is public (free minutes), GitHub status is fully operational, sibling repos (cqrs-htmx, templ-components, go-error-family) run Actions fine; master pushes AND PR pushes yield zero workflow runs (only external apps GitGuardian/CodeRabbit answer check-runs). Needs Lars's Actions-tab eyes (suspension banner?) or a support ticket; until fixed, merges here rely on the local CI-parity battery (generate/vet/lint/govulncheck/race/nix-build/flake-check/format) | MED | S | `gh api repos/LarsArtmann/emeet-pixyd/actions/runs?created=>2026-11-06` → total_count 0; `commits/master/check-runs` → 2 (GitGuardian + CodeRabbit only); last run 42129137801 (2026-11-05) |
 
 ### #166 bundle checklist (run in one wired session)
 
@@ -67,6 +70,7 @@
 | 182 | 🚫 BLOCKED | Make `sync` reconcile `Speeds`/`TrackMode` (re-read hardware) — blocked on #166 pinning the readback: the motor-speed GET payload unit is unknown and the mode query is unreliable, so a readback would risk clobbering good intent | LOW | S | `device.go` `syncStateLocked` (M13); ADR `2026-10-01_camera-intent-vs-connectivity` |
 | 183 | 🔶 PARTIAL (wired, deploy-pending) | SystemNix wrapper: wire `hardware.emeet-pixy.port = ports.emeet-pixyd` + bump this repo's lock there + runbook note — cross-repo, needs Lars's go-ahead | HIGH | S | Wiring landed locally in SystemNix (`d0862d746` port wiring, `7ca1bd708` runbook note; upstream option exists since v0.5.0 — `version` field proof). NOT pushed, NOT switched: input still locked pre-tag; float-vs-pin is Lars Q2. No action available in this repo |
 | 202 | ◻ OPEN | buildflow findings-gate debt: 25 × `go-file-too-large` (stream.go, ptz.go, handlers.go, internal/pixy/pixy.go, …) + 3 × `cmd-directory` (flat single-binary root layout is deliberate) leave error findings that fail every full `buildflow` run now that step failures no longer abort the pipeline first — Lars's call: refactor slices, size-threshold policy, or curated skip | MED | M | buildflow full run 2026-11-05 (surfaced after the format-check/flaky-test/vendorHash repairs; `buildflow -s file-size-check --format finding`) |
+| 203 | ◻ OPEN | Extend the projects-management-automation build gate with a nix vendorHash placeholder check (reject `sha256-AAA…=` intermediates in flake.nix/package.nix) — the current go build/vet gate cannot catch the sweep (it landed as 612e42f on 2026-11-01 and stayed broken until c4be084 repaired it 2026-11-06); cross-repo: gate config lives in SystemNix, needs Lars's go-ahead there. Suggested by an external contributor in PR #18 | MED | S | AGENTS.md placeholder-hazards gotcha; PR #18 (closed obsolete); report `docs/status/2026-11-06_00-12_buildflow-recovery-hermetic-format-check-flaky-test-vendorhash.md` |
 
 ---
 
