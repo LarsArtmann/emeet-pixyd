@@ -10,7 +10,7 @@ func TestModelFromProductID(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		product int64
+		product USBProductID
 		want    Model
 		wantOK  bool
 	}{
@@ -44,29 +44,29 @@ func TestResolveProductID(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		product   int64
-		extra     []int64
+		product   USBProductID
+		extra     []USBProductID
 		want      DeviceProfile
 		wantKnown bool
 	}{
 		{
 			name:      "static PIXY wins over extra list",
 			product:   ProductIDOriginal,
-			extra:     []int64{ProductIDOriginal},
+			extra:     []USBProductID{ProductIDOriginal},
 			want:      DeviceProfile{Model: ModelOriginal, Family: FamilyPIXY},
 			wantKnown: true,
 		},
 		{
 			name:      "extra PID becomes PIXY-family",
 			product:   0x0119,
-			extra:     []int64{0x0119, 0x0120},
+			extra:     []USBProductID{0x0119, 0x0120},
 			want:      DeviceProfile{Model: "PIXY (PID 0x0119)", Family: FamilyPIXY},
 			wantKnown: true,
 		},
 		{
 			name:      "extra PID outranks fixed-UVC classification",
 			product:   ProductIDC960,
-			extra:     []int64{ProductIDC960},
+			extra:     []USBProductID{ProductIDC960},
 			want:      DeviceProfile{Model: "PIXY (PID 0x003f)", Family: FamilyPIXY},
 			wantKnown: true,
 		},
@@ -114,7 +114,7 @@ func TestResolveProductID(t *testing.T) {
 		{
 			name:      "unknown PID with unrelated extra list",
 			product:   0x0abc,
-			extra:     []int64{0x0119},
+			extra:     []USBProductID{0x0119},
 			wantKnown: false,
 		},
 	}

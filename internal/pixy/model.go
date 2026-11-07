@@ -16,23 +16,29 @@ const (
 	Model2K Model = "PIXY 2K"
 )
 
+// USBProductID is the idProduct half of a USB device identity
+// (idVendor:idProduct, e.g. 328f:00c0). A distinct type keeps the ID spaces
+// apart: a process PID (pixy.PID) and a USB product ID must never be
+// interchangeable at a call site, and the compiler now rejects a swap.
+type USBProductID int64
+
 // USB product IDs of the supported PIXY models. Both expose the same HID
 // control interface and V4L2 controls.
 const (
-	ProductIDOriginal = 0x00c0
-	ProductID2K       = 0x0118
+	ProductIDOriginal USBProductID = 0x00c0
+	ProductID2K       USBProductID = 0x0118
 )
 
 // USB product IDs of recognized fixed-lens EMEET webcams. Sourced from
 // public Linux hardware probes (linux-hardware.org device pages, raw-fetched
 // 2026-09-28) and the rakhbari/emeet-control README (S600L).
 const (
-	ProductIDC960    = 0x003f // HD Webcam eMeet C960 (31 probes)
-	ProductIDC960Old = 0x2013 // HD Webcam eMeet C960, older enumeration (33 probes)
-	ProductIDC9602K  = 0x007c // EMEET SmartCam C960 2K (5 probes)
-	ProductIDC950    = 0x0073 // HD Webcam eMeet C950 (23 probes, enumerates as "USB 2.0 Camera")
-	ProductIDC970    = 0x002d // HD Webcam C970 (3 probes)
-	ProductIDS600L   = 0x00ef // EMEET SmartCam S600L (rakhbari/emeet-control)
+	ProductIDC960    USBProductID = 0x003f // HD Webcam eMeet C960 (31 probes)
+	ProductIDC960Old USBProductID = 0x2013 // HD Webcam eMeet C960, older enumeration (33 probes)
+	ProductIDC9602K  USBProductID = 0x007c // EMEET SmartCam C960 2K (5 probes)
+	ProductIDC950    USBProductID = 0x0073 // HD Webcam eMeet C950 (23 probes, enumerates as "USB 2.0 Camera")
+	ProductIDC970    USBProductID = 0x002d // HD Webcam C970 (3 probes)
+	ProductIDS600L   USBProductID = 0x00ef // EMEET SmartCam S600L (rakhbari/emeet-control)
 )
 
 // Family classifies what emeet-pixyd can do with a device line.
@@ -60,7 +66,7 @@ type DeviceProfile struct {
 // pixyFamilyProfiles are the controllable PIXY-family products.
 //
 //nolint:gochecknoglobals // static device registry
-var pixyFamilyProfiles = map[int64]DeviceProfile{
+var pixyFamilyProfiles = map[USBProductID]DeviceProfile{
 	ProductIDOriginal: {Model: ModelOriginal, Family: FamilyPIXY},
 	ProductID2K:       {Model: Model2K, Family: FamilyPIXY},
 }
@@ -68,7 +74,7 @@ var pixyFamilyProfiles = map[int64]DeviceProfile{
 // fixedUVCProfiles are recognized fixed-lens EMEET webcams.
 //
 //nolint:gochecknoglobals // static device registry
-var fixedUVCProfiles = map[int64]DeviceProfile{
+var fixedUVCProfiles = map[USBProductID]DeviceProfile{
 	ProductIDC960:    {Model: "EMEET C960", Family: FamilyFixedUVC},
 	ProductIDC960Old: {Model: "EMEET C960", Family: FamilyFixedUVC},
 	ProductIDC9602K:  {Model: "EMEET C960 2K", Family: FamilyFixedUVC},
@@ -80,7 +86,7 @@ var fixedUVCProfiles = map[int64]DeviceProfile{
 // ModelFromProductID maps a parsed USB product ID to its Model. The second
 // return value reports whether the product ID belongs to a supported
 // (PIXY-family) model.
-func ModelFromProductID(product int64) (Model, bool) {
+func ModelFromProductID(product USBProductID) (Model, bool) {
 	profile, ok := pixyFamilyProfiles[product]
 	if !ok {
 		return "", false
@@ -94,7 +100,7 @@ func ModelFromProductID(product int64) (Model, bool) {
 // PIXY-family variants — an explicit user opt-in outranks the fixed-UVC
 // classification), then the fixed-UVC registry. The second return value
 // reports whether the product ID is known at all.
-func ResolveProductID(product int64, extraProductIDs []int64) (DeviceProfile, bool) {
+func ResolveProductID(product USBProductID, extraProductIDs []USBProductID) (DeviceProfile, bool) {
 	if profile, ok := pixyFamilyProfiles[product]; ok {
 		return profile, true
 	}
@@ -115,7 +121,7 @@ func ResolveProductID(product int64, extraProductIDs []int64) (DeviceProfile, bo
 // ExtraModelName is the display model for a user-configured extra product
 // ID. It keeps the custom PID visible in logs and the UI so misclassified
 // devices are easy to spot.
-func ExtraModelName(product int64) Model {
+func ExtraModelName(product USBProductID) Model {
 	return Model(fmt.Sprintf("PIXY (PID 0x%04x)", product))
 }
 
@@ -123,7 +129,7 @@ func ExtraModelName(product int64) Model {
 // control. An empty model means the EMEET vendor was recognized but the
 // product ID is unknown; the hint then offers the explicit opt-in (PIXY-family
 // variants) or asks for a report so the device can be classified.
-func UnsupportedDeviceHint(model string, product int64) string {
+func UnsupportedDeviceHint(model string, product USBProductID) string {
 	if model == "" {
 		return fmt.Sprintf(
 			"unknown EMEET device (USB product ID 0x%04x) is not supported yet: "+

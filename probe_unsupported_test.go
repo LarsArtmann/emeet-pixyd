@@ -23,7 +23,7 @@ func TestHandleQueryCommand_Probe_HintTakesPrecedence(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonNoDevice(t)
-	d.deps.probeDevices = func([]int64) probeResult {
+	d.deps.probeDevices = func([]pixy.USBProductID) probeResult {
 		return probeResult{UnsupportedHint: testUnsupportedHint}
 	}
 
@@ -46,7 +46,7 @@ func TestHandleQueryCommand_Probe_DeviceFoundWinsOverHint(t *testing.T) {
 	t.Parallel()
 
 	d := testDaemonNoDevice(t)
-	d.deps.probeDevices = func([]int64) probeResult {
+	d.deps.probeDevices = func([]pixy.USBProductID) probeResult {
 		return probeResult{
 			VideoDev:        "/dev/video9",
 			HidrawDev:       "/dev/hidraw9",

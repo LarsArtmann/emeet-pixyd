@@ -465,16 +465,16 @@ func TestParseExtraProductIDs(t *testing.T) {
 	tests := []struct {
 		name  string
 		value string
-		want  []int64
+		want  []USBProductID
 	}{
 		{"empty", "", nil},
 		{"whitespace only", "  ,  ", nil},
-		{"single 0x form", "0x0119", []int64{0x0119}},
-		{"single bare hex", "01ab", []int64{0x01ab}},
-		{"uppercase 0X", "0X003F", []int64{0x003f}},
-		{"multiple with spaces", "0x0119, 01ab ,003f", []int64{0x0119, 0x01ab, 0x003f}},
-		{"invalid entries skipped", "0x0119,nope,,zz", []int64{0x0119}},
-		{"non-positive entries skipped", "0, -1, 0x0119", []int64{0x0119}},
+		{"single 0x form", "0x0119", []USBProductID{0x0119}},
+		{"single bare hex", "01ab", []USBProductID{0x01ab}},
+		{"uppercase 0X", "0X003F", []USBProductID{0x003f}},
+		{"multiple with spaces", "0x0119, 01ab ,003f", []USBProductID{0x0119, 0x01ab, 0x003f}},
+		{"invalid entries skipped", "0x0119,nope,,zz", []USBProductID{0x0119}},
+		{"non-positive entries skipped", "0, -1, 0x0119", []USBProductID{0x0119}},
 	}
 
 	for _, tc := range tests {
@@ -494,8 +494,26 @@ func TestConfigFromEnv_ExtraProductIDs(t *testing.T) {
 
 	cfg := ConfigFromEnv()
 
-	want := []int64{0x0119, 0x01ab}
+	want := []USBProductID{0x0119, 0x01ab}
 	if !slices.Equal(cfg.ExtraProductIDs, want) {
 		t.Errorf("ExtraProductIDs = %v, want %v", cfg.ExtraProductIDs, want)
+	}
+}
+
+func TestParseUSBProductID(t *testing.T) {
+	t.Parallel()
+
+	if got, err := ParseUSBProductID("0x0119"); err != nil || got != 0x0119 {
+		t.Errorf("ParseUSBProductID(0x-prefix) = %v, %v; want %v, nil", got, err, USBProductID(0x0119))
+	}
+
+	if got, err := ParseUSBProductID("  01AB "); err != nil || got != 0x01ab {
+		t.Errorf("ParseUSBProductID(bare-hex+spaces) = %v, %v; want %v, nil", got, err, USBProductID(0x01ab))
+	}
+
+	for _, bad := range []string{"", "nope", "0", "-1", "zz"} {
+		if _, err := ParseUSBProductID(bad); !errors.Is(err, ErrInvalidProductID) {
+			t.Errorf("ParseUSBProductID(%q) error = %v, want ErrInvalidProductID", bad, err)
+		}
 	}
 }

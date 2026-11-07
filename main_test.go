@@ -231,7 +231,7 @@ func noopDependencies() Dependencies {
 	return Dependencies{
 		commander:      noopCommandRunner{},
 		ueventListener: noopUeventListener{},
-		probeDevices:   func([]int64) probeResult { return probeResult{} },
+		probeDevices:   func([]pixy.USBProductID) probeResult { return probeResult{} },
 		isCameraInUse:  cameraNotInUseFn,
 		findSource:     noopFindSourceFn,
 		setSource:      noopSetSourceFn,

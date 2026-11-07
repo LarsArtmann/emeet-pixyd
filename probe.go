@@ -41,7 +41,7 @@ func isPixyName(name string) bool {
 // "prefix=..." line, or reports not-ok when the line has a different prefix
 // or cannot be parsed (uevent files can have spurious continuation lines —
 // callers keep scanning instead of treating this as a mismatch).
-func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (int64, int64, bool) {
+func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (int64, pixy.USBProductID, bool) {
 	value, hasPrefix := strings.CutPrefix(line, prefix)
 	if !hasPrefix {
 		return 0, 0, false
@@ -59,7 +59,7 @@ func parseUeventLine(line, prefix, sep string, vendorIdx, productIdx int) (int64
 		return 0, 0, false
 	}
 
-	return vendor, product, true
+	return vendor, pixy.USBProductID(product), true
 }
 
 // pixyModelFromUevent reports which PIXY-family model a "prefix=v/p/..."
@@ -71,7 +71,7 @@ func pixyModelFromUevent(
 	ueventData []byte,
 	prefix, sep string,
 	vendorIdx, productIdx int,
-	extraProductIDs []int64,
+	extraProductIDs []pixy.USBProductID,
 ) (pixy.Model, bool) {
 	for line := range strings.SplitSeq(string(ueventData), "\n") {
 		vendor, product, ok := parseUeventLine(line, prefix, sep, vendorIdx, productIdx)
@@ -121,7 +121,7 @@ func unsupportedEMEETFromUevent(
 	return ""
 }
 
-func probeVideo4linux(sysfsPath string, extraProductIDs []int64) (string, pixy.Model, string) {
+func probeVideo4linux(sysfsPath string, extraProductIDs []pixy.USBProductID) (string, pixy.Model, string) {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
 		return "", "", ""
@@ -164,7 +164,7 @@ func probeVideo4linux(sysfsPath string, extraProductIDs []int64) (string, pixy.M
 	return "", "", unsupported
 }
 
-func probeHidraw(sysfsPath string, extraProductIDs []int64) (string, pixy.Model) {
+func probeHidraw(sysfsPath string, extraProductIDs []pixy.USBProductID) (string, pixy.Model) {
 	entries, err := os.ReadDir(sysfsPath)
 	if err != nil {
 		return "", ""
@@ -216,7 +216,7 @@ const unsupportedWarnInterval = time.Hour
 //nolint:gochecknoglobals // package-level by design: probes are plain functions
 var unsupportedWarnLimiter = newWarnLimiter(unsupportedWarnInterval)
 
-func probeDevices(extraProductIDs []int64) probeResult {
+func probeDevices(extraProductIDs []pixy.USBProductID) probeResult {
 	recordProbe()
 
 	videoDev, videoModel, unsupported := probeVideo4linux("/sys/class/video4linux", extraProductIDs)

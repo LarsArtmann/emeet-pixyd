@@ -291,7 +291,7 @@ func TestAutoManage_DeviceAppearsRunsReconcile(t *testing.T) {
 	d.persistedIntent.Store(false)
 
 	probes := 0
-	d.deps.probeDevices = func([]int64) probeResult {
+	d.deps.probeDevices = func([]pixy.USBProductID) probeResult {
 		probes++
 
 		return probeResult{VideoDev: testVideoDev, HidrawDev: testHIDDev}

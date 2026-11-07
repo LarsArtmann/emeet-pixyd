@@ -152,7 +152,7 @@ func TestProbeVideo4linux_ExtraProductIDTreatedAsPIXY(t *testing.T) {
 	})
 
 	// When probing with the PID explicitly opted in
-	result, model, unsupported := probeVideo4linux(root, []int64{0x0119})
+	result, model, unsupported := probeVideo4linux(root, []pixy.USBProductID{0x0119})
 
 	// Then the device is controllable under a visible custom model name
 	if result != "/dev/video0" {

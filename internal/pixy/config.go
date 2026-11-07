@@ -29,10 +29,9 @@ type Config struct {
 	// from reaching out to api.github.com at all.
 	UpdateCheck bool
 
-	// ExtraProductIDs are additional USB product IDs (hex, from
-	// EMEET_PIXYD_EXTRA_PRODUCT_IDS) treated as PIXY-family devices. They
+	// ExtraProductIDs are additional USB product IDs (hex, from	// EMEET_PIXYD_EXTRA_PRODUCT_IDS) treated as PIXY-family devices. They
 	// let users onboard PIXY variants the registry does not know yet.
-	ExtraProductIDs []int64
+	ExtraProductIDs []USBProductID
 }
 
 // DefaultConfig returns the standard daemon configuration.
@@ -141,11 +140,24 @@ func ParseBool(value string) (bool, error) {
 	}
 }
 
+// ParseUSBProductID parses a single hex USB product ID ("0x0119", "01ab",
+// "0X01AB" — case-insensitive, optional prefix). Values that do not parse
+// or are non-positive are rejected; ParseExtraProductIDs decides the
+// skip-vs-abort policy per entry.
+func ParseUSBProductID(raw string) (USBProductID, error) {
+	id, parseErr := strconv.ParseInt(strings.TrimPrefix(strings.ToLower(strings.TrimSpace(raw)), "0x"), 16, 64)
+	if parseErr != nil || id <= 0 {
+		return 0, Wrapf(ErrInvalidProductID, "config.parse_product_id", "invalid USB product ID %q", raw)
+	}
+
+	return USBProductID(id), nil
+}
+
 // ParseExtraProductIDs parses a comma-separated list of hex USB product IDs
 // (e.g. "0x0119,01ab"). Empty, unparseable, and non-positive entries are
 // skipped with a warning so one bad value cannot disable the others.
-func ParseExtraProductIDs(value string) []int64 {
-	var ids []int64
+func ParseExtraProductIDs(value string) []USBProductID {
+	var ids []USBProductID
 
 	for raw := range strings.SplitSeq(value, ",") {
 		raw = strings.TrimSpace(raw)
@@ -153,8 +165,8 @@ func ParseExtraProductIDs(value string) []int64 {
 			continue
 		}
 
-		id, parseErr := strconv.ParseInt(strings.TrimPrefix(strings.ToLower(raw), "0x"), 16, 64)
-		if parseErr != nil || id <= 0 {
+		id, parseErr := ParseUSBProductID(raw)
+		if parseErr != nil {
 			slog.Warn("invalid EMEET_PIXYD_EXTRA_PRODUCT_IDS entry, skipping", "value", raw)
 
 			continue
@@ -183,6 +195,8 @@ var (
 		"config.default_audio",
 		"invalid default audio mode in config",
 	)
+	// ErrInvalidProductID is returned when a USB product ID fails to parse.
+	ErrInvalidProductID error = errorfamily.NewRejection("config.product_id_invalid", "invalid USB product ID")
 )
 
 // Validate checks that all required config fields are set and sane.
