@@ -20,3 +20,20 @@ lsp add gopls \
 lsp add golangci_lint_ls \
 	--command "$HOME/.local/bin/golangci-lint-lsp-wrapper" \
 	--env PATH "$GOLANGCI_LS/bin:$GO_1_27/bin:$PATH"
+
+# templ LSP must track go.mod's templ, not nixpkgs': the 0.3.1020 CLI
+# generates code in-memory that the 0.3.1100 runtime no longer compiles
+# (templ.ResolveAttributeValue was removed) — 42 false "undefined" project
+# diagnostics that nixpkgs templ cannot see past. Drop this block when
+# nixpkgs templ >= go.mod's templ.
+TEMPL_VERSION="$(grep 'a-h/templ' go.mod | awk '{print $2}')"
+TEMPL_BIN="$HOME/.cache/emeet-pixyd/templ-lsp/$TEMPL_VERSION/templ"
+if [[ ! -x "$TEMPL_BIN" ]]; then
+	mkdir -p "$(dirname "$TEMPL_BIN")"
+	GOWORK=off GOBIN="$(dirname "$TEMPL_BIN")" "$GO_1_27/bin/go" install "github.com/a-h/templ/cmd/templ@$TEMPL_VERSION"
+fi
+
+lsp add templ \
+	--command "$TEMPL_BIN" \
+	--args lsp \
+	--filetypes templ
