@@ -1062,7 +1062,9 @@ a.update-available {
   text-decoration: none;
   border-bottom: 1px dotted var(--accent);
   color: var(--accent);
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 a.update-available:hover,
