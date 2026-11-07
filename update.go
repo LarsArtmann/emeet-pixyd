@@ -196,7 +196,10 @@ func isNewerRelease(current, latest string) bool {
 	case 1:
 		return false
 	default:
-		return curPre == "" && latPre != ""
+		// Equal cores: the pre-release form is older than the final, so the
+		// latest is newer only when current carries a pre-suffix and the
+		// latest does not.
+		return curPre != "" && latPre == ""
 	}
 }
 
@@ -286,9 +289,20 @@ func isHexDigit(ch rune) bool {
 
 // checkForUpdate runs one upstream release check against the injected feed
 // functions and records the verdict. current is the running buildVersion. A
-// transient failure keeps the last known observation (no flapping); verdict
-// changes broadcast to SSE clients so open panels morph the notice in live.
+// version that cannot be compared ("dev") returns before any network use;
+// a transient failure keeps the last known observation (no flapping);
+// verdict changes broadcast to SSE clients so open panels morph the notice
+// in live.
 func (d *Daemon) checkForUpdate(ctx context.Context, current string) {
+	sha, byCommit := commitSHA(current)
+	if !byCommit {
+		if _, _, byTag := parseReleaseTag(current); !byTag {
+			slog.Debug("skipping update check for uncomparable version", "version", current)
+
+			return
+		}
+	}
+
 	release, err := d.deps.latestRelease(ctx)
 	if err != nil {
 		slog.Debug("update check failed", "error", err, "current", current)
@@ -296,9 +310,14 @@ func (d *Daemon) checkForUpdate(ctx context.Context, current string) {
 		return
 	}
 
-	newer, ok := d.releaseIsNewer(ctx, current, release)
-	if !ok {
-		return
+	newer := false
+	if byCommit {
+		newer, err = d.commitBehindRelease(ctx, release, sha)
+		if err != nil {
+			return
+		}
+	} else {
+		newer = isNewerRelease(current, release.TagName)
 	}
 
 	update := (*availableUpdate)(nil)
@@ -314,28 +333,18 @@ func (d *Daemon) checkForUpdate(ctx context.Context, current string) {
 	}
 }
 
-// releaseIsNewer decides whether the running version predates the release.
-// The second return is false when the running version cannot be compared
-// ("dev") or the SHA comparison failed — both skip the verdict entirely.
-func (d *Daemon) releaseIsNewer(ctx context.Context, current string, release githubRelease) (newer, comparable bool) {
-	if sha, isSHA := commitSHA(current); isSHA {
-		compare, err := d.deps.compareRelease(ctx, release.TagName, sha)
-		if err != nil {
-			slog.Debug("commit compare failed", "error", err, "tag", release.TagName, "sha", sha)
+// commitBehindRelease resolves the flake-build channel: the running build
+// is a commit SHA, so it is newer than the release only when the commit
+// sits strictly BEHIND the release tag in history.
+func (d *Daemon) commitBehindRelease(ctx context.Context, release githubRelease, sha string) (bool, error) {
+	compare, err := d.deps.compareRelease(ctx, release.TagName, sha)
+	if err != nil {
+		slog.Debug("commit compare failed", "error", err, "tag", release.TagName, "sha", sha)
 
-			return false, false
-		}
-
-		return compare.Status == "behind" && compare.BehindBy > 0, true
+		return false, err
 	}
 
-	if _, _, isTag := parseReleaseTag(current); isTag {
-		return isNewerRelease(current, release.TagName), true
-	}
-
-	slog.Debug("skipping update check for uncomparable version", "version", current)
-
-	return false, false
+	return compare.Status == "behind" && compare.BehindBy > 0, nil
 }
 
 // runUpdateChecker polls the upstream release feed until ctx is done: first
