@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1100
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/go-branded-id v0.7.0
+	github.com/larsartmann/go-branded-id v0.7.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/starfederation/datastar-go v1.2.2
@@ -14,7 +14,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.69.0
 	go.opentelemetry.io/otel/metric v1.47.0
 	go.opentelemetry.io/otel/sdk/metric v1.47.0
-	golang.org/x/sys v0.49.0
+	golang.org/x/sys v0.50.0
 )
 
 require (
