@@ -19,3 +19,5 @@ reports/** linguist-generated
 *.jpg binary
 # Binary files should not be diffed or merged
 *.webp binary
+# Binary files should not be diffed or merged
+*.gz binary
