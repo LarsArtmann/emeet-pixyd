@@ -124,3 +124,11 @@ Actions the system can perform (via Unix socket, CLI, or web UI).
 > - Update when new domain concepts emerge
 > - Use these terms consistently in code, docs, and conversations
 > - When in doubt about a word's meaning, check here first
+
+## Anti-Language (words this repo deliberately does NOT use)
+
+| Banned                            | Say instead                                  | Why                                                                                       |
+| --------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| offline (persisted as intent)     | connectivity observation, `devicePresence.Online` | Glossary: offline is a connectivity observation, not a camera mode; `ValidDesired()` excludes it. |
+| connectivity (persisted)          | runtime observation via `presence()`/`/api/status` | Glossary: Connectivity is observed at runtime, never persisted.                           |
+| vendor hid (bytes to a fixed uvc camera) | standard UVC driver only                | Glossary: fixed UVC webcams are never sent vendor HID bytes.                              |
